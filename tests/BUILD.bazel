@@ -1,0 +1,259 @@
+"""Package purpose: Hermetic BATS safety tests, kustomize build tests, and manifest/safety invariant checks."""
+
+"""Tests package for nvidia-dgx-spark-lab.
+
+The BATS suite validates the safety-critical behavior of scripts/manage.sh
+(confirmation prompts for heavy mode, restartPolicy + backoffLimit,
+NCCL high-speed interconnect configuration, resource limits, etc.).
+
+These tests were written to be hermetic (they heavily mock kubectl and
+external commands). We now also execute them hermetically under Bazel
+using a vendored bats-core.
+"""
+
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
+package(default_visibility = ["//visibility:private"])
+
+# Original BATS sources (kept unchanged so `make test` continues to work)
+filegroup(
+    name = "bats_sources",
+    srcs = glob(
+        ["bats/*.bats"],
+        allow_empty = False,
+    ) + [
+        "bats/test_helper.bash",
+    ],
+    visibility = ["//scripts:__pkg__"],
+)
+
+# Hermetic bats-core from BCR equivalent (http_archive)
+filegroup(
+    name = "bats_tool",
+    srcs = ["@bats_core//:bin/bats"],
+    data = [
+        "@bats_core//:libexec/bats-core/bats",
+        "@bats_core//:libexec/bats-core/bats-exec-file",
+        "@bats_core//:libexec/bats-core/bats-exec-suite",
+        "@bats_core//:libexec/bats-core/bats-exec-test",
+        "@bats_core//:libexec/bats-core/bats-format-cat",
+        "@bats_core//:libexec/bats-core/bats-format-junit",
+        "@bats_core//:libexec/bats-core/bats-format-pretty",
+        "@bats_core//:libexec/bats-core/bats-format-tap",
+        "@bats_core//:libexec/bats-core/bats-format-tap13",
+        "@bats_core//:libexec/bats-core/bats-gather-tests",
+        "@bats_core//:libexec/bats-core/bats-preprocess",
+    ],
+)
+
+_BATS_COMMON_DATA = [
+    "README.md",
+    "bats/test_helper.bash",
+    ":bats_tool",
+    "//config:resource_policy",
+    "//mcp:safety_data",
+    "//hermes:safety_data",
+    "//k8s/base:namespace",
+    "//k8s/dev:dev_dashboard",
+    "//k8s/workloads/glm-5.2:glm_job",
+    "//k8s/workloads/kimi:kimi_job",
+    "//k8s/workloads/kimi-test:test_job",
+    "//k8s/workloads/nemotron-3-ultra:nemotron_job",
+    "//k8s/workloads/ray-head:ray_head",
+    "//k8s/workloads/ray-worker:ray_worker",
+    "//scripts:manage.sh",
+    "//scripts:utilities",
+    "//scripts:lib/check_tool.sh",
+    "//scripts:lib/common.sh",
+    "//scripts:lib/paths.sh",
+    "//scripts:lib/models.sh",
+    "//scripts:lib/dev.sh",
+    "//scripts:lib/resources.sh",
+    "//scripts:lib/secrets.sh",
+    "//scripts:lib/mcp.sh",
+    "//scripts:lib/hermes.sh",
+    "//scripts:lib/workspace-hermes.sh",
+    "//scripts:lib/monitoring.sh",
+    "//scripts:lib/open-webui.sh",
+    "//scripts:lib/domains.sh",
+]
+
+# Split BATS files into separate sh_test targets so Bazel can run them in parallel.
+sh_test(
+    name = "bats_manage_test",
+    size = "medium",
+    timeout = "short",
+    srcs = ["bats_runner.sh"],
+    args = ["manage.bats"],
+    data = _BATS_COMMON_DATA + ["bats/manage.bats"],
+)
+
+sh_test(
+    name = "bats_utilities_test",
+    size = "small",
+    timeout = "short",
+    srcs = ["bats_runner.sh"],
+    args = ["utilities.bats"],
+    data = _BATS_COMMON_DATA + ["bats/utilities.bats"],
+)
+
+sh_test(
+    name = "bats_check_tool_test",
+    size = "small",
+    timeout = "short",
+    srcs = ["bats_runner.sh"],
+    args = ["check_tool.bats"],
+    data = _BATS_COMMON_DATA + ["bats/check_tool.bats"],
+)
+
+sh_test(
+    name = "bats_domains_test",
+    size = "small",
+    timeout = "short",
+    srcs = ["bats_runner.sh"],
+    args = ["domains.bats"],
+    data = [
+        "bats/domains.bats",
+        "bats/test_helper.bash",
+        ":bats_tool",
+        "//config:resource_policy",
+        "//k8s/auth/generated:generated_auth",
+        "//k8s/cert-manager/generated:generated_certs",
+        "//scripts:lib/common.sh",
+        "//scripts:lib/domains.sh",
+        "//scripts:lib/paths.sh",
+        "//scripts:lib/sso.sh",
+        "//scripts:manage.sh",
+        "//scripts:render_domains_py",
+        "//scripts:utilities",
+    ],
+)
+
+sh_test(
+    name = "bats_tooling_test",
+    size = "small",
+    timeout = "short",
+    srcs = ["bats_runner.sh"],
+    args = ["tooling.bats"],
+    data = [
+        "bats/test_helper.bash",
+        "bats/tooling.bats",
+        ":bats_tool",
+        "//scripts:lib/paths.sh",
+        "//scripts:lib/rebuild-cleanup.sh",
+        "//scripts:utilities",
+        "//scripts:validate",
+        "//scripts:yaml_format.sh",
+    ],
+)
+
+test_suite(
+    name = "bats",
+    tests = [
+        ":bats_check_tool_test",
+        ":bats_domains_test",
+        ":bats_manage_test",
+        ":bats_tooling_test",
+        ":bats_utilities_test",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+exports_files(
+    ["bats_runner.sh"],
+    visibility = ["//lints:__pkg__"],
+)
+
+sh_test(
+    name = "kustomize_build",
+    srcs = ["kustomize_build.sh"],
+    data = [
+        "//k8s/overlays/prod:overlay_prod",
+        "//k8s/overlays/single-node:overlay_single",
+        "//k8s/overlays/test:overlay_test",
+        "//k8s/workloads/kimi:kimi_job",
+        "//k8s/workloads/kimi-test:test_job",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sh_test(
+    name = "safety_invariants",
+    srcs = ["safety_invariants.sh"],
+    data = [
+        "//ansible:all_playbooks",
+        "//config:grafana_dashboards",
+        "//config:resource_policy",
+        "//hermes:safety_data",
+        "//k8s/auth/generated:generated_auth",
+        "//k8s/base:resource_guard",
+        "//k8s/cert-manager/generated:generated_certs",
+        "//k8s/dev:safety_data",
+        "//k8s/dev/dashboard:dashboard_all",
+        "//k8s/workloads/glm-5.2:glm_job",
+        "//k8s/workloads/kimi:kimi_job",
+        "//k8s/workloads/kimi-test:test_job",
+        "//k8s/workloads/nemotron-3-nano-30b:nemotron_3_nano_30b_job",
+        "//k8s/workloads/nemotron-3-nano-omni-30b:nemotron_3_nano_omni_30b_job",
+        "//k8s/workloads/nemotron-3-super-120b:nemotron_3_super_120b_job",
+        "//k8s/workloads/nemotron-3-ultra:nemotron_job",
+        "//k8s/workloads/nemotron-parse:nemotron_parse_deployment",
+        "//k8s/workloads/nemotron-retriever-embed:nemotron_retriever_embed_deployment",
+        "//k8s/workloads/nemotron-retriever-rerank:nemotron_retriever_rerank_deployment",
+        "//k8s/workloads/nemotron-safety-guard:nemotron_safety_guard_deployment",
+        "//k8s/workloads/nemotron-speech-asr:nemotron_speech_asr_deployment",
+        "//k8s/workloads/nemotron-speech-tts:nemotron_speech_tts_deployment",
+        "//k8s/workloads/qwen3.5-122b-a10b-nvfp4:qwen3_5_122b_a10b_nvfp4_job",
+        "//k8s/workloads/qwen3.5-397b-nvfp4:qwen3_5_397b_nvfp4_job",
+        "//k8s/workloads/qwen3.5-397b-spark2:qwen3_5_397b_spark2_job",
+        "//k8s/workloads/ray-head:ray_head",
+        "//k8s/workloads/ray-worker:ray_worker",
+        "//mcp:safety_data",
+        "//scripts:lib/mcp.sh",
+        "//scripts:lib/monitoring.sh",
+        "//scripts:utilities/monitoring-stack.sh",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sh_test(
+    name = "manifest_coverage",
+    srcs = ["manifest_coverage.sh"],
+    data = ["manifest_coverage.py"],
+    visibility = ["//visibility:public"],
+)
+
+sh_test(
+    name = "doc_coverage",
+    srcs = ["doc_coverage.sh"],
+    data = ["doc_coverage.py"],
+    visibility = ["//visibility:public"],
+)
+
+sh_test(
+    name = "shell_coverage",
+    size = "large",
+    timeout = "eternal",
+    srcs = ["shell_coverage.sh"],
+    data = _BATS_COMMON_DATA + [
+        "bats/check_tool.bats",
+        "bats/domains.bats",
+        "bats/manage.bats",
+        "bats/tooling.bats",
+        "bats/utilities.bats",
+        "bats_runner.sh",
+        "//k8s/auth/generated:generated_auth",
+        "//k8s/cert-manager/generated:generated_certs",
+        "//k8s/dev/dashboard:dashboard_all",
+        "//scripts:lib/sso.sh",
+        "//scripts:render_domains_py",
+        "//scripts:validate",
+        "//scripts:yaml_format.sh",
+    ],
+    tags = [
+        "local",
+        "manual",
+        "no-sandbox",
+    ],
+    visibility = ["//visibility:public"],
+)
