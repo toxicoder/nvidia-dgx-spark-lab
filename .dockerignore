@@ -1,0 +1,25 @@
+# Docker build context exclusions (repo root; used by dashboard/Dockerfile)
+# Prevents shipping caches and Bazel outputs into image builds.
+
+# Dashboard dependencies and build output
+dashboard/node_modules
+dashboard/.next
+dashboard/test-results
+dashboard/**/actuals
+
+# Repo-wide noise
+bazel-*
+bazel-out/
+external/
+.git
+.github
+.DS_Store
+*.log
+.venv*/
+site/
+docs/tests/visual/actuals/
+ansible/
+helm/
+k8s/
+tests/
+docs/generated/

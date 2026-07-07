@@ -1,0 +1,26 @@
+# Ignore directories that should never be part of the Bazel workspace
+.git
+.github
+# Do NOT ignore docs/ itself because we have docs/BUILD.bazel and content
+# Generated docs site and virtualenv for docs must be ignored
+site/
+.venv-docs/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+# Temporary / generated during operation
+kubeconfig
+# User-specific inventory (contains IPs)
+ansible/inventory/hosts.ini
+# Test temp
+tests/bats/tmp
+# OS / editor noise
+**/.DS_Store
+**/*~
+# Keep .ansible (tool cache) out if it gets large
+.ansible
+
+# Node / frontend (prevent accidental inclusion in Bazel source globs)
+node_modules/
+dashboard/node_modules/

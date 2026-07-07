@@ -1,0 +1,115 @@
+# Ansible
+*.retry
+ansible/inventory/hosts.ini
+ansible/inventory/*.pem
+
+# Kubeconfig
+kubeconfig
+*.kubeconfig
+.kube/
+
+# Scripts temp
+scripts/*.log
+scripts/tmp/
+k8s/monitoring/.prometheus-runtime.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor — commit shared workspace config; ignore personal overrides
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+*.swp
+*~
+
+# Hermes Agent runtime data (secrets, sessions, memories)
+hermes/data/
+
+# Misc
+*.bak
+
+# Local environment and secrets (never commit real values)
+.env
+.env.*
+!.env.example
+mcp/config/secrets.env
+k8s/auth/secrets.yaml
+!k8s/auth/secrets.example.yaml
+
+# Python virtualenvs (docs tooling, local dev)
+.venv*/
+
+# Local SQLite databases (dashboard dev)
+*.db
+*.sqlite
+
+# Python caches (ensure not committed; Bazel + tests generate these)
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Test artifacts
+tests/bats/tmp/
+*.tap
+kcov-*.txt
+shell_coverage-*.log
+.bats/
+coverage/
+
+# Ansible generated / collections (can contain auth)
+.ansible/
+
+# Bazel build artifacts (never commit outputs)
+bazel-*
+.bazel/
+.bazelrc.user
+bazel-out/
+external/
+
+# Generated docs site (MkDocs output; use ./docs/manage-docs.sh for local builds)
+site/
+
+# Temporary dev config created by manage-docs.sh serve
+.mkdocs-serve-*.yml
+
+# Lockfile is committed for Bzlmod, but ensure no user overrides
+# (MODULE.bazel.lock is intentionally tracked)
+
+# Any local inventory or rendered secrets
+*.rendered
+vault-password.txt
+
+# Visual test generated artifacts (actual/current screenshots captured during runs).
+# ONLY the committed baseline goldens under goldens/ directories are part of the repo.
+# See .gitattributes for binary handling of the committed *.png baselines.
+# Actuals and internal snapshots go under the per-system tests/visual/ trees
+# (consistent layout between docs/ and dashboard/).
+docs/tests/visual/actuals/
+**/tests/visual/actuals/
+**/test-results/
+**/test-results-*/
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Node.js / frontend build caches (dashboard)
+# These are huge and must never be committed. Docker builds also exclude them via .dockerignore.
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+
+# Playwright (and similar) snapshot artifacts under visual tests.
+# These are platform-specific and generated locally during runs.
+# Only the committed baselines live in */tests/visual/goldens/ (cross-platform pngs + README).
+# Matches the pattern used for docs site visuals.
+**/tests/visual/__snapshots__/
+**/*-snapshots/
+dashboard/tests/visual/goldens/**/*-snapshots/
+# Scratch/debug PNGs from manual golden diff sessions (never commit).
+**/tests/visual/goldens/_*

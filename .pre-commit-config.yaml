@@ -1,0 +1,45 @@
+# Local hooks use trusted CLI tools from PATH (see .devcontainer/Dockerfile).
+# Install: pip install --user pre-commit && pre-commit install
+# Run all: pre-commit run --all-files
+
+repos:
+  - repo: local
+    hooks:
+      - id: buildifier
+        name: buildifier (Bazel BUILD/.bzl)
+        entry: >-
+          bash -c 'find . -type f \( -name "BUILD*" -o -name "*.bzl" \) ! -path "*/bazel-*/*"
+          ! -path "./site/*" ! -path "./.venv*" ! -path "./node_modules/*"
+          ! -path "./bazel-bin/*" ! -path "./bazel-out/*" -print0
+          | xargs -0 -r buildifier -mode=check'
+        language: system
+        files: (BUILD(\..*)?|.*\.bzl)$
+        pass_filenames: false
+
+      - id: shfmt
+        name: shfmt (shell format check)
+        entry: shfmt -d -s -i 2 -ci
+        language: system
+        types: [shell]
+        exclude: ^(bazel-|site/|\.venv|node_modules/)
+
+      - id: shellcheck
+        name: shellcheck
+        entry: shellcheck -x --severity=warning
+        language: system
+        types: [shell]
+        exclude: ^(bazel-|site/|\.venv|node_modules/|dashboard/node_modules/)
+
+      - id: prettier-yaml
+        name: prettier (YAML format)
+        entry: bash scripts/yaml_format.sh --write
+        language: system
+        files: \.(ya?ml)$
+        exclude: (^bazel-|/bazel-|^site/|\.venv|node_modules/|\.ya?ml\.j2$|helm/.*/templates/)
+
+      - id: yamllint
+        name: yamllint
+        entry: yamllint -c .yamllint.yml
+        language: system
+        files: \.(ya?ml)$
+        exclude: (^bazel-|/bazel-|^site/|\.venv|node_modules/|\.ya?ml\.j2$|helm/.*/templates/)

@@ -1,0 +1,32 @@
+{
+  "recommendations": [
+    // Bazel / Starlark
+    "bazelbuild.vscode-bazel",
+
+    // Python — format, lint, type-check
+    "ms-python.python",
+    "charliermarsh.ruff",
+    "ms-python.mypy-type-checker",
+
+    // Shell — format + lint
+    "mkhl.shfmt",
+    "timonwong.shellcheck",
+
+    // Formatting (YAML, dashboard TS/MD/JSON)
+    "esbenp.prettier-vscode",
+
+    // Dashboard — TypeScript / React
+    "dbaeumer.vscode-eslint",
+    "bradlc.vscode-tailwindcss",
+    "vitest.explorer",
+    "ms-playwright.playwright",
+
+    // Infrastructure as code
+    "redhat.vscode-yaml",
+    "redhat.ansible",
+    "ms-kubernetes-tools.vscode-kubernetes-tools",
+
+    // Dev container workflow
+    "ms-vscode-remote.remote-containers"
+  ]
+}
