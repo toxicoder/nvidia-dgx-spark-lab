@@ -1,0 +1,121 @@
+site_name: "nvidia-dgx-spark-lab"
+site_url: "https://toxicoder.github.io/nvidia-dgx-spark-lab"
+repo_url: "https://github.com/toxicoder/nvidia-dgx-spark-lab"
+edit_uri: "edit/main/docs/"
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.path # Breadcrumbs
+    - navigation.top
+    - navigation.prune
+    - navigation.instant
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+    - toc.follow
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Concepts & Notes:
+      - DGX Spark Notes: dgx-spark-notes.md
+      - Reboot Safety: reboot-safety.md
+      - Models & Resources: models-catalog.md
+      - Nemotron Agentic Stack: nemotron-agentic-stack.md
+      - MCP Agent Toolkit: mcp-agent-toolkit.md
+      - Hermes Agent (Docker): hermes-agent.md
+      - Open WebUI (Agent Chat): open-webui.md
+      - SSO (Traefik + Authelia): sso.md
+      - Resource Guard: resource-guard.md
+      - Architecture: architecture.md
+      - Monitoring & Observability: monitoring-observability.md
+  - How-to Guides:
+      - Bazel Documentation: BUILDING_WITH_BAZEL.md
+      - Gitea CI Setup: gitea-ci-setup.md
+      - Dev Workspaces & Dashboard: dev-workspaces.md
+      - Troubleshooting: troubleshooting.md
+  - Reference:
+      - Project Conventions: project-conventions.md
+      - Contributing to Docs: CONTRIBUTING.md
+      - Code-Generated Reference:
+          - Shell Commands & Helpers: generated/shell/reference.md
+          - Dashboard API: generated/dashboard-api/README.md
+      # Note: "Bazel Documentation" is the canonical entry under How-to Guides to avoid
+      # duplicate content in the top-level tabs/sections produced by navigation.tabs.
+      # Cross-root files (AGENTS.md, etc.) are linked from the main README
+      # or available directly in the repo. Add copies/symlinks under docs/ if full integration needed.
+
+plugins:
+  - search
+  # - git-revision-date-localized:   # Enable for "Last updated" dates (add to requirements.txt)
+  #     enable_creation_date: true
+  #     type: timeago
+  - glightbox
+
+hooks:
+  # Early <script> injection for GitHub API fetch patch (suppresses 404 console noise
+  # for repo stats/releases on private repos while keeping repo_url/edit_uri working).
+  - docs/hooks.py
+
+extra_javascript:
+  - assets/javascripts/command-vars.js
+
+extra_css:
+  - assets/stylesheets/command-vars.css
+
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - admonition
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: "https://github.com/toxicoder/nvidia-dgx-spark-lab"
+  # version: ...  # can be stamped via Bazel workspace status later
+
+# Strict mode recommended in CI
+exclude_docs: |
+  **/*.sh
+  **/BUILD.bazel
+  **/requirements.txt
+  **/setup-docs.sh
+  **/manage-docs.sh
+  **/hooks.py
+
+# strict: true   # enable via CLI flag instead: mkdocs build --strict

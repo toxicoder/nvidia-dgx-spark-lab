@@ -1,0 +1,5 @@
+mkdocs==1.6.1
+mkdocs-material==9.6.11
+mkdocs-glightbox==0.4.0
+playwright>=1.44.0  # for browser screenshots + visual goldens of the rendered site (in test_mkdocs_render or companion)
+# mkdocs-git-revision-date-localized==1.2.9  # Add when network allows; provides "Last updated" dates
