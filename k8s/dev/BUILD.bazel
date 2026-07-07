@@ -1,0 +1,30 @@
+"""Package purpose: Dev environment dashboard reference and dev safety data filegroups."""
+
+"""k8s/dev: developer tools, workspaces dashboard, monitoring helpers.
+
+Contains the custom lab portal + references (Headlamp/Grafana deployed via helm).
+"""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "dev_dashboard",
+    srcs = ["//k8s/dev/dashboard:dashboard_all"],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+filegroup(
+    name = "safety_data",
+    srcs = [
+        "images/coder-workspace/Dockerfile",
+        "images/kasm-spark-desktop/Dockerfile",
+        "open-webui/hermes-gateway.yaml",
+        "templates/coder-spark-lab/main.tf",
+    ],
+    visibility = ["//tests:__pkg__"],
+)

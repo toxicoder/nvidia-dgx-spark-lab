@@ -1,0 +1,24 @@
+# Purpose: Kubernetes Service for nemotron speech tts inference endpoint
+# Source of truth: k8s/workloads/nemotron-speech-tts/
+# Regenerate: n/a
+# Safety: exposes inference API; protect with SSO ingress
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+  name: nemotron-speech-tts
+  namespace: ai-inference
+  labels:
+    app: nemotron-speech-tts
+spec:
+  selector:
+    app: nemotron-speech-tts
+  ports:
+    - port: 9001
+      targetPort: 9001
+      name: http
+  type: ClusterIP

@@ -1,0 +1,13 @@
+# Purpose: Single-node kustomize overlay
+# Source of truth: n/a
+# Regenerate: n/a
+# Safety: adjusts tensor parallel for one host
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../workloads/kimi-test
+
+patches:
+  - path: patches/single-node-tensor-parallel.yaml

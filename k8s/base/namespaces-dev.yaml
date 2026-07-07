@@ -1,0 +1,53 @@
+# Purpose: Dev workspace namespace definitions
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: isolates Coder and dashboard workloads
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+  labels:
+    app.kubernetes.io/part-of: nvidia-dgx-spark-lab
+    lab.tier: management
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    app.kubernetes.io/part-of: nvidia-dgx-spark-lab
+    lab.tier: management
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: coder
+  labels:
+    app.kubernetes.io/part-of: nvidia-dgx-spark-lab
+    lab.tier: optional_dev
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: coder-workspaces
+  labels:
+    app.kubernetes.io/part-of: nvidia-dgx-spark-lab
+    lab.tier: optional_dev
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kasm
+  labels:
+    app.kubernetes.io/part-of: nvidia-dgx-spark-lab
+    lab.tier: optional_dev
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: agent-tools
+  labels:
+    app.kubernetes.io/part-of: nvidia-dgx-spark-lab
+    lab.tier: optional_dev
+    purpose: mcp-agent-toolkit

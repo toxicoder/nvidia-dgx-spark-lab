@@ -1,0 +1,38 @@
+# Purpose: Container default/limit ranges for lab namespaces
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: enforces per-pod resource ceilings
+
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: lab-inference-limits
+  namespace: ai-inference
+spec:
+  limits:
+    - type: Container
+      defaultRequest:
+        cpu: 100m
+        memory: 128Mi
+      default:
+        cpu: "1"
+        memory: 1Gi
+      max:
+        cpu: "64"
+        memory: 256Gi
+        nvidia.com/gpu: "8"
+      min:
+        cpu: 50m
+        memory: 64Mi
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: lab-dev-limits
+  namespace: dev
+spec:
+  limits:
+    - type: Container
+      max:
+        cpu: "2"
+        memory: 2Gi

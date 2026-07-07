@@ -1,0 +1,11 @@
+# Purpose: Kustomize bundle for nemotron 3 ultra workload
+# Source of truth: k8s/workloads/nemotron-3-ultra/
+# Regenerate: n/a
+# Safety: manual start via manage.sh; heavy GPU resources when Jobs run
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - nemotron-3-ultra-job.yaml
+  - service.yaml

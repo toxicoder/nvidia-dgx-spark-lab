@@ -1,0 +1,13 @@
+# Purpose: Test kustomize overlay with reduced resources
+# Source of truth: n/a
+# Regenerate: n/a
+# Safety: for smoke tests only
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../workloads/kimi-test
+
+patches:
+  - path: patches/test-resources.yaml # example patch for lighter resources (modern syntax)

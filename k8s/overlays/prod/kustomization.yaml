@@ -1,0 +1,11 @@
+# Purpose: Production kustomize overlay
+# Source of truth: n/a
+# Regenerate: n/a
+# Safety: review resource patches before prod apply
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../workloads/kimi
+# Prod uses full resources from base workloads. Add patches here as needed.

@@ -1,0 +1,24 @@
+# Purpose: Kubernetes Service for nemotron 3 nano omni 30b inference endpoint
+# Source of truth: k8s/workloads/nemotron-3-nano-omni-30b/
+# Regenerate: n/a
+# Safety: exposes inference API; protect with SSO ingress
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+  name: nemotron-3-nano-omni-30b
+  namespace: ai-inference
+  labels:
+    app: nemotron-3-nano-omni-30b
+spec:
+  selector:
+    app: nemotron-3-nano-omni-30b
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: http
+  type: ClusterIP

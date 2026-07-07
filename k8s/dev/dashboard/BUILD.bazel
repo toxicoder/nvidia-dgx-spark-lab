@@ -1,0 +1,42 @@
+"""Package purpose: Kubernetes manifests for the custom lab portal dashboard deployment."""
+
+"""Dashboard (custom lab portal + references to Headlamp/Grafana).
+
+Static assets + manifests for the improved DGX-like control UI.
+"""
+
+load("@rules_shell//shell:sh_test.bzl", "sh_test")  # if needed later
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "dashboard_all",
+    srcs = [
+        "README.md",
+        "configmap.yaml",  # legacy placeholder only (old static+backend removed 2026-06-23; not mounted by current deployment)
+        "deployment.yaml",
+        "rbac.yaml",
+        "service.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+exports_files(
+    [
+        "deployment.yaml",
+        "service.yaml",
+        "configmap.yaml",  # legacy placeholder
+        "rbac.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)

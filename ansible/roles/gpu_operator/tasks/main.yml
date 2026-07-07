@@ -1,0 +1,78 @@
+# Purpose: Install NVIDIA GPU Operator Helm release
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: cluster-wide; affects all GPU workloads
+
+---
+# ## GPU Operator role
+#
+# Installs the NVIDIA GPU Operator via Helm.
+# Enables drivers, device plugin, MIG, etc. on the DGX Spark nodes.
+#
+# Called from install-gpu-operator.yml and full-lab-setup.
+# Uses values from group_vars (gpu_operator_version, etc.).
+- name: Add NVIDIA Helm repository
+  shell: |
+    helm repo add nvidia https://helm.ngc.nvidia.com/nvidia || true
+    helm repo update
+  changed_when: false
+
+- name: Create gpu-operator namespace
+  shell: |
+    kubectl create namespace gpu-operator --dry-run=client -o yaml | kubectl apply -f -
+
+- name: Deploy NVIDIA GPU Operator
+  shell: |
+    helm upgrade --install gpu-operator nvidia/gpu-operator \
+      --namespace gpu-operator \
+      --version {{ gpu_operator_version }} \
+      --set driver.enabled=true \
+      --set toolkit.enabled=true \
+      --set devicePlugin.enabled=true \
+      --set migManager.enabled=true \
+      --set operator.defaultRuntime=containerd \
+      --set cdi.enabled=true \
+      --set dcgmExporter.enabled=true \
+      --wait \
+      --timeout 15m
+  register: gpu_install
+  changed_when: "'unchanged' not in gpu_install.stdout"
+
+- name: Wait for GPU Operator pods
+  shell: |
+    kubectl wait --for=condition=ready pod \
+      -l app.kubernetes.io/name=gpu-operator \
+      -n gpu-operator \
+      --timeout=600s || true
+    kubectl get pods -n gpu-operator
+  register: gpu_pods
+  changed_when: false
+
+- name: Show GPU Operator status
+  debug:
+    var: gpu_pods.stdout_lines
+
+- name: Verify GPU resources
+  shell: |
+    for i in {1..30}; do
+      if kubectl describe node {{ k3s_control_plane }} | grep -q 'nvidia.com/gpu'; then
+        echo "GPU resources detected"
+        exit 0
+      fi
+      echo "Waiting for GPU resources... ($i/30)"
+      sleep 10
+    done
+    echo "GPU resources not yet visible. Check nvidia-smi and operator logs."
+    exit 1
+  register: gpu_wait
+  changed_when: false
+
+- name: Display allocatable GPUs
+  shell: |
+    kubectl get nodes -o custom-columns='NAME:.metadata.name,GPU:.status.allocatable.nvidia.com/gpu'
+  register: gpu_alloc
+  changed_when: false
+
+- name: Show GPU allocation
+  debug:
+    var: gpu_alloc.stdout_lines

@@ -1,0 +1,55 @@
+# nvidia-dgx-spark-lab Ansible Inventory
+# Copy to hosts.ini and fill in your actual addresses.
+#
+# SCALABILITY: Supports 1-4 DGX Spark nodes connected via high-speed (dual 400G) links.
+# - 1 node: Only spark0 (all-in-one control-plane + worker). No inter-node NCCL needed.
+# - 2-4 nodes: spark0 as K3s control-plane + worker; spark1+ as additional workers.
+#   High-speed links between nodes for multi-node NCCL (tensor/pipeline parallel).
+# - Tailored for small clusters (1-4). For larger, consider K3s HA and different networking.
+# - Node names are conventional; customize hostnames/IPs as needed.
+#
+# Example for 1 node:
+# [spark0]
+# spark0 ansible_host=10.0.0.10 ansible_user=ubuntu
+#
+# Example for 2 nodes (default):
+# [spark0]
+# spark0 ansible_host=10.0.0.10 ansible_user=ubuntu
+# [spark1]
+# spark1 ansible_host=10.0.0.11 ansible_user=ubuntu
+#
+# For 3-4 nodes, add [spark2], [spark3] etc. under [k3s_agent] and [k3s_cluster].
+
+[spark0]
+spark0 ansible_host=10.0.0.10 ansible_user=ubuntu
+
+# Uncomment and add for 2+ nodes
+# [spark1]
+# spark1 ansible_host=10.0.0.11 ansible_user=ubuntu
+# [spark2]
+# spark2 ansible_host=10.0.0.12 ansible_user=ubuntu
+# [spark3]
+# spark3 ansible_host=10.0.0.13 ansible_user=ubuntu
+
+[k3s_cluster:children]
+spark0
+# spark1
+# spark2
+# spark3
+
+[k3s_server]
+spark0
+
+[k3s_agent]
+# spark1
+# spark2
+# spark3
+
+# High-speed interconnect configuration (for 2+ nodes)
+# Update these to match your actual dual 400G QSFP112 interface names on each node.
+# For 1 node, this section is ignored (single-node NCCL uses local paths).
+[highspeed]
+spark0 enp1s0f0np0=enp1s0f0np0 enp1s0f1np1=enp1s0f1np1
+# spark1 enp1s0f0np0=enp1s0f0np0 enp1s0f1np1=enp1s0f1np1
+# spark2 enp1s0f0np0=enp1s0f0np0 enp1s0f1np1=enp1s0f1np1
+# spark3 enp1s0f0np0=enp1s0f0np0 enp1s0f1np1=enp1s0f1np1

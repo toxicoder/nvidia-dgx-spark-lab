@@ -1,0 +1,57 @@
+# Purpose: Install and configure Coder dev workspaces via Helm
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: deploys into dev namespace
+
+---
+# ## coder role
+#
+# Deploys Coder (VS Code workspaces) using the official coder-v2 chart.
+# Committed values ensure safe resource usage inside the lab.
+#
+# @role coder
+# Called from install-dev-workspaces.yml and manage.sh start-coder.
+# See dev-workspaces.md for end-user documentation.
+
+- name: Add Coder Helm repo
+  shell: |
+    helm repo add coder-v2 https://helm.coder.com/v2 || true
+    helm repo update
+  changed_when: false
+
+- name: Create Coder DB secret (in-cluster Postgres POC example)
+  shell: |
+    kubectl create secret generic coder-db-url -n coder \
+      --from-literal=url="postgres://coder:coder@postgresql.coder.svc.cluster.local:5432/coder?sslmode=disable" \
+      --dry-run=client -o yaml | kubectl apply -f -
+  changed_when: false
+
+- name: Deploy/upgrade Coder
+  shell: |
+    helm upgrade --install coder coder-v2/coder \
+      --namespace coder \
+      --version {{ coder_version }} \
+      --set coder.env[0].name=CODER_PG_CONNECTION_URL \
+      --set coder.env[0].valueFrom.secretKeyRef.name=coder-db-url \
+      --set coder.env[0].valueFrom.secretKeyRef.key=url \
+      --set coder.service.type=NodePort \
+      --set coder.service.nodePorts.http={{ coder_nodeport }} \
+      --set coder.resources.requests.cpu={{ coder_server_cpu_request }} \
+      --set coder.resources.requests.memory={{ coder_server_mem_request }} \
+      --set coder.resources.limits.cpu={{ coder_server_cpu_limit }} \
+      --set coder.resources.limits.memory={{ coder_server_mem_limit }} \
+      --wait \
+      --timeout 10m
+  register: coder_install
+  changed_when: "'unchanged' not in coder_install.stdout"
+
+- name: Wait for Coder pods
+  shell: |
+    kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=coder -n coder --timeout=300s || true
+    kubectl get pods -n coder
+  register: coder_pods
+  changed_when: false
+
+- name: Show Coder status
+  debug:
+    var: coder_pods.stdout_lines

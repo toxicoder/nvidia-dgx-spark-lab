@@ -1,0 +1,26 @@
+"""Package purpose: Helm chart filegroups and chart template smoke test."""
+
+"""Helm charts (currently lab-dashboard only).
+
+Listed for Bazel visibility/queries/packaging. Helm template smoke tests run via chart_test.
+See helm/lab-dashboard/ for the chart.
+"""
+
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
+filegroup(
+    name = "all_charts",
+    srcs = glob(["**/*"]),
+    visibility = ["//visibility:public"],
+)
+
+sh_test(
+    name = "chart_test",
+    srcs = ["chart_test.sh"],
+    data = [
+        ":all_charts",
+        "//scripts:lib/check_tool.sh",
+    ],
+    tags = ["manual"],
+    visibility = ["//visibility:public"],
+)

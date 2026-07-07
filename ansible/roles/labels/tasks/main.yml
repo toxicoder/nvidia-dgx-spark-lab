@@ -1,0 +1,22 @@
+# Purpose: Apply Kubernetes node labels for scheduling
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: changes node affinity for workloads
+
+---
+- name: Label control-plane node
+  shell: |
+    kubectl label node {{ k3s_control_plane }} node-role.kubernetes.io/control-plane= --overwrite || true
+    kubectl label node {{ k3s_control_plane }} node-role.kubernetes.io/worker= --overwrite || true
+    kubectl label node {{ k3s_control_plane }} nvidia-dgx-spark/role=control-plane-worker --overwrite || true
+
+- name: Label worker nodes (if any)
+  shell: |
+    kubectl label node {{ item }} node-role.kubernetes.io/worker= --overwrite || true
+    kubectl label node {{ item }} nvidia-dgx-spark/role=worker --overwrite || true
+  loop: "{{ groups['k3s_agent'] | default([]) }}"
+
+- name: Add high-speed interconnect label (multi-node only)
+  shell: |
+    kubectl label node {{ item }} nvidia-dgx-spark/highspeed=dual-400g --overwrite || true
+  loop: "{{ groups['k3s_cluster'] | default([]) }}"

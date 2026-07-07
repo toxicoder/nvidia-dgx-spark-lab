@@ -1,0 +1,177 @@
+# Purpose: Primary K3s cluster bootstrap for 1-4 DGX Spark nodes
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: installs control plane; review inventory before running
+
+---
+# ## bootstrap-cluster.yml
+#
+# Primary playbook to bring up a K3s cluster on DGX Spark (1-4 nodes).
+#
+# Scalable design:
+# - k3s_server group (spark0): control-plane + worker
+# - k3s_agent group (spark1+): workers using high-speed links (2-4 nodes)
+#
+# This playbook is usually the first thing you run after preparing inventory.
+# See docs/getting-started.md Step 2 for the full recommended sequence.
+#
+# It can optionally run cloud-init prep first (see apply-cloud-init-prep.yml).
+
+- name: Optional early cloud-init OS/highspeed prep (recommended for physical nodes)
+  import_playbook: apply-cloud-init-prep.yml
+  when: run_cloud_init_prep | default(false) | bool
+  tags: [cloud-init, prep]
+
+- name: Install prerequisites on all nodes
+  hosts: k3s_cluster
+  become: true
+  gather_facts: true
+  roles:
+    - k3s_common
+
+- name: Install K3s server on control plane (k3s_server group, typically 1 node)
+  hosts: k3s_server
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Set hostname to inventory name (idempotent)
+      hostname:
+        name: "{{ inventory_hostname }}"
+
+    - name: Download and install K3s server with explicit node name
+      shell: |
+        curl -sfL https://get.k3s.io | \
+          INSTALL_K3S_VERSION={{ k3s_version }} \
+          K3S_KUBECONFIG_MODE="644" \
+          INSTALL_K3S_EXEC="server --node-name {{ inventory_hostname }} {{ k3s_server_extra_args }}" \
+          sh -
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Wait for K3s to be ready
+      wait_for:
+        path: /var/lib/rancher/k3s/server/node-token
+        timeout: 120
+
+    - name: Get node token
+      slurp:
+        src: /var/lib/rancher/k3s/server/node-token
+      register: node_token
+
+    - name: Store node token as fact
+      set_fact:
+        k3s_token: "{{ node_token.content | b64decode | trim }}"
+
+    - name: Create kubeconfig directory on control host
+      delegate_to: localhost
+      file:
+        path: "{{ playbook_dir }}/../../kubeconfig"
+        state: directory
+        mode: "0755"
+
+    - name: Fetch kubeconfig
+      fetch:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: "{{ playbook_dir }}/../../kubeconfig/config"
+        flat: true
+
+    - name: Fix kubeconfig server address (use actual host IP)
+      delegate_to: localhost
+      lineinfile:
+        path: "{{ playbook_dir }}/../../kubeconfig/config"
+        regexp: "server: https://127.0.0.1:6443"
+        line: "    server: https://{{ ansible_host }}:6443"
+      when: ansible_host is defined
+
+- name: Join workers as K3s agents (k3s_agent group)
+  hosts: k3s_agent
+  become: true
+  gather_facts: true
+  vars:
+    k3s_url: "https://{{ hostvars[k3s_control_plane].ansible_host }}:6443"
+  tasks:
+    - name: Get server token from control plane
+      delegate_to: "{{ k3s_control_plane }}"
+      slurp:
+        src: /var/lib/rancher/k3s/server/node-token
+      register: server_token
+
+    - name: Set hostname to inventory name (idempotent)
+      hostname:
+        name: "{{ inventory_hostname }}"
+
+    - name: Install K3s agent with explicit node name
+      shell: |
+        curl -sfL https://get.k3s.io | \
+          INSTALL_K3S_VERSION={{ k3s_version }} \
+          K3S_URL={{ k3s_url }} \
+          K3S_TOKEN={{ server_token.content | b64decode | trim }} \
+          INSTALL_K3S_EXEC="agent --node-name {{ inventory_hostname }} {{ k3s_agent_extra_args }}" \
+          sh -
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Wait for agent to register
+      wait_for:
+        path: /var/lib/rancher/k3s/agent/kubelet.kubeconfig
+        timeout: 180
+
+- name: Label nodes and configure cluster
+  hosts: k3s_server
+  become: true
+  gather_facts: false
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  tasks:
+    - name: Apply node labels
+      include_role:
+        name: labels
+      when: groups['k3s_cluster'] | default([]) | length > 1 or true # always for labels
+
+    - name: Verify nodes are ready
+      shell: kubectl get nodes -o wide
+      register: nodes_out
+      changed_when: false
+
+    - name: Show node status
+      debug:
+        var: nodes_out.stdout_lines
+
+    - name: Create ai-inference namespace
+      shell: |
+        kubectl apply -f {{ playbook_dir }}/../../k8s/base/namespace.yaml || true
+      args:
+        chdir: "{{ playbook_dir }}"
+
+- name: Setup high-speed networking (for 2+ node clusters with QSFP links)
+  hosts: k3s_cluster
+  become: true
+  gather_facts: true
+  roles:
+    - highspeed_network
+
+- name: Post-bootstrap configuration
+  hosts: k3s_cluster
+  become: true
+  tasks:
+    - name: Ensure /etc/rancher/k3s/config.yaml.d directory exists
+      file:
+        path: /etc/rancher/k3s/config.yaml.d
+        state: directory
+        mode: "0755"
+
+    - name: Add high-speed interface hints (optional node config)
+      copy:
+        dest: /etc/rancher/k3s/config.yaml.d/99-highspeed.yaml
+        content: |
+          # High-speed interconnect hints for DGX Spark
+          # These are used as reference; actual NCCL config is set in workloads
+        mode: "0644"
+      when: "'spark' in inventory_hostname"
+
+    - name: Reboot notice
+      debug:
+        msg: |
+          Cluster bootstrap complete.
+          Reboot nodes only after stopping heavy workloads.
+          Use scripts/manage.sh for workload control.

@@ -1,0 +1,112 @@
+# Purpose: Configure high-speed interconnect netplan on workers
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: only touches high-speed interfaces
+
+---
+# ## highspeed_network role
+#
+# Configures the dual 400G high-speed links between nodes.
+# Uses ibdev2netdev detection + netplan template.
+#
+# Critical for good NCCL performance on 2+ node setups.
+# Ignored (or harmless) on 1-node.
+#
+# Safety: Only touches high-speed interfaces, never the management network.
+# See also cloud-init for early-boot equivalent.
+
+- name: Detect high-speed IB net devices using ibdev2netdev
+  shell: |
+    ibdev2netdev | grep -E 'mlx5|ConnectX' | awk '{print $2}' | head -2
+  register: hs_nets
+  changed_when: false
+
+- name: Set high speed interface facts
+  set_fact:
+    hs_if0: "{{ hs_nets.stdout_lines[0] | default('') }}"
+    hs_if1: "{{ hs_nets.stdout_lines[1] | default(hs_nets.stdout_lines[0] | default('')) }}"
+
+- name: Fail if no high speed interfaces detected (for 2+ nodes)
+  fail:
+    msg: "No high-speed interfaces detected."
+  when:
+    - groups['k3s_cluster'] | default([]) | length > 1
+    - hs_if0 == ''
+
+- name: Set IP suffix based on node (spark0=1, others=2)
+  set_fact:
+    ip_suffix: "{{ '1' if inventory_hostname == k3s_control_plane else '2' }}"
+
+- name: Deploy netplan config for highspeed interfaces (persistent)
+  template:
+    src: netplan-highspeed.yaml.j2
+    dest: /etc/netplan/99-highspeed.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  when: hs_if0 != ''
+
+- name: Apply netplan
+  shell: netplan apply || true
+  when: hs_if0 != ''
+
+- name: Generate SSH key if not present (ed25519 for modern)
+  shell: |
+    if [ ! -f ~/.ssh/id_ed25519 ]; then
+      ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -N "" -q
+    fi
+  args:
+    creates: ~/.ssh/id_ed25519
+
+- name: Slurp the public key
+  slurp:
+    src: ~/.ssh/id_ed25519.pub
+  register: ssh_pub
+  when: hs_if0 != ''
+
+- name: Set fact for pub key
+  set_fact:
+    ssh_pub_key: "{{ ssh_pub.content | b64decode | trim }}"
+  when: hs_if0 != ''
+
+# To setup passwordless between the two nodes, since Ansible controls both,
+# we fetch pub from each and add to the other using authorized_key.
+# This requires the play to gather facts from all.
+
+- name: Add peer public key to authorized_keys for passwordless SSH
+  authorized_key:
+    user: "{{ ansible_user | default('ubuntu') }}"
+    key: "{{ hostvars[peer].ssh_pub_key }}"
+    state: present
+  vars:
+    peer: "{{ 'spark1' if inventory_hostname == k3s_control_plane else k3s_control_plane }}"
+  when:
+    - hs_if0 != ''
+    - hostvars[peer].ssh_pub_key is defined
+
+- name: Validate highspeed connectivity (ping and basic)
+  shell: |
+    set -e
+    # Ping the peer on highspeed IP
+    PEER_IP="{{ highspeed_ip_prefix }}.{{ '2' if inventory_hostname == k3s_control_plane else '1' }}"
+    ping -c 3 -W 2 $PEER_IP
+    echo "Highspeed ping OK to $PEER_IP"
+  when: groups['k3s_cluster'] | default([]) | length > 1
+  delegate_to: "{{ inventory_hostname }}"
+
+- name: Validate passwordless SSH on highspeed (if configured)
+  shell: |
+    PEER_IP="{{ highspeed_ip_prefix }}.{{ '2' if inventory_hostname == k3s_control_plane else '1' }}"
+    ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 {{ ansible_user | default('ubuntu') }}@$PEER_IP 'echo OK'
+  when: groups['k3s_cluster'] | default([]) | length > 1
+  delegate_to: "{{ inventory_hostname }}"
+
+- name: Basic NCCL/IB test hint
+  debug:
+    msg: "Run ib_write_bw and nccl-tests for validation."
+  when: groups['k3s_cluster'] | default([]) | length > 1
+
+- name: Update NCCL env if needed
+  debug:
+    msg: "NCCL uses highspeed_interfaces in pod env."
+  when: hs_if0 != ''

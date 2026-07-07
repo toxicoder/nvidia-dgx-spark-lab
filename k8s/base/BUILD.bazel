@@ -1,0 +1,25 @@
+"""Package purpose: Base Kubernetes namespace and resource-guard manifest filegroups."""
+
+"""Base Kubernetes resources."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "namespace",
+    srcs = ["namespace.yaml"],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+filegroup(
+    name = "resource_guard",
+    srcs = glob(["resource-guard/**"]) + [
+        "namespaces-dev.yaml",
+        "namespaces-sso.yaml",
+    ],
+    visibility = ["//tests:__pkg__"],
+)

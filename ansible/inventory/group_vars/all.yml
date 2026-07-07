@@ -1,0 +1,170 @@
+# Purpose: Ansible default variables reference for lab roles
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: reference only; deployed manifests override runtime values
+
+---
+# Common variables for nvidia-dgx-spark-lab
+#
+# REFERENCE ONLY — defaults for Ansible roles and documentation.
+# Authoritative runtime values live in:
+#   - k8s/workloads/*/ manifests (resources, NCCL, restartPolicy, images)
+#   - k8s/dev/dashboard/deployment.yaml (dashboard resources)
+#   - scripts/lib/models.sh (model profiles used by manage.sh estimate/start-*)
+# Override per-environment in inventory or host_vars; do not assume group_vars
+# alone defines what a deployed Job will use.
+# SCALABLE for 1-4 DGX Spark nodes (tailored; supports 1 node minimum, up to 4 with high-speed links).
+# - 1 node: Single all-in-one (control-plane + worker). Simplified single-node NCCL (local GPUs).
+# - 2-4 nodes: 1 control-plane (spark0), remaining workers. Uses high-speed for inter-node NCCL.
+# - For >4 or infinite scale: Extend groups, use K3s HA control-plane, advanced networking (e.g. Flannel + WireGuard).
+# - Set k3s_control_plane in inventory or override for custom naming.
+
+# K3s configuration
+k3s_version: "v1.30.3+k3s1"
+k3s_channel: "stable"
+
+# Control plane node (always 1 for 1-4 node setups; customize if using different naming)
+k3s_control_plane: "spark0"
+k3s_server_ip: "{{ hostvars[k3s_control_plane].ansible_host | default('127.0.0.1') }}"
+
+# High-speed network interfaces (dual 400G interconnect between nodes)
+# Only used for 2+ nodes. Update to your actual interface names (Mellanox/ConnectX).
+# For 1 node, these are ignored (use default local NCCL paths for multi-GPU on single host).
+highspeed_interfaces: "enp1s0f0np0,enp1s0f1np1"
+
+# High-speed IP config for two-node setup (for netplan and validation)
+# For spark0 and spark1
+highspeed_ip_prefix: "192.168.100"
+highspeed_ip_prefix2: "192.168.101"
+# For template, suffix computed in role based on inventory_hostname
+
+# NCCL settings
+# For multi-node (2-4): Use high-speed interfaces for inter-node comms.
+# For single node (1): Simplified; NCCL uses shared memory / P2P locally. Override if needed.
+nccl_env:
+  NCCL_SOCKET_IFNAME: "{{ highspeed_interfaces }}"
+  NCCL_IB_HCA: "mlx5_0,mlx5_1" # Adjust based on your Mellanox devices
+  NCCL_DEBUG: "INFO"
+  NCCL_P2P_DISABLE: "0"
+  NCCL_SHM_DISABLE: "0"
+  NCCL_IB_DISABLE: "0"
+  NCCL_SOCKET_NTHREADS: "4"
+  NCCL_NSOCKS_PERTHREAD: "4"
+
+# NVIDIA GPU Operator settings
+gpu_operator_version: "v24.3.0"
+gpu_operator_namespace: "gpu-operator"
+
+# Resource defaults for heavy workloads (adjust per node count / total GPUs)
+# For 1 node: e.g. request/limit 8 (or whatever your single DGX has)
+# For 2-4 nodes: scale tensor-parallel across nodes (e.g. 8-16+ total)
+default_gpu_request: "8"
+default_gpu_limit: "8"
+
+# Safety: never auto-restart heavy jobs
+default_restart_policy: "OnFailure"
+default_backoff_limit: 1
+
+# LLM model selection for workloads (used by manage.sh and K8s env)
+# Selectable: kimi, kimi-test, nemotron-3-ultra, glm-5.2
+llm_model: "nemotron-3-ultra" # or "glm-5.2" (1-bit UD-IQ1_M GGUF via llama.cpp RPC)
+llm_quantization: "nvfp4" # or "ud-iq1_m" for glm-5.2
+llm_max_model_len: 32768
+llm_gpu_memory_utilization: 0.82 # Hard safety: do not set > 0.90
+llm_max_num_seqs: 4 # Conservative for stability
+
+# Resource Guard: reserve host CPU/RAM for sshd, k3s, GPU Operator (reboot required after change).
+k3s_kubelet_reserved_args: >-
+  --kubelet-arg=system-reserved=cpu=4,memory=64Gi
+  --kubelet-arg=kube-reserved=cpu=2,memory=8Gi
+  --kubelet-arg=eviction-hard=memory.available<10%
+
+# K3s extra args for server (single control-plane recommended for 1-4 nodes)
+# Bundled Traefik is disabled; production Traefik v3 is installed separately via Helm (ansible/roles/traefik).
+k3s_server_extra_args: "--disable traefik --disable servicelb --flannel-backend=host-gw {{ k3s_kubelet_reserved_args }}"
+
+# K3s extra args for agents
+k3s_agent_extra_args: "{{ k3s_kubelet_reserved_args }}"
+
+# Developer workspaces (Coder + Kasm) + dashboard stack (Headlamp + Grafana)
+# Run via ansible/playbooks/install-dev-workspaces.yml after GPU operator.
+# Safety: conservative resources, NodePort for remote browser access (no ingress by default since traefik disabled).
+# For full remote: use VPN/Tailscale + NodePort or add optional ingress role.
+# Never auto-start heavy inference; dev tools are management layer (Deployments ok).
+
+coder_version: "2.34.0"
+kasm_version: "1.19.0"
+headlamp_version: "0.25.0" # chart or app version; use helm chart compatible
+grafana_helm_chart_version: "7.3.0" # for grafana or kube-prometheus-stack; conservative
+
+# SSO / Traefik (production-grade standalone Helm — not K3s bundled Traefik)
+sso_enabled: true
+# Domain names: config/lab-domains.yaml (authoritative)
+lab_local_domain: "lab.local"
+lab_public_domain: ""
+lab_sso_domain: "lab.local" # deprecated alias for lab_local_domain
+traefik_chart_version: "36.0.0"
+traefik_nodeport_http: 32080
+traefik_nodeport_https: 32443
+cert_manager_version: "v1.17.2"
+authelia_version: "4.38.19"
+
+# NodePorts for easy browser remote access (choose unused high ports; firewall as needed)
+# When sso_enabled=true, Traefik :32443 is the primary HTTPS entry; legacy ports remain as bypass.
+coder_nodeport: 32080
+kasm_nodeport: 32081
+dashboard_nodeport: 32082 # custom lab portal
+grafana_nodeport: 32083
+headlamp_nodeport: 32084
+openwebui_chart_version: "7.4.0"
+openwebui_nodeport: 32085
+
+# Conservative resources for dev mgmt components (distinct from heavy inference 8GPU jobs)
+coder_server_cpu_request: "500m"
+coder_server_mem_request: "1Gi"
+coder_server_cpu_limit: "2"
+coder_server_mem_limit: "4Gi"
+
+kasm_cpu_request: "500m"
+kasm_mem_request: "1Gi"
+kasm_cpu_limit: "2"
+kasm_mem_limit: "4Gi"
+
+grafana_cpu_request: "250m"
+grafana_mem_request: "512Mi"
+grafana_cpu_limit: "1"
+grafana_mem_limit: "2Gi"
+
+headlamp_cpu_request: "100m"
+headlamp_mem_request: "256Mi"
+headlamp_cpu_limit: "500m"
+headlamp_mem_limit: "512Mi"
+
+openwebui_cpu_request: "250m"
+openwebui_mem_request: "512Mi"
+openwebui_cpu_limit: "500m"
+openwebui_mem_limit: "1Gi"
+
+# Node exporter for host metrics (CPU, mem, disk, network) in Grafana
+# Complements GPU Operator DCGM. Low footprint.
+node_exporter_version: "1.8.2"
+node_exporter_port: 32090
+node_exporter_cpu_request: "50m"
+node_exporter_mem_request: "64Mi"
+node_exporter_cpu_limit: "200m"
+node_exporter_mem_limit: "128Mi"
+
+# Custom lab dashboard (Next.js) - conservative; actual deployment.yaml is authoritative
+# Values here kept for reference/ansible role compatibility but deployment uses higher (200m/384Mi-600m/640Mi)
+lab_dashboard_cpu_request: "200m"
+lab_dashboard_mem_request: "384Mi"
+lab_dashboard_cpu_limit: "600m"
+lab_dashboard_mem_limit: "640Mi"
+
+# Cloud-init early prep (optional, strategic for first-boot OS/highspeed config on physical nodes).
+# Render via roles/cloud_init or apply-cloud-init-prep.yml.
+# Use the rendered user-data with iDRAC/MAAS or manually on nodes before full Ansible bootstrap.
+# Highspeed + prereqs (packages, swap, sysctls) are handled early to speed later K3s/GPU steps.
+cloud_init_enable: false
+cloud_init_packages_extra: [] # add e.g. ["rdma-core"] if needed beyond template
+# highspeed netplan logic re-used from highspeed role vars (highspeed_interfaces, *_prefix, ip_suffix).

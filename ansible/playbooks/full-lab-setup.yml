@@ -1,0 +1,68 @@
+# Purpose: Orchestrates full lab bring-up (K3s, GPU operator, dev tools)
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: never auto-starts heavy inference workloads
+
+---
+# ## full-lab-setup.yml
+#
+# Orchestrates the complete lab bring-up:
+# - (optional) cloud-init early prep
+# - K3s bootstrap
+# - GPU Operator
+# - Dev workspaces + monitoring/dashboard
+#
+# Recommended for first-time or when you want "one playbook".
+# For production control, prefer running the individual playbooks with prompts.
+#
+# @playbook full-lab-setup
+# Usage:
+#   ansible-playbook -i inventory/hosts.ini playbooks/full-lab-setup.yml --ask-become-pass
+#
+# Safety:
+#   Still relies on the underlying playbooks' safety (no heavy auto-start).
+#   Heavy inference is never started by this playbook.
+
+- name: Full lab bootstrap (K3s + GPU Operator + Dev tools)
+  hosts: k3s_server
+  become: true
+  gather_facts: true
+  vars:
+    # Can be overridden
+    run_dev_workspaces: true
+    run_cloud_init_prep: false # set true to run early OS prep via cloud-init templates first
+  tasks:
+    - name: Include bootstrap (delegated or note)
+      debug:
+        msg: "Run (optional) cloud-init prep, then bootstrap-cluster, install-gpu-operator, then install-dev-workspaces manually or chained."
+
+- import_playbook: apply-cloud-init-prep.yml
+  when: run_cloud_init_prep | bool
+
+- import_playbook: bootstrap-cluster.yml
+
+- import_playbook: install-gpu-operator.yml
+
+- import_playbook: install-dev-workspaces.yml
+  when: run_dev_workspaces | bool
+
+- name: Post-setup verification + guidance
+  hosts: k3s_server
+  become: true
+  tasks:
+    - name: Final cluster check
+      shell: kubectl get nodes -o wide
+      register: nodes
+      changed_when: false
+    - debug: var=nodes.stdout_lines
+
+    - name: Guidance
+      debug:
+        msg: |
+          Full lab setup attempted.
+          On workstation:
+            export KUBECONFIG=.../kubeconfig/config
+            ./scripts/manage.sh status
+            ./scripts/manage.sh start-default   # or start-test
+            ./scripts/manage.sh urls
+          See docs/getting-started.md and docs/dev-workspaces.md

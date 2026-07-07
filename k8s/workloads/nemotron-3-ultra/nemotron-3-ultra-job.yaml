@@ -1,0 +1,139 @@
+# Purpose: Nemotron 3 Ultra inference Job manifest
+# Source of truth: k8s/workloads/nemotron-3-ultra/
+# Regenerate: n/a
+# Safety: manual start only; consumes significant GPU/CPU resources
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nemotron-3-ultra
+  namespace: ai-inference
+  labels:
+    app: nemotron-3-ultra
+    workload: inference
+    mode: production
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 7200
+  template:
+    metadata:
+      labels:
+        app: nemotron-3-ultra
+        workload: inference
+        mode: production
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      restartPolicy: OnFailure
+      hostNetwork: true # kept on heavy ray-distributed (for direct IFNAME); decision documented in models-catalog (not on kimi/kimi-test)
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: nvidia-dgx-spark/highspeed
+                    operator: In
+                    values:
+                      - "dual-400g"
+      containers:
+        - name: inference
+          image: vllm/vllm-openai:v0.8.5 # unified pin v0.8.5 (MoE/FP8/aarch64 support); see models-catalog
+          imagePullPolicy: IfNotPresent
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+          resources:
+            requests:
+              cpu: "32"
+              memory: "128Gi"
+              nvidia.com/gpu: "8"
+            limits:
+              cpu: "64"
+              memory: "256Gi"
+              nvidia.com/gpu: "8"
+          env:
+            # NCCL block kept in sync with kimi-test baseline
+            - name: NCCL_SOCKET_IFNAME
+              value: "enp1s0f0np0,enp1s0f1np1"
+            - name: NCCL_IB_HCA
+              value: "mlx5_0,mlx5_1"
+            - name: NCCL_DEBUG
+              value: "INFO"
+            - name: NCCL_DEBUG_SUBSYS
+              value: "ALL"
+            - name: NCCL_P2P_DISABLE
+              value: "0"
+            - name: NCCL_SHM_DISABLE
+              value: "0"
+            - name: NCCL_IB_DISABLE
+              value: "0"
+            - name: NCCL_SOCKET_NTHREADS
+              value: "4"
+            - name: NCCL_NSOCKS_PERTHREAD
+              value: "4"
+            - name: RAY_ADDRESS
+              value: "ray://ray-head:6379"
+            - name: MODEL_NAME
+              value: "nvidia/Nemotron-3-8B-Ultra" # Update to actual path/checkpoint
+            - name: HF_HOME
+              value: "/models"
+            - name: VLLM_PORT
+              value: "8000"
+            - name: VLLM_ALLOW_LONG_MAX_MODEL_LEN
+              value: "1"
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 10
+
+          # Shell wrapper so MODEL_NAME env var expands (K8s does not expand $(MODEL_NAME) in args).
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              exec python3 -m vllm.entrypoints.openai.api_server
+              --model "${MODEL_NAME}"
+              --host 0.0.0.0
+              --port 8000
+              --tensor-parallel-size 1
+              --pipeline-parallel-size 2
+              --gpu-memory-utilization 0.82
+              --max-model-len 32768
+              --quantization nvfp4
+              --ray-address ray://ray-head:6379
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 64Gi

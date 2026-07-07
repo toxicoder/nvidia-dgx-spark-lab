@@ -1,0 +1,110 @@
+# Purpose: Glm 5.2 inference Job manifest
+# Source of truth: k8s/workloads/glm-5.2/
+# Regenerate: n/a
+# Safety: manual start only; consumes significant GPU/CPU resources
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: glm-5.2-rpc
+  namespace: ai-inference
+  labels:
+    app: glm-5.2-rpc
+    workload: inference
+    mode: production
+    component: rpc
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 7200
+  template:
+    metadata:
+      labels:
+        app: glm-5.2-rpc
+        workload: inference
+        mode: production
+        component: rpc
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      restartPolicy: OnFailure
+      hostNetwork: true
+      hostIPC: true
+      nodeSelector:
+        kubernetes.io/hostname: spark1
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: nvidia-dgx-spark/highspeed
+                    operator: In
+                    values:
+                      - "dual-400g"
+      containers:
+        - name: rpc
+          # Ultra-optimized llama.cpp RPC backend for 2-node GLM-5.2 UD-IQ1_M.
+          # Build on GB10: docker build -t lab/llama-cpp-gb10:rpc k8s/workloads/glm-5.2/
+          image: lab/llama-cpp-gb10:rpc
+          imagePullPolicy: IfNotPresent
+
+          # Privileged for unified memory access on GB10 (see workload README).
+          securityContext:
+            privileged: true
+
+          resources:
+            requests:
+              cpu: "8"
+              memory: "110Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "16"
+              memory: "122Gi"
+              nvidia.com/gpu: "1"
+          env:
+            - name: NCCL_SOCKET_IFNAME
+              value: "enp1s0f0np0,enp1s0f1np1"
+            - name: NCCL_IB_HCA
+              value: "mlx5_0,mlx5_1"
+            - name: NCCL_DEBUG
+              value: "INFO"
+            - name: NCCL_P2P_DISABLE
+              value: "0"
+            - name: NCCL_SHM_DISABLE
+              value: "0"
+            - name: NCCL_IB_DISABLE
+              value: "0"
+            - name: NCCL_SOCKET_NTHREADS
+              value: "4"
+            - name: NCCL_NSOCKS_PERTHREAD
+              value: "4"
+            - name: MODEL_PATH
+              value: "/models/GLM-5.2-GGUF/UD-IQ1_M/GLM-5.2-UD-IQ1_M-00001-of-00008.gguf"
+            - name: RPC_PORT
+              value: "50052"
+          ports:
+            - containerPort: 50052
+              name: rpc
+              protocol: TCP
+
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              exec llama-rpc-server
+              -m "${MODEL_PATH}"
+              --host 0.0.0.0
+              --port "${RPC_PORT}"
+              -ngl 999
+              --no-mmap
+              --cache-type-k q4_0
+              --cache-type-v q4_0
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate

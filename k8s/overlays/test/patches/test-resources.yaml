@@ -1,0 +1,20 @@
+# Purpose: Reduced resource requests for test workloads
+# Source of truth: n/a
+# Regenerate: n/a
+# Safety: not suitable for production inference
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kimi-test
+  namespace: ai-inference
+spec:
+  template:
+    spec:
+      containers:
+        - name: inference
+          resources:
+            requests:
+              nvidia.com/gpu: "1"
+            limits:
+              nvidia.com/gpu: "1"

@@ -1,0 +1,24 @@
+"""Package purpose: Ray cluster worker job manifest exports."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "ray_worker",
+    srcs = [
+        "kustomization.yaml",
+        "ray-worker-job.yaml",
+        "ray-worker-service.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+exports_files([
+    "kustomization.yaml",
+    "ray-worker-job.yaml",
+    "ray-worker-service.yaml",
+])

@@ -1,0 +1,127 @@
+# Purpose: Glm 5.2 inference Job manifest
+# Source of truth: k8s/workloads/glm-5.2/
+# Regenerate: n/a
+# Safety: manual start only; consumes significant GPU/CPU resources
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: glm-5.2
+  namespace: ai-inference
+  labels:
+    app: glm-5.2
+    workload: inference
+    mode: production
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 7200
+  template:
+    metadata:
+      labels:
+        app: glm-5.2
+        workload: inference
+        mode: production
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      restartPolicy: OnFailure
+      hostNetwork: true
+      hostIPC: true
+      nodeSelector:
+        kubernetes.io/hostname: spark0
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: nvidia-dgx-spark/highspeed
+                    operator: In
+                    values:
+                      - "dual-400g"
+      containers:
+        - name: inference
+          # Ultra-optimized 2-node GLM-5.2: unsloth UD-IQ1_M (1-bit dynamic quant) + llama.cpp RPC.
+          # spark0 primary OpenAI endpoint; spark1 RPC backend over dual-400G highspeed link.
+          image: lab/llama-cpp-gb10:rpc
+          imagePullPolicy: IfNotPresent
+
+          # Privileged for unified memory access on GB10 (see workload README).
+          securityContext:
+            privileged: true
+
+          resources:
+            requests:
+              cpu: "16"
+              memory: "110Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "32"
+              memory: "122Gi"
+              nvidia.com/gpu: "1"
+          env:
+            - name: NCCL_SOCKET_IFNAME
+              value: "enp1s0f0np0,enp1s0f1np1"
+            - name: NCCL_IB_HCA
+              value: "mlx5_0,mlx5_1"
+            - name: NCCL_DEBUG
+              value: "INFO"
+            - name: NCCL_P2P_DISABLE
+              value: "0"
+            - name: NCCL_SHM_DISABLE
+              value: "0"
+            - name: NCCL_IB_DISABLE
+              value: "0"
+            - name: NCCL_SOCKET_NTHREADS
+              value: "4"
+            - name: NCCL_NSOCKS_PERTHREAD
+              value: "4"
+            - name: MODEL_PATH
+              value: "/models/GLM-5.2-GGUF/UD-IQ1_M/GLM-5.2-UD-IQ1_M-00001-of-00008.gguf"
+            - name: RPC_PEER
+              value: "192.168.100.2:50052"
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 900
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 1200
+            periodSeconds: 60
+            timeoutSeconds: 10
+
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              exec llama-server
+              -m "${MODEL_PATH}"
+              --rpc "${RPC_PEER}"
+              -ngl 999
+              --ctx-size 262144
+              --cache-type-k q4_0
+              --cache-type-v q4_0
+              --no-mmap
+              --threads $(nproc)
+              --host 0.0.0.0
+              --port 8000
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate

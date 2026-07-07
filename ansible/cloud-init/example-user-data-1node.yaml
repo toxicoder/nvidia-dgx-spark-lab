@@ -1,0 +1,47 @@
+# Purpose: Example cloud-init user-data for single-node DGX Spark
+# Source of truth: ansible/inventory/hosts.ini.example
+# Regenerate: n/a
+# Safety: example only; customize before imaging nodes
+
+#cloud-config
+# Example static user-data for 1-node DGX Spark (no high-speed interconnect needed).
+# Use this as base for iDRAC/MAAS/PXE first-boot or test with:
+#   cloud-init devel schema --config-file this-file.yaml
+# Then reboot and verify.
+
+hostname: spark0
+
+package_update: true
+packages:
+  - curl
+  - wget
+  - ca-certificates
+  - gnupg
+  - lsb-release
+  - jq
+  - nfs-common
+  - open-iscsi
+  - python3-pip
+
+swap:
+  filename: /swapfile
+  size: 0
+
+runcmd:
+  - swapoff -a || true
+  - sed -i '/ swap / s/^/#/' /etc/fstab || true
+  - modprobe overlay || true
+  - modprobe br_netfilter || true
+  - sysctl -w net.bridge.bridge-nf-call-iptables=1 || true
+  - sysctl -w net.bridge.bridge-nf-call-ip6tables=1 || true
+  - sysctl -w net.ipv4.ip_forward=1 || true
+  - sysctl -p || true
+  - echo "1-node cloud-init prep done. Ready for K3s + GPU Operator via Ansible or helm."
+
+users:
+  - name: ubuntu
+    sudo: ALL=(ALL) NOPASSWD:ALL
+
+final_message: |
+  1-node DGX Spark prep complete via cloud-init.
+  Next: ansible-playbook ... bootstrap-cluster.yml or full-lab-setup.

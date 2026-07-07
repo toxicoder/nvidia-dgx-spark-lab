@@ -1,0 +1,22 @@
+# Purpose: Kubernetes Service for nemotron 3 ultra inference endpoint
+# Source of truth: k8s/workloads/nemotron-3-ultra/
+# Regenerate: n/a
+# Safety: exposes inference API; protect with SSO ingress
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+  name: nemotron-3-ultra
+  namespace: ai-inference
+spec:
+  selector:
+    app: nemotron-3-ultra
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: http
+  type: ClusterIP

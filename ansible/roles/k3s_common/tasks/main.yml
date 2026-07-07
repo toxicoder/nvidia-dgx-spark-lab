@@ -1,0 +1,77 @@
+# Purpose: Common OS prep (packages, sysctl, modules) before K3s
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: runs on all cluster nodes
+
+---
+# ## k3s_common role
+#
+# Common OS prep for all nodes before K3s:
+# - package installs (curl, containerd prereqs, etc.)
+# - swapoff
+# - sysctl bridge + forwarding settings
+# - kernel modules
+#
+# Applied to both control plane and workers.
+- name: Update apt cache
+  apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install required packages
+  apt:
+    name:
+      - curl
+      - wget
+      - ca-certificates
+      - gnupg
+      - lsb-release
+      - jq
+      - nfs-common
+      - open-iscsi
+    state: present
+
+- name: Disable swap (required for Kubernetes)
+  shell: |
+    swapoff -a
+    sed -i '/ swap / s/^/#/' /etc/fstab
+  args:
+    removes: /swapfile
+
+- name: Load kernel modules for container networking
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - overlay
+    - br_netfilter
+
+- name: Set sysctl parameters
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_set: true
+    state: present
+    reload: true
+  loop:
+    - name: "net.bridge.bridge-nf-call-iptables"
+      value: "1"
+    - name: "net.bridge.bridge-nf-call-ip6tables"
+      value: "1"
+    - name: "net.ipv4.ip_forward"
+      value: "1"
+
+- name: Ensure high-speed interfaces exist (non-fatal check)
+  shell: 'ip link show | grep -E ''{{ highspeed_interfaces | replace(",", "|") }}'' || true'
+  register: hs_check
+  changed_when: false
+  ignore_errors: true
+
+- name: Warn if high-speed interfaces not visible (multi-node)
+  debug:
+    msg: >-
+      WARNING: One or more high-speed interfaces ({{ highspeed_interfaces }})
+      were not found. Verify cabling before heavy multi-node workloads.
+  when:
+    - "'enp' not in hs_check.stdout"
+    - groups['k3s_cluster'] | default([]) | length > 1

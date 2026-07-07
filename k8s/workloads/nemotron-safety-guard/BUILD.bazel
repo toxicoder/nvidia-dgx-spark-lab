@@ -1,0 +1,24 @@
+"""Package purpose: Nemotron Safety Guard deployment manifests and service exports."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "nemotron_safety_guard_deployment",
+    srcs = [
+        "kustomization.yaml",
+        "nemotron-safety-guard-deployment.yaml",
+        "service.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+exports_files([
+    "kustomization.yaml",
+    "nemotron-safety-guard-deployment.yaml",
+    "service.yaml",
+])

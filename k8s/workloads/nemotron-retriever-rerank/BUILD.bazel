@@ -1,0 +1,24 @@
+"""Package purpose: Nemotron Retriever rerank deployment manifests and service exports."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "nemotron_retriever_rerank_deployment",
+    srcs = [
+        "kustomization.yaml",
+        "nemotron-retriever-rerank-deployment.yaml",
+        "service.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+exports_files([
+    "kustomization.yaml",
+    "nemotron-retriever-rerank-deployment.yaml",
+    "service.yaml",
+])

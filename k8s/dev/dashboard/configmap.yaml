@@ -1,0 +1,25 @@
+# Purpose: Lab dashboard runtime configuration
+# Source of truth: helm/lab-dashboard/values.yaml
+# Regenerate: n/a
+# Safety: dev namespace only
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lab-dashboard-html
+  namespace: dev
+data:
+  # LEGACY REMOVED (2026-06-23 review)
+  # The old static HTML + embedded Python FastAPI backend.py have been removed.
+  # The production dashboard is the Next.js 16 app built from the top-level
+  # dashboard/ directory (image: lab-dashboard:local, port 3000).
+  # This ConfigMap is kept as a placeholder for backward compatibility with
+  # any external references. It is NOT mounted or served by the current
+  # deployment.yaml.
+  #
+  # See:
+  #   dashboard/
+  #   k8s/dev/dashboard/deployment.yaml
+  #   k8s/dev/dashboard/README.md
+  #   docs/dev-workspaces.md
+  NOTE: "Legacy static dashboard removed. Use Next.js dashboard from dashboard/ Dockerfile."

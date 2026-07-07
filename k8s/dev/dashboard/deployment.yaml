@@ -1,0 +1,119 @@
+# Purpose: Lab dashboard Deployment manifest
+# Source of truth: helm/lab-dashboard/values.yaml
+# Regenerate: n/a
+# Safety: conservative CPU/memory limits
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lab-dashboard
+  namespace: dev
+  labels:
+    app: lab-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lab-dashboard
+  template:
+    metadata:
+      labels:
+        app: lab-dashboard
+    spec:
+      priorityClassName: lab-management
+      serviceAccountName: lab-dashboard
+      containers:
+        - name: dashboard
+          # Build from repo root: docker build -t lab-dashboard:local -f dashboard/Dockerfile .
+          # Then load or push and update image here (or use imagePullPolicy: Never for local)
+          image: lab-dashboard:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "384Mi"
+            limits:
+              cpu: "600m"
+              memory: "640Mi"
+          env:
+            - name: LAB_WHITELIST_BASES
+              value: "/mnt/models,/home,/tmp/lab-trash"
+            - name: NODE_ENV
+              value: "production"
+            - name: DATABASE_URL
+              value: "file:/data/lab-dashboard.db"
+            # Browser-reachable URL (NodePort). Override per cluster, e.g. http://<node-ip>:32082
+            - name: BETTER_AUTH_URL
+              value: "https://dashboard.lab.local"
+            - name: NEXT_PUBLIC_BETTER_AUTH_URL
+              value: "https://dashboard.lab.local"
+            - name: TRUST_PROXY_AUTH
+              value: "1"
+            - name: BETTER_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: lab-dashboard-auth
+                  key: secret
+            - name: LAB_DASHBOARD_ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: lab-dashboard-auth
+                  key: admin-email
+                  optional: true
+            - name: LAB_DASHBOARD_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: lab-dashboard-auth
+                  key: admin-password
+                  optional: true
+            - name: LAB_SECRETS_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: lab-dashboard-secrets
+                  key: master-key
+            # Dev Workspaces panel (Coder/Kasm iframe URLs + utility status)
+            - name: LAB_WORKSPACE_HOST
+              value: "localhost"
+            - name: CODER_PORT
+              value: "32080"
+            - name: KASM_PORT
+              value: "32081"
+            - name: GRAFANA_PORT
+              value: "32083"
+            - name: HEADLAMP_PORT
+              value: "32084"
+            - name: LAB_LOCAL_DOMAIN
+              value: "lab.local"
+            - name: LAB_PUBLIC_DOMAIN
+              value: ""
+            - name: LAB_EMAIL_DOMAIN
+              value: "lab.local"
+          volumeMounts:
+            - name: dashboard-data
+              mountPath: /data
+            # Same scoped mounts as before for host introspection (docker, models)
+            - name: mnt-models
+              mountPath: /mnt/models
+              readOnly: false
+            - name: host-run-docker
+              mountPath: /var/run/docker.sock
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+      volumes:
+        - name: dashboard-data
+          emptyDir: {}
+        - name: mnt-models
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate
+        - name: host-run-docker
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket

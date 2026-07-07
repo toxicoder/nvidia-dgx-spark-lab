@@ -1,0 +1,54 @@
+# Purpose: Cloud-init user-data generation and early node prep
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: may alter network and package state
+
+---
+# Cloud-init prep role. Renders user-data for early node OS/highspeed config.
+# Strategic layer before full K3s/GPU Ansible. Run early in bootstrap flow.
+# Outputs to ansible/files/cloud-init/rendered/ or prints instructions.
+# Safe: does not touch running nodes unless you apply manually.
+
+- name: Ensure render dir for cloud-init artifacts
+  file:
+    path: "{{ playbook_dir }}/../files/cloud-init/rendered"
+    state: directory
+    mode: "0755"
+  delegate_to: localhost
+  run_once: true
+
+- name: Render per-node user-data (templated from role)
+  template:
+    src: user-data.yaml.j2
+    dest: "{{ playbook_dir }}/../files/cloud-init/rendered/user-data-{{ inventory_hostname }}.yaml"
+    mode: "0644"
+  delegate_to: localhost
+  run_once: false # per host for hostname/IP logic
+
+- name: Render example static files (for 1/2-node reference)
+  copy:
+    src: "{{ item }}"
+    dest: "{{ playbook_dir }}/../files/cloud-init/rendered/"
+    mode: "0644"
+  with_items:
+    - "{{ playbook_dir }}/../cloud-init/example-user-data-1node.yaml"
+    - "{{ playbook_dir }}/../cloud-init/example-user-data-2node.yaml"
+  delegate_to: localhost
+  run_once: true
+
+- name: Print usage instructions for physical DGX nodes
+  debug:
+    msg: |
+      Cloud-init prep rendered for {{ inventory_hostname }}.
+      1. Copy rendered/user-data-{{ inventory_hostname }}.yaml to node (via iDRAC virtual media, MAAS, or scp if early access).
+      2. On node first-boot or manually:
+         cloud-init devel schema --config-file /path/to/user-data-{{ inventory_hostname }}.yaml
+         # or inject as user-data and reboot.
+      3. After nodes are prepped (netplan, packages, sysctls), run:
+         ansible-playbook -i inventory/hosts.ini playbooks/bootstrap-cluster.yml
+      For 1-node: use the static example-user-data-1node.yaml as base.
+      High-speed config is included (2+ nodes). Re-run netplan apply if needed after.
+      Then proceed to GPU Operator + dev workspaces.
+      This reduces Ansible surface for early immutable config.
+  run_once: false
+  when: inventory_hostname is defined

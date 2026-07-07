@@ -1,0 +1,36 @@
+# Purpose: Priority classes for lab workload tiers
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: affects preemption and scheduling order
+
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: lab-critical
+value: 1000000
+globalDefault: false
+description: "Platform critical — kube-system, GPU Operator (evicted last)"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: lab-management
+value: 100000
+globalDefault: false
+description: "Remote access + observability — dashboard, Grafana, Headlamp"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: lab-optional
+value: 10000
+globalDefault: false
+description: "Optional dev workspaces — Coder, Kasm (safe to stop)"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: lab-inference
+value: 1000
+globalDefault: false
+description: "Heavy inference jobs — lowest scheduling priority"

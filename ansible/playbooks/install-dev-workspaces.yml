@@ -1,0 +1,130 @@
+# Purpose: Install Coder, Open WebUI, and dev workspace tooling
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: conservative resources; NodePort exposure by default
+
+---
+# Install Coder + Kasm + Dashboard stack (Headlamp + Grafana + custom lab dashboard Next.js)
+# on the K3s cluster using Helm (modeled on install-gpu-operator.yml).
+# Run AFTER bootstrap-cluster.yml and install-gpu-operator.yml.
+#
+# Provides browser-based remote dev: VSCode workspaces (Coder), flexible
+# streamed sessions (Kasm), and easy control UI (our dashboard + Grafana metrics).
+#
+# Safety: conservative resources in values; NodePort exposure by default.
+# See docs/dev-workspaces.md and group_vars/all.yml .
+
+- name: Prepare Helm and kubeconfig for dev workspaces
+  hosts: k3s_server
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Install Helm if not present
+      shell: |
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      args:
+        creates: /usr/local/bin/helm
+
+    - name: Ensure kubeconfig fetch dir
+      delegate_to: localhost
+      file:
+        path: "{{ playbook_dir }}/../../kubeconfig"
+        state: directory
+        mode: "0755"
+
+    - name: Fetch kubeconfig for local helm use
+      fetch:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: "{{ playbook_dir }}/../../kubeconfig/config"
+        flat: true
+
+- name: Create namespaces for dev tools
+  hosts: k3s_server
+  become: true
+  gather_facts: false
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  tasks:
+    - name: Create coder namespace
+      shell: |
+        kubectl create namespace coder --dry-run=client -o yaml | kubectl apply -f -
+    - name: Create kasm namespace
+      shell: |
+        kubectl create namespace kasm --dry-run=client -o yaml | kubectl apply -f -
+    - name: Create monitoring namespace
+      shell: |
+        kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+    - name: Create dev namespace (for custom portal)
+      shell: |
+        kubectl create namespace dev --dry-run=client -o yaml | kubectl apply -f -
+
+- name: Deploy Coder (Helm)
+  hosts: k3s_server
+  become: true
+  gather_facts: false
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  roles:
+    - coder
+
+- name: Deploy Kasm Workspaces (Helm)
+  hosts: k3s_server
+  become: true
+  gather_facts: false
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  roles:
+    - kasm
+
+- name: Deploy Dashboard stack (Headlamp + Grafana + custom lab dashboard)
+  hosts: k3s_server
+  become: true
+  gather_facts: false
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  roles:
+    - monitoring
+
+- name: Final verification and access instructions
+  hosts: k3s_server
+  become: true
+  gather_facts: false
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  tasks:
+    - name: Show key pods
+      shell: |
+        echo "=== Coder ==="; kubectl get pods -n coder || true
+        echo "=== Kasm ==="; kubectl get pods -n kasm || true
+        echo "=== Monitoring/Dashboard ==="; kubectl get pods -n monitoring -n dev || true
+      register: pods_out
+      changed_when: false
+
+    - name: Show services / NodePorts (adjust IPs)
+      shell: |
+        kubectl get svc -n coder -n kasm -n monitoring -n dev -o wide || true
+      register: svc_out
+      changed_when: false
+
+    - name: Instructions
+      debug:
+        var: pods_out.stdout_lines + svc_out.stdout_lines
+
+    - name: Next steps message
+      debug:
+        msg: |
+          Dev workspaces + dashboard installed.
+
+          From workstation:
+            export KUBECONFIG=$(pwd)/kubeconfig/config
+            ./scripts/manage.sh start-coder
+            ./scripts/manage.sh start-monitoring
+            ./scripts/manage.sh status
+
+          Browser (replace with your spark0 IP or use ssh -L):
+            Coder:      http://SPARK0_IP:32080
+            Custom UI:  http://SPARK0_IP:32082
+            Grafana:    http://SPARK0_IP:32083
+            Headlamp:   http://SPARK0_IP:32084
+
+          See docs/dev-workspaces.md for templates, remote tips, and safety.

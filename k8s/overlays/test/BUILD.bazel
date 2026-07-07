@@ -1,0 +1,23 @@
+"""Package purpose: Test kustomize overlay with lighter resource patches."""
+
+"""Test overlay for lighter resource patches and kustomize examples.
+"""
+
+package(default_visibility = ["//visibility:private"])
+
+exports_files([
+    "kustomization.yaml",
+])
+
+filegroup(
+    name = "overlay_test",
+    srcs = [
+        "kustomization.yaml",
+        "patches/test-resources.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//tests:__pkg__",
+    ],
+)

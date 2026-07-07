@@ -1,0 +1,73 @@
+# Purpose: Nemotron Safety Guard inference Deployment manifest
+# Source of truth: k8s/workloads/nemotron-safety-guard/
+# Regenerate: n/a
+# Safety: manual start only; consumes significant GPU/CPU resources
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nemotron-safety-guard
+  namespace: ai-inference
+  labels:
+    app: nemotron-safety-guard
+    workload: inference
+    runtime: nim
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nemotron-safety-guard
+  template:
+    metadata:
+      labels:
+        app: nemotron-safety-guard
+        workload: inference
+        runtime: nim
+    spec:
+      containers:
+        - name: nim
+          image: nvcr.io/nim/nvidia/llama-3.1-nemoguard-8b-content-safety:1.0.0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+          resources:
+            requests:
+              cpu: "2"
+              memory: "4Gi"
+            limits:
+              cpu: "4"
+              memory: "4Gi"
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          env:
+            - name: NIM_CACHE_PATH
+              value: "/models/nim-cache"
+          readinessProbe:
+            httpGet:
+              path: /v1/health/ready
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /v1/health/live
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate

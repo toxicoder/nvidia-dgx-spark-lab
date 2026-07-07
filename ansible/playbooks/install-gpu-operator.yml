@@ -1,0 +1,87 @@
+# Purpose: Deploy NVIDIA GPU Operator on the cluster
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: requires cluster admin; may restart GPU-dependent pods
+
+---
+# ## install-gpu-operator.yml
+#
+# Installs NVIDIA GPU Operator via Helm after the K3s cluster is ready.
+# Enables GPU support, drivers, MIG, monitoring (DCGM), etc.
+#
+# @playbook install-gpu-operator
+# Run after bootstrap-cluster.yml (or via full-lab-setup).
+# See the gpu_operator role for the actual Helm logic.
+
+- name: Prepare for GPU Operator installation
+  hosts: k3s_server
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Install Helm if not present
+      shell: |
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      args:
+        creates: /usr/local/bin/helm
+
+    - name: Copy kubeconfig for helm (local use)
+      fetch:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: "{{ playbook_dir }}/../../kubeconfig/config"
+        flat: true
+      register: kubeconfig_fetch
+
+- name: Install NVIDIA GPU Operator
+  hosts: k3s_server
+  become: true
+  gather_facts: false
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  roles:
+    - gpu_operator
+
+- name: Verify GPU resources on nodes
+  hosts: k3s_server
+  become: true
+  gather_facts: false
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  tasks:
+    - name: Wait for nvidia.com/gpu resources to appear
+      shell: |
+        for i in {1..30}; do
+          if kubectl describe node {{ k3s_control_plane }} | grep -q 'nvidia.com/gpu'; then
+            echo "GPU resources detected"
+            exit 0
+          fi
+          echo "Waiting for GPU resources... ($i/30)"
+          sleep 10
+        done
+        echo "GPU resources not yet visible. Check nvidia-smi and operator logs."
+        exit 1
+      register: gpu_wait
+      changed_when: false
+
+    - name: Display allocatable GPUs
+      shell: |
+        kubectl get nodes -o custom-columns=NAME:.metadata.name,GPU:.status.allocatable.nvidia.com/gpu
+      register: gpu_alloc
+      changed_when: false
+
+    - name: Show GPU allocation
+      debug:
+        var: gpu_alloc.stdout_lines
+
+    - name: Final verification instructions
+      debug:
+        msg: |
+          GPU Operator installation complete.
+
+          Next steps:
+            export KUBECONFIG=$(pwd)/kubeconfig/config
+            kubectl get nodes
+            kubectl get pods -n gpu-operator
+
+          To deploy workloads:
+            cd ../../
+            ./scripts/manage.sh start-test

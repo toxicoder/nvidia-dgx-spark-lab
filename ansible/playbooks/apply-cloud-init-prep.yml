@@ -1,0 +1,46 @@
+# Purpose: Optional cloud-init OS and high-speed network prep
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: reboots nodes; only run when preparing physical hardware
+
+---
+# Optional early cloud-init prep for DGX Spark nodes (strategic for OS-level config).
+# Run this BEFORE or as first part of bootstrap on physical nodes.
+# Renders user-data (highspeed netplan + prereqs) using current inventory/group_vars.
+# On physical hardware: feed the rendered YAML as user-data via vendor tools (iDRAC, etc.)
+# or apply manually with cloud-init on the node and reboot.
+#
+# After nodes are prepped, run bootstrap-cluster.yml etc.
+# This layers on top of existing Ansible (highspeed role can be partially skipped if cloud-init did netplan).
+
+- name: Render and document cloud-init prep (no remote changes by default)
+  hosts: k3s_cluster
+  gather_facts: false
+  roles:
+    - cloud_init
+
+- name: "Optional: apply rendered config if nodes support early cloud-init (advanced)"
+  hosts: k3s_cluster
+  become: true
+  gather_facts: true
+  vars:
+    apply_now: false # set --extra-vars apply_now=true only if you know what you're doing
+  tasks:
+    - name: Skip unless explicitly enabled
+      meta: end_play
+      when: not apply_now | bool
+
+    - name: Copy rendered user-data (if apply_now)
+      copy:
+        src: "{{ playbook_dir }}/../files/cloud-init/rendered/user-data-{{ inventory_hostname }}.yaml"
+        dest: /var/lib/cloud/seed/nocloud/user-data
+        mode: "0644"
+      when: apply_now | bool
+
+    - name: Trigger cloud-init (if applicable)
+      command: cloud-init init --local || cloud-init modules --mode=config || true
+      when: apply_now | bool
+
+    - debug:
+        msg: "cloud-init applied on node if supported. Reboot recommended. Then run bootstrap."
+      when: apply_now | bool

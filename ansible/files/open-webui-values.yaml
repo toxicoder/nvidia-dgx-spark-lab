@@ -1,0 +1,65 @@
+# Purpose: Helm values for Open WebUI chat interface
+# Source of truth: config/open-webui-policy.yaml
+# Regenerate: n/a
+# Safety: dev namespace; connects to Hermes gateway
+
+# Open WebUI values for lab — Hermes gateway backend, lightweight single-replica profile.
+ollama:
+  enabled: false
+
+pipelines:
+  enabled: false
+
+tika:
+  enabled: false
+
+websocket:
+  enabled: true
+  manager: ""
+  redis:
+    enabled: false
+
+replicaCount: 1
+
+image:
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+persistence:
+  enabled: true
+  size: 2Gi
+  accessModes:
+    - ReadWriteOnce
+
+enableOpenaiApi: true
+openaiBaseApiUrls:
+  - "http://hermes-gateway.dev.svc.cluster.local:8642/v1"
+
+openaiApiKeyExistingSecret: open-webui-secrets
+openaiApiKeyExistingSecretKey: hermes-api-key
+
+ingress:
+  enabled: false
+
+sso:
+  enabled: true
+  enableSignup: false
+  trustedHeader:
+    enabled: true
+    emailHeader: Remote-User
+    nameHeader: Remote-User
+
+extraEnvVars:
+  - name: WEBUI_AUTH
+    value: "true"
+  - name: WEBUI_NAME
+    value: "Spark Lab Agent Chat"
+  - name: DEFAULT_MODELS
+    value: "hermes-gateway"

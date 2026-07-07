@@ -1,0 +1,15 @@
+# Purpose: Pod disruption budgets for critical lab services
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: limits voluntary evictions during maintenance
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: lab-dashboard-pdb
+  namespace: dev
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: lab-dashboard

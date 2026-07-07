@@ -1,0 +1,17 @@
+"""Package purpose: Production kustomize overlay filegroup."""
+
+"""Prod overlay (full resources, production config).
+"""
+
+package(default_visibility = ["//visibility:private"])
+
+exports_files(["kustomization.yaml"])
+
+filegroup(
+    name = "overlay_prod",
+    srcs = glob(["**/*.yaml"]),
+    visibility = [
+        "//k8s:__subpackages__",
+        "//tests:__pkg__",
+    ],
+)

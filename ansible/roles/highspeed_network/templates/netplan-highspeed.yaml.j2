@@ -1,0 +1,11 @@
+network:
+  version: 2
+  ethernets:
+    {{ hs_if0 }}:
+      dhcp4: no
+      addresses:
+        - {{ highspeed_ip_prefix }}.{{ ip_suffix }}/24
+    {{ hs_if1 }}:
+      dhcp4: no
+      addresses:
+        - {{ highspeed_ip_prefix2 }}.{{ ip_suffix }}/24

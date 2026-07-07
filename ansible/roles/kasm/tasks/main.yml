@@ -1,0 +1,40 @@
+# Purpose: Install Kasm desktop streaming workspace
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: NodePort exposure; review resource limits
+
+---
+# Deploy Kasm Workspaces control plane via official Helm (technical preview/GA notes apply).
+# Conservative resources. Additional agent setup may be required for full container workspaces.
+
+- name: Add Kasm Helm repo
+  shell: |
+    helm repo add kasmweb https://helm.kasm.com || true
+    helm repo update
+  changed_when: false
+
+- name: Deploy/upgrade Kasm
+  shell: |
+    helm upgrade --install kasm kasmweb/kasm-helm \
+      --namespace kasm \
+      --version {{ kasm_version }} \
+      --set global.resources.requests.cpu={{ kasm_cpu_request }} \
+      --set global.resources.requests.memory={{ kasm_mem_request }} \
+      --set global.resources.limits.cpu={{ kasm_cpu_limit }} \
+      --set global.resources.limits.memory={{ kasm_mem_limit }} \
+      --set service.type=NodePort \
+      --set service.nodePort={{ kasm_nodeport }} \
+      --wait \
+      --timeout 10m || true
+  register: kasm_install
+  changed_when: "'unchanged' not in (kasm_install.stdout | default(''))"
+
+- name: Wait and show Kasm
+  shell: |
+    kubectl get pods -n kasm || true
+  register: kasm_pods
+  changed_when: false
+
+- name: Show Kasm status
+  debug:
+    var: kasm_pods.stdout_lines

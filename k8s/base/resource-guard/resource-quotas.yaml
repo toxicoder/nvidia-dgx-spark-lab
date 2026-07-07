@@ -1,0 +1,68 @@
+# Purpose: Namespace resource quotas as safety net under Resource Guard
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: tune per cluster size before production
+
+# Conservative namespace quotas — safety net under Resource Guard policy.
+# Tune per cluster size; apply-policy can patch via manage.sh resources apply-policy.
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: lab-management-quota
+  namespace: dev
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 2Gi
+    limits.cpu: "4"
+    limits.memory: 4Gi
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: lab-monitoring-quota
+  namespace: monitoring
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 6Gi
+    limits.cpu: "8"
+    limits.memory: 10Gi
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: lab-coder-quota
+  namespace: coder
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: lab-kasm-quota
+  namespace: kasm
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: lab-inference-quota
+  namespace: ai-inference
+spec:
+  hard:
+    requests.nvidia.com/gpu: "16"
+    requests.cpu: "128"
+    requests.memory: 512Gi
+    limits.nvidia.com/gpu: "16"
+    limits.cpu: "256"
+    limits.memory: 1Ti

@@ -1,0 +1,172 @@
+# Purpose: Kimi inference Job manifest
+# Source of truth: k8s/workloads/kimi/
+# Regenerate: n/a
+# Safety: manual start only; consumes significant GPU/CPU resources
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kimi
+  namespace: ai-inference
+  labels:
+    app: kimi
+    workload: inference
+    mode: production
+spec:
+  # Very low tolerance for repeated failures on heavy workloads
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 7200
+  template:
+    metadata:
+      labels:
+        app: kimi
+        workload: inference
+        mode: production
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      restartPolicy: OnFailure
+      # hostNetwork omitted (default false); explicit NCCL_* + IFNAME sufficient for high-speed. Decision: keep on heavy ray jobs (nemotron/glm) only; see models-catalog.
+
+      # Preferred affinity to high-speed nodes (scalable for 1-4 nodes)
+      # 1 node: runs on the single node (all local GPUs).
+      # 2-4 nodes: prefers highspeed nodes, with anti-affinity to spread production pods.
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: nvidia-dgx-spark/highspeed
+                    operator: In
+                    values:
+                      - "dual-400g"
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 50
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: mode
+                      operator: In
+                      values:
+                        - "production"
+                topologyKey: kubernetes.io/hostname
+
+      containers:
+        - name: inference
+          image: vllm/vllm-openai:v0.8.5 # unified pin v0.8.5 (MoE/FP8/aarch64 support); see models-catalog
+          imagePullPolicy: IfNotPresent
+
+          # Minimal lab hardening securityContext (added during 2026 deep cleanup).
+          # runAsNonRoot + drop ALL + no escalation; readOnlyRootFS=false (vLLM needs writes to /models + /tmp/HF).
+          # GPU device plugin + hostPath still require certain host access in this lab setup.
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+          # Full production resource profile - adjust for your actual DGX Spark GPUs (1-4 nodes)
+          # Example: 8 GPUs for 1-2 nodes; scale up for 3-4 nodes with inter-node parallelism.
+          resources:
+            requests:
+              cpu: "32"
+              memory: "128Gi"
+              nvidia.com/gpu: "8"
+            limits:
+              cpu: "64"
+              memory: "256Gi"
+              nvidia.com/gpu: "8"
+
+          env:
+            # === HIGH-SPEED INTERCONNECT CONFIGURATION ===
+            # For 2-4 nodes: utilize dual 400G links. For 1 node: local multi-GPU NCCL (SHM/P2P).
+            - name: NCCL_SOCKET_IFNAME
+              value: "enp1s0f0np0,enp1s0f1np1"
+            - name: NCCL_IB_HCA
+              value: "mlx5_0,mlx5_1"
+            - name: NCCL_DEBUG
+              value: "INFO"
+            - name: NCCL_DEBUG_SUBSYS
+              value: "ALL"
+            - name: NCCL_P2P_DISABLE
+              value: "0"
+            - name: NCCL_SHM_DISABLE
+              value: "0"
+            - name: NCCL_IB_DISABLE
+              value: "0"
+            - name: NCCL_SOCKET_NTHREADS
+              value: "4"
+            - name: NCCL_NSOCKS_PERTHREAD
+              value: "4"
+
+            # Model configuration (production)
+            - name: MODEL_NAME
+              value: "moonshotai/Kimi-K2.6" # Example - replace with actual
+            - name: HF_HOME
+              value: "/models"
+            - name: VLLM_PORT
+              value: "8000"
+
+            # Production tuning - only increase after test validation
+            - name: VLLM_ALLOW_LONG_MAX_MODEL_LEN
+              value: "1"
+            - name: VLLM_WORKER_MULTIPROC_METHOD
+              value: "spawn"
+
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+
+          # Added lightweight probes (readiness for serving health; liveness conservative).
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 10
+
+          # Shell wrapper so MODEL_NAME env var expands (K8s does not expand $(MODEL_NAME) in args).
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              exec python3 -m vllm.entrypoints.openai.api_server
+              --model "${MODEL_NAME}"
+              --host 0.0.0.0
+              --port 8000
+              --tensor-parallel-size 8
+              --pipeline-parallel-size 1
+              --gpu-memory-utilization 0.82
+              --max-model-len 32768
+
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+            - name: shm
+              mountPath: /dev/shm
+
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 64Gi
+
+      # For very large models, consider running the server as a long-lived process.
+      # The Job + OnFailure policy ensures limited restart attempts.

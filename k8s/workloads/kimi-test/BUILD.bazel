@@ -1,0 +1,32 @@
+"""Package purpose: Lightweight Kimi test-mode inference job manifests and service exports."""
+
+"""Lighter/safer Kimi inference workload (test mode).
+
+This workload is intended for validation. Lower resource requests, conservative
+settings, higher safety margins.
+"""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "test_job",
+    srcs = [
+        "kimi-test-job.yaml",
+        "kustomization.yaml",
+        "service.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+exports_files(
+    [
+        "kimi-test-job.yaml",
+        "kustomization.yaml",
+        "service.yaml",
+    ],
+)

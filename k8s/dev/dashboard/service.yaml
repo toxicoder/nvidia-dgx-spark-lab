@@ -1,0 +1,21 @@
+# Purpose: Service exposing lab-dashboard
+# Source of truth: n/a
+# Regenerate: n/a
+# Safety: NodePort 32082 by default
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: lab-dashboard
+  namespace: dev
+  labels:
+    app: lab-dashboard
+spec:
+  selector:
+    app: lab-dashboard
+  ports:
+    - port: 3000
+      targetPort: 3000
+      nodePort: 32082
+      name: http
+  type: NodePort

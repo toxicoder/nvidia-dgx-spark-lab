@@ -1,0 +1,164 @@
+# Purpose: Human-facing Nemotron/Qwen model catalog for dashboard and docs
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: capacity math lives in config/resource-policy.yaml
+
+# Model catalog — metadata for dashboard UX, docs, and stack orchestration.
+# Capacity math lives in resource-policy.yaml; this file is the human-facing catalog.
+
+# Qwen 3.5 tier substitutions when frontier NVFP4 397B does not fit cluster size.
+# Same agentic stack architecture (orchestrator + CPU RAG + safety) at each tier.
+qwen_tiers:
+  frontier_target: nvidia/Qwen3.5-397B-A17B-NVFP4
+  spark_1:
+    model: qwen3.5-122b-a10b-nvfp4
+    hf_path: RedHatAI/Qwen3.5-122B-A10B-NVFP4
+    rationale: "~75 GB NVFP4 fits 1 GPU; same Qwen 3.5 family, multimodal MoE"
+  spark_2:
+    model: qwen3.5-397b-spark2
+    hf_path: Intel/Qwen3.5-397B-A17B-int4-AutoRound
+    rationale: "Full 397B at int4; proven ~26-30 tok/s on dual Spark with vLLM TP=2"
+  spark_4:
+    model: qwen3.5-397b-nvfp4
+    hf_path: nvidia/Qwen3.5-397B-A17B-NVFP4
+    rationale: "Exact NVFP4 checkpoint; ~62 GB weights/GPU with TP=4 SGLang"
+
+models:
+  nemotron-3-nano-30b:
+    display_name: Nemotron 3 Nano 30B A3B
+    family: reasoning
+    runtime: vllm
+    hf_path: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
+    quantization: nvfp4
+    agent_roles: [orchestrator, sub_agent, tool_caller]
+    spark_gpu_mem_util: 0.60
+    openai_svc: nemotron-3-nano-30b
+    port: 8000
+
+  nemotron-3-nano-omni-30b:
+    display_name: Nemotron 3 Nano Omni 30B A3B
+    family: multimodal
+    runtime: vllm
+    hf_path: nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4
+    quantization: nvfp4
+    agent_roles: [orchestrator, document_intel, multimodal]
+    spark_gpu_mem_util: 0.60
+    replaces_on_1_node: [nemotron-parse]
+    openai_svc: nemotron-3-nano-omni-30b
+    port: 8000
+
+  nemotron-3-super-120b:
+    display_name: Nemotron 3 Super 120B A12B
+    family: reasoning
+    runtime: vllm
+    hf_path: nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8
+    quantization: nvfp4
+    agent_roles: [orchestrator, hard_reasoning]
+    spark_gpu_mem_util: 0.65
+    openai_svc: nemotron-3-super-120b
+    port: 8000
+
+  nemotron-retriever-embed:
+    display_name: Nemotron Retriever Embed 1B
+    family: retrieval
+    runtime: nim
+    nim_image: nvcr.io/nim/nvidia/llama-nemotron-embed-v1:1.0.0
+    agent_roles: [embed]
+    cpu_only: true
+    openai_svc: nemotron-retriever-embed
+    port: 8000
+
+  nemotron-retriever-rerank:
+    display_name: Nemotron Retriever Rerank
+    family: retrieval
+    runtime: nim
+    nim_image: nvcr.io/nim/nvidia/llama-nemotron-rerank-v1:1.0.0
+    agent_roles: [rerank]
+    cpu_only: true
+    openai_svc: nemotron-retriever-rerank
+    port: 8000
+
+  nemotron-parse:
+    display_name: Nemotron Parse
+    family: parse
+    runtime: nim
+    nim_image: nvcr.io/nim/nvidia/nemotron-parse:1.0.0
+    agent_roles: [document_intel]
+    cpu_only: false
+    openai_svc: nemotron-parse
+    port: 8000
+
+  nemotron-safety-guard:
+    display_name: Nemotron Safety (NeMo Guard)
+    family: safety
+    runtime: nim
+    nim_image: nvcr.io/nim/nvidia/llama-3.1-nemoguard-8b-content-safety:1.0.0
+    agent_roles: [safety]
+    cpu_only: true
+    openai_svc: nemotron-safety-guard
+    port: 8000
+
+  nemotron-speech-asr:
+    display_name: Nemotron Speech ASR
+    family: speech
+    runtime: nim
+    nim_image: nvcr.io/nim/nvidia/parakeet-ctc-0.6b-asr:1.0.0
+    agent_roles: [asr]
+    cpu_only: true
+    openai_svc: nemotron-speech-asr
+    port: 9000
+
+  nemotron-speech-tts:
+    display_name: Nemotron Speech TTS
+    family: speech
+    runtime: nim
+    nim_image: nvcr.io/nim/nvidia/fastpitch-hifigan-tts:1.0.0
+    agent_roles: [tts]
+    cpu_only: true
+    openai_svc: nemotron-speech-tts
+    port: 9001
+
+  qwen3.5-122b-a10b-nvfp4:
+    display_name: Qwen 3.5 122B A10B NVFP4
+    family: reasoning
+    runtime: vllm
+    hf_path: RedHatAI/Qwen3.5-122B-A10B-NVFP4
+    quantization: nvfp4
+    agent_roles: [orchestrator, hard_reasoning]
+    spark_gpu_mem_util: 0.65
+    openai_svc: qwen3.5-122b-a10b-nvfp4
+    port: 8000
+    min_nodes: 1
+    substitutes_for: nvidia/Qwen3.5-397B-A17B-NVFP4
+
+  qwen3.5-397b-spark2:
+    display_name: Qwen 3.5 397B A17B (int4-AutoRound)
+    family: reasoning
+    runtime: vllm
+    hf_path: Intel/Qwen3.5-397B-A17B-int4-AutoRound
+    quantization: int4-autoround
+    agent_roles: [orchestrator, hard_reasoning]
+    spark_gpu_mem_util: 0.85
+    openai_svc: qwen3.5-397b-spark2
+    port: 8000
+    min_nodes: 2
+    substitutes_for: nvidia/Qwen3.5-397B-A17B-NVFP4
+
+  qwen3.5-397b-nvfp4:
+    display_name: Qwen 3.5 397B A17B NVFP4
+    family: reasoning
+    runtime: sglang
+    hf_path: nvidia/Qwen3.5-397B-A17B-NVFP4
+    quantization: nvfp4
+    agent_roles: [orchestrator, hard_reasoning]
+    spark_gpu_mem_util: 0.95
+    openai_svc: qwen3.5-397b-nvfp4
+    port: 8000
+    min_nodes: 4
+
+pillars:
+  orchestrator: { label: Orchestrator, icon: brain }
+  document_intel: { label: Document intel, icon: file-text }
+  rag: { label: RAG retrieval, icon: search }
+  safety: { label: Safety guard, icon: shield }
+  speech: { label: Speech, icon: mic }

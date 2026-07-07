@@ -1,0 +1,12 @@
+# Purpose: Core ai-inference namespace definition
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: required for model Job scheduling
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-inference
+  labels:
+    name: ai-inference
+    purpose: large-model-inference

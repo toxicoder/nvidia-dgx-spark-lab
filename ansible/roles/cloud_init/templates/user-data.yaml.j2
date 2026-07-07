@@ -1,0 +1,120 @@
+#cloud-config
+# Cloud-init user-data for early node prep on DGX Spark (before full Ansible bootstrap).
+# Strategic for: high-speed networking, OS prereqs (swap, modules, sysctls, packages),
+# hostname, basic SSH. Idempotent-friendly for first boot (iDRAC/MAAS/PXE or manual).
+#
+# Usage (render via Ansible or manually):
+#   ansible-playbook ... (will render with vars)
+#   Then feed to node first-boot or run: cloud-init devel schema --config-file /path
+#   Reboot node after apply if needed.
+#
+# For 1 node: highspeed section is minimal/no-op (interfaces may not exist).
+# For 2-4 nodes: configures dual high-speed + peer SSH key prep.
+#
+# Vars expected from group_vars/all.yml or inventory:
+#   highspeed_interfaces, highspeed_ip_prefix, highspeed_ip_prefix2, k3s_control_plane, etc.
+#   ansible_user (default ubuntu)
+
+hostname: {{ inventory_hostname | default('spark0') }}
+
+package_update: true
+packages:
+  - curl
+  - wget
+  - ca-certificates
+  - gnupg
+  - lsb-release
+  - jq
+  - nfs-common
+  - open-iscsi
+  - rdma-core
+  - ibverbs-utils
+  - python3-pip   # for later Ansible/Helm if needed early
+
+# Disable swap early (required for K8s)
+swap:
+  filename: /swapfile
+  size: 0   # disable
+
+runcmd:
+  # Disable swap persistently
+  - swapoff -a || true
+  - sed -i '/ swap / s/^/#/' /etc/fstab || true
+
+  # Kernel modules for container networking + RDMA/IB
+  - modprobe overlay || true
+  - modprobe br_netfilter || true
+  - modprobe ib_uverbs || true
+  - modprobe rdma_ucm || true
+
+  # Sysctls (from k3s_common)
+  - sysctl -w net.bridge.bridge-nf-call-iptables=1 || true
+  - sysctl -w net.bridge.bridge-nf-call-ip6tables=1 || true
+  - sysctl -w net.ipv4.ip_forward=1 || true
+  - sysctl -p || true
+
+  # High-speed netplan (if interfaces detected/configured)
+  - |
+    {% if highspeed_interfaces is defined and highspeed_interfaces != '' %}
+    cat > /etc/netplan/99-highspeed.yaml << 'NETEOF'
+    network:
+      version: 2
+      ethernets:
+        {{ highspeed_interfaces.split(',')[0] | default('enp1s0f0np0') }}:
+          dhcp4: false
+          addresses:
+            - {{ highspeed_ip_prefix }}.{{ '1' if inventory_hostname == k3s_control_plane else '2' }}/24
+        {% if highspeed_interfaces.split(',') | length > 1 %}
+        {{ highspeed_interfaces.split(',')[1] | default(highspeed_interfaces.split(',')[0]) }}:
+          dhcp4: false
+          addresses:
+            - {{ highspeed_ip_prefix2 }}.{{ '1' if inventory_hostname == k3s_control_plane else '2' }}/24
+        {% endif %}
+    NETEOF
+    netplan apply || true
+    {% endif %}
+
+  # Generate SSH key if not present (ed25519 for modern)
+  - |
+    if [ ! -f /home/{{ ansible_user | default('ubuntu') }}/.ssh/id_ed25519 ]; then
+      sudo -u {{ ansible_user | default('ubuntu') }} ssh-keygen -t ed25519 -f /home/{{ ansible_user | default('ubuntu') }}/.ssh/id_ed25519 -N "" -q
+    fi
+
+  # Basic validation hint (logged)
+  - |
+    echo "cloud-init prep complete for {{ inventory_hostname }}. Highspeed ifaces:"
+    ip -br link show | grep -E 'enp|mlx' || true
+
+# Write highspeed netplan also via write_files for reliability
+write_files:
+  - path: /etc/netplan/99-highspeed.yaml
+    permissions: '0644'
+    content: |
+      {% if highspeed_interfaces is defined and highspeed_interfaces != '' %}
+      network:
+        version: 2
+        ethernets:
+          {{ highspeed_interfaces.split(',')[0] | default('enp1s0f0np0') }}:
+            dhcp4: false
+            addresses:
+              - {{ highspeed_ip_prefix }}.{{ '1' if inventory_hostname == k3s_control_plane else '2' }}/24
+          {% if highspeed_interfaces.split(',') | length > 1 %}
+          {{ highspeed_interfaces.split(',')[1] | default(highspeed_interfaces.split(',')[0]) }}:
+            dhcp4: false
+            addresses:
+              - {{ highspeed_ip_prefix2 }}.{{ '1' if inventory_hostname == k3s_control_plane else '2' }}/24
+          {% endif %}
+      {% endif %}
+
+# Ensure user can sudo without password for ansible (common on DGX Ubuntu images)
+users:
+  - name: {{ ansible_user | default('ubuntu') }}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - {{ ssh_pub_key | default('') }}   # populated by Ansible if peer key known
+
+# Final message
+final_message: |
+  DGX Spark node prep via cloud-init complete.
+  Next: run Ansible bootstrap-cluster.yml (highspeed + K3s + GPU Operator).
+  Reboot recommended after netplan changes if interfaces changed.

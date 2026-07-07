@@ -1,0 +1,98 @@
+# Purpose: Ray Head inference Job manifest
+# Source of truth: k8s/workloads/ray-head/
+# Regenerate: n/a
+# Safety: manual start only; consumes significant GPU/CPU resources
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ray-head
+  namespace: ai-inference
+  labels:
+    app: ray-head
+    workload: ray
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: ray-head
+        workload: ray
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      restartPolicy: OnFailure
+      hostNetwork: true # For high-speed NCCL visibility if needed
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: nvidia-dgx-spark/role
+                    operator: In
+                    values:
+                      - "control-plane-worker"
+      containers:
+        - name: ray-head
+          image: rayproject/ray:2.30.0 # Use arm compatible if needed
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: "2"
+              memory: "8Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "4"
+              memory: "16Gi"
+              nvidia.com/gpu: "1"
+          command: ["ray"]
+          args:
+            - "start"
+            - "--head"
+            - "--port=6379"
+            - "--dashboard-host=0.0.0.0"
+            - "--dashboard-port=8265"
+            - "--num-cpus=2"
+            - "--num-gpus=1" # Spark-realistic: 1 GPU per node
+          ports:
+            - containerPort: 6379
+              name: ray
+            - containerPort: 8265
+              name: dashboard
+          env:
+            # === HIGH-SPEED INTERCONNECT CONFIGURATION (kept in sync with kimi) ===
+            - name: NCCL_SOCKET_IFNAME
+              value: "enp1s0f0np0,enp1s0f1np1"
+            - name: NCCL_IB_HCA
+              value: "mlx5_0,mlx5_1"
+            - name: NCCL_DEBUG
+              value: "INFO"
+            - name: NCCL_DEBUG_SUBSYS
+              value: "ALL"
+            - name: NCCL_P2P_DISABLE
+              value: "0"
+            - name: NCCL_SHM_DISABLE
+              value: "0"
+            - name: NCCL_IB_DISABLE
+              value: "0"
+            - name: NCCL_SOCKET_NTHREADS
+              value: "4"
+            - name: NCCL_NSOCKS_PERTHREAD
+              value: "4"
+            - name: RAY_HEAD_IP
+              value: "ray-head" # K8s service name
+          # volumeMounts must be nested under containers[] (was at pod spec level - bug fix)
+          volumeMounts:
+            - name: shm
+              mountPath: /dev/shm
+      # For high speed, add hostNetwork if needed for NCCL in ray
+      # hostNetwork: true
+      volumes:
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 16Gi

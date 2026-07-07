@@ -1,0 +1,73 @@
+# Purpose: Nemotron Speech Tts inference Deployment manifest
+# Source of truth: k8s/workloads/nemotron-speech-tts/
+# Regenerate: n/a
+# Safety: manual start only; consumes significant GPU/CPU resources
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nemotron-speech-tts
+  namespace: ai-inference
+  labels:
+    app: nemotron-speech-tts
+    workload: inference
+    runtime: nim
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nemotron-speech-tts
+  template:
+    metadata:
+      labels:
+        app: nemotron-speech-tts
+        workload: inference
+        runtime: nim
+    spec:
+      containers:
+        - name: nim
+          image: nvcr.io/nim/nvidia/fastpitch-hifigan-tts:1.0.0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+          resources:
+            requests:
+              cpu: "2"
+              memory: "6Gi"
+            limits:
+              cpu: "4"
+              memory: "6Gi"
+          ports:
+            - containerPort: 9001
+              name: http
+              protocol: TCP
+          env:
+            - name: NIM_CACHE_PATH
+              value: "/models/nim-cache"
+          readinessProbe:
+            httpGet:
+              path: /v1/health/ready
+              port: 9001
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /v1/health/live
+              port: 9001
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate

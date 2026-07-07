@@ -1,0 +1,22 @@
+# Purpose: Distributed worker ray-worker-service.yaml for ray worker
+# Source of truth: k8s/workloads/ray-worker/
+# Regenerate: n/a
+# Safety: multi-node NCCL; coordinate with head Job before starting
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ray-worker
+  namespace: ai-inference
+  labels:
+    app: ray-worker
+    workload: ray
+spec:
+  selector:
+    app: ray-worker
+  # Ray workers are clients only; they connect outbound to ray-head:6379 (see ray-head-service).
+  # This Service is retained for symmetry in stop/cleanup paths and start_workload.
+  # No inbound ports exposed (port 6379 was incorrect copy-paste).
+  ports: []
+  type: ClusterIP
+  clusterIP: None # headless is harmless for client-only

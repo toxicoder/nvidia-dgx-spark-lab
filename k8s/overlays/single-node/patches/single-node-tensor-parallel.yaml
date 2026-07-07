@@ -1,0 +1,32 @@
+# Purpose: Tensor-parallel patch for single-node inference
+# Source of truth: n/a
+# Regenerate: n/a
+# Safety: reduces multi-node NCCL assumptions
+
+# Single-node (spark0 only): lower tensor-parallel and GPU count for local validation.
+# Base kimi-test uses TP=2 / 2 GPUs (multi-node-friendly); this patch targets 1 GPU.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kimi-test
+  namespace: ai-inference
+spec:
+  template:
+    spec:
+      containers:
+        - name: inference
+          resources:
+            requests:
+              nvidia.com/gpu: "1"
+            limits:
+              nvidia.com/gpu: "1"
+          args:
+            - >
+              exec python3 -m vllm.entrypoints.openai.api_server
+              --model "${MODEL_NAME}"
+              --host 0.0.0.0
+              --port 8000
+              --tensor-parallel-size 1
+              --gpu-memory-utilization 0.85
+              --max-model-len 8192
+              --enforce-eager

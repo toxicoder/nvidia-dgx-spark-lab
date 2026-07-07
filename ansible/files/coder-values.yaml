@@ -1,0 +1,69 @@
+# Purpose: Helm values for Coder dev workspaces
+# Source of truth: config/lab-domains.yaml
+# Regenerate: n/a
+# Safety: conservative resources; NodePort by default
+
+# Safe example values for Coder on this lab.
+# Copy/edit and pass with -f to helm or integrate in role.
+# Keep resources conservative.
+
+coder:
+  env:
+    - name: CODER_PG_CONNECTION_URL
+      valueFrom:
+        secretKeyRef:
+          name: coder-db-url
+          key: url
+    # SSO (Authelia OIDC) — active when ./scripts/manage.sh start-sso has run.
+    - name: CODER_ACCESS_URL
+      value: "https://coder.lab.local"
+    - name: CODER_OIDC_ISSUER_URL
+      value: "https://auth.lab.local"
+    - name: CODER_OIDC_CLIENT_ID
+      valueFrom:
+        secretKeyRef:
+          name: sso-oidc-clients
+          key: coder-client-id
+          optional: true
+    - name: CODER_OIDC_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: sso-oidc-clients
+          key: coder-client-secret
+          optional: true
+    - name: CODER_OIDC_SCOPES
+      value: "openid,profile,email,offline_access"
+    - name: CODER_DISABLE_PASSWORD_AUTH
+      value: "true"
+  service:
+    type: ClusterIP
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+  # For production set a reachable access URL (NodePort or ingress DNS)
+  # env:
+  #   - name: CODER_ACCESS_URL
+  #     value: "http://YOUR_NODE_IP:32080"
+
+# In-cluster Postgres example (Bitnami) - only for lab/POC.
+# Production: external DB + update secret.
+postgresql:
+  enabled: true
+  auth:
+    username: coder
+    password: coder
+    database: coder
+  primary:
+    persistence:
+      size: 10Gi
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 1
+        memory: 1Gi

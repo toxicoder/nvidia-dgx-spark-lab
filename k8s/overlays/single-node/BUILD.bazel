@@ -1,0 +1,17 @@
+"""Package purpose: Single-node kustomize overlay filegroup."""
+
+"""Single-node overlay (adjusted for 1 node, local NCCL).
+"""
+
+package(default_visibility = ["//visibility:private"])
+
+exports_files(["kustomization.yaml"])
+
+filegroup(
+    name = "overlay_single",
+    srcs = glob(["**/*.yaml"]),
+    visibility = [
+        "//k8s:__subpackages__",
+        "//tests:__pkg__",
+    ],
+)

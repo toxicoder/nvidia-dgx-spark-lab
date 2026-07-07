@@ -1,0 +1,610 @@
+# Purpose: Resource Guard policy for capacity checks and K8s guardrails
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: authoritative for manage.sh estimate and safety_invariants tests
+
+# Resource Guard policy — single source of truth for capacity checks and K8s guardrails.
+# Parsed by scripts/lib/resources.sh and validated in tests/safety_invariants.sh.
+
+headroom:
+  cpu_percent: 15
+  memory_percent: 15
+  memory_min_per_node: 64Gi
+  cpu_min_per_node: "4"
+
+tiers:
+  critical:
+    priority_class: lab-critical
+    namespaces:
+      - kube-system
+      - gpu-operator
+  management:
+    priority_class: lab-management
+    namespaces:
+      - dev
+      - monitoring
+      - traefik
+      - auth
+      - cert-manager
+    services:
+      lab-dashboard:
+        namespace: dev
+        cpu: "600m"
+        memory: 640Mi
+      grafana:
+        namespace: monitoring
+        cpu: "1"
+        memory: 2Gi
+      headlamp:
+        namespace: monitoring
+        cpu: 500m
+        memory: 512Mi
+      node-exporter:
+        namespace: monitoring
+        cpu: 200m
+        memory: 128Mi
+      prometheus:
+        namespace: monitoring
+        cpu: "500m"
+        memory: 1Gi
+      kube-state-metrics:
+        namespace: monitoring
+        cpu: 100m
+        memory: 128Mi
+      blackbox-exporter:
+        namespace: monitoring
+        cpu: 50m
+        memory: 64Mi
+      traefik:
+        namespace: traefik
+        cpu: 200m
+        memory: 256Mi
+        helm_release: traefik
+      cert-manager:
+        namespace: cert-manager
+        cpu: 100m
+        memory: 128Mi
+        helm_release: cert-manager
+      authelia:
+        namespace: auth
+        cpu: 100m
+        memory: 128Mi
+      oauth2-proxy:
+        namespace: auth
+        cpu: 50m
+        memory: 64Mi
+  optional_dev:
+    priority_class: lab-optional
+    namespaces:
+      - coder
+      - coder-workspaces
+      - kasm
+      - agent-tools
+    services:
+      coder:
+        namespace: coder
+        cpu: "2"
+        memory: 4Gi
+        helm_release: coder
+      kasm:
+        namespace: kasm
+        cpu: "2"
+        memory: 4Gi
+        helm_release: kasm
+      mcp-agent-toolkit:
+        namespace: agent-tools
+        cpu: "650m"
+        memory: 768Mi
+      mcp-agent-toolkit-full:
+        namespace: agent-tools
+        cpu: "4"
+        memory: 12Gi
+      hermes-agent:
+        namespace: host-docker
+        cpu: "2"
+        memory: 4Gi
+      hermes-workspace-dev:
+        namespace: coder-workspaces
+        cpu: "2"
+        memory: 4Gi
+      open-webui:
+        namespace: dev
+        cpu: 500m
+        memory: 1Gi
+        helm_release: open-webui
+
+inference:
+  namespace: ai-inference
+  priority_class: lab-inference
+
+# Model requirements aligned to k8s/workloads/*/ manifests (requests, not limits).
+models:
+  kimi-test:
+    gpus: 2
+    memory: 32Gi
+    cpu: "8"
+    heavy: false
+    job_name: kimi-test
+  kimi:
+    gpus: 8
+    memory: 128Gi
+    cpu: "32"
+    heavy: true
+    job_name: kimi
+    requires_validation:
+      - kimi-test
+  ray-head:
+    gpus: 1
+    memory: 8Gi
+    cpu: "2"
+    heavy: false
+    job_name: ray-head
+  ray-worker:
+    gpus: 1
+    memory: 8Gi
+    cpu: "2"
+    heavy: false
+    job_name: ray-worker
+    multi_node_only: true
+  nemotron-3-ultra:
+    gpus: 8
+    memory: 128Gi
+    cpu: "32"
+    heavy: true
+    job_name: nemotron-3-ultra
+    requires:
+      - ray-head
+    requires_validation:
+      - kimi-test
+  nemotron-3-nano-30b:
+    gpus: 1
+    memory: 40Gi
+    cpu: "8"
+    heavy: true
+    job_name: nemotron-3-nano-30b
+    requires_validation:
+      - kimi-test
+  nemotron-3-nano-omni-30b:
+    gpus: 1
+    memory: 45Gi
+    cpu: "8"
+    heavy: true
+    job_name: nemotron-3-nano-omni-30b
+    requires_validation:
+      - kimi-test
+  nemotron-3-super-120b:
+    gpus: 1
+    memory: 95Gi
+    cpu: "12"
+    heavy: true
+    job_name: nemotron-3-super-120b
+    requires_validation:
+      - kimi-test
+  nemotron-retriever-embed:
+    gpus: 0
+    memory: 4Gi
+    cpu: "2"
+    heavy: false
+    job_name: nemotron-retriever-embed
+    kind: deployment
+  nemotron-retriever-rerank:
+    gpus: 0
+    memory: 6Gi
+    cpu: "2"
+    heavy: false
+    job_name: nemotron-retriever-rerank
+    kind: deployment
+  nemotron-parse:
+    gpus: 1
+    memory: 8Gi
+    cpu: "4"
+    heavy: false
+    job_name: nemotron-parse
+    kind: deployment
+  nemotron-safety-guard:
+    gpus: 0
+    memory: 4Gi
+    cpu: "2"
+    heavy: false
+    job_name: nemotron-safety-guard
+    kind: deployment
+  nemotron-speech-asr:
+    gpus: 0
+    memory: 6Gi
+    cpu: "4"
+    heavy: false
+    job_name: nemotron-speech-asr
+    kind: deployment
+  nemotron-speech-tts:
+    gpus: 0
+    memory: 6Gi
+    cpu: "4"
+    heavy: false
+    job_name: nemotron-speech-tts
+    kind: deployment
+  glm-5.2:
+    gpus: 1
+    memory: 110Gi
+    cpu: "16"
+    heavy: true
+    job_name: glm-5.2
+    stack_with:
+      - glm-5.2-rpc
+  glm-5.2-rpc:
+    gpus: 1
+    memory: 110Gi
+    cpu: "8"
+    heavy: false
+    job_name: glm-5.2-rpc
+  qwen3.5-122b-a10b-nvfp4:
+    gpus: 1
+    memory: 95Gi
+    cpu: "12"
+    heavy: true
+    job_name: qwen3.5-122b-a10b-nvfp4
+    requires_validation:
+      - kimi-test
+  qwen3.5-397b-spark2:
+    gpus: 2
+    memory: 220Gi
+    cpu: "16"
+    heavy: true
+    job_name: qwen3.5-397b-spark2
+    multi_node_only: true
+    requires:
+      - ray-head
+    requires_validation:
+      - kimi-test
+  qwen3.5-397b-nvfp4:
+    gpus: 1
+    memory: 115Gi
+    cpu: "12"
+    heavy: true
+    job_name: qwen3.5-397b-nvfp4
+    multi_node_only: true
+    requires_validation:
+      - kimi-test
+    stack_with:
+      - qwen3.5-397b-nvfp4-worker-1
+      - qwen3.5-397b-nvfp4-worker-2
+      - qwen3.5-397b-nvfp4-worker-3
+  qwen3.5-397b-nvfp4-worker-1:
+    gpus: 1
+    memory: 115Gi
+    cpu: "8"
+    heavy: false
+    job_name: qwen3.5-397b-nvfp4-worker-1
+  qwen3.5-397b-nvfp4-worker-2:
+    gpus: 1
+    memory: 115Gi
+    cpu: "8"
+    heavy: false
+    job_name: qwen3.5-397b-nvfp4-worker-2
+  qwen3.5-397b-nvfp4-worker-3:
+    gpus: 1
+    memory: 115Gi
+    cpu: "8"
+    heavy: false
+    job_name: qwen3.5-397b-nvfp4-worker-3
+
+# Agentic stack presets — summed via stack:<id> capacity checks.
+stacks:
+  nemotron-agentic-spark-1:
+    label: Full Agentic Stack (1× Spark)
+    min_nodes: 1
+    max_nodes: 1
+    heavy: true
+    tier: safe
+    description: Omni orchestrator + CPU RAG + safety — all agentic pillars on one node
+    stack_with:
+      - nemotron-3-nano-omni-30b
+      - nemotron-retriever-embed
+      - nemotron-retriever-rerank
+      - nemotron-safety-guard
+    startup_order:
+      - nemotron-safety-guard
+      - nemotron-retriever-embed
+      - nemotron-retriever-rerank
+      - nemotron-3-nano-omni-30b
+    requires_validation:
+      - kimi-test
+    pillars: [orchestrator, document_intel, rag, safety]
+    quality_notes: "~25 tok/s; Mamba flat memory for long agent loops"
+
+  nemotron-agentic-spark-1-reasoning:
+    label: Full Agentic — Text + Parse (1× Spark)
+    min_nodes: 1
+    max_nodes: 1
+    heavy: true
+    tier: safe
+    description: Nano orchestrator + Parse + RAG + safety for text-first workflows
+    stack_with:
+      - nemotron-3-nano-30b
+      - nemotron-parse
+      - nemotron-retriever-embed
+      - nemotron-retriever-rerank
+      - nemotron-safety-guard
+    startup_order:
+      - nemotron-safety-guard
+      - nemotron-retriever-embed
+      - nemotron-retriever-rerank
+      - nemotron-parse
+      - nemotron-3-nano-30b
+    requires_validation:
+      - kimi-test
+    pillars: [orchestrator, document_intel, rag, safety]
+
+  nemotron-agentic-spark-2-agent:
+    label: Full Agentic — Dual Nano (2× Spark)
+    min_nodes: 2
+    max_nodes: 2
+    heavy: true
+    tier: safe
+    description: Nano orchestrator + Omni sub-agent + full RAG/Parse/Safety
+    stack_with:
+      - nemotron-3-nano-30b
+      - nemotron-3-nano-omni-30b
+      - nemotron-retriever-embed
+      - nemotron-retriever-rerank
+      - nemotron-parse
+      - nemotron-safety-guard
+    startup_order:
+      - nemotron-safety-guard
+      - nemotron-retriever-embed
+      - nemotron-retriever-rerank
+      - nemotron-parse
+      - nemotron-3-nano-30b
+      - nemotron-3-nano-omni-30b
+    requires_validation:
+      - kimi-test
+    pillars: [orchestrator, document_intel, rag, safety]
+    quality_notes: Best long-horizon agent stability; dedicated GPU per reasoning role
+
+  nemotron-agentic-spark-2-reasoning:
+    label: Full Agentic — Super + Nano (2× Spark)
+    min_nodes: 2
+    max_nodes: 2
+    heavy: true
+    tier: safe
+    description: Super hard reasoning + Nano tool-caller + full aux + Speech ASR
+    stack_with:
+      - nemotron-3-super-120b
+      - nemotron-3-nano-30b
+      - nemotron-retriever-embed
+      - nemotron-retriever-rerank
+      - nemotron-parse
+      - nemotron-safety-guard
+      - nemotron-speech-asr
+    startup_order:
+      - nemotron-safety-guard
+      - nemotron-retriever-embed
+      - nemotron-retriever-rerank
+      - nemotron-parse
+      - nemotron-3-nano-30b
+      - nemotron-3-super-120b
+      - nemotron-speech-asr
+    requires_validation:
+      - kimi-test
+    pillars: [orchestrator, document_intel, rag, safety, speech]
+
+  nemotron-agentic-spark-3:
+    label: Full Agentic Stack (3× Spark)
+    min_nodes: 3
+    max_nodes: 3
+    heavy: true
+    tier: safe
+    description: Super + Nano + Omni + full RAG/Parse/Safety + Speech ASR
+    stack_with:
+      - nemotron-3-super-120b
+      - nemotron-3-nano-30b
+      - nemotron-3-nano-omni-30b
+      - nemotron-retriever-embed
+      - nemotron-retriever-rerank
+      - nemotron-parse
+      - nemotron-safety-guard
+      - nemotron-speech-asr
+    startup_order:
+      - nemotron-safety-guard
+      - nemotron-retriever-embed
+      - nemotron-retriever-rerank
+      - nemotron-parse
+      - nemotron-3-nano-30b
+      - nemotron-3-nano-omni-30b
+      - nemotron-3-super-120b
+      - nemotron-speech-asr
+    requires_validation:
+      - kimi-test
+    pillars: [orchestrator, document_intel, rag, safety, speech]
+
+  nemotron-agentic-spark-4:
+    label: Full Agentic Stack (4× Spark)
+    min_nodes: 4
+    max_nodes: 4
+    heavy: true
+    tier: safe
+    description: Full Nemotron agentic suite including Speech TTS
+    stack_with:
+      - nemotron-3-super-120b
+      - nemotron-3-nano-30b
+      - nemotron-3-nano-omni-30b
+      - nemotron-retriever-embed
+      - nemotron-retriever-rerank
+      - nemotron-parse
+      - nemotron-safety-guard
+      - nemotron-speech-asr
+      - nemotron-speech-tts
+    startup_order:
+      - nemotron-safety-guard
+      - nemotron-retriever-embed
+      - nemotron-retriever-rerank
+      - nemotron-parse
+      - nemotron-3-nano-30b
+      - nemotron-3-nano-omni-30b
+      - nemotron-3-super-120b
+      - nemotron-speech-asr
+      - nemotron-speech-tts
+    requires_validation:
+      - kimi-test
+    pillars: [orchestrator, document_intel, rag, safety, speech]
+
+  qwen-agentic-spark-1:
+    label: Qwen 3.5 NVFP4 + RAG (1× Spark)
+    min_nodes: 1
+    max_nodes: 1
+    heavy: true
+    tier: safe
+    description: Qwen 122B NVFP4 orchestrator + CPU RAG + safety (397B NVFP4 substitute)
+    stack_with:
+      - qwen3.5-122b-a10b-nvfp4
+      - nemotron-retriever-embed
+      - nemotron-retriever-rerank
+      - nemotron-safety-guard
+    startup_order:
+      - nemotron-safety-guard
+      - nemotron-retriever-embed
+      - nemotron-retriever-rerank
+      - qwen3.5-122b-a10b-nvfp4
+    requires_validation:
+      - kimi-test
+    pillars: [orchestrator, rag, safety]
+    quality_notes: "122B NVFP4 ~75GB; same agentic pillars as frontier 397B NVFP4 on 4 nodes"
+
+  qwen-agentic-spark-2:
+    label: Qwen 397B + RAG (2× Spark)
+    min_nodes: 2
+    max_nodes: 2
+    heavy: true
+    tier: safe
+    description: Qwen 397B int4-AutoRound + CPU RAG + safety (397B NVFP4 substitute)
+    stack_with:
+      - qwen3.5-397b-spark2
+      - nemotron-retriever-embed
+      - nemotron-retriever-rerank
+      - nemotron-safety-guard
+    startup_order:
+      - nemotron-safety-guard
+      - nemotron-retriever-embed
+      - nemotron-retriever-rerank
+      - ray-head
+      - ray-worker
+      - qwen3.5-397b-spark2
+    requires_validation:
+      - kimi-test
+    pillars: [orchestrator, rag, safety]
+    quality_notes: "~26-30 tok/s int4-AutoRound; NVFP4 397B needs 4 nodes"
+
+  qwen-agentic-spark-4:
+    label: Qwen 397B NVFP4 + RAG (4× Spark)
+    min_nodes: 4
+    max_nodes: 4
+    heavy: true
+    tier: experimental
+    description: nvidia/Qwen3.5-397B-A17B-NVFP4 orchestrator + CPU RAG + safety
+    stack_with:
+      - qwen3.5-397b-nvfp4
+      - nemotron-retriever-embed
+      - nemotron-retriever-rerank
+      - nemotron-safety-guard
+    startup_order:
+      - nemotron-safety-guard
+      - nemotron-retriever-embed
+      - nemotron-retriever-rerank
+      - qwen3.5-397b-nvfp4-worker-1
+      - qwen3.5-397b-nvfp4-worker-2
+      - qwen3.5-397b-nvfp4-worker-3
+      - qwen3.5-397b-nvfp4
+    requires_validation:
+      - kimi-test
+    pillars: [orchestrator, rag, safety]
+    quality_notes: "~250GB NVFP4 weights across 4 GPUs; displaces other LLM jobs"
+
+  hermes-lab:
+    label: Hermes Agent (Docker)
+    min_nodes: 1
+    max_nodes: 4
+    heavy: false
+    tier: optional_dev
+    description: Gateway agent on Spark host; needs Nemotron orchestrator + MCP toolkit
+    stack_with: []
+    requires:
+      - nemotron-3-nano-omni-30b
+    pillars: [orchestrator]
+
+  hermes-lab-full:
+    label: Hermes Agent + full MCP RAG
+    min_nodes: 1
+    max_nodes: 4
+    heavy: false
+    tier: optional_dev
+    description: Hermes on Spark host with full MCP RAG stack
+    stack_with: []
+    requires:
+      - nemotron-3-nano-omni-30b
+      - nemotron-retriever-embed
+    pillars: [orchestrator, rag]
+
+  hermes-workspace-dev:
+    label: Hermes workspace dev assistant
+    min_nodes: 1
+    max_nodes: 4
+    heavy: false
+    tier: optional_dev
+    description: Per-workspace coding agent in Coder/Kasm; in-cluster inference + MCP sidecar
+    stack_with: []
+    requires:
+      - nemotron-3-nano-omni-30b
+    pillars: [orchestrator]
+
+  open-webui-lab:
+    label: Open WebUI (Hermes agent chat)
+    min_nodes: 1
+    max_nodes: 4
+    heavy: false
+    tier: optional_dev
+    description: Browser chat UI backed by Hermes gateway on Spark host
+    stack_with: []
+    requires:
+      - nemotron-3-nano-omni-30b
+    pillars: [orchestrator]
+
+free_actions:
+  - id: stop-coder
+    action: dev:coder
+    label: Stop Coder workspaces
+    reversible: true
+    impact: Frees VS Code dev environments (~2 CPU, 4Gi RAM)
+  - id: stop-kasm
+    action: dev:kasm
+    label: Stop Kasm desktops
+    reversible: true
+    impact: Frees streamed desktops (~2 CPU, 4Gi RAM)
+  - id: stop-kimi-test
+    action: stop-job:kimi-test
+    label: Stop kimi-test job
+    reversible: true
+    impact: Frees 2 GPUs and ~32Gi memory
+  - id: stop-ray
+    action: stop-job:ray-head,ray-worker
+    label: Stop Ray cluster
+    reversible: true
+    impact: Frees Ray head/worker GPUs (1-2 total on Spark)
+  - id: stop-nemotron-stack
+    action: stop-stack:nemotron
+    label: Stop Nemotron agentic stack
+    reversible: true
+    impact: Stops all Nemotron stack deployments and LLM jobs
+  - id: stop-inference-all
+    action: stop-inference
+    label: Stop all inference jobs
+    reversible: true
+    impact: Stops all ai-inference workloads (keeps dev/monitoring)
+  - id: stop-mcp-stack
+    action: stop-stack:mcp
+    label: Stop MCP agent toolkit
+    reversible: true
+    impact: Stops agent-tools namespace MCP services
+  - id: stop-hermes
+    action: stop-stack:hermes
+    label: Stop Hermes Agent (Docker)
+    reversible: true
+    impact: Frees host Docker agent (~2 CPU, 4Gi RAM)

@@ -1,0 +1,25 @@
+# Purpose: Kubernetes Service for kimi inference endpoint
+# Source of truth: k8s/workloads/kimi/
+# Regenerate: n/a
+# Safety: exposes inference API; protect with SSO ingress
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+  name: kimi
+  namespace: ai-inference
+  labels:
+    app: kimi
+spec:
+  selector:
+    app: kimi
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: http
+  type: ClusterIP
+  # For external access consider NodePort or an Ingress controller later

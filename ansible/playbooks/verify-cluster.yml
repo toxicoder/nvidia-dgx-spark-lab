@@ -1,0 +1,55 @@
+# Purpose: Post-install cluster health and connectivity checks
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: read-only validation; safe to re-run
+
+---
+# ## verify-cluster.yml
+#
+# Post-setup verification of K3s nodes, labels (highspeed etc.), and basic GPU visibility.
+#
+# @playbook verify-cluster
+# Run after bootstrap or major changes.
+- name: Verify K3s + GPU cluster health
+  hosts: k3s_server
+  become: true
+  gather_facts: false
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  tasks:
+    - name: Show nodes
+      shell: kubectl get nodes -o wide
+      register: nodes
+      changed_when: false
+
+    - name: Show system pods
+      shell: kubectl get pods -A --field-selector=status.phase!=Running | cat || true
+      register: bad_pods
+      changed_when: false
+
+    - name: Show GPU capacity
+      shell: |
+        kubectl get nodes -o custom-columns=\
+          'NAME:.metadata.name,GPU:.status.allocatable.nvidia.com/gpu,\
+          CPU:.status.allocatable.cpu,MEM:.status.allocatable.memory'
+      register: gpus
+      changed_when: false
+
+    - name: Report status
+      debug:
+        msg:
+          - "=== NODES ==="
+          - "{{ nodes.stdout_lines }}"
+          - "=== GPU RESOURCES ==="
+          - "{{ gpus.stdout_lines }}"
+          - "=== NON-RUNNING PODS (if any) ==="
+          - "{{ bad_pods.stdout_lines | default([]) }}"
+
+    - name: Check high-speed labels
+      shell: kubectl get nodes --show-labels | grep highspeed || true
+      register: hs_labels
+      changed_when: false
+
+    - name: High speed labels
+      debug:
+        var: hs_labels.stdout_lines

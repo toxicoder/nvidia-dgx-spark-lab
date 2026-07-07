@@ -1,0 +1,24 @@
+"""Package purpose: Nemotron-3 Nano 30B inference job manifests and service exports."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "nemotron_3_nano_30b_job",
+    srcs = [
+        "kustomization.yaml",
+        "nemotron-3-nano-30b-job.yaml",
+        "service.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+exports_files([
+    "kustomization.yaml",
+    "nemotron-3-nano-30b-job.yaml",
+    "service.yaml",
+])

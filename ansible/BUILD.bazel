@@ -1,0 +1,141 @@
+"""Package purpose: Ansible playbooks filegroups, syntax/lint validation tests, and playbook execution binaries."""
+
+"""Ansible playbooks and configuration for nvidia-dgx-spark-lab.
+
+Targets provide explicit validation for syntax and linting.
+These are intended to be run in environments where ansible and
+ansible-lint are installed (dev machines, CI containers).
+"""
+
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "all_playbooks",
+    srcs = glob(["playbooks/*.yml"]) + glob(["cloud-init/**"]) + glob(["files/**"]) + glob(["roles/**"]) + [
+        "ansible.cfg",
+        "inventory/group_vars/all.yml",
+        "inventory/hosts.ini.example",
+    ],
+    visibility = [
+        "//lints:__pkg__",
+        "//tests:__pkg__",
+        "//visibility:private",
+    ],
+)
+
+exports_files([
+    "run_syntax_check.sh",
+    "run_ansible_lint.sh",
+    "run_playbook.sh",
+    "cloud-init/example-user-data-1node.yaml",
+    "cloud-init/example-user-data-2node.yaml",
+])
+
+# Wrapper script for syntax check (runs ansible-playbook --syntax-check)
+sh_test(
+    name = "syntax_check",
+    srcs = ["run_syntax_check.sh"],
+    data = [
+        ":all_playbooks",
+        "//scripts:lib/check_tool.sh",
+    ],
+    tags = [
+        "ansible",
+        "lint",
+        "manual",
+    ],
+)
+
+# Wrapper for ansible-lint
+sh_test(
+    name = "lint",
+    srcs = ["run_ansible_lint.sh"],
+    data = [
+        ":all_playbooks",
+        "//:.ansible-lint",
+        "//scripts:lib/check_tool.sh",
+    ],
+    tags = [
+        "ansible",
+        "lint",
+        "manual",
+    ],
+)
+
+test_suite(
+    name = "validate",
+    tags = [
+        "ansible",
+        "lint",
+    ],
+    tests = [
+        ":lint",
+        ":syntax_check",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# =============================================================================
+# Execution entry points (Bazel as main launcher for playbooks)
+# These are intentionally non-hermetic (they talk to real machines via SSH).
+# They default to the example inventory for safety. Pass -i ... via -- to override.
+#
+#   bazel run //ansible:bootstrap
+#   bazel run //ansible:bootstrap -- -i inventory/hosts.ini
+#   bazel run //ansible:gpu-operator
+#   bazel run //ansible:full-lab-setup
+#   bazel run //ansible:verify
+#
+# Full power of ansible-playbook flags is supported after the -- .
+# =============================================================================
+
+sh_binary(
+    name = "bootstrap",
+    srcs = ["run_playbook.sh"],
+    args = ["bootstrap-cluster.yml"],
+    data = [":all_playbooks"],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "gpu-operator",
+    srcs = ["run_playbook.sh"],
+    args = ["install-gpu-operator.yml"],
+    data = [":all_playbooks"],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "verify",
+    srcs = ["run_playbook.sh"],
+    args = ["verify-cluster.yml"],
+    data = [":all_playbooks"],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "full-lab-setup",
+    srcs = ["run_playbook.sh"],
+    args = ["full-lab-setup.yml"],
+    data = [":all_playbooks"],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "install-dev-workspaces",
+    srcs = ["run_playbook.sh"],
+    args = ["install-dev-workspaces.yml"],
+    data = [":all_playbooks"],
+    visibility = ["//visibility:public"],
+)
+
+# Convenience: run any playbook by name via the generic runner
+sh_binary(
+    name = "playbook",
+    srcs = ["run_playbook.sh"],
+    # No fixed args: user must do `bazel run //ansible:playbook -- <playbook.yml> [flags]`
+    data = [":all_playbooks"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,118 @@
+# Purpose: RBAC for lab-dashboard ServiceAccount
+# Source of truth: n/a
+# Regenerate: n/a
+# Safety: grants read-only cluster introspection
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lab-dashboard
+  namespace: dev
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: lab-dashboard
+  namespace: ai-inference
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "events", "nodes"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: lab-dashboard
+  namespace: ai-inference
+subjects:
+  - kind: ServiceAccount
+    name: lab-dashboard
+    namespace: dev
+roleRef:
+  kind: Role
+  name: lab-dashboard
+  apiGroup: rbac.authorization.k8s.io
+---
+# Also allow basic read in dev ns itself
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: lab-dashboard-dev
+  namespace: dev
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: lab-dashboard-dev
+  namespace: dev
+subjects:
+  - kind: ServiceAccount
+    name: lab-dashboard
+    namespace: dev
+roleRef:
+  kind: Role
+  name: lab-dashboard-dev
+  apiGroup: rbac.authorization.k8s.io
+---
+# Helm lifecycle for Coder (dashboard Workspaces panel toggle)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: lab-dashboard-workspace-admin
+  namespace: coder
+rules:
+  - apiGroups: ["", "apps", "batch", "policy", "networking.k8s.io", "rbac.authorization.k8s.io"]
+    resources: ["*"]
+    verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: lab-dashboard-workspace-admin
+  namespace: coder
+subjects:
+  - kind: ServiceAccount
+    name: lab-dashboard
+    namespace: dev
+roleRef:
+  kind: Role
+  name: lab-dashboard-workspace-admin
+  apiGroup: rbac.authorization.k8s.io
+---
+# Helm lifecycle for Kasm (dashboard Workspaces panel toggle)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: lab-dashboard-workspace-admin
+  namespace: kasm
+rules:
+  - apiGroups: ["", "apps", "batch", "policy", "networking.k8s.io", "rbac.authorization.k8s.io"]
+    resources: ["*"]
+    verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: lab-dashboard-workspace-admin
+  namespace: kasm
+subjects:
+  - kind: ServiceAccount
+    name: lab-dashboard
+    namespace: dev
+roleRef:
+  kind: Role
+  name: lab-dashboard-workspace-admin
+  apiGroup: rbac.authorization.k8s.io

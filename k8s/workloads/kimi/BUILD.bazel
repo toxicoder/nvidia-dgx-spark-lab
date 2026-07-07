@@ -1,0 +1,32 @@
+"""Package purpose: Full production Kimi inference job manifests and service exports."""
+
+"""Full heavy production Kimi inference workload.
+
+WARNING: Requests many GPUs and large memory. Only for use after successful
+test mode runs. Uses very low backoffLimit and restartPolicy: OnFailure.
+"""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "kimi_job",
+    srcs = [
+        "kimi-job.yaml",
+        "kustomization.yaml",
+        "service.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+exports_files(
+    [
+        "kimi-job.yaml",
+        "kustomization.yaml",
+        "service.yaml",
+    ],
+)

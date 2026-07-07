@@ -1,0 +1,28 @@
+"""Package purpose: GLM-5.2 inference job manifests, Dockerfile, and service exports."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "glm_job",
+    srcs = [
+        "Dockerfile",
+        "glm-5.2-job.yaml",
+        "glm-5.2-rpc-job.yaml",
+        "kustomization.yaml",
+        "service.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+exports_files([
+    "Dockerfile",
+    "glm-5.2-job.yaml",
+    "glm-5.2-rpc-job.yaml",
+    "kustomization.yaml",
+    "service.yaml",
+])

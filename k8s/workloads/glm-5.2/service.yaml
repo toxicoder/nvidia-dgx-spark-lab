@@ -1,0 +1,22 @@
+# Purpose: Kubernetes Service for glm 5.2 inference endpoint
+# Source of truth: k8s/workloads/glm-5.2/
+# Regenerate: n/a
+# Safety: exposes inference API; protect with SSO ingress
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+  name: glm-5.2
+  namespace: ai-inference
+spec:
+  selector:
+    app: glm-5.2
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: http
+  type: ClusterIP
