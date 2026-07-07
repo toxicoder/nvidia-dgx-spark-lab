@@ -1,0 +1,14 @@
+# Build / cache / vendored trees
+bazel-*
+bazel-bin/
+bazel-out/
+site/
+.venv*
+node_modules/
+dashboard/node_modules/
+dashboard/.next/
+
+# Jinja / Helm / Go-templated YAML (format breaks {{ }} semantics)
+*.yaml.j2
+*.yml.j2
+helm/**/templates/**

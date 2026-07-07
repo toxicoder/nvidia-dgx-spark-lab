@@ -1,0 +1,187 @@
+"""Package purpose: Root Bazel targets for test suites, lint aggregation, docs/dashboard/ansible aliases, and repo-wide entry points.
+
+Bazel is the primary entry point: build, test, lint, docs, and operational scripts.
+
+Common entry points:
+
+  bazelisk run //:validate              # git-aware build + test + lint + docs/dashboard
+  bazelisk test //:test                 # full hermetic suite (incl. docs render)
+  bazelisk test //:test-fast            # CI core (excludes slow docs Playwright)
+  bazelisk test //:lint --test_tag_filters=manual   # all lints (requires host tools)
+  bazelisk run //:manage -- status      # cluster management (wraps scripts/manage.sh)
+  bazelisk run //docs:serve             # local docs dev server
+  bazelisk run //dashboard:hermetic-test  # Docker-isolated Vitest + build + Playwright
+
+See docs/BUILDING_WITH_BAZEL.md for the full guide.
+"""
+
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+
+package(default_visibility = ["//visibility:private"])
+
+exports_files([
+    ".ansible-lint",
+    ".prettierignore",
+    ".yamllint.yml",
+    "fix.sh",
+    "mkdocs.yml",
+    "mypy.ini",
+    "prettier.config.mjs",
+])
+
+# Re-export the primary operational binary.
+alias(
+    name = "manage",
+    actual = "//scripts:manage",
+    visibility = ["//visibility:public"],
+)
+
+# The full hermetic BATS safety test suite.
+alias(
+    name = "bats",
+    actual = "//tests:bats",
+    visibility = ["//visibility:public"],
+)
+
+# The simple smoke test for the script.
+alias(
+    name = "manage_help_test",
+    actual = "//scripts:manage_help_test",
+    visibility = ["//visibility:public"],
+)
+
+# Fast hermetic core for CI (bazel-core job). Excludes Playwright-heavy docs render;
+# that runs in the docs-and-render CI job via //docs:test_mkdocs_render.
+_TEST_FAST = [
+    "//docs:test_generate_shell_docs",
+    "//docs:test_mkdocs_build",
+    "//docs:test_python_coverage",
+    "//scripts:manage_help_test",
+    "//tests:bats",
+    "//tests:kustomize_build",
+    "//tests:manifest_coverage",
+    "//tests:doc_coverage",
+    "//tests:safety_invariants",
+]
+
+test_suite(
+    name = "test-fast",
+    tests = _TEST_FAST,
+    visibility = ["//visibility:public"],
+)
+
+# Full local/validation suite (includes docs visual regression).
+test_suite(
+    name = "test",
+    tests = _TEST_FAST + [
+        "//docs:test_mkdocs_visual",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Convenience: build everything (key artifacts).
+filegroup(
+    name = "all",
+    srcs = [
+        ":manage",
+        "//docs",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Aggregate lint targets (Bazel + subpackages)
+test_suite(
+    name = "lint",
+    tags = ["lint"],
+    tests = [
+        "//ansible:validate",
+        "//lints:all",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# =============================================================================
+# Documentation entry points (primary way to work with docs)
+# =============================================================================
+alias(
+    name = "docs-serve",
+    actual = "//docs:serve",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "docs-build",
+    actual = "//docs:docs",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "docs",
+    actual = "//docs:docs",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "docs-status",
+    actual = "//docs:status",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "docs-clean",
+    actual = "//docs:clean",
+    visibility = ["//visibility:public"],
+)
+
+# =============================================================================
+# Ansible (validation is hermetic-ish; execution targets added in ansible/)
+# =============================================================================
+alias(
+    name = "ansible-validate",
+    actual = "//ansible:validate",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "ansible-bootstrap",
+    actual = "//ansible:bootstrap",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "ansible-playbook",
+    actual = "//ansible:playbook",
+    visibility = ["//visibility:public"],
+)
+
+# Dashboard (Next.js dev UI)
+alias(
+    name = "dashboard",
+    actual = "//dashboard:dev",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "dashboard-test",
+    actual = "//dashboard:test",
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "fix",
+    srcs = ["fix.sh"],
+    visibility = ["//visibility:public"],
+)
+
+# Unified validation orchestrator (git-aware slices; see scripts/validate.sh).
+alias(
+    name = "validate",
+    actual = "//scripts:validate",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "check",
+    actual = ":validate",
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,27 @@
+---
+extends: default
+
+ignore: |
+  helm/**/templates/**
+  **/*.yaml.j2
+  **/*.yml.j2
+  bazel-*/
+  site/
+  .venv*/
+  node_modules/
+  dashboard/node_modules/
+  ansible/cloud-init/example-*.yaml
+
+rules:
+  line-length:
+    max: 120
+    level: warning
+  comments-indentation: disable
+  indentation:
+    spaces: 2
+    indent-sequences: consistent
+  document-start: disable
+  truthy:
+    check-keys: false
+  comments:
+    min-spaces-from-content: 1

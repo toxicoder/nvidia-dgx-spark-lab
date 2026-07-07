@@ -1,0 +1,24 @@
+"""Package purpose: Lab resource policy YAML/JSON and Grafana dashboard filegroups for tests and scripts."""
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "resource_policy",
+    srcs = [
+        "lab-domains.json",
+        "lab-domains.yaml",
+        "monitoring-probes.yaml",
+        "nemotron-catalog.yaml",
+        "open-webui-policy.json",
+        "open-webui-policy.yaml",
+        "resource-policy.json",
+        "resource-policy.yaml",
+        "sso-policy.yaml",
+    ],
+)
+
+filegroup(
+    name = "grafana_dashboards",
+    srcs = glob(["grafana/dashboards/*.json"]),
+    visibility = ["//tests:__pkg__"],
+)

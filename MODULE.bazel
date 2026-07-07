@@ -1,0 +1,113 @@
+"""nvidia-dgx-spark-lab
+
+Modern Bazel (Bzlmod) configuration for the DGX Spark lab.
+
+This module provides hermetic linting, testing, and validation for:
+- The operational shell scripts (manage.sh)
+- BATS test suite
+- Kubernetes manifests (via validation targets)
+- Ansible playbooks (lint + syntax targets)
+
+We deliberately keep the module small. The real "build" artifacts of this
+repo are declarative configuration and safety-critical orchestration.
+Bazel is used here primarily for reproducible test execution and explicit
+dependency tracking, in parallel with the existing Makefile.
+"""
+
+module(
+    name = "nvidia-dgx-spark-lab",
+    version = "0.1.0",
+    compatibility_level = 1,
+)
+
+# =============================================================================
+# Core Bazel dependencies (from Bazel Central Registry)
+# =============================================================================
+
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "platforms", version = "0.0.11")
+
+# Shell rules - primary language for this project (manage.sh + BATS)
+# https://github.com/bazelbuild/rules_shell
+bazel_dep(name = "rules_shell", version = "0.3.0")
+
+# Future expansion notes (do not add until needed):
+# - rules_python: for hermetic Python lint tools if we want to vendor them
+# - rules_oci: only if we ever build/pin container images used by workloads
+# - No rules_go, rules_rust, rules_jvm, rules_js needed at this time
+
+# =============================================================================
+# Toolchain / Extension configuration (minimal)
+# =============================================================================
+
+# No additional module extensions yet. We will add pip.parse or custom
+# extensions only when we have a concrete need for hermetic tool versions.
+
+# =============================================================================
+# Hermetic test tooling (BATS for shell tests)
+# =============================================================================
+# bats-core is not published to BCR, so we fetch it via http_archive for
+# fully hermetic execution of our BATS suite (the most important safety tests).
+
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "bats_core",
+    build_file_content = """
+# Generated BUILD for bats-core so we can depend on its files hermetically.
+exports_files(glob(["**/*"], allow_empty = True))
+
+filegroup(
+    name = "bats",
+    srcs = ["bin/bats"],
+    visibility = ["//visibility:public"],
+    data = glob(["libexec/**/*"], allow_empty = True),
+)
+""",
+    sha256 = "aeff09fdc8b0c88b3087c99de00cf549356d7a2f6a69e3fcec5e0e861d2f9063",
+    strip_prefix = "bats-core-1.11.0",
+    urls = ["https://github.com/bats-core/bats-core/archive/refs/tags/v1.11.0.tar.gz"],
+)
+
+# =============================================================================
+# Hermetic shadcn/ui components (per user requirement for test env)
+# Fetch https://github.com/shadcn-ui/ui directly via Bazel for hermetic,
+# reproducible sourcing of official components (no local copies or npm CLI
+# resolution first). The test env (visual + builds) will import/depend on this.
+# Pinned for hermeticity; update commit/sha when intentionally advancing.
+# =============================================================================
+http_archive(
+    name = "shadcn_ui",
+    build_file_content = """
+exports_files(glob(["**/*"], allow_empty = True))
+
+filegroup(
+    name = "all_sources",
+    srcs = glob(["**/*"], allow_empty = True),
+    visibility = ["//visibility:public"],
+)
+
+# Approximate exposure of canonical component sources (structure in repo
+# includes registry/examples under www or packages; use this + downstream
+# copy/gen to source the real shadcn button/card/etc before custom code).
+filegroup(
+    name = "components",
+    srcs = glob([
+        "**/registry/**/*.tsx",
+        "**/ui/**/*.tsx",
+        "**/components/ui/**/*.tsx",
+    ], allow_empty = True),
+    visibility = ["//visibility:public"],
+)
+""",
+    sha256 = "276af598482df2e9f6f33a94fb62d5db6b0576948d04b4e09efcf23368eec4a3",
+    strip_prefix = "ui-a72491cb9b5f9471392fdc179bbb61739e37ec72",
+    urls = ["https://github.com/shadcn-ui/ui/archive/a72491cb9b5f9471392fdc179bbb61739e37ec72.tar.gz"],
+)
+
+# =============================================================================
+# Development notes
+# =============================================================================
+# To use: bazelisk test //... or bazel test //...
+# Always run in parallel with `make test` during migration.
+# Run `bazelisk run //:fix` after editing any BUILD or .bzl (or other sources) — it runs buildifier plus other trusted formatters.

@@ -1,0 +1,24 @@
+---
+# .ansible-lint configuration for nvidia-dgx-spark-lab
+# Keep it practical: we prioritize catching real problems over strict style.
+
+profile: production
+
+# We use a simple inventory example file; some rules are relaxed
+warn_list:
+  - role-name
+  - name[template]
+  - yaml[document-start]
+  - no-changed-when
+  - command-instead-of-shell
+  - risky-shell-pipe
+
+# Skip some directories
+exclude_paths:
+  - .git/
+  - docs/
+  - tests/
+
+# Custom rules can be added later if needed
+# enable_list:
+#   - experimental

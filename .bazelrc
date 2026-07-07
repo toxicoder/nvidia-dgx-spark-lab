@@ -1,0 +1,72 @@
+# nvidia-dgx-spark-lab .bazelrc
+# Modern Bazel + Bzlmod configuration. Kept practical and conservative.
+
+# =============================================================================
+# Core
+# =============================================================================
+common --enable_bzlmod
+common --noenable_workspace  # Prefer pure Bzlmod
+
+# =============================================================================
+# Performance & Caching (hermeticity + speed)
+# =============================================================================
+# Local disk cache (very useful for CI and repeated developer runs)
+# In CI, restore this via actions/cache keyed on MODULE.bazel.lock + .bazelversion
+build --disk_cache=~/.cache/bazel-disk
+test --disk_cache=~/.cache/bazel-disk
+
+# Repository cache (speeds up external deps fetch across builds)
+build --repository_cache=~/.cache/bazel-repo
+test --repository_cache=~/.cache/bazel-repo
+
+# Reasonable resource limits for this small IaC repo + typical dev machine
+# In CI (larger runners or self-hosted), use higher via --config=ci or flags
+build --jobs=HOST_CPUS*0.75
+build --local_resources=memory=HOST_RAM*0.5
+
+# Keep sandbox strict for hermeticity (critical for cache correctness)
+build --spawn_strategy=sandboxed
+# Lint targets tagged "local" need the local strategy; hermetic tests stay sandboxed.
+test --spawn_strategy=local,sandboxed
+
+# =============================================================================
+# Output & UI
+# =============================================================================
+build --show_progress_rate_limit=0.2
+test --test_output=errors
+
+# =============================================================================
+# CI Configuration
+# =============================================================================
+# Use with: bazel test //... --config=ci
+# Optimized for parallelism and cache hits on GitHub/Gitea runners.
+# Pair with actions/cache restore of ~/.cache/bazel-disk and ~/.cache/bazel-repo
+# (key on MODULE.bazel.lock + .bazelversion + relevant lockfiles).
+# On self-hosted Gitea with persistent volumes, this + higher --jobs yields ultra wins.
+build:ci --noshow_progress
+build:ci --show_progress_rate_limit=5
+test:ci --test_output=errors
+test:ci --test_summary=detailed
+build:ci --remote_download_minimal   # Faster: avoid downloading unnecessary intermediates (build without the bytes)
+# Higher parallelism on CI runners (override locally if needed)
+build:ci --jobs=HOST_CPUS
+build:ci --local_resources=memory=HOST_RAM*0.8
+# Remote cache hints (enable with --remote_cache=... if using bazel-remote/BuildBuddy/etc.)
+# build:ci --remote_cache=grpc://your-cache:9092
+
+# Parallelism comes from split BATS targets (//tests:bats_*). Add shard_count
+# on individual tests if a suite outgrows runner capacity.
+test:ci --test_sharding_strategy=disabled
+
+# =============================================================================
+# Language / Tool Specific (will expand)
+# =============================================================================
+# Example future Python pin (uncomment when rules_python is added)
+# build --python_version=3.11
+
+# =============================================================================
+# Query & Analysis friendliness
+# =============================================================================
+query --query_file=-
+
+# Keep the old Makefile working in parallel. Never break existing workflows.

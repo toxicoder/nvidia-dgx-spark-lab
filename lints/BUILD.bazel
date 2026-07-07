@@ -1,0 +1,168 @@
+"""Package purpose: Aggregate lint test suite (shellcheck, yaml, k8s kubeconform, buildifier, mypy).
+
+Bazel entrypoints for linters used in the project. Tagged 'manual' because they depend on
+external tools (shellcheck, yamllint, kubeconform, mypy) being present in PATH.
+"""
+
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
+package(default_visibility = ["//visibility:private"])
+
+# Shell lint (shellcheck on all .sh)
+sh_test(
+    name = "shell",
+    srcs = ["run_shellcheck.sh"],
+    data = [
+        "//:fix.sh",
+        "//ansible:run_ansible_lint.sh",
+        "//ansible:run_playbook.sh",
+        "//ansible:run_syntax_check.sh",
+        "//dashboard:run_npm.sh",
+        "//scripts:doc_sources",
+        "//scripts:lib/check_tool.sh",
+        "//scripts:manage.sh",
+        "//scripts:utilities",
+        "//tests:bats_runner.sh",
+    ],
+    tags = [
+        "lint",
+        "local",
+        "manual",
+        "shellcheck",
+    ],
+)
+
+# YAML format check (prettier --check; auto-fix via //:fix / scripts/yaml_format.sh --write)
+sh_test(
+    name = "yaml_format",
+    srcs = ["run_prettier_yaml_check.sh"],
+    data = [
+        "//:.prettierignore",
+        "//:prettier.config.mjs",
+        "//scripts:lib/check_tool.sh",
+        "//scripts:lib/paths.sh",
+        "//scripts:yaml_format.sh",
+    ],
+    tags = [
+        "lint",
+        "local",
+        "manual",
+        "prettier",
+        "yaml",
+    ],
+)
+
+# YAML lint (yamllint)
+sh_test(
+    name = "yaml",
+    srcs = ["run_yamllint.sh"],
+    data = [
+        "//:.yamllint.yml",
+        "//ansible:all_playbooks",
+        "//k8s/base:namespace",
+        "//k8s/dev:dev_dashboard",
+        "//k8s/overlays/test:overlay_test",
+        "//k8s/workloads/glm-5.2:glm_job",
+        "//k8s/workloads/kimi:kimi_job",
+        "//k8s/workloads/kimi-test:test_job",
+        "//k8s/workloads/nemotron-3-nano-30b:nemotron_3_nano_30b_job",
+        "//k8s/workloads/nemotron-3-nano-omni-30b:nemotron_3_nano_omni_30b_job",
+        "//k8s/workloads/nemotron-3-super-120b:nemotron_3_super_120b_job",
+        "//k8s/workloads/nemotron-3-ultra:nemotron_job",
+        "//k8s/workloads/nemotron-parse:nemotron_parse_deployment",
+        "//k8s/workloads/nemotron-retriever-embed:nemotron_retriever_embed_deployment",
+        "//k8s/workloads/nemotron-retriever-rerank:nemotron_retriever_rerank_deployment",
+        "//k8s/workloads/nemotron-safety-guard:nemotron_safety_guard_deployment",
+        "//k8s/workloads/nemotron-speech-asr:nemotron_speech_asr_deployment",
+        "//k8s/workloads/nemotron-speech-tts:nemotron_speech_tts_deployment",
+        "//k8s/workloads/ray-head:ray_head",
+        "//k8s/workloads/ray-worker:ray_worker",
+        "//scripts:lib/check_tool.sh",
+    ],
+    tags = [
+        "lint",
+        "local",
+        "manual",
+        "yamllint",
+    ],
+)
+
+# K8s specific (kubeconform)
+sh_test(
+    name = "k8s",
+    srcs = ["run_kubeconform.sh"],
+    data = [
+        "//k8s/base:namespace",
+        "//k8s/dev:dev_dashboard",
+        "//k8s/overlays/test:overlay_test",
+        "//k8s/workloads/glm-5.2:glm_job",
+        "//k8s/workloads/kimi:kimi_job",
+        "//k8s/workloads/kimi-test:test_job",
+        "//k8s/workloads/nemotron-3-nano-30b:nemotron_3_nano_30b_job",
+        "//k8s/workloads/nemotron-3-nano-omni-30b:nemotron_3_nano_omni_30b_job",
+        "//k8s/workloads/nemotron-3-super-120b:nemotron_3_super_120b_job",
+        "//k8s/workloads/nemotron-3-ultra:nemotron_job",
+        "//k8s/workloads/nemotron-parse:nemotron_parse_deployment",
+        "//k8s/workloads/nemotron-retriever-embed:nemotron_retriever_embed_deployment",
+        "//k8s/workloads/nemotron-retriever-rerank:nemotron_retriever_rerank_deployment",
+        "//k8s/workloads/nemotron-safety-guard:nemotron_safety_guard_deployment",
+        "//k8s/workloads/nemotron-speech-asr:nemotron_speech_asr_deployment",
+        "//k8s/workloads/nemotron-speech-tts:nemotron_speech_tts_deployment",
+        "//k8s/workloads/ray-head:ray_head",
+        "//k8s/workloads/ray-worker:ray_worker",
+        "//scripts:lib/check_tool.sh",
+    ],
+    tags = [
+        "kubeconform",
+        "lint",
+        "local",
+        "manual",
+    ],
+)
+
+# Bazel BUILD/.bzl formatting check (buildifier -mode=check).
+# Tagged local: runs against BUILD_WORKSPACE_DIRECTORY (full tree), not sandbox data.
+sh_test(
+    name = "buildifier",
+    srcs = ["buildifier_check.sh"],
+    data = [
+        "//scripts:doc_sources",
+        "//scripts:lib/check_tool.sh",
+    ],
+    tags = [
+        "buildifier",
+        "lint",
+        "local",
+        "manual",
+        "no-sandbox",
+    ],
+)
+
+# Python strict typing (mypy per mypy.ini).
+sh_test(
+    name = "mypy",
+    srcs = ["run_mypy.sh"],
+    data = [
+        "//:mypy.ini",
+        "//scripts:lib/check_tool.sh",
+    ],
+    tags = [
+        "lint",
+        "local",
+        "manual",
+        "mypy",
+    ],
+)
+
+test_suite(
+    name = "all",
+    tags = ["lint"],
+    tests = [
+        ":buildifier",
+        ":k8s",
+        ":mypy",
+        ":shell",
+        ":yaml",
+        ":yaml_format",
+    ],
+)

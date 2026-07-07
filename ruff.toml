@@ -1,0 +1,13 @@
+# Python lint and format defaults for docs/, mcp/, config/, tests/.
+target-version = "py311"
+line-length = 100
+
+[lint]
+select = ["E", "F", "I", "ANN", "D"]
+ignore = ["D100", "D104", "ANN101", "ANN102"]
+
+[lint.pydocstyle]
+convention = "google"
+
+[format]
+quote-style = "double"

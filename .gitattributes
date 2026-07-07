@@ -1,0 +1,12 @@
+# Visual regression golden baseline images are committed binary assets.
+# Mark them explicitly as binary to:
+# - Prevent automatic CRLF / line-ending conversion (images are not text).
+# - Tell git and tools (diff, merge, etc.) to treat them as opaque binaries.
+# Only the committed goldens/ baselines should be tracked; generated actuals are ignored separately.
+
+docs/tests/visual/goldens/*.png binary
+dashboard/tests/visual/goldens/*.png binary
+
+# If other golden images are added later, extend the pattern above.
+# Example for broader safety (uncomment if desired):
+# *.png binary
