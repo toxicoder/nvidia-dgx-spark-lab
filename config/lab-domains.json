@@ -1,0 +1,16 @@
+{
+  "local_domain": "lab.local",
+  "public_domain": "",
+  "primary": "local",
+  "email_domain": "lab.local",
+  "sso": {
+    "https_port": 32443,
+    "http_port": 32080
+  },
+  "tls": {
+    "local_issuer": "lab-ca-issuer",
+    "public_issuer": "letsencrypt-prod",
+    "acme_email": "",
+    "acme_solver": "http01"
+  }
+}

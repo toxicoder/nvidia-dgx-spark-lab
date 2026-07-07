@@ -1,0 +1,26 @@
+# Purpose: Lab hostname and TLS domain configuration
+# Source of truth: this file
+# Regenerate: ./scripts/manage.sh domains render
+# Safety: domain changes affect SSO, TLS, and all ingress routes
+
+# Lab hostname configuration — single source of truth for SSO, TLS, Helm, and dashboard URLs.
+# Regenerate derived manifests: ./scripts/manage.sh domains render
+#
+# local_domain:  dev /etc/hosts access (self-signed TLS)
+# public_domain: production DNS (ACME TLS via cert-manager when set)
+# primary:       which domain appears first in links and docs when both are active
+
+local_domain: lab.local
+public_domain: ""
+primary: local
+email_domain: lab.local
+
+sso:
+  https_port: 32443
+  http_port: 32080
+
+tls:
+  local_issuer: lab-ca-issuer
+  public_issuer: letsencrypt-prod
+  acme_email: ""
+  acme_solver: http01
