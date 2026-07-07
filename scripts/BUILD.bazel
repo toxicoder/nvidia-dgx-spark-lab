@@ -1,0 +1,148 @@
+"""Package purpose: manage.sh operational binary, utility scripts, validate orchestrator, and doc sources."""
+
+"""Scripts package.
+
+Contains the primary operational tool: manage.sh.
+
+This script is the main interface for safely controlling heavy vs test
+inference workloads. It is deliberately designed with safety checks
+(confirmation for full mode, resource pre-flight, low backoff restart
+policies in the manifests it deploys).
+
+We model it as a sh_binary so Bazel understands it as an executable target.
+The BATS tests depend on these files.
+"""
+
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
+package(default_visibility = ["//visibility:private"])
+
+# The main management script.
+# Note: It has runtime dependencies on k8s/ manifests (via relative paths).
+sh_binary(
+    name = "manage",
+    srcs = ["manage.sh"],
+    data = [
+        # The manifests that manage.sh deploys / references.
+        "//k8s/workloads/glm-5.2:glm_job",
+        "//k8s/workloads/kimi:kimi_job",
+        "//k8s/workloads/kimi-test:test_job",
+        "//k8s/workloads/nemotron-3-ultra:nemotron_job",
+        "//k8s/workloads/nemotron-3-nano-30b:nemotron_3_nano_30b_job",
+        "//k8s/workloads/nemotron-3-nano-omni-30b:nemotron_3_nano_omni_30b_job",
+        "//k8s/workloads/nemotron-3-super-120b:nemotron_3_super_120b_job",
+        "//k8s/workloads/nemotron-retriever-embed:nemotron_retriever_embed_deployment",
+        "//k8s/workloads/nemotron-retriever-rerank:nemotron_retriever_rerank_deployment",
+        "//k8s/workloads/nemotron-parse:nemotron_parse_deployment",
+        "//k8s/workloads/nemotron-safety-guard:nemotron_safety_guard_deployment",
+        "//k8s/workloads/nemotron-speech-asr:nemotron_speech_asr_deployment",
+        "//k8s/workloads/nemotron-speech-tts:nemotron_speech_tts_deployment",
+        "//config:resource_policy",
+        "//k8s/workloads/ray-head:ray_head",
+        "//k8s/workloads/ray-worker:ray_worker",
+        "//k8s/workloads/qwen3.5-122b-a10b-nvfp4:qwen3_5_122b_a10b_nvfp4_job",
+        "//k8s/workloads/qwen3.5-397b-nvfp4:qwen3_5_397b_nvfp4_job",
+        "//k8s/workloads/qwen3.5-397b-spark2:qwen3_5_397b_spark2_job",
+        "//k8s/dev:dev_dashboard",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Simple smoke test that the script at least prints help without error.
+# This runs the real script in a somewhat controlled environment.
+sh_test(
+    name = "manage_help_test",
+    size = "small",
+    srcs = ["manage.sh"],
+    args = ["help"],
+    data = glob(["lib/*.sh"]) + [
+        "//config:resource_policy",
+    ],
+    tags = ["manual"],  # Not part of default //... test until more hermetic
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "render_domains_py",
+    srcs = ["lib/render_domains.py"],
+    visibility = ["//tests:__pkg__"],
+)
+
+# Expose sources for BATS (the tests copy the script for isolation)
+exports_files(
+    [
+        "manage.sh",
+        "yaml_format.sh",
+        "lib/render_domains.py",
+    ] + glob(
+        ["lib/*.sh"],
+        allow_empty = True,
+    ),
+    visibility = [
+        "//ansible:__pkg__",
+        "//lints:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+# Shell sources containing structured comments used by docs/generate_shell_docs.py.
+# Listed here so docs targets can depend on them for correct invalidation.
+filegroup(
+    name = "doc_sources",
+    srcs = [
+        "manage.sh",
+    ] + glob(
+        ["lib/*.sh"],
+        allow_empty = True,
+    ) + glob(
+        ["utilities/*.sh"],
+        allow_empty = True,
+    ),
+    visibility = [
+        "//docs:__pkg__",
+        "//lints:__pkg__",
+    ],
+)
+
+# Utilities following the new lab pattern (idempotent status/run, dashboard controllable).
+# Easy to add new scripts: drop <name>.sh in utilities/ following the skeleton.
+filegroup(
+    name = "utilities",
+    srcs = glob(
+        ["utilities/*.sh"],
+        allow_empty = True,
+    ) + glob(
+        ["lib/*.sh"],
+        allow_empty = True,
+    ),
+    visibility = ["//visibility:public"],
+)
+
+exports_files(
+    glob(
+        ["utilities/*.sh"],
+        allow_empty = True,
+    ),
+    visibility = [
+        "//dashboard:__pkg__",
+        "//lints:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+# Generic runner so you can do: bazel run //scripts:run-utility -- spark-clock status
+sh_binary(
+    name = "run-utility",
+    srcs = ["utilities/runner.sh"],
+    data = [":utilities"],
+    visibility = ["//visibility:public"],
+)
+
+# Unified validation orchestrator (git-aware slices; aliased as //:validate).
+sh_binary(
+    name = "validate",
+    srcs = ["validate.sh"],
+    data = ["lib/paths.sh"],
+    visibility = ["//visibility:public"],
+)
