@@ -1,0 +1,55 @@
+# Purpose: Deployment for MCP mcp gitea
+# Source of truth: mcp/k8s/workloads/mcp-gitea/
+# Regenerate: n/a
+# Safety: review egress network policies
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-gitea
+  namespace: agent-tools
+  labels:
+    app: mcp-gitea
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-gitea
+  template:
+    metadata:
+      labels:
+        app: mcp-gitea
+    spec:
+      priorityClassName: lab-optional
+      containers:
+        - name: gitea-mcp
+          image: python:3.12-slim
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              pip install --no-cache-dir uv
+              exec uvx gitea-mcp serve --transport http --host 0.0.0.0 --port 8000 --path /mcp
+          env:
+            - name: GITEA_URL
+              valueFrom:
+                secretKeyRef:
+                  name: mcp-secrets
+                  key: GITEA_URL
+                  optional: true
+            - name: GITEA_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: mcp-secrets
+                  key: GITEA_TOKEN
+                  optional: true
+          ports:
+            - containerPort: 8000
+              name: http
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

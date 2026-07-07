@@ -1,0 +1,16 @@
+# Purpose: Kustomize root for MCP agent-tools namespace
+# Source of truth: n/a
+# Regenerate: n/a
+# Safety: apply before MCP workloads
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - network-policy.yaml
+
+commonLabels:
+  app.kubernetes.io/part-of: nvidia-dgx-spark-lab
+  app.kubernetes.io/managed-by: kustomize
+  lab.component: mcp-agent-toolkit

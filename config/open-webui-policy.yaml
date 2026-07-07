@@ -1,0 +1,38 @@
+# Purpose: Open WebUI Helm deploy and Hermes gateway integration policy
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: conservative dev-namespace resources; SSO host from lab-domains
+
+# Open WebUI lab integration — Helm deploy, Hermes gateway backend, SSO host.
+# Parsed by scripts/lib/open-webui.sh (YAML → JSON via python3).
+
+helm:
+  repo: https://open-webui.github.io/helm-charts
+  chart: open-webui
+  release: open-webui
+  namespace: dev
+  chart_version: "7.4.0"
+
+ports:
+  nodeport: 32085
+  container: 8080
+  service: 80
+
+sso:
+  host: chat
+
+backends:
+  hermes_gateway:
+    service: hermes-gateway
+    namespace: dev
+    port: 8642
+    path: /v1
+    requires_hermes_stack: hermes-lab
+
+stacks:
+  open-webui-lab:
+    label: Open WebUI (Hermes agent chat)
+    heavy: false
+    tier: optional_dev
+    description: Browser chat UI backed by Hermes gateway (MCP agent orchestration)
+    requires_hermes_stack: hermes-lab

@@ -1,0 +1,58 @@
+# Purpose: Hermes workspace-dev profile — model endpoint and MCP server wiring
+# Source of truth: hermes/profiles/workspace-dev/
+# Regenerate: n/a
+# Safety: dev/Coder workspace profile; api_key placeholder only
+
+model:
+  provider: custom
+  default: "nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4"
+  base_url: "http://nemotron-3-nano-omni-30b.ai-inference.svc.cluster.local:8000/v1"
+  api_key: "none"
+  context_length: 131072
+
+auxiliary:
+  compression:
+    provider: main
+    model: ""
+
+mcp_servers:
+  lab_searxng:
+    url: "http://searxng-mcp.agent-tools.svc.cluster.local:8000/sse"
+    tools:
+      prompts: false
+      resources: false
+  lab_fetch:
+    url: "http://mcp-fetch.agent-tools.svc.cluster.local:8000/sse"
+    tools:
+      prompts: false
+      resources: false
+  lab_memory:
+    url: "http://mcp-memory.agent-tools.svc.cluster.local:8000/sse"
+    tools:
+      prompts: false
+      resources: false
+  lab_context7:
+    url: "http://context7-proxy.agent-tools.svc.cluster.local:8000/mcp"
+    tools:
+      prompts: false
+      resources: false
+
+tool_loop_guardrails:
+  hard_stop_enabled: true
+  hard_stop_after:
+    exact_failure: 5
+    idempotent_no_progress: 5
+
+terminal:
+  backend: local
+  home_mode: auto
+  timeout: 180
+
+worktree: true
+
+memory:
+  memory_enabled: false
+  user_profile_enabled: false
+
+agent:
+  max_turns: 60

@@ -1,0 +1,30 @@
+# Purpose: Host-network Docker Compose stack for the Hermes agent gateway
+# Source of truth: hermes/config/hermes-policy.yaml
+# Regenerate: n/a
+# Safety: host network; requires local inference port-forward on 127.0.0.1:8000
+#
+# Hermes Agent on the Spark K3s node (host network).
+# Requires inference port-forward on 127.0.0.1:8000 (managed by hermes-stack).
+# See hermes/README.md and docs/hermes-agent.md.
+
+services:
+  hermes:
+    image: nousresearch/hermes-agent:latest
+    container_name: hermes
+    restart: unless-stopped
+    network_mode: host
+    command: gateway run
+    shm_size: 1g
+    volumes:
+      - ${HERMES_DATA_DIR:-./data}:/opt/data
+    env_file:
+      - ${HERMES_DATA_DIR:-./data}/.env
+    environment:
+      HERMES_DASHBOARD: "1"
+      API_SERVER_ENABLED: "true"
+      API_SERVER_HOST: "0.0.0.0"
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "2.0"

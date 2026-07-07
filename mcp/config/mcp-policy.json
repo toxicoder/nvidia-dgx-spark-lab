@@ -1,0 +1,168 @@
+{
+  "namespace": "agent-tools",
+  "nodeports": {
+    "mcp-searxng": 32100,
+    "mcp-fetch": 32101,
+    "mcp-qdrant": 32102,
+    "context7-proxy": 32103,
+    "mcp-gitea": 32104,
+    "mcp-memory": 32105,
+    "mcp-firecrawl": 32106
+  },
+  "context7": {
+    "enabled": true,
+    "cache_ttl_seconds": 604800
+  },
+  "components": {
+    "redis": {
+      "kustomize": "mcp/k8s/workloads/redis",
+      "cpu": "100m",
+      "memory": "128Mi"
+    },
+    "searxng": {
+      "kustomize": "mcp/k8s/workloads/searxng",
+      "cpu": "250m",
+      "memory": "256Mi"
+    },
+    "mcp-searxng": {
+      "kustomize": "mcp/k8s/workloads/mcp-searxng",
+      "cpu": "100m",
+      "memory": "128Mi"
+    },
+    "mcp-fetch": {
+      "kustomize": "mcp/k8s/workloads/mcp-fetch",
+      "cpu": "100m",
+      "memory": "128Mi"
+    },
+    "mcp-memory": {
+      "kustomize": "mcp/k8s/workloads/mcp-memory",
+      "cpu": "100m",
+      "memory": "128Mi"
+    },
+    "context7-proxy": {
+      "kustomize": "mcp/k8s/workloads/context7-proxy",
+      "cpu": "100m",
+      "memory": "128Mi"
+    },
+    "qdrant": {
+      "kustomize": "mcp/k8s/workloads/qdrant",
+      "cpu": "500m",
+      "memory": "1Gi"
+    },
+    "mcp-qdrant": {
+      "kustomize": "mcp/k8s/workloads/mcp-qdrant",
+      "cpu": "200m",
+      "memory": "512Mi"
+    },
+    "firecrawl": {
+      "kustomize": "mcp/k8s/workloads/firecrawl",
+      "cpu": "2",
+      "memory": "4Gi"
+    },
+    "mcp-firecrawl": {
+      "kustomize": "mcp/k8s/workloads/mcp-firecrawl",
+      "cpu": "100m",
+      "memory": "256Mi"
+    },
+    "mem0": {
+      "kustomize": "mcp/k8s/workloads/mem0",
+      "cpu": "500m",
+      "memory": "1Gi"
+    },
+    "mcp-gitea": {
+      "kustomize": "mcp/k8s/workloads/mcp-gitea",
+      "cpu": "100m",
+      "memory": "128Mi"
+    },
+    "doc-ingest": {
+      "kustomize": "mcp/k8s/workloads/doc-ingest",
+      "cpu": "200m",
+      "memory": "256Mi"
+    }
+  },
+  "stacks": {
+    "mcp-agent-toolkit": {
+      "label": "MCP Agent Toolkit (default)",
+      "heavy": false,
+      "tier": "optional_dev",
+      "description": "Private web search, fetch, memory, and cached Context7 docs",
+      "stack_with": [
+        "redis",
+        "searxng",
+        "mcp-searxng",
+        "mcp-fetch",
+        "mcp-memory",
+        "context7-proxy"
+      ],
+      "startup_order": [
+        "redis",
+        "searxng",
+        "mcp-searxng",
+        "mcp-fetch",
+        "mcp-memory",
+        "context7-proxy"
+      ]
+    },
+    "mcp-agent-toolkit-full": {
+      "label": "MCP Agent Toolkit (full)",
+      "heavy": true,
+      "tier": "optional_dev",
+      "description": "Full private RAG \u2014 Qdrant, Firecrawl, Mem0, doc ingest (needs Nemotron embed)",
+      "requires": [
+        "nemotron-retriever-embed"
+      ],
+      "stack_with": [
+        "redis",
+        "searxng",
+        "qdrant",
+        "firecrawl",
+        "mem0",
+        "mcp-searxng",
+        "mcp-fetch",
+        "mcp-memory",
+        "mcp-qdrant",
+        "mcp-firecrawl",
+        "context7-proxy",
+        "doc-ingest"
+      ],
+      "startup_order": [
+        "redis",
+        "searxng",
+        "qdrant",
+        "firecrawl",
+        "mem0",
+        "mcp-searxng",
+        "mcp-fetch",
+        "mcp-memory",
+        "mcp-qdrant",
+        "mcp-firecrawl",
+        "context7-proxy",
+        "doc-ingest"
+      ]
+    },
+    "mcp-agent-toolkit-gitea": {
+      "label": "MCP Agent Toolkit + Gitea",
+      "heavy": false,
+      "tier": "optional_dev",
+      "description": "Default toolkit plus Gitea/Forgejo code exploration MCP",
+      "stack_with": [
+        "redis",
+        "searxng",
+        "mcp-searxng",
+        "mcp-fetch",
+        "mcp-memory",
+        "context7-proxy",
+        "mcp-gitea"
+      ],
+      "startup_order": [
+        "redis",
+        "searxng",
+        "mcp-searxng",
+        "mcp-fetch",
+        "mcp-memory",
+        "context7-proxy",
+        "mcp-gitea"
+      ]
+    }
+  }
+}

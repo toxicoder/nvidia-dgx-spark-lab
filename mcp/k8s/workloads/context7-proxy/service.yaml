@@ -1,0 +1,21 @@
+# Purpose: Service for MCP context7 proxy
+# Source of truth: mcp/k8s/workloads/context7-proxy/
+# Regenerate: n/a
+# Safety: NodePort from mcp-policy.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: context7-proxy
+  namespace: agent-tools
+  labels:
+    app: context7-proxy
+spec:
+  selector:
+    app: context7-proxy
+  ports:
+    - port: 8000
+      targetPort: 8000
+      nodePort: 32103
+      name: http
+  type: NodePort

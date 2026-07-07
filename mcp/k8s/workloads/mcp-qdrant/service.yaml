@@ -1,0 +1,21 @@
+# Purpose: Service for MCP mcp qdrant
+# Source of truth: mcp/k8s/workloads/mcp-qdrant/
+# Regenerate: n/a
+# Safety: NodePort from mcp-policy.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-qdrant
+  namespace: agent-tools
+  labels:
+    app: mcp-qdrant
+spec:
+  selector:
+    app: mcp-qdrant
+  ports:
+    - port: 8000
+      targetPort: 8000
+      nodePort: 32102
+      name: http
+  type: NodePort

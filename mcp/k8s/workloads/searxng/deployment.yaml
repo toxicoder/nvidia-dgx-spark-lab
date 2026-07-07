@@ -1,0 +1,54 @@
+# Purpose: Deployment for MCP searxng
+# Source of truth: mcp/k8s/workloads/searxng/
+# Regenerate: n/a
+# Safety: review egress network policies
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: searxng
+  namespace: agent-tools
+  labels:
+    app: searxng
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: searxng
+  template:
+    metadata:
+      labels:
+        app: searxng
+    spec:
+      priorityClassName: lab-optional
+      containers:
+        - name: searxng
+          image: searxng/searxng:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: SEARXNG_BASE_URL
+              value: "http://searxng.agent-tools.svc.cluster.local:8080/"
+            - name: SEARXNG_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: mcp-secrets
+                  key: SEARXNG_SECRET
+                  optional: true
+          volumeMounts:
+            - name: settings
+              mountPath: /etc/searxng/settings.yml
+              subPath: settings.yml
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+      volumes:
+        - name: settings
+          configMap:
+            name: searxng-settings

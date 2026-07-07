@@ -1,0 +1,58 @@
+# Purpose: Deployment for MCP mcp firecrawl
+# Source of truth: mcp/k8s/workloads/mcp-firecrawl/
+# Regenerate: n/a
+# Safety: review egress network policies
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-firecrawl
+  namespace: agent-tools
+  labels:
+    app: mcp-firecrawl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-firecrawl
+  template:
+    metadata:
+      labels:
+        app: mcp-firecrawl
+    spec:
+      priorityClassName: lab-optional
+      containers:
+        - name: gateway
+          image: node:22-bookworm-slim
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              npm install -g supergateway firecrawl-mcp
+              export FIRECRAWL_API_URL="http://firecrawl-api.agent-tools.svc.cluster.local:3002"
+              export FIRECRAWL_API_KEY="${FIRECRAWL_API_KEY:-local-dev-key}"
+              exec supergateway \
+                --stdio "npx -y firecrawl-mcp" \
+                --port 8000 \
+                --ssePath /sse \
+                --streamableHttpPath /mcp \
+                --baseUrl http://127.0.0.1:8000
+          env:
+            - name: FIRECRAWL_API_URL
+              value: "http://firecrawl-api.agent-tools.svc.cluster.local:3002"
+            - name: FIRECRAWL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mcp-secrets
+                  key: FIRECRAWL_API_KEY
+                  optional: true
+          ports:
+            - containerPort: 8000
+              name: http
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

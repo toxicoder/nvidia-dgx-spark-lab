@@ -1,0 +1,40 @@
+# Purpose: Deployment for MCP mem0
+# Source of truth: mcp/k8s/workloads/mem0/
+# Regenerate: n/a
+# Safety: review egress network policies
+
+# Optional Mem0 OSS server — deploy manually after bootstrapping via upstream mem0/server.
+# See https://docs.mem0.ai/open-source/overview
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mem0
+  namespace: agent-tools
+  labels:
+    app: mem0
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: mem0
+  template:
+    metadata:
+      labels:
+        app: mem0
+    spec:
+      priorityClassName: lab-optional
+      containers:
+        - name: mem0
+          image: python:3.12-slim
+          imagePullPolicy: IfNotPresent
+          command: ["sleep", "infinity"]
+          env:
+            - name: MEM0_QDRANT_URL
+              value: "http://qdrant.agent-tools.svc.cluster.local:6333"
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi

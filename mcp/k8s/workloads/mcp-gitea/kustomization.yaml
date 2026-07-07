@@ -1,0 +1,11 @@
+# Purpose: Kustomize bundle for MCP mcp gitea
+# Source of truth: mcp/k8s/workloads/mcp-gitea/
+# Regenerate: n/a
+# Safety: agent-tools namespace; moderate resources
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - deployment.yaml
+  - service.yaml

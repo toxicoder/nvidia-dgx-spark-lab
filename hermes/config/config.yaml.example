@@ -1,0 +1,29 @@
+# Hermes Agent lab configuration — seeded to hermes/data/config.yaml on first start.
+# Model name and mcp_servers are rendered by hermes-stack from hermes-policy.yaml.
+
+model:
+  provider: custom
+  default: "LAB_MODEL_NAME_PLACEHOLDER"
+  base_url: "http://127.0.0.1:8000/v1"
+  api_key: "none"
+  context_length: 131072
+
+auxiliary:
+  compression:
+    provider: main
+    model: ""
+
+mcp_servers: {}
+
+tool_loop_guardrails:
+  hard_stop_enabled: true
+  hard_stop_after:
+    exact_failure: 5
+    idempotent_no_progress: 5
+
+terminal:
+  backend: local
+  timeout: 180
+
+agent:
+  max_turns: 60

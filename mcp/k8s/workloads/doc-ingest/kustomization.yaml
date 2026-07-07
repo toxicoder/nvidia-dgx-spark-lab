@@ -1,0 +1,19 @@
+# Purpose: Kustomize bundle for MCP doc ingest
+# Source of truth: mcp/k8s/workloads/doc-ingest/
+# Regenerate: n/a
+# Safety: agent-tools namespace; moderate resources
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+configMapGenerator:
+  - name: doc-ingest-script
+    files:
+      - ingest.py
+
+resources:
+  - configmap.yaml
+  - cronjob.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true

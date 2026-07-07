@@ -1,0 +1,61 @@
+# Purpose: CronJob for MCP doc ingest scheduled tasks
+# Source of truth: mcp/k8s/workloads/doc-ingest/
+# Regenerate: n/a
+# Safety: runs on schedule; monitor job history
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: doc-ingest
+  namespace: agent-tools
+  labels:
+    app: doc-ingest
+spec:
+  schedule: "0 3 * * 0"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            app: doc-ingest
+        spec:
+          restartPolicy: OnFailure
+          priorityClassName: lab-optional
+          containers:
+            - name: ingest
+              image: python:3.12-slim
+              imagePullPolicy: IfNotPresent
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  pip install --no-cache-dir requests
+                  python /scripts/ingest.py
+              envFrom:
+                - configMapRef:
+                    name: doc-ingest-config
+              env:
+                - name: EMBED_URL
+                  value: "http://nemotron-retriever-embed.ai-inference.svc.cluster.local:8000/v1/embeddings"
+                - name: QDRANT_URL
+                  value: "http://qdrant.agent-tools.svc.cluster.local:6333"
+                - name: COLLECTION
+                  value: library-docs
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+              resources:
+                requests:
+                  cpu: 200m
+                  memory: 256Mi
+                limits:
+                  cpu: "1"
+                  memory: 1Gi
+          volumes:
+            - name: script
+              configMap:
+                name: doc-ingest-script
+                defaultMode: 0555

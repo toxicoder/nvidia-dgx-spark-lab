@@ -1,0 +1,20 @@
+# Purpose: Service for MCP redis
+# Source of truth: mcp/k8s/workloads/redis/
+# Regenerate: n/a
+# Safety: NodePort from mcp-policy.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: agent-tools
+  labels:
+    app: redis
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+      name: redis
+  type: ClusterIP

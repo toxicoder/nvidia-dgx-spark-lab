@@ -1,0 +1,21 @@
+# Purpose: Service for MCP mcp gitea
+# Source of truth: mcp/k8s/workloads/mcp-gitea/
+# Regenerate: n/a
+# Safety: NodePort from mcp-policy.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-gitea
+  namespace: agent-tools
+  labels:
+    app: mcp-gitea
+spec:
+  selector:
+    app: mcp-gitea
+  ports:
+    - port: 8000
+      targetPort: 8000
+      nodePort: 32104
+      name: http
+  type: NodePort

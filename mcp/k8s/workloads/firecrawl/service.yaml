@@ -1,0 +1,34 @@
+# Purpose: Service for MCP firecrawl
+# Source of truth: mcp/k8s/workloads/firecrawl/
+# Regenerate: n/a
+# Safety: NodePort from mcp-policy.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: firecrawl-playwright
+  namespace: agent-tools
+spec:
+  selector:
+    app: firecrawl-playwright
+  ports:
+    - port: 3000
+      targetPort: 3000
+      name: http
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: firecrawl-api
+  namespace: agent-tools
+  labels:
+    app: firecrawl-api
+spec:
+  selector:
+    app: firecrawl-api
+  ports:
+    - port: 3002
+      targetPort: 3002
+      name: http
+  type: ClusterIP

@@ -1,0 +1,94 @@
+# Purpose: Deployment for MCP firecrawl
+# Source of truth: mcp/k8s/workloads/firecrawl/
+# Regenerate: n/a
+# Safety: review egress network policies
+
+# Minimal Firecrawl self-hosted API (requires Playwright + Redis + RabbitMQ for full scrape).
+# For production, scale resources and pin images from ghcr.io/firecrawl/* .
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: firecrawl-playwright
+  namespace: agent-tools
+  labels:
+    app: firecrawl-playwright
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: firecrawl-playwright
+  template:
+    metadata:
+      labels:
+        app: firecrawl-playwright
+    spec:
+      priorityClassName: lab-optional
+      containers:
+        - name: playwright
+          image: ghcr.io/firecrawl/playwright-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+              name: http
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: firecrawl-api
+  namespace: agent-tools
+  labels:
+    app: firecrawl-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: firecrawl-api
+  template:
+    metadata:
+      labels:
+        app: firecrawl-api
+    spec:
+      priorityClassName: lab-optional
+      containers:
+        - name: api
+          image: ghcr.io/firecrawl/firecrawl:latest
+          imagePullPolicy: IfNotPresent
+          command: ["node", "dist/src/harness.js", "--start-docker"]
+          ports:
+            - containerPort: 3002
+              name: http
+          env:
+            - name: HOST
+              value: "0.0.0.0"
+            - name: PORT
+              value: "3002"
+            - name: USE_DB_AUTHENTICATION
+              value: "false"
+            - name: REDIS_URL
+              value: "redis://redis.agent-tools.svc.cluster.local:6379/2"
+            - name: REDIS_RATE_LIMIT_URL
+              value: "redis://redis.agent-tools.svc.cluster.local:6379/2"
+            - name: PLAYWRIGHT_MICROSERVICE_URL
+              value: "http://firecrawl-playwright.agent-tools.svc.cluster.local:3000/scrape"
+            - name: SEARXNG_ENDPOINT
+              value: "http://searxng.agent-tools.svc.cluster.local:8080"
+            - name: BULL_AUTH_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mcp-secrets
+                  key: FIRECRAWL_BULL_AUTH_KEY
+                  optional: true
+          resources:
+            requests:
+              cpu: "1"
+              memory: 2Gi
+            limits:
+              cpu: "4"
+              memory: 8Gi

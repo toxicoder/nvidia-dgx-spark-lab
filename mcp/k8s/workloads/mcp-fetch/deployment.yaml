@@ -1,0 +1,54 @@
+# Purpose: Deployment for MCP mcp fetch
+# Source of truth: mcp/k8s/workloads/mcp-fetch/
+# Regenerate: n/a
+# Safety: review egress network policies
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-fetch
+  namespace: agent-tools
+  labels:
+    app: mcp-fetch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-fetch
+  template:
+    metadata:
+      labels:
+        app: mcp-fetch
+    spec:
+      priorityClassName: lab-optional
+      containers:
+        - name: gateway
+          image: python:3.12-slim
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              apt-get update && apt-get install -y --no-install-recommends nodejs npm curl \
+                && npm install -g supergateway \
+                && pip install --no-cache-dir uv \
+                && exec supergateway \
+                  --stdio "uvx mcp-server-fetch" \
+                  --port 8000 \
+                  --ssePath /sse \
+                  --streamableHttpPath /mcp \
+                  --baseUrl http://127.0.0.1:8000
+          ports:
+            - containerPort: 8000
+              name: http
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 45
+            periodSeconds: 10

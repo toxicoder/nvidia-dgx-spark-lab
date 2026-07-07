@@ -1,0 +1,23 @@
+# Purpose: Service for MCP qdrant
+# Source of truth: mcp/k8s/workloads/qdrant/
+# Regenerate: n/a
+# Safety: NodePort from mcp-policy.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant
+  namespace: agent-tools
+  labels:
+    app: qdrant
+spec:
+  selector:
+    app: qdrant
+  ports:
+    - port: 6333
+      targetPort: 6333
+      name: http
+    - port: 6334
+      targetPort: 6334
+      name: grpc
+  type: ClusterIP

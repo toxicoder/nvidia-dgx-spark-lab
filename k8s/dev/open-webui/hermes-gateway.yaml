@@ -1,0 +1,38 @@
+# Purpose: Hermes API gateway for Open WebUI backend
+# Source of truth: config/open-webui-policy.yaml
+# Regenerate: n/a
+# Safety: routes to inference services
+
+# Headless Service bridging in-cluster Open WebUI to host-network Hermes gateway (:8642).
+# Endpoints IP is rendered at deploy time by scripts/lib/open-webui.sh (spark0 InternalIP).
+apiVersion: v1
+kind: Service
+metadata:
+  name: hermes-gateway
+  namespace: dev
+  labels:
+    app: hermes-gateway
+    lab.tier: optional_dev
+spec:
+  clusterIP: None
+  ports:
+    - name: http
+      port: 8642
+      targetPort: 8642
+      protocol: TCP
+  selector: {}
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: hermes-gateway
+  namespace: dev
+  labels:
+    app: hermes-gateway
+subsets:
+  - addresses:
+      - ip: "127.0.0.1"
+    ports:
+      - name: http
+        port: 8642
+        protocol: TCP

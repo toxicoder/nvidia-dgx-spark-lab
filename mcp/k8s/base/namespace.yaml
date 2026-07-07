@@ -1,0 +1,13 @@
+# Purpose: agent-tools namespace for MCP stack
+# Source of truth: mcp/config/mcp-policy.yaml
+# Regenerate: n/a
+# Safety: isolates MCP services from inference
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: agent-tools
+  labels:
+    app.kubernetes.io/part-of: nvidia-dgx-spark-lab
+    lab.tier: optional_dev
+    purpose: mcp-agent-toolkit

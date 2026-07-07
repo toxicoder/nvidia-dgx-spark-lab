@@ -1,0 +1,16 @@
+# Purpose: Configuration for MCP doc ingest
+# Source of truth: mcp/k8s/workloads/doc-ingest/
+# Regenerate: n/a
+# Safety: config changes may require pod restart
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: doc-ingest-config
+  namespace: agent-tools
+data:
+  DOC_SOURCES_JSON: |
+    [
+      {"name": "k3s", "url": "https://docs.k3s.io/"},
+      {"name": "qdrant", "url": "https://qdrant.tech/documentation/"}
+    ]

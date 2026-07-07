@@ -1,0 +1,12 @@
+# Purpose: Kustomize bundle for MCP mcp memory
+# Source of truth: mcp/k8s/workloads/mcp-memory/
+# Regenerate: n/a
+# Safety: agent-tools namespace; moderate resources
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - pvc.yaml
+  - deployment.yaml
+  - service.yaml

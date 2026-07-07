@@ -1,0 +1,66 @@
+# Purpose: Network policies restricting MCP pod egress
+# Source of truth: n/a
+# Regenerate: n/a
+# Safety: limits outbound access per MCP service
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mcp-fetch-egress-restrict
+  namespace: agent-tools
+spec:
+  podSelector:
+    matchLabels:
+      app: mcp-fetch
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 80
+    - to:
+        - podSelector:
+            matchLabels:
+              app: searxng
+        - podSelector:
+            matchLabels:
+              app: redis
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: context7-proxy-egress
+  namespace: agent-tools
+spec:
+  podSelector:
+    matchLabels:
+      app: context7-proxy
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443
+    - to:
+        - podSelector:
+            matchLabels:
+              app: redis
+        - podSelector:
+            matchLabels:
+              app: qdrant
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

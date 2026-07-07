@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "searxng": {
+      "url": "http://searxng-mcp.agent-tools.svc.cluster.local:8000/sse"
+    },
+    "fetch": {
+      "url": "http://mcp-fetch.agent-tools.svc.cluster.local:8000/sse"
+    },
+    "qdrant-memory": {
+      "url": "http://mcp-qdrant.agent-tools.svc.cluster.local:8000/sse"
+    },
+    "context7": {
+      "url": "http://context7-proxy.agent-tools.svc.cluster.local:8000/mcp"
+    },
+    "agent-memory": {
+      "url": "http://mcp-memory.agent-tools.svc.cluster.local:8000/sse"
+    },
+    "gitea": {
+      "url": "http://mcp-gitea.agent-tools.svc.cluster.local:8000/mcp"
+    }
+  }
+}

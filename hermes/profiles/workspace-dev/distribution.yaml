@@ -1,0 +1,25 @@
+# Purpose: Hermes distribution manifest for the workspace-dev coding profile
+# Source of truth: hermes/profiles/workspace-dev/
+# Regenerate: n/a
+# Safety: packaged into Coder workspace templates; no live credentials
+
+name: workspace-dev
+version: 1.0.0
+description: "Coding assistant for Coder and Kasm workspaces — repo edits, bazel, in-cluster MCP"
+hermes_requires: ">=0.12.0"
+author: "NVIDIA DGX Spark Lab"
+license: "MIT"
+env_requires:
+  - name: API_SERVER_KEY
+    description: "Gateway API bearer token (auto-generated per workspace)"
+    required: true
+  - name: HERMES_DASHBOARD_BASIC_AUTH_USERNAME
+    description: "Dashboard basic auth username"
+    required: false
+    default: "coder"
+  - name: HERMES_DASHBOARD_BASIC_AUTH_PASSWORD
+    description: "Dashboard basic auth password"
+    required: true
+  - name: HERMES_DASHBOARD_BASIC_AUTH_SECRET
+    description: "Dashboard session signing secret"
+    required: true

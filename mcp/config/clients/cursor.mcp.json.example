@@ -1,0 +1,38 @@
+{
+  "mcpServers": {
+    "searxng": {
+      "url": "http://<node-ip>:32100/sse"
+    },
+    "fetch": {
+      "url": "http://<node-ip>:32101/sse"
+    },
+    "qdrant-memory": {
+      "url": "http://<node-ip>:32102/sse"
+    },
+    "context7": {
+      "url": "http://<node-ip>:32103/mcp"
+    },
+    "agent-memory": {
+      "url": "http://<node-ip>:32105/sse"
+    },
+    "gitea": {
+      "url": "http://<node-ip>:32104/mcp"
+    },
+    "github": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "-e",
+        "GITHUB_TOOLSETS=repos,issues,pull_requests",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "<GITHUB_PAT>"
+      }
+    }
+  }
+}

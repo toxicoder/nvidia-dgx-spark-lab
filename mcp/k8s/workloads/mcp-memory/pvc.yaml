@@ -1,0 +1,16 @@
+# Purpose: PersistentVolumeClaim for MCP mcp memory
+# Source of truth: mcp/k8s/workloads/mcp-memory/
+# Regenerate: n/a
+# Safety: deleting PVC loses stored data
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mcp-memory-data
+  namespace: agent-tools
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

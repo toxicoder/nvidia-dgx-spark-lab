@@ -1,0 +1,54 @@
+# Purpose: Deployment for MCP mcp memory
+# Source of truth: mcp/k8s/workloads/mcp-memory/
+# Regenerate: n/a
+# Safety: review egress network policies
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-memory
+  namespace: agent-tools
+  labels:
+    app: mcp-memory
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-memory
+  template:
+    metadata:
+      labels:
+        app: mcp-memory
+    spec:
+      priorityClassName: lab-optional
+      containers:
+        - name: gateway
+          image: node:22-bookworm-slim
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              npm install -g supergateway @modelcontextprotocol/server-memory
+              exec supergateway \
+                --stdio "npx -y @modelcontextprotocol/server-memory /data/memory.json" \
+                --port 8000 \
+                --ssePath /sse \
+                --streamableHttpPath /mcp \
+                --baseUrl http://127.0.0.1:8000
+          ports:
+            - containerPort: 8000
+              name: http
+          volumeMounts:
+            - name: memory-data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+      volumes:
+        - name: memory-data
+          persistentVolumeClaim:
+            claimName: mcp-memory-data

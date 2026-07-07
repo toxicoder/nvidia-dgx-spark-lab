@@ -1,0 +1,16 @@
+# Purpose: Configuration for MCP context7 proxy
+# Source of truth: mcp/k8s/workloads/context7-proxy/
+# Regenerate: n/a
+# Safety: config changes may require pod restart
+
+enabled: true
+cache:
+  url: redis://redis.agent-tools.svc.cluster.local:6379/1
+  ttl_seconds: 604800
+upstream:
+  mcp_url: https://mcp.context7.com/mcp
+fallback:
+  qdrant_url: http://qdrant.agent-tools.svc.cluster.local:6333
+  collection: library-docs
+  embed_url: http://nemotron-retriever-embed.ai-inference.svc.cluster.local:8000/v1/embeddings
+  embed_model: nvidia/llama-nemotron-embed-v1

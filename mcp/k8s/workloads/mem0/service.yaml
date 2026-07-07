@@ -1,0 +1,20 @@
+# Purpose: Service for MCP mem0
+# Source of truth: mcp/k8s/workloads/mem0/
+# Regenerate: n/a
+# Safety: NodePort from mcp-policy.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mem0
+  namespace: agent-tools
+  labels:
+    app: mem0
+spec:
+  selector:
+    app: mem0
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: http
+  type: ClusterIP

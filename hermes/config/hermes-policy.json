@@ -1,0 +1,187 @@
+{
+  "data_dir": "hermes/data",
+  "compose_file": "hermes/docker-compose.yaml",
+  "container_name": "hermes",
+  "ports": {
+    "gateway_api": 8642,
+    "dashboard": 9119,
+    "inference_local": 8000
+  },
+  "inference_presets": {
+    "nemotron-agentic-spark-1": {
+      "service": "nemotron-3-nano-omni-30b",
+      "namespace": "ai-inference",
+      "model": "nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4",
+      "context_length": 131072
+    },
+    "nemotron-agentic-spark-1-reasoning": {
+      "service": "nemotron-3-nano-30b",
+      "namespace": "ai-inference",
+      "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
+      "context_length": 131072
+    },
+    "qwen-agentic-spark-1": {
+      "service": "qwen3.5-122b-a10b-nvfp4",
+      "namespace": "ai-inference",
+      "model": "RedHatAI/Qwen3.5-122B-A10B-NVFP4",
+      "context_length": 131072
+    },
+    "qwen-agentic-spark-2": {
+      "service": "qwen3.5-397b-spark2",
+      "namespace": "ai-inference",
+      "model": "Intel/Qwen3.5-397B-A17B-int4-AutoRound",
+      "context_length": 131072
+    }
+  },
+  "url_modes": {
+    "host_localhost": {
+      "inference_base_url_template": "http://127.0.0.1:{port}/v1",
+      "mcp_servers": {
+        "lab_searxng": {
+          "url": "http://127.0.0.1:32100/sse",
+          "k8s_deployment": "mcp-searxng"
+        },
+        "lab_fetch": {
+          "url": "http://127.0.0.1:32101/sse",
+          "k8s_deployment": "mcp-fetch"
+        },
+        "lab_memory": {
+          "url": "http://127.0.0.1:32105/sse",
+          "k8s_deployment": "mcp-memory"
+        },
+        "lab_context7": {
+          "url": "http://127.0.0.1:32103/mcp",
+          "k8s_deployment": "context7-proxy"
+        },
+        "lab_qdrant": {
+          "url": "http://127.0.0.1:32102/sse",
+          "k8s_deployment": "mcp-qdrant"
+        },
+        "lab_firecrawl": {
+          "url": "http://127.0.0.1:32106/mcp",
+          "k8s_deployment": "mcp-firecrawl"
+        },
+        "lab_gitea": {
+          "url": "http://127.0.0.1:32104/mcp",
+          "k8s_deployment": "mcp-gitea"
+        }
+      }
+    },
+    "in_cluster": {
+      "inference_base_url_template": "http://{service}.{namespace}.svc.cluster.local:8000/v1",
+      "mcp_servers": {
+        "lab_searxng": {
+          "url": "http://searxng-mcp.agent-tools.svc.cluster.local:8000/sse",
+          "k8s_deployment": "mcp-searxng"
+        },
+        "lab_fetch": {
+          "url": "http://mcp-fetch.agent-tools.svc.cluster.local:8000/sse",
+          "k8s_deployment": "mcp-fetch"
+        },
+        "lab_memory": {
+          "url": "http://mcp-memory.agent-tools.svc.cluster.local:8000/sse",
+          "k8s_deployment": "mcp-memory"
+        },
+        "lab_context7": {
+          "url": "http://context7-proxy.agent-tools.svc.cluster.local:8000/mcp",
+          "k8s_deployment": "context7-proxy"
+        },
+        "lab_qdrant": {
+          "url": "http://mcp-qdrant.agent-tools.svc.cluster.local:8000/sse",
+          "k8s_deployment": "mcp-qdrant"
+        },
+        "lab_firecrawl": {
+          "url": "http://mcp-firecrawl.agent-tools.svc.cluster.local:8000/mcp",
+          "k8s_deployment": "mcp-firecrawl"
+        },
+        "lab_gitea": {
+          "url": "http://mcp-gitea.agent-tools.svc.cluster.local:8000/mcp",
+          "k8s_deployment": "mcp-gitea"
+        }
+      }
+    }
+  },
+  "mcp_servers": {
+    "lab_searxng": {
+      "url": "http://127.0.0.1:32100/sse",
+      "k8s_deployment": "mcp-searxng"
+    },
+    "lab_fetch": {
+      "url": "http://127.0.0.1:32101/sse",
+      "k8s_deployment": "mcp-fetch"
+    },
+    "lab_memory": {
+      "url": "http://127.0.0.1:32105/sse",
+      "k8s_deployment": "mcp-memory"
+    },
+    "lab_context7": {
+      "url": "http://127.0.0.1:32103/mcp",
+      "k8s_deployment": "context7-proxy"
+    },
+    "lab_qdrant": {
+      "url": "http://127.0.0.1:32102/sse",
+      "k8s_deployment": "mcp-qdrant"
+    },
+    "lab_firecrawl": {
+      "url": "http://127.0.0.1:32106/mcp",
+      "k8s_deployment": "mcp-firecrawl"
+    },
+    "lab_gitea": {
+      "url": "http://127.0.0.1:32104/mcp",
+      "k8s_deployment": "mcp-gitea"
+    }
+  },
+  "stacks": {
+    "hermes-lab": {
+      "label": "Hermes Agent (lab default)",
+      "heavy": false,
+      "tier": "optional_dev",
+      "description": "Gateway + dashboard on Spark host; Nemotron Omni + default MCP toolkit",
+      "requires_nemotron_stack": "nemotron-agentic-spark-1",
+      "requires_mcp_stack": "mcp-agent-toolkit",
+      "inference_preset": "nemotron-agentic-spark-1",
+      "mcp_url_mode": "host_localhost",
+      "mcp_servers": [
+        "lab_searxng",
+        "lab_fetch",
+        "lab_memory",
+        "lab_context7"
+      ]
+    },
+    "hermes-lab-full": {
+      "label": "Hermes Agent + full MCP RAG",
+      "heavy": false,
+      "tier": "optional_dev",
+      "description": "Hermes with Qdrant, Firecrawl, and full MCP RAG stack",
+      "requires_nemotron_stack": "nemotron-agentic-spark-1",
+      "requires_mcp_stack": "mcp-agent-toolkit-full",
+      "inference_preset": "nemotron-agentic-spark-1",
+      "mcp_url_mode": "host_localhost",
+      "mcp_servers": [
+        "lab_searxng",
+        "lab_fetch",
+        "lab_memory",
+        "lab_context7",
+        "lab_qdrant",
+        "lab_firecrawl"
+      ]
+    },
+    "hermes-workspace-dev": {
+      "label": "Hermes workspace dev assistant",
+      "heavy": false,
+      "tier": "optional_dev",
+      "description": "In-workspace coding agent for Coder/Kasm; in-cluster inference + MCP",
+      "requires_nemotron_stack": "nemotron-agentic-spark-1",
+      "requires_mcp_stack": "mcp-agent-toolkit",
+      "inference_preset": "nemotron-agentic-spark-1",
+      "mcp_url_mode": "in_cluster",
+      "profile": "workspace-dev",
+      "mcp_servers": [
+        "lab_searxng",
+        "lab_fetch",
+        "lab_memory",
+        "lab_context7"
+      ]
+    }
+  }
+}

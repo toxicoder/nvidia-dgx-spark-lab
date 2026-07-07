@@ -1,0 +1,20 @@
+# Purpose: Service for MCP searxng
+# Source of truth: mcp/k8s/workloads/searxng/
+# Regenerate: n/a
+# Safety: NodePort from mcp-policy.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: searxng
+  namespace: agent-tools
+  labels:
+    app: searxng
+spec:
+  selector:
+    app: searxng
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+  type: ClusterIP

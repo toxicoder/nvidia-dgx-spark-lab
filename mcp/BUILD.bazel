@@ -1,0 +1,41 @@
+"""Package purpose: MCP Agent Toolkit manifests, config, Python sources, and safety data filegroups."""
+
+"""MCP Agent Toolkit — Kubernetes manifests, policy, and service sources."""
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "k8s_manifests",
+    srcs = glob(["k8s/**/*.yaml"]),
+)
+
+filegroup(
+    name = "config",
+    srcs = glob(
+        ["config/**"],
+        exclude = ["config/secrets.env"],
+    ),
+)
+
+filegroup(
+    name = "python_sources",
+    srcs = glob(["k8s/workloads/**/*.py"]),
+)
+
+filegroup(
+    name = "docker",
+    srcs = glob(["docker/**"]),
+)
+
+filegroup(
+    name = "safety_data",
+    srcs = [
+        "config/mcp-policy.json",
+        "config/mcp-policy.yaml",
+        "k8s/base/namespace.yaml",
+        "k8s/base/network-policy.yaml",
+        "k8s/workloads/context7-proxy/deployment.yaml",
+        "k8s/workloads/qdrant/statefulset.yaml",
+    ],
+    visibility = ["//tests:__pkg__"],
+)

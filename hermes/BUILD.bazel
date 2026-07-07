@@ -1,0 +1,18 @@
+"""Package purpose: Hermes agent policy, profiles, and safety data filegroups."""
+
+"""Hermes agent profiles, policy, and local compose stack."""
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "safety_data",
+    srcs = [
+        "config/hermes-policy.json",
+        "config/hermes-policy.yaml",
+        "profiles/workspace-dev/SOUL.md",
+        "profiles/workspace-dev/config.yaml",
+        "profiles/workspace-dev/distribution.yaml",
+        "profiles/workspace-dev/mcp.json",
+    ],
+    visibility = ["//tests:__pkg__"],
+)

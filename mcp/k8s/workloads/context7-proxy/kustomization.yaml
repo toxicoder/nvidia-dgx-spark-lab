@@ -1,0 +1,20 @@
+# Purpose: Kustomize bundle for MCP context7 proxy
+# Source of truth: mcp/k8s/workloads/context7-proxy/
+# Regenerate: n/a
+# Safety: agent-tools namespace; moderate resources
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+configMapGenerator:
+  - name: context7-proxy-app
+    files:
+      - config.yaml
+      - server.py
+
+resources:
+  - deployment.yaml
+  - service.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true

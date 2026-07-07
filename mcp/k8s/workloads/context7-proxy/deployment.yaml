@@ -1,0 +1,71 @@
+# Purpose: Deployment for MCP context7 proxy
+# Source of truth: mcp/k8s/workloads/context7-proxy/
+# Regenerate: n/a
+# Safety: review egress network policies
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: context7-proxy
+  namespace: agent-tools
+  labels:
+    app: context7-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: context7-proxy
+  template:
+    metadata:
+      labels:
+        app: context7-proxy
+    spec:
+      priorityClassName: lab-optional
+      containers:
+        - name: proxy
+          image: python:3.12-slim
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              pip install --no-cache-dir fastapi uvicorn httpx redis pyyaml
+              cd /app
+              exec uvicorn server:app --host 0.0.0.0 --port 8000
+          env:
+            - name: CONFIG_PATH
+              value: /app/config.yaml
+            - name: CONTEXT7_ENABLED
+              value: "true"
+            - name: CONTEXT7_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mcp-secrets
+                  key: CONTEXT7_API_KEY
+                  optional: true
+          ports:
+            - containerPort: 8000
+              name: http
+          volumeMounts:
+            - name: app-config
+              mountPath: /app/config.yaml
+              subPath: config.yaml
+            - name: app-config
+              mountPath: /app/server.py
+              subPath: server.py
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+      volumes:
+        - name: app-config
+          configMap:
+            name: context7-proxy-app
