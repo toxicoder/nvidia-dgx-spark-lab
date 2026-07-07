@@ -1,0 +1,25 @@
+# Purpose: Kubernetes Service for qwen3.5 397b nvfp4 inference endpoint
+# Source of truth: k8s/workloads/qwen3.5-397b-nvfp4/
+# Regenerate: n/a
+# Safety: exposes inference API; protect with SSO ingress
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+  name: qwen3.5-397b-nvfp4
+  namespace: ai-inference
+  labels:
+    app: qwen3.5-397b-nvfp4
+spec:
+  selector:
+    app: qwen3.5-397b-nvfp4
+    role: leader
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: http
+  type: ClusterIP

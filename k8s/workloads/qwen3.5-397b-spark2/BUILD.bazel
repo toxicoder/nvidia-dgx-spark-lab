@@ -1,0 +1,24 @@
+"""Package purpose: Qwen3.5 397B Spark2 inference job manifests and service exports."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "qwen3_5_397b_spark2_job",
+    srcs = [
+        "kustomization.yaml",
+        "qwen3.5-397b-spark2-job.yaml",
+        "service.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+exports_files([
+    "kustomization.yaml",
+    "qwen3.5-397b-spark2-job.yaml",
+    "service.yaml",
+])

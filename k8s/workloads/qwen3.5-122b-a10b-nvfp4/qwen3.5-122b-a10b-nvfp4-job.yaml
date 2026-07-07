@@ -1,0 +1,129 @@
+# Purpose: Qwen3.5 122B A10B Nvfp4 inference Job manifest
+# Source of truth: k8s/workloads/qwen3.5-122b-a10b-nvfp4/
+# Regenerate: n/a
+# Safety: manual start only; consumes significant GPU/CPU resources
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: qwen3.5-122b-a10b-nvfp4
+  namespace: ai-inference
+  labels:
+    app: qwen3.5-122b-a10b-nvfp4
+    workload: inference
+    mode: production
+    family: qwen3.5
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 7200
+  template:
+    metadata:
+      labels:
+        app: qwen3.5-122b-a10b-nvfp4
+        workload: inference
+        mode: production
+        family: qwen3.5
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      restartPolicy: OnFailure
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: nvidia-dgx-spark/highspeed
+                    operator: In
+                    values:
+                      - "dual-400g"
+      containers:
+        - name: inference
+          # Qwen 3.5 122B NVFP4 — 1-node substitute for 397B NVFP4 (~75 GB weights).
+          # Requires vLLM cu130-nightly + transformers 5.x (see workload README).
+          image: vllm/vllm-openai:cu130-nightly
+          imagePullPolicy: IfNotPresent
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+          resources:
+            requests:
+              cpu: "12"
+              memory: "95Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "24"
+              memory: "120Gi"
+              nvidia.com/gpu: "1"
+          env:
+            - name: NCCL_SOCKET_IFNAME
+              value: "enp1s0f0np0,enp1s0f1np1"
+            - name: NCCL_IB_HCA
+              value: "mlx5_0,mlx5_1"
+            - name: NCCL_DEBUG
+              value: "INFO"
+            - name: NCCL_P2P_DISABLE
+              value: "0"
+            - name: NCCL_SHM_DISABLE
+              value: "0"
+            - name: NCCL_IB_DISABLE
+              value: "0"
+            - name: MODEL_NAME
+              value: "RedHatAI/Qwen3.5-122B-A10B-NVFP4"
+            - name: HF_HOME
+              value: "/models"
+            - name: VLLM_PORT
+              value: "8000"
+            - name: VLLM_ALLOW_LONG_MAX_MODEL_LEN
+              value: "1"
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 120
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 300
+            periodSeconds: 30
+            timeoutSeconds: 10
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              exec vllm serve "${MODEL_NAME}"
+              --host 0.0.0.0
+              --port 8000
+              --tensor-parallel-size 1
+              --trust-remote-code
+              --reasoning-parser qwen3
+              --enable-prefix-caching
+              --gpu-memory-utilization 0.65
+              --max-model-len 131072
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 32Gi

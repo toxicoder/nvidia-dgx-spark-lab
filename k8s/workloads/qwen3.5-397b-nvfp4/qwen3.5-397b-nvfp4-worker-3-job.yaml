@@ -1,0 +1,115 @@
+# Purpose: Qwen3.5 397B Nvfp4 inference Job manifest
+# Source of truth: k8s/workloads/qwen3.5-397b-nvfp4/
+# Regenerate: n/a
+# Safety: manual start only; consumes significant GPU/CPU resources
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: qwen3.5-397b-nvfp4-worker-3
+  namespace: ai-inference
+  labels:
+    app: qwen3.5-397b-nvfp4-worker-3
+    workload: inference
+    mode: production
+    family: qwen3.5
+    role: worker
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 7200
+  template:
+    metadata:
+      labels:
+        app: qwen3.5-397b-nvfp4-worker-3
+        workload: inference
+        mode: production
+        family: qwen3.5
+        role: worker
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      restartPolicy: OnFailure
+      hostNetwork: true
+      nodeSelector:
+        kubernetes.io/hostname: spark3
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: nvidia-dgx-spark/highspeed
+                    operator: In
+                    values:
+                      - "dual-400g"
+      containers:
+        - name: inference
+          image: lmsysorg/sglang:v0.5.9
+          imagePullPolicy: IfNotPresent
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+          resources:
+            requests:
+              cpu: "8"
+              memory: "115Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "16"
+              memory: "122Gi"
+              nvidia.com/gpu: "1"
+          env:
+            - name: NCCL_SOCKET_IFNAME
+              value: "enp1s0f0np0,enp1s0f1np1"
+            - name: NCCL_IB_HCA
+              value: "mlx5_0,mlx5_1"
+            - name: NCCL_DEBUG
+              value: "INFO"
+            - name: NCCL_P2P_DISABLE
+              value: "0"
+            - name: NCCL_SHM_DISABLE
+              value: "0"
+            - name: NCCL_IB_DISABLE
+              value: "0"
+            - name: MODEL_NAME
+              value: "nvidia/Qwen3.5-397B-A17B-NVFP4"
+            - name: HF_HOME
+              value: "/models"
+            - name: NODE_RANK
+              value: "3"
+            - name: DIST_INIT_ADDR
+              value: "spark0:29500"
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              exec python3 -m sglang.launch_server
+              --model-path "${MODEL_NAME}"
+              --host 0.0.0.0
+              --port 8000
+              --tp 4
+              --nnodes 4
+              --node-rank "${NODE_RANK}"
+              --dist-init-addr "${DIST_INIT_ADDR}"
+              --quantization modelopt_fp4
+              --trust-remote-code
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 64Gi
