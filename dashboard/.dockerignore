@@ -1,0 +1,45 @@
+# Docker build context exclusions for the dashboard
+# Prevents shipping 500MB+ of caches into every image build.
+# The Dockerfile uses multi-stage + explicit COPY --from for only the standalone output.
+
+# Dependencies and build output
+node_modules
+.next
+
+# Test / runtime artifacts
+test-results
+**/test-results/
+actuals
+docs/tests/visual/actuals/
+
+# Bazel outputs (symlinks + dirs)
+bazel-*
+bazel-out/
+external/
+
+# Python / generated
+__pycache__/
+*.py[cod]
+.pytest_cache/
+site/
+.venv*/
+*.rendered
+
+# OS / editor / temp
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+*.log
+scripts/tmp/
+.mkdocs-serve-*.yml
+
+# Git and CI (never needed in image)
+.git
+.github
+
+# Large lock / build noise not required for the runner
+# (package-lock.json is useful for the deps stage but we COPY only package.json there)
+# Keep package-lock.json out of context if you want, but it's small and often desired.

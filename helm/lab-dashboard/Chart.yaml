@@ -1,0 +1,11 @@
+# Purpose: Helm chart metadata for the lab dashboard application
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: conservative app chart; distinct from heavy inference workloads
+
+apiVersion: v2
+name: lab-dashboard
+description: Custom Next.js lab dashboard (Tasks, Storage Treemap, Machine State) for nvidia-dgx-spark-lab
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

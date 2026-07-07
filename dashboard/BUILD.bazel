@@ -1,0 +1,269 @@
+"""Package purpose: Next.js dashboard sources, shadcn hermetic imports, and npm/dev/test/visual Bazel runners."""
+
+"""Dashboard package (Next.js + TypeScript + shadcn + MD3 UI).
+
+Bazel is now a first-class entry point for the dashboard:
+
+  bazel run //dashboard:install
+  bazel run //dashboard:dev
+  bazel run //dashboard:build
+  bazel run //dashboard:test
+  bazel run //dashboard:test-coverage
+  bazel run //dashboard:docs
+  bazel run //dashboard:npm -- <any-npm-command>
+  bazel run //dashboard:visual  (for hermetic real-browser renders with GH shadcn + mocks)
+
+shadcn/ui components are *actually imported* hermetically from
+https://github.com/shadcn-ui/ui via Bazel http_archive (@shadcn_ui) + :shadcn_hermetic.
+See MODULE.bazel and :shadcn_hermetic. No writing custom before using the real fetched sources.
+(Delegates to npm for Next build but shadcn source is Bazel-tracked for hermetic test env.)
+
+(For fully hermetic frontend builds, rules_js could be added later.)
+"""
+
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "sources",
+    srcs = glob(
+        [
+            "**/*.ts",
+            "**/*.tsx",
+            "**/*.js",
+            "**/*.json",
+            "**/*.css",
+            "Dockerfile",
+            "docker-compose.yml",
+            "typedoc.json",
+            "tsconfig.typedoc.json",
+            "vitest.config.ts",
+            "vitest.setup.ts",
+            "postcss.config.mjs",
+            "drizzle.config.ts",
+            "lib/db/migrations/**",
+            "scripts/*.cjs",
+            "scripts/*.sh",
+            "app/dev/**",
+            "components/ui/label.tsx",
+            "components/ui/alert.tsx",
+            "components/ui/select.tsx",
+            "components/ui/sonner.tsx",
+            "lib/format.ts",
+            "lib/validation.ts",
+            "lib/toast.ts",
+            "lib/mocks/**",
+            "lib/types/**",
+            "lib/path-security.ts",
+            "lib/require-session.ts",
+            "lib/env-guards.ts",
+            "lib/storage-stats.ts",
+            "hooks/**",
+            "actions/preferences-actions.ts",
+            "Dockerfile.test",
+            "eslint.config.mjs",
+            "next.config.ts",
+        ],
+        allow_empty = True,
+    ) + ["@shadcn_ui//:all_sources"],  # Hermetic import of shadcn-ui/ui (https://github.com/shadcn-ui/ui) via Bazel
+    visibility = ["//visibility:public"],
+)
+
+# Explicit data dependency for the visual golden tests.
+# These committed baselines (under dashboard/tests/visual/goldens/) must be
+# available to the Playwright spec when run via Bazel.
+# Actuals are generated at runtime under tests/visual/actuals/ (gitignored).
+filegroup(
+    name = "visual-goldens",
+    srcs = glob(
+        [
+            "tests/visual/goldens/*.png",
+            "tests/visual/goldens/README.md",
+        ],
+        allow_empty = True,
+    ),
+    visibility = ["//visibility:public"],
+)
+
+# Hermetic shadcn components sourced from GH repo (Bazel http_archive in root MODULE).
+# Used to ensure test env + builds always use official components from
+# https://github.com/shadcn-ui/ui (before any local custom code).
+filegroup(
+    name = "shadcn_hermetic",
+    srcs = ["@shadcn_ui//:components"],
+    visibility = ["//visibility:public"],
+)
+
+# Stamp/target to prove/force hermetic import of shadcn from GH in the Bazel graph.
+# The test env and builds now depend on the real sources from the repo.
+genrule(
+    name = "shadcn_imported",
+    srcs = [":shadcn_hermetic"],
+    outs = ["shadcn_imported.stamp"],
+    cmd = "echo 'Hermetically imported from https://github.com/shadcn-ui/ui via Bazel' > $@",
+    visibility = ["//visibility:public"],
+)
+
+exports_files(
+    [
+        "package.json",
+        "run_npm.sh",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# -------------------------------------------------------------------
+# Bazel-native entry points (delegating to npm for execution)
+# -------------------------------------------------------------------
+
+sh_binary(
+    name = "install",
+    srcs = ["run_npm.sh"],
+    args = ["install"],
+    data = [":sources"],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "dev",
+    srcs = ["run_npm.sh"],
+    args = ["dev"],
+    data = [":sources"],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "build",
+    srcs = ["run_npm.sh"],
+    args = ["build"],
+    data = [":sources"],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "test",
+    srcs = ["run_npm.sh"],
+    args = ["test"],
+    data = [":sources"],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "test-coverage",
+    srcs = ["run_npm.sh"],
+    args = ["test-coverage"],
+    data = [":sources"],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "docs",
+    srcs = ["run_npm.sh"],
+    args = ["docs"],
+    data = [":sources"],
+    visibility = ["//visibility:public"],
+)
+
+# Visual regression tests using real browser rendering + goldens (Playwright).
+# Run: bazelisk run //dashboard:visual   (first run creates baselines / update with --update-snapshots)
+# Actual screenshots are generated along with the run (to tests/visual/actuals/).
+# The dashboard/tests/ tree groups fixtures + visual/ (spec, goldens/, actuals/, snapshots).
+sh_binary(
+    name = "visual",
+    srcs = ["run_npm.sh"],
+    args = ["visual"],
+    data = [
+        ":shadcn_hermetic",  # Ensure hermetic shadcn from GH is part of the test env dep
+        ":sources",
+        ":visual-goldens",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Visual test entrypoint (compare against goldens; actuals generated on run).
+# Multiple goldens (full page + per-panel) are produced. CSS/JS waits ensure
+# Tailwind + Treemap rendering.
+# Use `bazelisk run //dashboard:visual -- --update-snapshots` (or bazel run) to execute.
+# The sh_test is marked manual because full Bazel sandbox may lack tools for native
+# module builds (better-sqlite3 etc) during npm ci in the test action; the run target
+# executes in workspace context for reliable renders.
+# Included via explicit run or in :test with manual filter if needed.
+sh_test(
+    name = "visual-test",
+    srcs = ["run_npm.sh"],
+    args = ["visual"],
+    data = [
+        ":shadcn_hermetic",
+        ":sources",
+        ":visual-goldens",
+    ],
+    tags = [
+        "dashboard",
+        "manual",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Generic escape hatch: bazel run //dashboard:npm -- ci --force or whatever
+sh_binary(
+    name = "npm",
+    srcs = ["run_npm.sh"],
+    data = [":sources"],
+    visibility = ["//visibility:public"],
+)
+
+# Fast host-native tests (Vitest + lint + typecheck; no Docker, no Playwright).
+sh_binary(
+    name = "fast-test",
+    srcs = ["scripts/run-fast-tests.sh"],
+    data = [
+        "scripts/test-entrypoint.sh",
+        ":sources",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Vitest — workspace runner (not a sandboxed sh_test; use hermetic-test for CI gate).
+alias(
+    name = "unit-test",
+    actual = ":test",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "vitest",
+    actual = ":test",
+    visibility = ["//visibility:public"],
+)
+
+# Hermetic Docker test suite (Vitest + build + Playwright). Requires Docker.
+sh_binary(
+    name = "hermetic-test",
+    srcs = ["scripts/run-hermetic-tests.sh"],
+    data = [
+        "Dockerfile.test",
+        "scripts/test-entrypoint.sh",
+        ":sources",
+        ":visual-goldens",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sh_test(
+    name = "hermetic-test-ci",
+    srcs = ["scripts/run-hermetic-tests.sh"],
+    data = [
+        "Dockerfile.test",
+        "scripts/test-entrypoint.sh",
+        ":sources",
+        ":visual-goldens",
+    ],
+    tags = [
+        "dashboard",
+        "manual",
+        "requires-docker",
+    ],
+    visibility = ["//visibility:public"],
+)

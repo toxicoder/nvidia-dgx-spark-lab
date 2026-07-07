@@ -1,0 +1,307 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/**
+ * Dashboard theming: shadcn/ui + Material Design 3 (dark scheme).
+ * Tailwind v4 @theme maps semantic tokens → utility classes (bg-primary, text-muted-foreground, etc.).
+ */
+
+:root {
+  /* Brand lime — rgb(134, 183, 55) */
+  --md-sys-color-primary: #86b737;
+  --md-sys-color-on-primary: #182608;
+  --md-sys-color-primary-container: #4a6622;
+  --md-sys-color-on-primary-container: #d6edb4;
+  --md-sys-color-inverse-primary: #a3cc5e;
+
+  --md-sys-color-secondary: #a8c878;
+  --md-sys-color-on-secondary: #1a2608;
+  --md-sys-color-secondary-container: #3d5220;
+  --md-sys-color-on-secondary-container: #c9e6a8;
+
+  --md-sys-color-tertiary: #9bb8e8;
+  --md-sys-color-on-tertiary: #1a2848;
+  --md-sys-color-tertiary-container: #2e4568;
+  --md-sys-color-on-tertiary-container: #d4e4ff;
+
+  --md-sys-color-error: #ffb4ab;
+  --md-sys-color-on-error: #690005;
+  --md-sys-color-error-container: #93000a;
+  --md-sys-color-on-error-container: #ffb4ab;
+
+  --md-sys-color-surface: #0f172a;
+  --md-sys-color-on-surface: #e2e8f0;
+  --md-sys-color-surface-variant: #1e2937;
+  --md-sys-color-on-surface-variant: #94a3b8;
+
+  --md-sys-color-outline: #475569;
+  --md-sys-color-outline-variant: #334155;
+
+  --md-sys-color-background: #020617;
+  --md-sys-color-on-background: #f8fafc;
+
+  --md-sys-color-surface-tint: #86b737;
+  --md-sys-color-shadow: #000000;
+
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+
+  --background: 222 47% 5%;
+  --foreground: 214 32% 91%;
+
+  --card: 222 47% 11%;
+  --card-foreground: 214 32% 91%;
+
+  --popover: 222 47% 11%;
+  --popover-foreground: 214 32% 91%;
+
+  --primary: 83 54% 47%;
+  --primary-foreground: 83 45% 10%;
+
+  /* Tonal olive container — harmonized with brand lime */
+  --secondary: 83 35% 26%;
+  --secondary-foreground: 83 45% 85%;
+
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 16% 65%;
+
+  --accent: 218 70% 78%;
+  --accent-foreground: 218 40% 22%;
+
+  --destructive: 6 100% 82%;
+  --destructive-foreground: 0 100% 21%;
+
+  --border: 215 16% 34%;
+  --input: 215 16% 34%;
+  --ring: 83 54% 47%;
+
+  --radius: 0.75rem;
+
+  /* MD3 8dp spacing grid */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --header-height: 3.5rem;
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+body {
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  font-feature-settings:
+    "rlig" 1,
+    "kern" 1;
+}
+
+.card,
+[data-slot="card"] {
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  border-radius: var(--md-sys-shape-corner-medium);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  box-shadow:
+    0 1px 2px 0 rgba(0, 0, 0, 0.4),
+    0 4px 6px -1px rgba(0, 0, 0, 0.35),
+    0 10px 15px -3px rgba(0, 0, 0, 0.3),
+    0 20px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+.md3-title-large {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.md3-title-medium {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  letter-spacing: 0.15px;
+}
+
+.md3-body-medium {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  letter-spacing: 0.25px;
+}
+
+.md3-label-medium {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.kpi-value {
+  font-size: 48px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  font-feature-settings: "tnum";
+  color: var(--md-sys-color-on-surface);
+}
+
+.kpi-desc {
+  font-size: 12px;
+  line-height: 1.2;
+  color: var(--md-sys-color-on-surface-variant);
+  margin-top: 2px;
+}
+
+.dashboard-section {
+  scroll-margin-top: calc(var(--header-height) + var(--space-sm));
+}
+
+.card-compact {
+  padding: var(--space-md);
+}
+
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: var(--md-sys-color-surface-variant) !important;
+  border: 1px solid var(--md-sys-color-outline-variant) !important;
+  border-radius: var(--md-sys-shape-corner-medium) !important;
+  color: var(--md-sys-color-on-surface) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
+.recharts-tooltip-wrapper .recharts-tooltip-item {
+  color: var(--md-sys-color-primary) !important;
+}
+
+.recharts-tooltip-wrapper .recharts-tooltip-label {
+  color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+/* Nested treemap — rounded tiles + drill-down breadcrumbs */
+.treemap-viz {
+  background: var(--md-sys-color-surface);
+}
+
+.treemap-viz .recharts-wrapper,
+.treemap-viz .recharts-surface,
+.sunburst-viz .recharts-wrapper,
+.sunburst-viz .recharts-surface {
+  background: transparent !important;
+}
+
+/* Recharts container rect only (direct child) — gap fill between rounded tiles, not tile colors */
+.treemap-chart g.recharts-treemap-depth-0 > rect {
+  fill: var(--md-sys-color-surface) !important;
+}
+
+.treemap-chart .treemap-cell rect {
+  transition:
+    opacity 0.15s ease,
+    filter 0.15s ease;
+}
+
+.treemap-chart .treemap-cell:hover rect {
+  filter: brightness(1.08) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+}
+
+.treemap-viz .recharts-treemap-nest-index-wrapper {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 6px !important;
+  padding: 0 10px 10px !important;
+  text-align: center !important;
+}
+
+.treemap-viz .recharts-treemap-nest-index-box {
+  display: inline-flex !important;
+  align-items: center !important;
+  cursor: pointer !important;
+  margin-right: 0 !important;
+  padding: 3px 10px !important;
+  border: 1px solid var(--md-sys-color-outline-variant) !important;
+  border-radius: 9999px !important;
+  background: var(--md-sys-color-surface-variant) !important;
+  color: var(--md-sys-color-on-surface-variant) !important;
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.02em !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease !important;
+}
+
+.treemap-viz .recharts-treemap-nest-index-box:hover {
+  background: var(--md-sys-color-surface-variant) !important;
+  border-color: var(--md-sys-color-primary) !important;
+  color: var(--md-sys-color-on-surface) !important;
+}
+
+.treemap-viz .recharts-treemap-nest-index-box:last-child {
+  background: var(--md-sys-color-primary-container) !important;
+  border-color: color-mix(in srgb, var(--md-sys-color-primary) 45%, var(--md-sys-color-outline-variant)) !important;
+  color: var(--md-sys-color-on-primary-container) !important;
+}
+
+.treemap-viz .recharts-treemap-nest-index-box + .recharts-treemap-nest-index-box::before {
+  content: "›";
+  margin-right: 4px;
+  color: var(--md-sys-color-outline);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Sunburst storage chart — MD3 ring viz with external legend */
+.sunburst-viz {
+  background: var(--md-sys-color-surface);
+}
+
+@media (max-width: 480px) {
+  .sunburst-viz [data-testid="sunburst-legend"] {
+    font-size: 9px;
+  }
+}
+
+.sunburst-chart .recharts-sunburst path.recharts-sector {
+  cursor: pointer;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));
+}
+
+.sunburst-chart .recharts-sunburst path.recharts-sector:hover {
+  filter: drop-shadow(0 2px 8px rgba(134, 183, 55, 0.45)) brightness(1.1);
+}
+
+.sunburst-chart text,
+.sunburst-viz .recharts-sunburst text {
+  opacity: 0 !important;
+  font-size: 0 !important;
+  pointer-events: none !important;
+}

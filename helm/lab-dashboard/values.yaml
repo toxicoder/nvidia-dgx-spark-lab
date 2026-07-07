@@ -1,0 +1,53 @@
+# Purpose: Default Helm values for lab-dashboard deployment
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: conservative resources; build image from dashboard/ before deploy
+
+# Default values for lab-dashboard.
+# Conservative resources (distinct from heavy inference Jobs).
+# Image: build from root/dashboard/ with dashboard/Dockerfile.
+
+replicaCount: 1
+
+image:
+  repository: lab-dashboard
+  pullPolicy: IfNotPresent
+  # tag: "local"   # override when built
+
+service:
+  type: NodePort
+  port: 3000
+  nodePort: 32082
+
+sso:
+  enabled: false
+  domain: lab.local # local apex; see config/lab-domains.yaml
+  trustProxyAuth: false
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 384Mi
+  limits:
+    cpu: 600m
+    memory: 640Mi
+
+# Dev Workspaces panel — override host to node IP reachable from the browser.
+env:
+  LAB_WORKSPACE_HOST: "localhost"
+  CODER_PORT: "32080"
+  KASM_PORT: "32081"
+  GRAFANA_PORT: "32083"
+  HEADLAMP_PORT: "32084"
+  LAB_LOCAL_DOMAIN: "lab.local"
+  LAB_PUBLIC_DOMAIN: ""
+  LAB_PRIMARY_DOMAIN: "local"
+  LAB_EMAIL_DOMAIN: "lab.local"
+  TRUST_PROXY_AUTH: "0"
+
+# Master key for encrypted secrets vault (create via manage.sh secrets ensure-key).
+secretsMasterKeySecret:
+  name: lab-dashboard-secrets
+  key: master-key
+
+# nodeSelector, tolerations etc. can be added for highspeed preference if desired.

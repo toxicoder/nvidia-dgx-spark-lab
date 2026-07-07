@@ -1,0 +1,35 @@
+version: "3.8"
+services:
+  dashboard:
+    build:
+      context: ..
+      dockerfile: dashboard/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - LAB_WHITELIST_BASES=/mnt/models,/home,/tmp/lab-trash
+      - DATABASE_URL=file:/data/lab-dashboard.db
+      - BETTER_AUTH_URL=http://localhost:3000
+      - BETTER_AUTH_SECRET=dev-only-change-me
+      - LAB_DASHBOARD_ADMIN_EMAIL=admin@lab.local
+      - LAB_DASHBOARD_ADMIN_PASSWORD=change-me
+    volumes:
+      - dashboard-data:/data
+      - /mnt/models:/mnt/models
+      # Docker socket bind-mount (detailed):
+      # - Mounts the host Docker control socket into the container.
+      # - Enables `docker ps --format "{{json .}}"` and `docker stop <id>` (via child_process)
+      #   from inside the Next.js dashboard process — this powers the live Tasks panel
+      #   (containers list + stop buttons) without dind or extra services.
+      # - See: lib/services/docker.ts (execAsync, listContainers, stopContainer + withMock),
+      #   components/TasksPanel.tsx, components/TasksContainerList.tsx, host.ts.
+      # - Context: Only for the lab (single-node, trusted). Grants container equivalent
+      #   of host Docker privileges (root-equivalent for container mgmt).
+      # - In prod/k8s overlays this is typically restricted or omitted; dev-only convenience.
+      # - Never expose in untrusted/multi-tenant without additional hardening (rootless docker,
+      #   dedicated docker group, or docker API proxy with auth).
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+volumes:
+  dashboard-data:

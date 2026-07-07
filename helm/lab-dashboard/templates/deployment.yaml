@@ -1,0 +1,49 @@
+# Purpose: Helm deployment template for lab-dashboard pods
+# Source of truth: helm/lab-dashboard/values.yaml
+# Regenerate: n/a
+# Safety: renders dev-namespace dashboard; no GPU resources
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lab-dashboard.fullname" . }}
+  labels:
+    {{- include "lab-dashboard.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "lab-dashboard.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "lab-dashboard.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: dashboard
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            {{- if .Values.sso.trustProxyAuth }}
+            - name: TRUST_PROXY_AUTH
+              value: "1"
+            {{- end }}
+            {{- with .Values.env }}
+            {{- range $key, $value := . }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+            {{- with .Values.secretsMasterKeySecret }}
+            - name: LAB_SECRETS_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .name }}
+                  key: {{ .key }}
+            {{- end }}

@@ -1,0 +1,40 @@
+# syntax=docker/dockerfile:1
+# Hermetic Linux test image for Vitest, next build, and Playwright goldens.
+#
+# Build from repository root:
+#   docker build -t lab-dashboard-test:local -f dashboard/Dockerfile.test .
+#
+# Run full suite:
+#   docker run --rm lab-dashboard-test:local
+
+FROM mcr.microsoft.com/playwright:v1.61.1-jammy AS base
+
+ENV TZ=UTC \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    NODE_ENV=test \
+    CI=1 \
+    PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    fonts-noto-core \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+FROM base AS deps
+COPY dashboard/package.json dashboard/package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --legacy-peer-deps
+
+FROM deps AS test
+COPY dashboard/ ./
+COPY scripts/utilities /app/scripts/utilities
+COPY scripts/lib /app/scripts/lib
+COPY config/resource-policy.json /app/config/resource-policy.json
+RUN chmod +x scripts/test-entrypoint.sh scripts/run-hermetic-tests.sh 2>/dev/null || true
+
+ENTRYPOINT ["bash", "scripts/test-entrypoint.sh"]

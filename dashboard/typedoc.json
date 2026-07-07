@@ -1,0 +1,13 @@
+{
+  "out": "../docs/generated/dashboard-api",
+  "entryPoints": ["lib", "components", "actions"],
+  "entryPointStrategy": "expand",
+  "readme": "none",
+  "plugin": ["typedoc-plugin-markdown"],
+  "tsconfig": "tsconfig.typedoc.json",
+  "exclude": ["**/*.test.*", "**/node_modules/**"],
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "hideGenerator": true
+}

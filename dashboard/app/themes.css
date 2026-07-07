@@ -1,0 +1,490 @@
+/**
+ * Dashboard color themes — override MD3 + shadcn tokens via [data-theme].
+ * Default (spark-lime) lives in globals.css :root.
+ */
+
+[data-theme="ocean-teal"] {
+  --md-sys-color-primary: #2dd4bf;
+  --md-sys-color-on-primary: #042f2e;
+  --md-sys-color-primary-container: #115e59;
+  --md-sys-color-on-primary-container: #99f6e4;
+  --md-sys-color-inverse-primary: #5eead4;
+
+  --md-sys-color-secondary: #67e8f9;
+  --md-sys-color-on-secondary: #083344;
+  --md-sys-color-secondary-container: #155e75;
+  --md-sys-color-on-secondary-container: #a5f3fc;
+
+  --md-sys-color-tertiary: #7dd3fc;
+  --md-sys-color-on-tertiary: #0c4a6e;
+  --md-sys-color-tertiary-container: #0369a1;
+  --md-sys-color-on-tertiary-container: #e0f2fe;
+
+  --md-sys-color-error: #ffb4ab;
+  --md-sys-color-on-error: #690005;
+  --md-sys-color-error-container: #93000a;
+  --md-sys-color-on-error-container: #ffb4ab;
+
+  --md-sys-color-surface: #0c1929;
+  --md-sys-color-on-surface: #e2e8f0;
+  --md-sys-color-surface-variant: #1a2e42;
+  --md-sys-color-on-surface-variant: #94a3b8;
+
+  --md-sys-color-outline: #475569;
+  --md-sys-color-outline-variant: #334155;
+  --md-sys-color-background: #020617;
+  --md-sys-color-on-background: #f8fafc;
+  --md-sys-color-surface-tint: #2dd4bf;
+
+  --background: 222 47% 5%;
+  --foreground: 214 32% 91%;
+  --card: 215 40% 10%;
+  --card-foreground: 214 32% 91%;
+  --popover: 215 40% 10%;
+  --popover-foreground: 214 32% 91%;
+  --primary: 172 66% 50%;
+  --primary-foreground: 176 84% 10%;
+  --secondary: 187 55% 28%;
+  --secondary-foreground: 186 80% 85%;
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 16% 65%;
+  --accent: 199 89% 74%;
+  --accent-foreground: 201 80% 22%;
+  --destructive: 6 100% 82%;
+  --destructive-foreground: 0 100% 21%;
+  --border: 215 16% 34%;
+  --input: 215 16% 34%;
+  --ring: 172 66% 50%;
+}
+
+[data-theme="violet-dusk"] {
+  --md-sys-color-primary: #a78bfa;
+  --md-sys-color-on-primary: #2e1065;
+  --md-sys-color-primary-container: #5b21b6;
+  --md-sys-color-on-primary-container: #ede9fe;
+  --md-sys-color-inverse-primary: #c4b5fd;
+
+  --md-sys-color-secondary: #c4b5fd;
+  --md-sys-color-on-secondary: #3b0764;
+  --md-sys-color-secondary-container: #6d28d9;
+  --md-sys-color-on-secondary-container: #ede9fe;
+
+  --md-sys-color-tertiary: #93c5fd;
+  --md-sys-color-on-tertiary: #1e3a8a;
+  --md-sys-color-tertiary-container: #1d4ed8;
+  --md-sys-color-on-tertiary-container: #dbeafe;
+
+  --md-sys-color-error: #ffb4ab;
+  --md-sys-color-on-error: #690005;
+  --md-sys-color-error-container: #93000a;
+  --md-sys-color-on-error-container: #ffb4ab;
+
+  --md-sys-color-surface: #13111c;
+  --md-sys-color-on-surface: #e2e8f0;
+  --md-sys-color-surface-variant: #221f33;
+  --md-sys-color-on-surface-variant: #a1a1aa;
+
+  --md-sys-color-outline: #52525b;
+  --md-sys-color-outline-variant: #3f3f46;
+  --md-sys-color-background: #09090b;
+  --md-sys-color-on-background: #fafafa;
+  --md-sys-color-surface-tint: #a78bfa;
+
+  --background: 240 10% 4%;
+  --foreground: 214 32% 91%;
+  --card: 260 20% 9%;
+  --card-foreground: 214 32% 91%;
+  --popover: 260 20% 9%;
+  --popover-foreground: 214 32% 91%;
+  --primary: 258 90% 76%;
+  --primary-foreground: 263 70% 22%;
+  --secondary: 258 45% 35%;
+  --secondary-foreground: 258 90% 92%;
+  --muted: 240 6% 18%;
+  --muted-foreground: 240 5% 65%;
+  --accent: 213 94% 78%;
+  --accent-foreground: 224 76% 32%;
+  --destructive: 6 100% 82%;
+  --destructive-foreground: 0 100% 21%;
+  --border: 240 5% 34%;
+  --input: 240 5% 34%;
+  --ring: 258 90% 76%;
+}
+
+[data-theme="sunset-amber"] {
+  --md-sys-color-primary: #f59e0b;
+  --md-sys-color-on-primary: #451a03;
+  --md-sys-color-primary-container: #92400e;
+  --md-sys-color-on-primary-container: #fef3c7;
+  --md-sys-color-inverse-primary: #fbbf24;
+
+  --md-sys-color-secondary: #fb923c;
+  --md-sys-color-on-secondary: #431407;
+  --md-sys-color-secondary-container: #9a3412;
+  --md-sys-color-on-secondary-container: #ffedd5;
+
+  --md-sys-color-tertiary: #f472b6;
+  --md-sys-color-on-tertiary: #500724;
+  --md-sys-color-tertiary-container: #9d174d;
+  --md-sys-color-on-tertiary-container: #fce7f3;
+
+  --md-sys-color-error: #ffb4ab;
+  --md-sys-color-on-error: #690005;
+  --md-sys-color-error-container: #93000a;
+  --md-sys-color-on-error-container: #ffb4ab;
+
+  --md-sys-color-surface: #1c1410;
+  --md-sys-color-on-surface: #f5f5f4;
+  --md-sys-color-surface-variant: #292018;
+  --md-sys-color-on-surface-variant: #a8a29e;
+
+  --md-sys-color-outline: #57534e;
+  --md-sys-color-outline-variant: #44403c;
+  --md-sys-color-background: #0c0a09;
+  --md-sys-color-on-background: #fafaf9;
+  --md-sys-color-surface-tint: #f59e0b;
+
+  --background: 20 14% 4%;
+  --foreground: 60 9% 96%;
+  --card: 25 20% 9%;
+  --card-foreground: 60 9% 96%;
+  --popover: 25 20% 9%;
+  --popover-foreground: 60 9% 96%;
+  --primary: 38 92% 50%;
+  --primary-foreground: 24 75% 15%;
+  --secondary: 21 55% 32%;
+  --secondary-foreground: 33 100% 90%;
+  --muted: 25 10% 18%;
+  --muted-foreground: 25 5% 63%;
+  --accent: 330 81% 70%;
+  --accent-foreground: 335 78% 22%;
+  --destructive: 6 100% 82%;
+  --destructive-foreground: 0 100% 21%;
+  --border: 25 6% 32%;
+  --input: 25 6% 32%;
+  --ring: 38 92% 50%;
+}
+
+[data-theme="rose-neon"] {
+  --md-sys-color-primary: #f472b6;
+  --md-sys-color-on-primary: #500724;
+  --md-sys-color-primary-container: #9d174d;
+  --md-sys-color-on-primary-container: #fce7f3;
+  --md-sys-color-inverse-primary: #f9a8d4;
+
+  --md-sys-color-secondary: #fb7185;
+  --md-sys-color-on-secondary: #4c0519;
+  --md-sys-color-secondary-container: #9f1239;
+  --md-sys-color-on-secondary-container: #ffe4e6;
+
+  --md-sys-color-tertiary: #c084fc;
+  --md-sys-color-on-tertiary: #3b0764;
+  --md-sys-color-tertiary-container: #7e22ce;
+  --md-sys-color-on-tertiary-container: #f3e8ff;
+
+  --md-sys-color-error: #ffb4ab;
+  --md-sys-color-on-error: #690005;
+  --md-sys-color-error-container: #93000a;
+  --md-sys-color-on-error-container: #ffb4ab;
+
+  --md-sys-color-surface: #18111a;
+  --md-sys-color-on-surface: #f1f5f9;
+  --md-sys-color-surface-variant: #2a1f2b;
+  --md-sys-color-on-surface-variant: #a1a1aa;
+
+  --md-sys-color-outline: #52525b;
+  --md-sys-color-outline-variant: #3f3f46;
+  --md-sys-color-background: #0a0a0a;
+  --md-sys-color-on-background: #fafafa;
+  --md-sys-color-surface-tint: #f472b6;
+
+  --background: 0 0% 4%;
+  --foreground: 210 40% 96%;
+  --card: 320 15% 9%;
+  --card-foreground: 210 40% 96%;
+  --popover: 320 15% 9%;
+  --popover-foreground: 210 40% 96%;
+  --primary: 330 81% 70%;
+  --primary-foreground: 336 74% 18%;
+  --secondary: 347 55% 35%;
+  --secondary-foreground: 350 100% 92%;
+  --muted: 240 4% 16%;
+  --muted-foreground: 240 5% 65%;
+  --accent: 270 67% 75%;
+  --accent-foreground: 274 66% 22%;
+  --destructive: 6 100% 82%;
+  --destructive-foreground: 0 100% 21%;
+  --border: 240 4% 32%;
+  --input: 240 4% 32%;
+  --ring: 330 81% 70%;
+}
+
+[data-theme="arctic-frost"] {
+  --md-sys-color-primary: #38bdf8;
+  --md-sys-color-on-primary: #0c4a6e;
+  --md-sys-color-primary-container: #0369a1;
+  --md-sys-color-on-primary-container: #e0f2fe;
+  --md-sys-color-inverse-primary: #7dd3fc;
+
+  --md-sys-color-secondary: #93c5fd;
+  --md-sys-color-on-secondary: #1e3a8a;
+  --md-sys-color-secondary-container: #1d4ed8;
+  --md-sys-color-on-secondary-container: #dbeafe;
+
+  --md-sys-color-tertiary: #a5f3fc;
+  --md-sys-color-on-tertiary: #164e63;
+  --md-sys-color-tertiary-container: #0e7490;
+  --md-sys-color-on-tertiary-container: #cffafe;
+
+  --md-sys-color-error: #ffb4ab;
+  --md-sys-color-on-error: #690005;
+  --md-sys-color-error-container: #93000a;
+  --md-sys-color-on-error-container: #ffb4ab;
+
+  --md-sys-color-surface: #0b1220;
+  --md-sys-color-on-surface: #f1f5f9;
+  --md-sys-color-surface-variant: #162032;
+  --md-sys-color-on-surface-variant: #94a3b8;
+
+  --md-sys-color-outline: #475569;
+  --md-sys-color-outline-variant: #334155;
+  --md-sys-color-background: #020617;
+  --md-sys-color-on-background: #f8fafc;
+  --md-sys-color-surface-tint: #38bdf8;
+
+  --background: 222 47% 5%;
+  --foreground: 210 40% 96%;
+  --card: 222 47% 8%;
+  --card-foreground: 210 40% 96%;
+  --popover: 222 47% 8%;
+  --popover-foreground: 210 40% 96%;
+  --primary: 199 89% 60%;
+  --primary-foreground: 204 80% 16%;
+  --secondary: 217 55% 35%;
+  --secondary-foreground: 214 95% 90%;
+  --muted: 217 33% 14%;
+  --muted-foreground: 215 16% 65%;
+  --accent: 187 85% 78%;
+  --accent-foreground: 192 80% 20%;
+  --destructive: 6 100% 82%;
+  --destructive-foreground: 0 100% 21%;
+  --border: 215 20% 30%;
+  --input: 215 20% 30%;
+  --ring: 199 89% 60%;
+}
+
+[data-theme="mono-slate"] {
+  --md-sys-color-primary: #94a3b8;
+  --md-sys-color-on-primary: #1e293b;
+  --md-sys-color-primary-container: #475569;
+  --md-sys-color-on-primary-container: #f1f5f9;
+  --md-sys-color-inverse-primary: #cbd5e1;
+
+  --md-sys-color-secondary: #64748b;
+  --md-sys-color-on-secondary: #0f172a;
+  --md-sys-color-secondary-container: #334155;
+  --md-sys-color-on-secondary-container: #e2e8f0;
+
+  --md-sys-color-tertiary: #818cf8;
+  --md-sys-color-on-tertiary: #312e81;
+  --md-sys-color-tertiary-container: #4338ca;
+  --md-sys-color-on-tertiary-container: #e0e7ff;
+
+  --md-sys-color-error: #ffb4ab;
+  --md-sys-color-on-error: #690005;
+  --md-sys-color-error-container: #93000a;
+  --md-sys-color-on-error-container: #ffb4ab;
+
+  --md-sys-color-surface: #111827;
+  --md-sys-color-on-surface: #e5e7eb;
+  --md-sys-color-surface-variant: #1f2937;
+  --md-sys-color-on-surface-variant: #9ca3af;
+
+  --md-sys-color-outline: #4b5563;
+  --md-sys-color-outline-variant: #374151;
+  --md-sys-color-background: #030712;
+  --md-sys-color-on-background: #f9fafb;
+  --md-sys-color-surface-tint: #94a3b8;
+
+  --background: 224 71% 4%;
+  --foreground: 220 14% 91%;
+  --card: 222 47% 9%;
+  --card-foreground: 220 14% 91%;
+  --popover: 222 47% 9%;
+  --popover-foreground: 220 14% 91%;
+  --primary: 215 16% 65%;
+  --primary-foreground: 222 47% 11%;
+  --secondary: 215 20% 32%;
+  --secondary-foreground: 210 40% 92%;
+  --muted: 217 19% 17%;
+  --muted-foreground: 218 11% 55%;
+  --accent: 239 84% 74%;
+  --accent-foreground: 243 55% 28%;
+  --destructive: 6 100% 82%;
+  --destructive-foreground: 0 100% 21%;
+  --border: 215 14% 30%;
+  --input: 215 14% 30%;
+  --ring: 215 16% 65%;
+}
+
+[data-theme="cyber-mint"] {
+  --md-sys-color-primary: #34d399;
+  --md-sys-color-on-primary: #064e3b;
+  --md-sys-color-primary-container: #047857;
+  --md-sys-color-on-primary-container: #d1fae5;
+  --md-sys-color-inverse-primary: #6ee7b7;
+
+  --md-sys-color-secondary: #4ade80;
+  --md-sys-color-on-secondary: #14532d;
+  --md-sys-color-secondary-container: #166534;
+  --md-sys-color-on-secondary-container: #dcfce7;
+
+  --md-sys-color-tertiary: #22d3ee;
+  --md-sys-color-on-tertiary: #164e63;
+  --md-sys-color-tertiary-container: #0e7490;
+  --md-sys-color-on-tertiary-container: #cffafe;
+
+  --md-sys-color-error: #ffb4ab;
+  --md-sys-color-on-error: #690005;
+  --md-sys-color-error-container: #93000a;
+  --md-sys-color-on-error-container: #ffb4ab;
+
+  --md-sys-color-surface: #0a0f0d;
+  --md-sys-color-on-surface: #ecfdf5;
+  --md-sys-color-surface-variant: #14201a;
+  --md-sys-color-on-surface-variant: #86efac;
+
+  --md-sys-color-outline: #374151;
+  --md-sys-color-outline-variant: #1f2937;
+  --md-sys-color-background: #030712;
+  --md-sys-color-on-background: #f0fdf4;
+  --md-sys-color-surface-tint: #34d399;
+
+  --background: 160 20% 3%;
+  --foreground: 152 81% 96%;
+  --card: 160 15% 6%;
+  --card-foreground: 152 81% 96%;
+  --popover: 160 15% 6%;
+  --popover-foreground: 152 81% 96%;
+  --primary: 160 84% 52%;
+  --primary-foreground: 166 91% 9%;
+  --secondary: 142 50% 28%;
+  --secondary-foreground: 141 78% 90%;
+  --muted: 160 10% 14%;
+  --muted-foreground: 152 30% 60%;
+  --accent: 187 85% 53%;
+  --accent-foreground: 192 80% 14%;
+  --destructive: 6 100% 82%;
+  --destructive-foreground: 0 100% 21%;
+  --border: 160 8% 22%;
+  --input: 160 8% 22%;
+  --ring: 160 84% 52%;
+}
+
+[data-theme="daylight"] {
+  --md-sys-color-primary: #65a30d;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #d9f99d;
+  --md-sys-color-on-primary-container: #365314;
+  --md-sys-color-inverse-primary: #84cc16;
+
+  --md-sys-color-secondary: #16a34a;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #bbf7d0;
+  --md-sys-color-on-secondary-container: #14532d;
+
+  --md-sys-color-tertiary: #2563eb;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: #dbeafe;
+  --md-sys-color-on-tertiary-container: #1e3a8a;
+
+  --md-sys-color-error: #ba1a1a;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffdad6;
+  --md-sys-color-on-error-container: #93000a;
+
+  --md-sys-color-surface: #ffffff;
+  --md-sys-color-on-surface: #1e293b;
+  --md-sys-color-surface-variant: #f1f5f9;
+  --md-sys-color-on-surface-variant: #64748b;
+
+  --md-sys-color-outline: #cbd5e1;
+  --md-sys-color-outline-variant: #e2e8f0;
+  --md-sys-color-background: #f8fafc;
+  --md-sys-color-on-background: #0f172a;
+  --md-sys-color-surface-tint: #65a30d;
+
+  --background: 210 40% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 84 81% 35%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 142 55% 32%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 221 83% 53%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 84 81% 35%;
+}
+
+[data-theme="paper-sand"] {
+  --md-sys-color-primary: #c2410c;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #ffedd5;
+  --md-sys-color-on-primary-container: #7c2d12;
+  --md-sys-color-inverse-primary: #ea580c;
+
+  --md-sys-color-secondary: #b45309;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #fef3c7;
+  --md-sys-color-on-secondary-container: #78350f;
+
+  --md-sys-color-tertiary: #0d9488;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: #ccfbf1;
+  --md-sys-color-on-tertiary-container: #134e4a;
+
+  --md-sys-color-error: #ba1a1a;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffdad6;
+  --md-sys-color-on-error-container: #93000a;
+
+  --md-sys-color-surface: #fffbeb;
+  --md-sys-color-on-surface: #44403c;
+  --md-sys-color-surface-variant: #fef3c7;
+  --md-sys-color-on-surface-variant: #78716c;
+
+  --md-sys-color-outline: #d6d3d1;
+  --md-sys-color-outline-variant: #e7e5e4;
+  --md-sys-color-background: #fafaf9;
+  --md-sys-color-on-background: #292524;
+  --md-sys-color-surface-tint: #c2410c;
+
+  --background: 48 100% 96%;
+  --foreground: 25 6% 25%;
+  --card: 48 100% 98%;
+  --card-foreground: 25 6% 25%;
+  --popover: 48 100% 98%;
+  --popover-foreground: 25 6% 25%;
+  --primary: 17 88% 40%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 32 80% 36%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 48 40% 92%;
+  --muted-foreground: 25 5% 45%;
+  --accent: 174 72% 32%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 30 10% 85%;
+  --input: 30 10% 85%;
+  --ring: 17 88% 40%;
+}
