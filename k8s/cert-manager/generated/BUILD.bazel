@@ -1,0 +1,8 @@
+"""Package purpose: Generated cert-manager certificate manifest filegroup."""
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "generated_certs",
+    srcs = glob(["*.yaml"]),
+)

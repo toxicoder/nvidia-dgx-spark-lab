@@ -1,0 +1,16 @@
+# Purpose: Traefik rate limiting middleware
+# Source of truth: n/a
+# Regenerate: n/a
+# Safety: protects auth endpoints from brute force
+
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: rate-limit
+  namespace: auth
+  labels:
+    app.kubernetes.io/part-of: nvidia-dgx-spark-lab
+spec:
+  rateLimit:
+    average: 100
+    burst: 50

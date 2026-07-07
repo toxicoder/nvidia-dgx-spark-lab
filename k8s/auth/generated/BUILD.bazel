@@ -1,0 +1,8 @@
+"""Package purpose: Generated Kubernetes auth manifest filegroup."""
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "generated_auth",
+    srcs = glob(["*.yaml"]),
+)

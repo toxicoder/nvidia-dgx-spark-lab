@@ -1,0 +1,23 @@
+# Purpose: Traefik security headers middleware
+# Source of truth: n/a
+# Regenerate: n/a
+# Safety: adds HSTS and XSS protection headers
+
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: security-headers
+  namespace: auth
+  labels:
+    app.kubernetes.io/part-of: nvidia-dgx-spark-lab
+spec:
+  headers:
+    browserXssFilter: true
+    contentTypeNosniff: true
+    forceSTSHeader: true
+    stsIncludeSubdomains: true
+    stsPreload: true
+    stsSeconds: 31536000
+    frameDeny: true
+    customResponseHeaders:
+      X-Robots-Tag: "noindex, nofollow"

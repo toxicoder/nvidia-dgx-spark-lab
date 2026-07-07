@@ -1,0 +1,28 @@
+# Purpose: SSO and auth namespace definitions
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: required before auth stack deploy
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: traefik
+  labels:
+    app.kubernetes.io/part-of: nvidia-dgx-spark-lab
+    lab.tier: management
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: auth
+  labels:
+    app.kubernetes.io/part-of: nvidia-dgx-spark-lab
+    lab.tier: management
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager
+  labels:
+    app.kubernetes.io/part-of: nvidia-dgx-spark-lab
+    lab.tier: management

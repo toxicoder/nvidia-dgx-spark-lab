@@ -1,0 +1,17 @@
+# Purpose: Helm values for Authelia SSO authentication
+# Source of truth: config/sso-policy.yaml
+# Regenerate: n/a
+# Safety: contains auth config; protect secrets
+
+# Reference values for Authelia (deployed via k8s/auth/ kustomize, not Helm).
+# Used by ansible/roles/sso for documentation parity with other stack components.
+image:
+  repository: authelia/authelia
+  tag: "4.38.19"
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi

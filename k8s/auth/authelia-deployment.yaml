@@ -1,0 +1,78 @@
+# Purpose: Authelia SSO identity provider deployment
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: requires users and session secrets
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authelia
+  namespace: auth
+  labels:
+    app: authelia
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: authelia
+  template:
+    metadata:
+      labels:
+        app: authelia
+    spec:
+      priorityClassName: lab-management
+      containers:
+        - name: authelia
+          image: authelia/authelia:4.38.19
+          args:
+            - "--config"
+            - "/config/configuration.yml"
+            - "--config"
+            - "/config/oidc_overlay.yml"
+          ports:
+            - containerPort: 9091
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          env:
+            - name: AUTHELIA_STORAGE_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: authelia-secrets
+                  key: storage_encryption_key
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: oidc-config
+              mountPath: /config/oidc_overlay.yml
+              subPath: oidc_overlay.yml
+              readOnly: true
+            - name: data
+              mountPath: /config/db.sqlite3
+              subPath: db.sqlite3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 9091
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: config
+          projected:
+            sources:
+              - configMap:
+                  name: authelia-config
+              - secret:
+                  name: authelia-secrets
+                  items:
+                    - key: users_database.yml
+                      path: users_database.yml
+        - name: oidc-config
+          secret:
+            secretName: authelia-oidc-config
+        - name: data
+          emptyDir: {}

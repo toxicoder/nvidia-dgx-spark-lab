@@ -1,0 +1,51 @@
+# Purpose: Install Traefik ingress controller via Helm
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: terminates TLS and routes all ingress traffic
+
+---
+# Production Traefik v3 via official Helm chart (K3s bundled Traefik remains disabled).
+
+- name: Add Traefik Helm repo
+  shell: |
+    helm repo add traefik https://traefik.github.io/charts || true
+    helm repo update traefik
+  changed_when: false
+
+- name: Ensure SSO namespaces
+  shell: kubectl apply -f {{ playbook_dir }}/../../k8s/base/namespaces-sso.yaml
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Deploy cert-manager
+  shell: |
+    helm repo add jetstack https://charts.jetstack.io || true
+    helm repo update jetstack
+    helm upgrade --install cert-manager jetstack/cert-manager \
+      --namespace cert-manager \
+      --create-namespace \
+      --version {{ cert_manager_version }} \
+      --set crds.enabled=true \
+      --wait --timeout 5m
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Apply TLS issuers and wildcard cert
+  shell: kubectl apply -k {{ playbook_dir }}/../../k8s/cert-manager/
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Deploy Traefik
+  shell: |
+    helm upgrade --install traefik traefik/traefik \
+      --namespace traefik \
+      --version {{ traefik_chart_version }} \
+      -f {{ playbook_dir }}/../files/traefik-values.yaml \
+      --wait --timeout 8m
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Apply Traefik middlewares
+  shell: kubectl apply -k {{ playbook_dir }}/../../k8s/traefik/middlewares/
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml

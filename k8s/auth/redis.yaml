@@ -1,0 +1,47 @@
+# Purpose: Redis backing store for Authelia sessions
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: ephemeral cache; not for secrets
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authelia-redis
+  namespace: auth
+  labels:
+    app: authelia-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: authelia-redis
+  template:
+    metadata:
+      labels:
+        app: authelia-redis
+    spec:
+      priorityClassName: lab-management
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: authelia-redis
+  namespace: auth
+spec:
+  selector:
+    app: authelia-redis
+  ports:
+    - port: 6379
+      targetPort: 6379

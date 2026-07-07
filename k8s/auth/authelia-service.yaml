@@ -1,0 +1,19 @@
+# Purpose: Service exposing Authelia login portal
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: fronts all SSO authentication
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: authelia
+  namespace: auth
+  labels:
+    app: authelia
+spec:
+  selector:
+    app: authelia
+  ports:
+    - name: http
+      port: 9091
+      targetPort: 9091

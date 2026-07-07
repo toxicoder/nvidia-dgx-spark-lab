@@ -1,0 +1,13 @@
+# Purpose: Kustomize bundle for Traefik middlewares
+# Source of truth: n/a
+# Regenerate: n/a
+# Safety: referenced by auth IngressRoutes
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - forwardauth-authelia.yaml
+  - security-headers.yaml
+  - rate-limit.yaml
+  - redirect-https.yaml

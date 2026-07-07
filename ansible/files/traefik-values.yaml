@@ -1,0 +1,73 @@
+# Purpose: Helm values for Traefik ingress controller
+# Source of truth: config/sso-policy.yaml
+# Regenerate: n/a
+# Safety: terminates TLS; misroutes affect all ingress
+
+# Production Traefik v3 for Spark Lab SSO (standalone Helm — K3s bundled Traefik stays disabled).
+deployment:
+  replicas: 1
+
+providers:
+  kubernetesCRD:
+    enabled: true
+    allowCrossNamespace: true
+  kubernetesIngress:
+    enabled: true
+    publishedService:
+      enabled: true
+  kubernetesGateway:
+    enabled: false
+
+logs:
+  general:
+    level: INFO
+  access:
+    enabled: true
+
+metrics:
+  prometheus:
+    enabled: true
+
+api:
+  dashboard: true
+  insecure: false
+
+ingressRoute:
+  dashboard:
+    enabled: false
+
+ports:
+  web:
+    port: 80
+    expose:
+      default: true
+    exposedPort: 80
+    nodePort: 32080
+    protocol: TCP
+  websecure:
+    port: 443
+    expose:
+      default: true
+    exposedPort: 443
+    nodePort: 32443
+    protocol: TCP
+    tls:
+      enabled: true
+
+service:
+  type: NodePort
+
+additionalArguments:
+  - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+  - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+  - "--entrypoints.websecure.http.tls=true"
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+# TLS secret lab-wildcard-tls is created by cert-manager (k8s/cert-manager/generated/wildcard-certificate.yaml).

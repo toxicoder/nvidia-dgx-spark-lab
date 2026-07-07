@@ -1,0 +1,47 @@
+# Purpose: Deploy Traefik, Authelia, and oauth2-proxy SSO stack
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: requires secrets; misconfiguration blocks ingress access
+
+---
+# Install production Traefik v3 + Authelia SSO stack.
+# Run AFTER bootstrap-cluster.yml. Complements install-dev-workspaces.yml.
+#
+# From workstation:
+#   ansible-playbook -i inventory/hosts.ini playbooks/install-sso.yml
+# Or:
+#   ./scripts/manage.sh start-sso
+
+- name: Install Traefik + cert-manager
+  hosts: k3s_server
+  become: true
+  gather_facts: false
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  roles:
+    - traefik
+
+- name: Install Authelia + routes
+  hosts: k3s_server
+  become: true
+  gather_facts: false
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  roles:
+    - sso
+
+- name: SSO access instructions
+  hosts: k3s_server
+  become: false
+  gather_facts: false
+  tasks:
+    - name: Print next steps
+      debug:
+        msg: |
+          SSO stack installed. From workstation:
+            export KUBECONFIG=$(pwd)/kubeconfig/config
+            ./scripts/manage.sh sso urls
+            ./scripts/manage.sh start-monitoring
+
+          Add /etc/hosts entries for *.{{ lab_sso_domain }} pointing at your node IP.
+          See docs/sso.md for CA trust and user management.

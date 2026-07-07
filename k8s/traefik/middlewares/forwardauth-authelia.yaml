@@ -1,0 +1,22 @@
+# Purpose: Traefik ForwardAuth middleware via Authelia
+# Source of truth: n/a
+# Regenerate: n/a
+# Safety: blocks unauthenticated ingress access
+
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: forwardauth-authelia
+  namespace: auth
+  labels:
+    app.kubernetes.io/part-of: nvidia-dgx-spark-lab
+spec:
+  forwardAuth:
+    address: http://authelia.auth.svc.cluster.local:9091/api/authz/forward-auth
+    trustForwardHeader: true
+    maxResponseBodySize: 8192
+    authResponseHeaders:
+      - Remote-User
+      - Remote-Groups
+      - Remote-Email
+      - Remote-Name

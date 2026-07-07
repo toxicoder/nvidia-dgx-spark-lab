@@ -1,0 +1,17 @@
+# Purpose: Kustomize bundle for SSO auth stack
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: apply after secrets are populated
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - redis.yaml
+  - authelia-deployment.yaml
+  - authelia-service.yaml
+  # Domain-specific config rendered by ./scripts/manage.sh domains render
+  - generated/authelia-configmap.yaml
+  # oauth2-proxy requires Authelia OIDC (authelia-oidc-config secret); applied by start_sso after ensure-secrets
+  - generated/oauth2-proxy-deployment.yaml
+  - generated/routes.yaml

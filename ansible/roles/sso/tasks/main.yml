@@ -1,0 +1,32 @@
+# Purpose: Deploy SSO Helm charts from k8s/auth manifests
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: requires populated auth secrets
+
+---
+# Authelia + oauth2-proxy + IngressRoutes (requires Traefik role first).
+
+- name: Ensure SSO secrets via manage script
+  delegate_to: localhost
+  shell: |
+    export KUBECONFIG={{ playbook_dir }}/../../kubeconfig/config
+    {{ playbook_dir }}/../../scripts/manage.sh sso ensure-secrets
+  changed_when: false
+
+- name: Render domain manifests
+  delegate_to: localhost
+  shell: |
+    {{ playbook_dir }}/../../scripts/manage.sh domains render
+  changed_when: false
+
+- name: Deploy Authelia stack
+  shell: kubectl apply -k {{ playbook_dir }}/../../k8s/auth/
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Deploy oauth2-proxy
+  shell: |
+    kubectl apply -f {{ playbook_dir }}/../../k8s/auth/generated/oauth2-proxy-deployment.yaml
+    kubectl apply -f {{ playbook_dir }}/../../k8s/auth/oauth2-proxy-service.yaml
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml

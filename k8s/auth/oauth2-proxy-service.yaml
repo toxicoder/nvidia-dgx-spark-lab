@@ -1,0 +1,16 @@
+# Purpose: Service exposing oauth2-proxy forward-auth
+# Source of truth: this file
+# Regenerate: ./scripts/manage.sh domains render
+# Safety: required for protected ingress
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: oauth2-proxy
+  namespace: auth
+spec:
+  selector:
+    app: oauth2-proxy
+  ports:
+    - port: 4180
+      targetPort: 4180

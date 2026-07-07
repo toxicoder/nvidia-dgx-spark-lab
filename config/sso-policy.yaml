@@ -1,0 +1,124 @@
+# Purpose: SSO stack policy for Traefik, Authelia, and oauth2-proxy
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: domain names sourced from config/lab-domains.yaml
+
+# SSO policy — Traefik + Authelia + oauth2-proxy routes and ports.
+# Domain names: config/lab-domains.yaml (render via ./scripts/manage.sh domains render).
+# Parsed by scripts/lib/sso.sh (YAML → JSON via python3).
+
+host_env: LAB_SSO_HOST
+
+traefik:
+  namespace: traefik
+  helm_repo: https://traefik.github.io/charts
+  chart: traefik
+  chart_version: "36.0.0"
+  entrypoints:
+    - web
+    - websecure
+  nodeports:
+    http: 32080
+    https: 32443
+
+cert_manager:
+  namespace: cert-manager
+  helm_repo: https://charts.jetstack.io
+  chart: cert-manager
+  chart_version: v1.17.2
+
+authelia:
+  namespace: auth
+  image: authelia/authelia:4.38.19
+  forward_auth_path: /api/authz/forward-auth
+  cpu: 100m
+  memory: 128Mi
+
+oauth2_proxy:
+  namespace: auth
+  image: quay.io/oauth2-proxy/oauth2-proxy:v7.8.2
+  cpu: 50m
+  memory: 64Mi
+
+redis:
+  namespace: auth
+  cpu: 50m
+  memory: 64Mi
+
+# Subdomain hosts become <host>.<domain> (e.g. dashboard.lab.local).
+routes:
+  - host: auth
+    namespace: auth
+    service: authelia
+    port: 9091
+    middlewares: [security-headers]
+    forward_auth: false
+  - host: dashboard
+    namespace: dev
+    service: lab-dashboard
+    port: 3000
+    middlewares: [forwardauth-authelia, security-headers]
+    forward_auth: true
+  - host: chat
+    namespace: dev
+    service: open-webui
+    port: 80
+    middlewares: [forwardauth-authelia, security-headers]
+    forward_auth: true
+  - host: coder
+    namespace: coder
+    service: coder
+    port: 80
+    middlewares: [forwardauth-authelia, security-headers]
+    forward_auth: true
+    oidc_client: coder
+  - host: grafana
+    namespace: monitoring
+    service: grafana
+    port: 80
+    middlewares: [forwardauth-authelia, security-headers]
+    forward_auth: true
+  - host: headlamp
+    namespace: monitoring
+    service: headlamp
+    port: 80
+    middlewares: [forwardauth-authelia, security-headers]
+    forward_auth: true
+    oidc_client: headlamp
+  - host: kasm
+    namespace: kasm
+    service: kasm-proxy
+    port: 443
+    middlewares: [forwardauth-authelia, security-headers]
+    forward_auth: true
+    scheme: https
+  - host: traefik
+    namespace: traefik
+    service: api@internal
+    port: 0
+    middlewares: [forwardauth-authelia, security-headers]
+    forward_auth: true
+    internal: true
+  - host: oauth
+    namespace: auth
+    service: oauth2-proxy
+    port: 4180
+    middlewares: [security-headers]
+    forward_auth: false
+    oidc_client: oauth2-proxy
+
+oidc_clients:
+  - id: coder
+    host: coder
+    path: /api/v2/users/oidc/callback
+  - id: headlamp
+    host: headlamp
+    path: /oidc-callback
+  - id: oauth2-proxy
+    host: oauth
+    path: /oauth2/callback
+
+# When true, dev apps deploy as ClusterIP; Traefik is the external entry.
+sso_enabled_default: true
+# Keep legacy NodePorts available during migration (direct access bypasses SSO).
+bypass_direct_nodeports: true
