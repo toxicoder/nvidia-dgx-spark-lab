@@ -1,0 +1,25 @@
+# Purpose: Helm values for node-exporter DaemonSet
+# Source of truth: n/a
+# Regenerate: n/a
+# Safety: runs on every node; host-level metrics only
+
+# node-exporter — host metrics DaemonSet for DGX Spark nodes.
+service:
+  type: NodePort
+  nodePort: 32090
+  port: 9100
+
+hostNetwork: true
+hostPID: true
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+prometheus:
+  monitor:
+    enabled: false

@@ -1,0 +1,37 @@
+# Purpose: Helm values for Prometheus monitoring server
+# Source of truth: k8s/monitoring/prometheus-scrape-config.yaml
+# Regenerate: n/a
+# Safety: retention and scrape config affect disk usage
+
+# Prometheus — lightweight metrics server for DGX Spark Lab (no Alertmanager).
+alertmanager:
+  enabled: false
+
+kube-state-metrics:
+  enabled: false
+
+prometheus-node-exporter:
+  enabled: false
+
+prometheus-pushgateway:
+  enabled: false
+
+server:
+  retention: "7d"
+  service:
+    type: ClusterIP
+    servicePort: 80
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+  global:
+    scrape_interval: 30s
+    evaluation_interval: 30s
+
+serverFiles:
+  prometheus.yml:
+    scrape_configs: []

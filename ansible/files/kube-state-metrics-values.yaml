@@ -1,0 +1,20 @@
+# Purpose: Helm values for kube-state-metrics exporter
+# Source of truth: n/a
+# Regenerate: n/a
+# Safety: cluster-wide metrics; low resource footprint
+
+# kube-state-metrics — Kubernetes object metrics for Grafana/Prometheus.
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+prometheus:
+  monitor:
+    enabled: false
+
+selfMonitor:
+  enabled: false

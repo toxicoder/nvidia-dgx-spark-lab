@@ -1,0 +1,118 @@
+# Purpose: Blackbox exporter HTTP/TCP probe target definitions
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: probe URLs reference live cluster endpoints
+
+# HTTP/TCP probe targets for blackbox-exporter (parsed by scripts/lib/monitoring.sh).
+# In-cluster probes use Kubernetes DNS; host probes use spark0 InternalIP.
+# Domain names: config/lab-domains.yaml
+
+host_probes:
+  - name: hermes-gateway
+    module: http_2xx
+    url: "http://{{SPARK0_IP}}:8642/v1/models"
+  - name: hermes-dashboard
+    module: http_2xx
+    url: "http://{{SPARK0_IP}}:9119/"
+
+sso_routes:
+  - name: authelia
+    path: /api/health
+    host: auth
+  - name: lab-dashboard
+    path: /
+    host: dashboard
+  - name: open-webui
+    path: /
+    host: chat
+  - name: coder
+    path: /
+    host: coder
+  - name: grafana
+    path: /api/health
+    host: grafana
+  - name: headlamp
+    path: /
+    host: headlamp
+  - name: traefik
+    path: /dashboard/
+    host: traefik
+
+cluster_probes:
+  - name: prometheus
+    namespace: monitoring
+    service: prometheus-server
+    port: 80
+    path: /-/healthy
+  - name: kube-state-metrics
+    namespace: monitoring
+    service: kube-state-metrics
+    port: 8080
+    path: /metrics
+  - name: traefik-metrics
+    namespace: traefik
+    service: traefik
+    port: 9100
+    path: /metrics
+  - name: cert-manager
+    namespace: cert-manager
+    service: cert-manager
+    port: 9402
+    path: /metrics
+  - name: authelia-metrics
+    namespace: auth
+    service: authelia
+    port: 9959
+    path: /metrics
+  - name: dcgm-exporter
+    namespace: gpu-operator
+    service: nvidia-dcgm-exporter
+    port: 9400
+    path: /metrics
+
+inference_probes:
+  namespace: ai-inference
+  services:
+    - kimi-test
+    - kimi
+    - nemotron-3-ultra
+    - nemotron-3-nano-30b
+    - nemotron-3-nano-omni-30b
+    - nemotron-3-super-120b
+    - glm-5.2
+    - qwen3.5-122b-a10b-nvfp4
+    - qwen3.5-397b-nvfp4
+    - qwen3.5-397b-spark2
+    - nemotron-retriever-embed
+    - nemotron-retriever-rerank
+    - nemotron-parse
+    - nemotron-safety-guard
+    - nemotron-speech-asr
+    - nemotron-speech-tts
+    - ray-head
+  port: 8000
+  vllm_path: /v1/models
+  nim_path: /v1/health/ready
+
+mcp_nodeport_probes:
+  - name: mcp-searxng
+    port: 32100
+    path: /sse
+  - name: mcp-fetch
+    port: 32101
+    path: /sse
+  - name: mcp-qdrant
+    port: 32102
+    path: /sse
+  - name: context7-proxy
+    port: 32103
+    path: /healthz
+  - name: mcp-gitea
+    port: 32104
+    path: /mcp
+  - name: mcp-memory
+    port: 32105
+    path: /sse
+  - name: mcp-firecrawl
+    port: 32106
+    path: /mcp

@@ -1,0 +1,52 @@
+# Purpose: Deploy Prometheus, Grafana, and observability stack
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: scrapes cluster metrics; moderate resources
+
+---
+# Deploy observability stack via unified monitoring.sh (single source of truth with manage.sh).
+
+- name: Ensure monitoring deploy script is executable
+  file:
+    path: "{{ playbook_dir }}/../../scripts/lib/monitoring.sh"
+    mode: "0755"
+  delegate_to: localhost
+  run_once: true
+
+- name: Deploy observability stack (exporters + Prometheus + Grafana + Headlamp + lab-dashboard)
+  shell: |
+    export REPO_ROOT="{{ playbook_dir }}/../.."
+    export KUBECONFIG="${KUBECONFIG:-$REPO_ROOT/kubeconfig/config}"
+    export GRAFANA_PORT={{ grafana_nodeport }}
+    export HEADLAMP_PORT={{ headlamp_nodeport }}
+    export NODE_EXPORTER_PORT={{ node_exporter_port | default(32090) }}
+    export DASHBOARD_PORT={{ dashboard_nodeport }}
+    export LAB_LOCAL_DOMAIN={{ lab_local_domain | default(lab_sso_domain | default('lab.local')) }}
+    export LAB_PUBLIC_DOMAIN={{ lab_public_domain | default('') }}
+    # shellcheck source=/dev/null
+    source "$REPO_ROOT/scripts/lib/common.sh"
+    source "$REPO_ROOT/scripts/lib/monitoring.sh"
+    deploy_monitoring_stack
+  args:
+    executable: /bin/bash
+  register: monitoring_deploy
+  changed_when: "'deployed' in (monitoring_deploy.stdout | default(''))"
+
+- name: Show monitoring pods
+  shell: |
+    kubectl get pods -n monitoring || true
+    kubectl get svc -n monitoring || true
+  register: mon_out
+  changed_when: false
+
+- name: Debug monitoring
+  debug:
+    var: mon_out.stdout_lines
+
+- name: Note on custom lab dashboard
+  debug:
+    msg: |
+      Observability stack deployed via scripts/lib/monitoring.sh (shared with manage.sh start-monitoring).
+      Grafana: provisioned Prometheus datasource + 8 DGX Spark Lab dashboards.
+      Lab dashboard Observability panel: https://dashboard.{{ lab_local_domain | default(lab_sso_domain | default('lab.local')) }}/#observability
+      node-exporter NodePort: {{ node_exporter_port | default(32090) }}

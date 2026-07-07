@@ -1,0 +1,10 @@
+# Purpose: Kustomize bundle for Prometheus scrape config
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: apply with monitoring namespace
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - prometheus-scrape-config.yaml

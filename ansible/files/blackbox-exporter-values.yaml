@@ -1,0 +1,32 @@
+# Purpose: Helm values for Prometheus blackbox exporter probes
+# Source of truth: config/monitoring-probes.yaml
+# Regenerate: n/a
+# Safety: probe targets must match live endpoints
+
+# blackbox-exporter — HTTP/TCP probes for services without native Prometheus metrics.
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+config:
+  modules:
+    http_2xx:
+      prober: http
+      timeout: 5s
+      http:
+        valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+        valid_status_codes: [200, 301, 302, 401, 403]
+        method: GET
+        follow_redirects: true
+        preferred_ip_protocol: ip4
+    tcp_connect:
+      prober: tcp
+      timeout: 5s
+
+prometheus:
+  monitor:
+    enabled: false
