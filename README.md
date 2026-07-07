@@ -1,5 +1,8 @@
 # nvidia-dgx-spark-lab
 
+<img width="7008" height="4704" alt="nvidia-dgx-spark-lab-banner-0" src="https://github.com/user-attachments/assets/821e9c79-a103-444f-98e2-bef92ff42ca5" />
+
+
 **What's on this page**
 
 - Project goals and core safety principles
@@ -22,6 +25,8 @@
 - Provide both a heavy production configuration and a lighter/safer test mode.
 - Never auto-start heavy containers on reboot.
 - Everything managed through simple, auditable scripts and manifests.
+
+<img width="1280" height="858" alt="dashboard-main copy" src="https://github.com/user-attachments/assets/057fd2c0-27d4-47a5-ae02-1157dcd6dca1" />
 
 ## Node Roles (Scalable 1-4 nodes)
 
