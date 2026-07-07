@@ -1,0 +1,34 @@
+name: Setup Bazel
+description: Install Bazelisk and restore disk/repository caches for CI jobs.
+
+inputs:
+  install-lint-tools:
+    description: Run the shared lint-tool installer (shellcheck, kubeconform, etc.)
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Install Bazelisk
+      shell: bash
+      run: |
+        curl -fsSL https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64 -o /tmp/bazelisk
+        sudo install /tmp/bazelisk /usr/local/bin/bazelisk
+        bazelisk version
+
+    - name: Cache Bazel disk and repository cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/bazel-disk
+          ~/.cache/bazel-repo
+        key: bazel-${{ runner.os }}-${{ hashFiles('MODULE.bazel.lock', '.bazelversion') }}
+        restore-keys: |
+          bazel-${{ runner.os }}-${{ hashFiles('docs/requirements.txt', 'dashboard/package-lock.json') }}-
+          bazel-${{ runner.os }}-
+
+    - name: Install lint tools for Bazel targets
+      if: inputs.install-lint-tools == 'true'
+      shell: bash
+      run: .github/scripts/install-lint-tools.sh

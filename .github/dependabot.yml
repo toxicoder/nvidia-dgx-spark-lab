@@ -1,0 +1,31 @@
+version: 2
+updates:
+  # GitHub Actions used in workflows (e.g. actions/checkout, etc.)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # npm for dashboard (package.json + package-lock.json)
+  - package-ecosystem: "npm"
+    directory: "/dashboard"
+    schedule:
+      interval: "weekly"
+    groups:
+      npm-dependencies:
+        patterns:
+          - "*"
+
+  # pip for docs (requirements.txt)
+  - package-ecosystem: "pip"
+    directory: "/docs"
+    schedule:
+      interval: "weekly"
+    groups:
+      pip-dependencies:
+        patterns:
+          - "*"

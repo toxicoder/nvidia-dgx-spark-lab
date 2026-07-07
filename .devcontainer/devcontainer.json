@@ -1,0 +1,64 @@
+{
+  "name": "nvidia-dgx-spark-lab",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "features": {
+    // Docker in Docker for any container testing if needed
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "enableNonRootDocker": true,
+      "moby": true
+    },
+    // Python feature for better management
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.11",
+      "installTools": true
+    },
+    // Node for dashboard (Next.js) development and tests
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22",
+      "installYarn": true
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bazelbuild.vscode-bazel",
+        "ms-python.python",
+        "charliermarsh.ruff",
+        "ms-python.mypy-type-checker",
+        "mkhl.shfmt",
+        "timonwong.shellcheck",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "bradlc.vscode-tailwindcss",
+        "vitest.explorer",
+        "ms-playwright.playwright",
+        "redhat.vscode-yaml",
+        "redhat.ansible",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "ms-vscode-remote.remote-containers"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "python.defaultInterpreterPath": "/usr/local/bin/python3",
+        "bazel.buildifierExecutable": "/usr/local/bin/buildifier"
+      }
+    }
+  },
+  "forwardPorts": [3000, 8080],
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "bazelisk version || echo 'Bazelisk ready'",
+  "remoteUser": "vscode",
+  "containerEnv": {
+    "PYTHONUNBUFFERED": "1"
+  },
+  "mounts": [
+    // Optional: mount host docker socket if needed
+    // "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+  "capAdd": ["SYS_PTRACE"],
+  "securityOpt": ["seccomp=unconfined"]
+}
