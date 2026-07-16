@@ -156,6 +156,34 @@ models:
     port: 8000
     min_nodes: 4
 
+  qwen3.6-27b-nvfp4:
+    display_name: Qwen 3.6 27B NVFP4
+    family: reasoning
+    runtime: vllm
+    hf_path: unsloth/Qwen3.6-27B-NVFP4
+    quantization: nvfp4
+    agent_roles: [orchestrator, hard_reasoning, coding]
+    spark_gpu_mem_util: 0.72
+    dual_gpu_mem_util: 0.38
+    openai_svc: qwen3.6-27b-nvfp4
+    port: 8000
+    min_nodes: 1
+    notes: "Dense quality model; MTP speculative decoding; hybrid thinking + vision"
+
+  qwen3.6-35b-a3b-nvfp4:
+    display_name: Qwen 3.6 35B-A3B NVFP4-Fast
+    family: reasoning
+    runtime: vllm
+    hf_path: unsloth/Qwen3.6-35B-A3B-NVFP4-Fast
+    quantization: nvfp4
+    agent_roles: [orchestrator, tool_caller, coding]
+    spark_gpu_mem_util: 0.72
+    dual_gpu_mem_util: 0.38
+    openai_svc: qwen3.6-35b-a3b-nvfp4
+    port: 8000
+    min_nodes: 1
+    notes: "MoE speed model (~3B active); flashinfer_b12x on DGX Spark; MTP"
+
 pillars:
   orchestrator: { label: Orchestrator, icon: brain }
   document_intel: { label: Document intel, icon: file-text }
