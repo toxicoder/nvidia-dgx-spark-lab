@@ -25,7 +25,8 @@ sudo apt-get update -qq
 sudo apt-get install -y -qq shellcheck yamllint curl jq
 
 python -m pip install --upgrade pip
-pip install ansible ansible-lint yamllint ruff
+# ansible/ruff for lint jobs; pytest for //docs:test_python_coverage (//:test-fast)
+pip install ansible ansible-lint yamllint ruff pytest pytest-cov
 
 # kubeconform: pin a real release tag (v1.x tags do not exist on this project).
 # Use curl -f so HTTP 404 fails before tar tries to gunzip an HTML/text body.
