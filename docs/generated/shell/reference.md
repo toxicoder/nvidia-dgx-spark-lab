@@ -1817,6 +1817,7 @@ Used by manage.sh start-monitoring and ansible/roles/monitoring.
 ### Function `monitoring_generate_prometheus_scrape_config`
 
 @function monitoring_generate_prometheus_scrape_config
+Writes prometheus-scrape-config.yaml (override path via MONITORING_SCRAPE_CONFIG_OUT).
 
 ### Function `monitoring_apply_prometheus_scrape_config`
 
