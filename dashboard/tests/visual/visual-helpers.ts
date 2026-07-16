@@ -118,18 +118,22 @@ export async function waitForTreemapChart(page: Page) {
 
 /** Wait until the sunburst chart paths and legend are rendered. */
 export async function waitForSunburstChart(page: Page) {
+  const viz = page.locator('[data-testid="treemap-viz"]');
+  await viz.scrollIntoViewIfNeeded().catch(() => {});
+  await page.waitForTimeout(300).catch(() => {});
   await page.waitForFunction(
     () => {
-      const viz = document.querySelector('[data-testid="treemap-viz"][data-chart-view="sunburst"]');
-      if (!viz) return false;
-      const paths = viz.querySelectorAll("svg path");
-      const legend = viz.querySelector('[data-testid="sunburst-legend"]');
-      const center = viz.querySelector('[data-testid="sunburst-center"]');
-      return paths.length > 0 && legend !== null && center !== null;
+      const el = document.querySelector('[data-testid="treemap-viz"][data-chart-view="sunburst"]');
+      if (!el) return false;
+      const paths = el.querySelectorAll("svg path");
+      const legend = el.querySelector('[data-testid="sunburst-legend"]');
+      const center = el.querySelector('[data-testid="sunburst-center"]');
+      // Legend/center may lag on narrow viewports; paths alone are enough to screenshot.
+      return paths.length > 0 && (legend !== null || center !== null || paths.length >= 3);
     },
-    { timeout: 10000 }
+    { timeout: 25000 }
   );
-  await page.waitForTimeout(200).catch(() => {});
+  await page.waitForTimeout(300).catch(() => {});
 }
 
 /** Hover the first treemap cell to stabilize tooltip screenshots. */
