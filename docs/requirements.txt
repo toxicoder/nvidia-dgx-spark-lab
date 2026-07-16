@@ -2,7 +2,7 @@ mkdocs==1.6.1
 mkdocs-material==9.7.6
 mkdocs-glightbox==0.5.2
 # Pin Playwright for reproducible visual goldens across local/CI Chromium builds.
-playwright==1.61.1
+playwright==1.61.0
 # Soft pixel-diff comparison for screenshots (exact PNG bytes are flaky across runners).
 Pillow>=10.0.0
 # mkdocs-git-revision-date-localized==1.2.9  # Add when network allows; provides "Last updated" dates
