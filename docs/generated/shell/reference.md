@@ -1137,50 +1137,6 @@ Usage:
 
 
 
-<!-- source: scripts/utilities/rebuild-history.sh -->
-
-## rebuild-history — rebuild local main into a logical commit sequence
-
-Creates an orphan branch with 14 commits from a validated WIP snapshot.
-Local only — never pushes to a remote. Does not create archive tags or wip branches.
-
-```bash
-Usage:
-```
-
-  REBUILD_WIP_REF=main ./scripts/utilities/rebuild-history.sh
-
-### Command: rebuild-history
-
-@description Rebuild local git history into a logical commit sequence from the current tree.
-
-### Function `rebuild_history_main`
-
-@function rebuild_history_main
-Rebuild local main into the 14-commit logical sequence from the WIP snapshot.
-
-### Function `strip_paths`
-
-@function strip_paths
-Remove paths from the index and working tree after a broad checkout.
-@param $@  Paths to remove
-
-### Function `commit_with_body`
-
-@function commit_with_body
-Create a commit with a conventional title and PR-style bullet body.
-@param $1  Commit title (first line)
-@param $@  Body bullet lines (each becomes a "- …" line)
-
-### Function `commit_group`
-
-@function commit_group
-Create one logical commit from a path group on the rebuilt-main orphan branch.
-@param $1  Commit title
-@param $2+ Body bullet lines, then "--", then paths to include
-
-
-
 <!-- source: scripts/utilities/kasm-workspace-image.sh -->
 
 ## kasm-workspace-image
@@ -1401,19 +1357,6 @@ Usage (from a script):
   source "$(dirname "$0")/../lib/check_tool.sh"
   check_tool shellcheck "apt install shellcheck"
   check_tool yamllint "pip install yamllint"
-
-
-
-<!-- source: scripts/lib/rebuild-cleanup.sh -->
-
-## rebuild-cleanup — remove archive tags and transient rebuild branches
-
-Idempotent helpers used by rebuild-history.sh after rewriting main.
-
-### Function `cleanup_rebuild_refs`
-
-@function cleanup_rebuild_refs
-Remove archive safety tags and transient rebuild branches (idempotent).
 
 
 

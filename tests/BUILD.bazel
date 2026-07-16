@@ -140,7 +140,6 @@ sh_test(
         "bats/tooling.bats",
         ":bats_tool",
         "//scripts:lib/paths.sh",
-        "//scripts:lib/rebuild-cleanup.sh",
         "//scripts:utilities",
         "//scripts:validate",
         "//scripts:yaml_format.sh",
