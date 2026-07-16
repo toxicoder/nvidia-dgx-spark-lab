@@ -89,11 +89,13 @@ monitoring_apply_grafana_dashboards_configmap() {
 }
 
 # @function monitoring_generate_prometheus_scrape_config
+# Writes prometheus-scrape-config.yaml (override path via MONITORING_SCRAPE_CONFIG_OUT).
 monitoring_generate_prometheus_scrape_config() {
   local spark0_ip probes_path out_file
   spark0_ip="$(monitoring_spark0_ip)"
   probes_path="$(monitoring_probes_path)"
-  out_file="${1:-$(monitoring_repo_root)/k8s/monitoring/prometheus-scrape-config.yaml}"
+  # Prefer env override over unused $1 (callers never pass args; keeps shellcheck SC2120 clean).
+  out_file="${MONITORING_SCRAPE_CONFIG_OUT:-$(monitoring_repo_root)/k8s/monitoring/prometheus-scrape-config.yaml}"
 
   python3 - "$probes_path" "$spark0_ip" "$out_file" <<'PY'
 import sys

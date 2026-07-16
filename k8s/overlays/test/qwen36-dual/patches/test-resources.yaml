@@ -1,0 +1,32 @@
+# Purpose: Lighter test resources for Qwen3.6 dual smoke tests
+# Source of truth: k8s/overlays/test/qwen36-dual/
+# Regenerate: n/a
+# Safety: test-only — insufficient for real NVFP4 model load
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ignored
+spec:
+  template:
+    spec:
+      containers:
+        - name: inference
+          resources:
+            requests:
+              cpu: "2"
+              memory: "8Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "4"
+              memory: "16Gi"
+              nvidia.com/gpu: "1"
+          env:
+            - name: LAB_QWEN36_GPU_UTIL
+              value: "0.20"
+            - name: LAB_QWEN36_MAX_LEN
+              value: "8192"
+          readinessProbe:
+            initialDelaySeconds: 30
+          livenessProbe:
+            initialDelaySeconds: 60

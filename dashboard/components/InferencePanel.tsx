@@ -32,7 +32,9 @@ const STARTABLE_MODELS: { id: InferenceModelName; label: string; heavy: boolean 
   { id: "glm-5.2", label: "glm-5.2", heavy: true },
   { id: "qwen3.5-122b-a10b-nvfp4", label: "qwen-122b-nvfp4", heavy: true },
   { id: "qwen3.5-397b-spark2", label: "qwen-397b-spark2", heavy: true },
-  { id: "qwen3.5-397b-nvfp4", label: "qwen-397b-nvfp4", heavy: true }
+  { id: "qwen3.5-397b-nvfp4", label: "qwen-397b-nvfp4", heavy: true },
+  { id: "qwen3.6-27b-nvfp4", label: "qwen3.6-27b", heavy: true },
+  { id: "qwen3.6-35b-a3b-nvfp4", label: "qwen3.6-35b-a3b", heavy: true }
 ];
 
 interface InferencePanelProps {

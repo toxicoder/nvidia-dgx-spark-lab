@@ -39,8 +39,11 @@ persistence:
     - ReadWriteOnce
 
 enableOpenaiApi: true
+# Hermes agent gateway + direct Qwen3.6 vLLM OpenAI endpoints (model selector in UI).
 openaiBaseApiUrls:
   - "http://hermes-gateway.dev.svc.cluster.local:8642/v1"
+  - "http://qwen3.6-27b-nvfp4.ai-inference.svc.cluster.local:8000/v1"
+  - "http://qwen3.6-35b-a3b-nvfp4.ai-inference.svc.cluster.local:8000/v1"
 
 openaiApiKeyExistingSecret: open-webui-secrets
 openaiApiKeyExistingSecretKey: hermes-api-key

@@ -62,7 +62,8 @@ data:
     \    - nemotron-3-nano-30b.ai-inference.svc.cluster.local:8000\n    - nemotron-3-nano-omni-30b.ai-inference.svc.cluster.local:8000\n\
     \    - nemotron-3-super-120b.ai-inference.svc.cluster.local:8000\n    - glm-5.2.ai-inference.svc.cluster.local:8000\n\
     \    - qwen3.5-122b-a10b-nvfp4.ai-inference.svc.cluster.local:8000\n    - qwen3.5-397b-nvfp4.ai-inference.svc.cluster.local:8000\n\
-    \    - qwen3.5-397b-spark2.ai-inference.svc.cluster.local:8000\n    - nemotron-retriever-embed.ai-inference.svc.cluster.local:8000\n\
+    \    - qwen3.5-397b-spark2.ai-inference.svc.cluster.local:8000\n    - qwen3.6-27b-nvfp4.ai-inference.svc.cluster.local:8000\n\
+    \    - qwen3.6-35b-a3b-nvfp4.ai-inference.svc.cluster.local:8000\n    - nemotron-retriever-embed.ai-inference.svc.cluster.local:8000\n\
     \    - nemotron-retriever-rerank.ai-inference.svc.cluster.local:8000\n    - nemotron-parse.ai-inference.svc.cluster.local:8000\n\
     \    - nemotron-safety-guard.ai-inference.svc.cluster.local:8000\n    - nemotron-speech-asr.ai-inference.svc.cluster.local:8000\n\
     \    - nemotron-speech-tts.ai-inference.svc.cluster.local:8000\n    - ray-head.ai-inference.svc.cluster.local:8000\n\

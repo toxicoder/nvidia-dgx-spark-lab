@@ -72,7 +72,7 @@ nvidia-dgx-spark-lab/
 │   ├── base/         # Namespaces, Resource Guard
 │   ├── dev/          # Dashboard dev manifests, Coder templates
 │   ├── overlays/     # test, prod, single-node
-│   └── workloads/    # kimi, nemotron-*, qwen3.5-*, glm-5.2, ray-*, agentic stack
+│   └── workloads/    # kimi, nemotron-*, qwen3.5-*, qwen3.6-*, glm-5.2, ray-*
 ├── lints/            # Bazel-wrapped linters
 ├── mcp/              # MCP Agent Toolkit (policy, k8s workloads, docker)
 ├── scripts/          # manage.sh, lib/*.sh, utilities/

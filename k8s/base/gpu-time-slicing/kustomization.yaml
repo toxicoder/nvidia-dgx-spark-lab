@@ -1,0 +1,10 @@
+# Purpose: Kustomize bundle for GPU time-slicing ConfigMap
+# Source of truth: k8s/base/gpu-time-slicing/
+# Regenerate: n/a
+# Safety: does not enable time-slicing until device plugin is reconfigured
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - time-slicing-config.yaml

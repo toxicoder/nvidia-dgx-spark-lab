@@ -40,6 +40,7 @@ nav:
       - DGX Spark Notes: dgx-spark-notes.md
       - Reboot Safety: reboot-safety.md
       - Models & Resources: models-catalog.md
+      - Qwen3.6 Dual Stack: qwen36-dual-stack.md
       - Nemotron Agentic Stack: nemotron-agentic-stack.md
       - MCP Agent Toolkit: mcp-agent-toolkit.md
       - Hermes Agent (Docker): hermes-agent.md

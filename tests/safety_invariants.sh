@@ -88,7 +88,8 @@ for m in kimi-test kimi ray-head ray-worker nemotron-3-ultra \
   nemotron-safety-guard nemotron-speech-asr nemotron-speech-tts \
   glm-5.2 glm-5.2-rpc \
   qwen3.5-122b-a10b-nvfp4 qwen3.5-397b-spark2 qwen3.5-397b-nvfp4 \
-  qwen3.5-397b-nvfp4-worker-1 qwen3.5-397b-nvfp4-worker-2 qwen3.5-397b-nvfp4-worker-3; do
+  qwen3.5-397b-nvfp4-worker-1 qwen3.5-397b-nvfp4-worker-2 qwen3.5-397b-nvfp4-worker-3 \
+  qwen3.6-27b-nvfp4 qwen3.6-35b-a3b-nvfp4; do
   python3 -c "
 import json, sys
 from pathlib import Path
@@ -117,12 +118,25 @@ for job in \
   k8s/workloads/nemotron-3-super-120b/nemotron-3-super-120b-job.yaml \
   k8s/workloads/qwen3.5-122b-a10b-nvfp4/qwen3.5-122b-a10b-nvfp4-job.yaml \
   k8s/workloads/qwen3.5-397b-spark2/qwen3.5-397b-spark2-job.yaml \
-  k8s/workloads/qwen3.5-397b-nvfp4/qwen3.5-397b-nvfp4-job.yaml; do
+  k8s/workloads/qwen3.5-397b-nvfp4/qwen3.5-397b-nvfp4-job.yaml \
+  k8s/workloads/qwen3.6-27b-nvfp4/qwen3.6-27b-nvfp4-job.yaml \
+  k8s/workloads/qwen3.6-35b-a3b-nvfp4/qwen3.6-35b-a3b-nvfp4-job.yaml; do
   test -f "$job"
   grep -q 'restartPolicy: OnFailure' "$job"
   grep -q 'resources:' "$job"
   grep -q 'backoffLimit:' "$job"
 done
+
+echo "Checking Qwen3.6 dual stack policy registration..."
+python3 -c "
+import json
+from pathlib import Path
+j = json.loads(Path('config/resource-policy.json').read_text())
+assert 'qwen36-dual-spark-1' in j.get('stacks', {}), 'missing qwen36-dual-spark-1 stack'
+stack = j['stacks']['qwen36-dual-spark-1']
+assert 'qwen3.6-27b-nvfp4' in stack.get('stack_with', [])
+assert 'qwen3.6-35b-a3b-nvfp4' in stack.get('stack_with', [])
+"
 
 echo "Checking Open WebUI policy and resource registration..."
 test -f config/open-webui-policy.yaml

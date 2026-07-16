@@ -14,7 +14,7 @@
 
 _manage_complete() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local cmds="status start-test start-kimi start-ray start-nemotron start-glm start-coder start-kasm start-monitoring start-default setup urls wait stop-coder stop-kasm stop-dev stop cleanup secrets doctor help"
+  local cmds="status start-test start-kimi start-ray start-nemotron start-glm start-qwen36-27b start-qwen36-35b-a3b start-qwen36-dual stop-qwen36 status-qwen36 start-coder start-kasm start-monitoring start-default setup urls wait stop-coder stop-kasm stop-dev stop cleanup secrets doctor help estimate"
   COMPREPLY=( $(compgen -W "$cmds" -- "$cur") )
 }
 

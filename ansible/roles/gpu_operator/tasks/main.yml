@@ -76,3 +76,43 @@
 - name: Show GPU allocation
   debug:
     var: gpu_alloc.stdout_lines
+
+# Optional dual-model time-slicing (Qwen3.6 dual stack). Off by default.
+- name: Apply GPU time-slicing ConfigMap
+  when: gpu_time_slicing_enabled | default(false) | bool
+  shell: |
+    kubectl apply -k k8s/base/gpu-time-slicing
+  args:
+    # playbooks/ -> ansible/ -> repo root
+    chdir: "{{ playbook_dir }}/../.."
+  register: time_slice_cm
+  changed_when: "'configured' in time_slice_cm.stdout or 'created' in time_slice_cm.stdout"
+
+- name: Reconfigure device plugin for time-slicing
+  when: gpu_time_slicing_enabled | default(false) | bool
+  shell: |
+    helm upgrade gpu-operator nvidia/gpu-operator \
+      --namespace {{ gpu_operator_namespace }} \
+      --version {{ gpu_operator_version }} \
+      --reuse-values \
+      --set devicePlugin.config.name=time-slicing-config \
+      --wait \
+      --timeout 10m
+  register: time_slice_helm
+  changed_when: "'unchanged' not in time_slice_helm.stdout"
+
+- name: Verify time-sliced logical GPUs
+  when: gpu_time_slicing_enabled | default(false) | bool
+  shell: |
+    for i in {1..30}; do
+      total=$(kubectl get nodes -o jsonpath='{range .items[*]}{.status.allocatable.nvidia\.com/gpu}{"\n"}{end}' | awk '{s+=$1} END {print s+0}')
+      if [ "$total" -ge 2 ]; then
+        echo "Time-sliced GPUs ok: $total"
+        exit 0
+      fi
+      echo "Waiting for time-sliced GPUs... ($i/30) total=$total"
+      sleep 10
+    done
+    echo "WARNING: allocatable GPUs still < 2; dual stack may not schedule"
+    exit 0
+  changed_when: false
