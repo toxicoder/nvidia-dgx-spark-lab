@@ -43,6 +43,9 @@ tags: [models, inference, safety, resources, vllm]
 | qwen3.5-122b-a10b-nvfp4 | 1 | 95Gi        | Qwen 3.5 122B NVFP4 (1-node 397B substitute) | vLLM cu130-nightly + transformers 5.x | 1-node            |
 | qwen3.5-397b-spark2   | 2    | 220Gi       | Qwen 397B int4-AutoRound (2-node 397B substitute) | Ray + vLLM; ~26-30 tok/s on dual Spark | 2-node + Ray      |
 | qwen3.5-397b-nvfp4    | 4    | 460Gi+      | Qwen 397B NVFP4 (exact HF checkpoint) | SGLang TP=4; displaces other LLMs | 4-node required   |
+| qwen3.6-27b-nvfp4     | 1    | 48Gi        | Qwen3.6 27B dense NVFP4 (quality + MTP) | Exclusive util 0.72; dual util 0.38 | 1-node            |
+| qwen3.6-35b-a3b-nvfp4 | 1    | 48Gi        | Qwen3.6 35B-A3B MoE NVFP4-Fast (speed) | flashinfer_b12x; dual stack with 27B | 1-node            |
+| qwen36-dual-spark-1   | 2*   | 96Gi        | Concurrent 27B + 35B-A3B (*logical GPUs) | Time-slicing required | 1-node dual       |
 
 **Image + NCCL + hostNetwork unification/consistency** (across kimi, kimi-test, nemotron-3-ultra):
 
@@ -101,6 +104,17 @@ When `nvidia/Qwen3.5-397B-A17B-NVFP4` does not fit your cluster, use the same ag
 ```bash
 bazelisk run //scripts:run-utility -- download-qwen-models run --tier all
 bazelisk run //scripts:run-utility -- nemotron-stack start qwen-agentic-spark-2 --confirm yes
+```
+
+### Qwen3.6 dual stack (1× Spark)
+
+Concurrent dense 27B + MoE 35B-A3B NVFP4 with MTP. Full guide: [qwen36-dual-stack.md](qwen36-dual-stack.md).
+
+```bash
+bazelisk run //scripts:run-utility -- download-qwen-models run --tier qwen36
+bazelisk run //:manage -- start-qwen36-dual
+bazelisk run //:manage -- status-qwen36
+bazelisk run //:manage -- stop-qwen36
 ```
 
 ### Ray + Large Models (nemotron-3-ultra legacy)

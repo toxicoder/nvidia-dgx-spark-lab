@@ -285,6 +285,9 @@ glm-5.2 / glm-5.2-rpc: 1-bit UD-IQ1_M llama.cpp RPC (2-node dual-400G; no Ray)
 qwen3.5-122b-a10b-nvfp4: 1-node Qwen 122B NVFP4 substitute for 397B NVFP4
 qwen3.5-397b-spark2: 2-node Qwen 397B int4-AutoRound (vLLM TP=2 + Ray)
 qwen3.5-397b-nvfp4: 4-node Qwen 397B NVFP4 (SGLang distributed)
+qwen3.6-27b-nvfp4: 1-node Qwen3.6 27B dense NVFP4 (quality)
+qwen3.6-35b-a3b-nvfp4: 1-node Qwen3.6 35B-A3B MoE NVFP4-Fast (speed)
+qwen36-dual-spark-1: concurrent both on 1× Spark (GPU time-slicing)
 
 Model/job definitions - centralized, portable bash (no associative arrays for macOS /bin/bash 3.2 compat + set -u).
 Use lookup functions.
@@ -351,6 +354,42 @@ Confirmation + 2-node llama.cpp RPC for GLM-5.2 UD-IQ1_M (1-bit dynamic quant).
 
 @function start_qwen3_5_122b_nvfp4
 1-node Qwen 122B NVFP4 — substitute when 397B NVFP4 does not fit.
+
+### Function `ensure_gpu_time_slicing_config`
+
+@function ensure_gpu_time_slicing_config
+Applies k8s/base/gpu-time-slicing ConfigMap (replicas=2). Does not reconfigure
+the device plugin by itself; dual preflight verifies allocatable GPUs ≥ 2.
+
+### Function `check_logical_gpus_for_dual`
+
+@function check_logical_gpus_for_dual
+Fail dual start if node has fewer than 2 allocatable nvidia.com/gpu (needs time-slicing).
+
+### Function `start_qwen36_27b`
+
+@function start_qwen36_27b
+Exclusive Qwen3.6 27B NVFP4 dense (quality, high gpu-mem-util).
+
+### Function `start_qwen36_35b_a3b`
+
+@function start_qwen36_35b_a3b
+Exclusive Qwen3.6 35B-A3B NVFP4-Fast MoE (speed).
+
+### Function `start_qwen36_dual`
+
+@function start_qwen36_dual
+Concurrent both Qwen3.6 models via dual overlay + GPU time-slicing.
+
+### Function `stop_qwen36`
+
+@function stop_qwen36
+Stop both Qwen3.6 Jobs (ignore missing).
+
+### Function `status_qwen36`
+
+@function status_qwen36
+Show pods/jobs for Qwen3.6 family.
 
 ### Function `start_qwen3_5_397b_spark2`
 
@@ -1050,13 +1089,18 @@ Usage:
 
 ## download-qwen-models
 
-Download Qwen 3.5 tier models for Spark agentic stacks.
+Download Qwen 3.5 tier models and Qwen3.6 dual-stack NVFP4 checkpoints.
 
-Tiers (substitutes when nvidia/Qwen3.5-397B-A17B-NVFP4 does not fit):
+Tiers (Qwen 3.5 substitutes when nvidia/Qwen3.5-397B-A17B-NVFP4 does not fit):
   --tier 122b         RedHatAI/Qwen3.5-122B-A10B-NVFP4 (~75 GB, 1-node)
   --tier 397b-spark2  Intel/Qwen3.5-397B-A17B-int4-AutoRound (~200 GB, 2-node)
   --tier 397b-nvfp4   nvidia/Qwen3.5-397B-A17B-NVFP4 (~250 GB, 4-node)
-  --tier all          All tiers (default)
+
+Qwen3.6 dual stack (1× Spark):
+  --tier 27b-nvfp4       unsloth/Qwen3.6-27B-NVFP4
+  --tier 35b-a3b-nvfp4   unsloth/Qwen3.6-35B-A3B-NVFP4-Fast
+  --tier qwen36          Both Qwen3.6 NVFP4 tiers
+  --tier all             All Qwen 3.5 tiers (default; does not include qwen36)
 
 ```bash
 Usage:
@@ -1100,6 +1144,49 @@ Usage:
 ```
 
 ### Command: cluster-resources
+
+
+
+<!-- source: scripts/utilities/benchmark-qwen36.sh -->
+
+## benchmark-qwen36
+
+Simple OpenAI-compatible latency/throughput smoke bench for Qwen3.6 endpoints.
+Hermetic-friendly defaults use localhost port-forwards; no cluster required for --dry-run.
+
+```bash
+Usage:
+  ./scripts/utilities/benchmark-qwen36.sh run --model 27b [--concurrency 1,4]
+  ./scripts/utilities/benchmark-qwen36.sh run --dual --concurrency 4
+  ./scripts/utilities/benchmark-qwen36.sh run --dry-run
+```
+
+### Command: benchmark-qwen36
+
+### Function `parse_args`
+
+@function parse_args
+
+### Function `endpoint_for_model`
+
+@function endpoint_for_model
+
+### Function `model_id_for`
+
+@function model_id_for
+
+### Function `one_request`
+
+@function one_request
+Single chat completion; prints duration_ms and usage if available.
+
+### Function `bench_model`
+
+@function bench_model
+
+### Function `cmd_run`
+
+@function cmd_run
 
 
 

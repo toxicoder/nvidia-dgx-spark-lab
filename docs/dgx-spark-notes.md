@@ -74,6 +74,20 @@ The NVIDIA GPU Operator works well on K3s but:
 - On reboot, wait for `nvidia-smi` to succeed on both nodes before deploying heavy workloads.
 - MIG is supported but requires explicit configuration in the ClusterPolicy.
 
+### Dual concurrent models (time-slicing)
+
+A single GB10 exposes **one** physical GPU. To schedule two inference Jobs concurrently (e.g. Qwen3.6 dual):
+
+1. Apply `k8s/base/gpu-time-slicing` (`replicas: 2`).
+2. Point the device plugin at that ConfigMap (`gpu_time_slicing_enabled: true` in Ansible, or helm upgrade).
+3. Split memory with `--gpu-memory-utilization` (~0.38 each). Never run two processes at 0.9 util.
+
+See [qwen36-dual-stack.md](qwen36-dual-stack.md).
+
+### Blackwell NVFP4 kernels
+
+On DGX Spark, set `CUTE_DSL_ARCH=sm_121a`. For MoE NVFP4, use `--moe-backend flashinfer_b12x` or inference can be ~2–2.5× slower (Marlin fallback).
+
 ## Stability Tips
 
 1. Reserve headroom: leave at least 10-20% of host RAM and CPU free for the system + K3s.
