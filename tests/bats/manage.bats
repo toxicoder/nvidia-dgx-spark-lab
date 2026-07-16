@@ -272,6 +272,47 @@ MOCKKUBECTL2
 }
 
 # =============================================================================
+# start-qwen36 / stop-qwen36
+# =============================================================================
+
+@test "manage.sh start-qwen36-27b aborts when user does not type 'yes'" {
+  run bash -c "echo 'no' | bash \"$MANAGE_SH\" start-qwen36-27b"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Aborted"* ]]
+}
+
+@test "manage.sh start-qwen36-dual aborts when user does not type 'yes'" {
+  run bash -c "echo 'no' | bash \"$MANAGE_SH\" start-qwen36-dual"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Aborted"* ]]
+}
+
+@test "manage.sh start-qwen36-27b proceeds after yes confirmation" {
+  run bash -c "echo 'yes' | bash \"$MANAGE_SH\" start-qwen36-27b"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"QWEN 3.6 27B"* || "$output" == *"qwen3.6-27b"* || "$output" == *"Starting qwen3.6-27b"* ]]
+}
+
+@test "qwen3.6 job manifests have OnFailure, backoffLimit, and resources" {
+  for f in \
+    "$REPO_ROOT/k8s/workloads/qwen3.6-27b-nvfp4/qwen3.6-27b-nvfp4-job.yaml" \
+    "$REPO_ROOT/k8s/workloads/qwen3.6-35b-a3b-nvfp4/qwen3.6-35b-a3b-nvfp4-job.yaml"; do
+    run grep -E 'restartPolicy: OnFailure' "$f"
+    [ "$status" -eq 0 ]
+    run grep -E 'backoffLimit: 1' "$f"
+    [ "$status" -eq 0 ]
+    run grep -E 'resources:' "$f"
+    [ "$status" -eq 0 ]
+  done
+}
+
+@test "manage.sh stop-qwen36 runs without error" {
+  run bash "$MANAGE_SH" stop-qwen36
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Stopping Qwen3.6"* || "$output" == *"Qwen3.6 stopped"* || "$output" == *"delete"* ]]
+}
+
+# =============================================================================
 # stop and cleanup
 # =============================================================================
 

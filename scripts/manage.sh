@@ -432,6 +432,51 @@ case "${1:-help}" in
     check_cluster_access
     start_qwen3_5_397b_nvfp4
     ;;
+  start-qwen36-27b|start-qwen3.6-27b)
+    ## start-qwen36-27b
+    # @command start-qwen36-27b
+    # @command start-qwen3.6-27b
+    # Exclusive Qwen3.6 27B NVFP4 dense (quality, MTP, hybrid thinking).
+    require_kubectl
+    check_cluster_access
+    start_qwen36_27b
+    ;;
+  start-qwen36-35b-a3b|start-qwen3.6-35b-a3b)
+    ## start-qwen36-35b-a3b
+    # @command start-qwen36-35b-a3b
+    # @command start-qwen3.6-35b-a3b
+    # Exclusive Qwen3.6 35B-A3B NVFP4-Fast MoE (speed, flashinfer_b12x).
+    require_kubectl
+    check_cluster_access
+    start_qwen36_35b_a3b
+    ;;
+  start-qwen36-dual|start-qwen3.6-dual)
+    ## start-qwen36-dual
+    # @command start-qwen36-dual
+    # @command start-qwen3.6-dual
+    # Concurrent 27B + 35B-A3B with dual overlay and GPU time-slicing.
+    require_kubectl
+    check_cluster_access
+    start_qwen36_dual
+    ;;
+  stop-qwen36|stop-qwen3.6)
+    ## stop-qwen36
+    # @command stop-qwen36
+    # @command stop-qwen3.6
+    # Stop both Qwen3.6 inference Jobs.
+    require_kubectl
+    check_cluster_access
+    stop_qwen36
+    ;;
+  status-qwen36|status-qwen3.6)
+    ## status-qwen36
+    # @command status-qwen36
+    # @command status-qwen3.6
+    # Show Qwen3.6 Jobs, pods, and health tips.
+    require_kubectl
+    check_cluster_access
+    status_qwen36
+    ;;
   start-coder)
     ## start-coder
     # @command start-coder
