@@ -44,7 +44,9 @@ export const InferenceModelNameSchema = z.enum([
   "glm-5.2",
   "qwen3.5-122b-a10b-nvfp4",
   "qwen3.5-397b-spark2",
-  "qwen3.5-397b-nvfp4"
+  "qwen3.5-397b-nvfp4",
+  "qwen3.6-27b-nvfp4",
+  "qwen3.6-35b-a3b-nvfp4"
 ]);
 
 /** Nemotron agentic stack id allowlist. */
@@ -57,13 +59,14 @@ export const NemotronStackIdSchema = z.enum([
   "nemotron-agentic-spark-4",
   "qwen-agentic-spark-1",
   "qwen-agentic-spark-2",
-  "qwen-agentic-spark-4"
+  "qwen-agentic-spark-4",
+  "qwen36-dual-spark-1"
 ]);
 
 /** Resource Guard action token (`model:…`, `stack:…`, or `dev:…`). */
 export const CapacityActionSchema = z
   .string()
-  .regex(/^(model:[a-z0-9.-]+|stack:(nemotron-agentic|qwen-agentic)-[a-z0-9-]+|dev:(coder|kasm))$/);
+  .regex(/^(model:[a-z0-9.-]+|stack:(nemotron-agentic|qwen-agentic|qwen36-dual)-[a-z0-9-]+|dev:(coder|kasm))$/);
 
 /** Heavy model/stack confirmation literal required before start. */
 export const HeavyConfirmSchema = z.literal("yes");

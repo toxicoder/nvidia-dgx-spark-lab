@@ -153,7 +153,9 @@ export type InferenceModelName =
   | "glm-5.2"
   | "qwen3.5-122b-a10b-nvfp4"
   | "qwen3.5-397b-spark2"
-  | "qwen3.5-397b-nvfp4";
+  | "qwen3.5-397b-nvfp4"
+  | "qwen3.6-27b-nvfp4"
+  | "qwen3.6-35b-a3b-nvfp4";
 
 export type NemotronStackId =
   | "nemotron-agentic-spark-1"
@@ -164,7 +166,8 @@ export type NemotronStackId =
   | "nemotron-agentic-spark-4"
   | "qwen-agentic-spark-1"
   | "qwen-agentic-spark-2"
-  | "qwen-agentic-spark-4";
+  | "qwen-agentic-spark-4"
+  | "qwen36-dual-spark-1";
 
 export interface NemotronStackPreset {
   label: string;

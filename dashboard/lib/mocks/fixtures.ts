@@ -467,6 +467,16 @@ export const fakeNemotronCatalog: NemotronCatalog = {
       heavy: true,
       stack_with: ["qwen3.5-397b-nvfp4"],
       pillars: ["orchestrator", "rag", "safety"]
+    },
+    "qwen36-dual-spark-1": {
+      label: "Qwen3.6 dual (27B + 35B-A3B NVFP4)",
+      min_nodes: 1,
+      max_nodes: 1,
+      heavy: true,
+      description: "Concurrent dense 27B + MoE 35B-A3B on one Spark via GPU time-slicing",
+      stack_with: ["qwen3.6-27b-nvfp4", "qwen3.6-35b-a3b-nvfp4"],
+      pillars: ["orchestrator"],
+      quality_notes: "NVFP4 dual; mid ctx default; exclusive for 256K"
     }
   },
   qwen_tiers: {
