@@ -69,6 +69,35 @@ On every change touching workloads, scripts, manifests, NCCL, restart policies, 
 
 Non-negotiable invariants: [docs/project-conventions.md § Safety invariants](docs/project-conventions.md#14-non-negotiable-safety-invariants).
 
+### Visual generative AI (ComfyUI / FLUX / LTX)
+
+- Workloads live under `k8s/workloads/comfy-base/` and `k8s/workloads/comfy-visual/` (Deployments, label `workload: visual`).
+- Lifecycle via `scripts/lib/visual.sh` and `manage.sh` (`start-flux-*`, `start-ltx-*`, `start-flux-to-ltx`, `stop-visual`).
+- **Manual start only**; one visual Deployment at a time; Resource Guard capacity + heavy confirm.
+- Models: hostPath `/mnt/models` via `download-flux` / `download-ltx` utilities; Comfy state on PVC `comfy-state`.
+- Spark unified-memory patch + `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` are required for performance — do not remove without measuring thrash.
+- **Container scripts and ConfigMap content** (`install-comfy.sh`, workflow JSON, settings YAML, entrypoints, etc.): real language-native files + `configMapGenerator` `files:` — never inline secondary languages in ConfigMap YAML or multi-line shell in Deployment `args: |`.
+- Tests: `//tests:bats_visual_test`, `//tests:bats_comfy_scripts_test`, and visual greps in `//tests:safety_invariants`.
+- Operator guide: [docs/visual-generative-ai.md](docs/visual-generative-ai.md).
+
+### Always-on best practices (do not wait to be asked)
+
+These are **defaults on every task**, not optional follow-ups. `//:validate` / `//tests:doc_coverage` enforce most of them:
+
+| Practice | Rule |
+| --- | --- |
+| ConfigMap language content | Real files + kustomize `configMapGenerator` `files:` only; **ban** multi-line embeds of `*.sh` / `*.py` / `*.json` / nested YAML / `*_JSON` blobs |
+| Shell docs | `# ##` file header; `# @function` on every function in `scripts/lib`, `scripts/utilities`, and `k8s/workloads/**/*.sh` |
+| Shell style | Follow [project-conventions §6](docs/project-conventions.md#6-shell-scripts): `set -euo pipefail` on entry scripts, quote expansions, diagnostics on **stderr**, thin `main` + BASH_SOURCE guard; ShellCheck **warnings = defects** |
+| Shell tooling | `//lints:shell` (ShellCheck) + `//lints:shfmt`; format with `//:fix` |
+| Utility scripts | `status` / `run` contract; `# @command` entrypoint; main source guard when defining `main()` |
+| YAML manifests | `# Purpose` / `Source of truth` / `Regenerate` / `Safety` headers |
+| New MkDocs pages | Add to `mkdocs.yml` **and** `docs/BUILD.bazel` (`//docs:serve`, `//docs:docs`, `_RENDER_TEST_DATA`) |
+| Docs regen | After shell/API comment changes: `bazelisk run //docs:docs` (or dashboard docs) and commit generated deltas that belong |
+| TDD + validate | Red–green–refactor; finish with `bazelisk run //:validate` |
+
+When conventions are missing a rule, **add the automated check** (and document it in `docs/project-conventions.md`) rather than relying on human reminder.
+
 ### Documentation updates
 
 Finish relevant changes by updating documentation. See [docs/project-conventions.md § Change discipline](docs/project-conventions.md#13-change-discipline-and-pr-checklist) and [§ Documentation coverage (mandatory)](docs/project-conventions.md#documentation-coverage-mandatory).
@@ -77,6 +106,7 @@ Finish relevant changes by updating documentation. See [docs/project-conventions
 - Update structured comments (`# ##` / `# @command` or JSDoc) for new/changed public APIs.
 - Regenerate: `bazelisk run //docs:docs` (shell) or `bazelisk run //dashboard:docs` (API).
 - Update workload READMEs and affected `docs/*.md` pages.
+- New pages: wire `mkdocs.yml` nav **and** list the file in `docs/BUILD.bazel` data arrays.
 - Update this `AGENTS.md` when AI-specific workflow evolves; update `docs/project-conventions.md` when shared patterns evolve.
 
 ### Communication

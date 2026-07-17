@@ -61,8 +61,22 @@ This lab runs large GPU inference workloads. Never:
 - Remove `resources.requests` / `resources.limits` from workloads
 - Bypass `manage.sh` confirmation prompts or Resource Guard gates in production paths
 - Auto-start heavy containers on reboot
+- Co-schedule multiple visual ComfyUI Deployments (or visual + heavy LLM) without capacity review
 
 Enforced invariants: [tests/safety_invariants.sh](tests/safety_invariants.sh). See [docs/reboot-safety.md](docs/reboot-safety.md) and [docs/resource-guard.md](docs/resource-guard.md).
+
+## Visual workloads (ComfyUI)
+
+To add a new FLUX/LTX overlay:
+
+1. Kustomize under `k8s/workloads/comfy-visual/<family>/<mode>/` basing on `comfy-base`
+2. Register the model in `config/resource-policy.yaml` + JSON (`kind: deployment`)
+3. Wire `get_visual_kustomize_dir` / starters in `scripts/lib/visual.sh` and `manage.sh`
+4. Extend dashboard `InferenceModelName` allowlist if portal-startable
+5. Add safety greps + `//tests:bats_visual_test` coverage
+6. Document in [docs/visual-generative-ai.md](docs/visual-generative-ai.md)
+
+Never push tags/PRs from agent automation unless the maintainer explicitly asks.
 
 ## Questions?
 
