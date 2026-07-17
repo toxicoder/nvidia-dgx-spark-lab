@@ -1,0 +1,32 @@
+# Purpose: LTX-2.3 quality overlay on comfy-base
+# Source of truth: k8s/workloads/comfy-visual/ltx/quality/
+# Regenerate: n/a
+# Safety: manual start only; exclusive GPU visual workload
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+configMapGenerator:
+  - name: ltx-quality-workflow
+    files:
+      - lab-ltx-quality.json=workflows/lab-ltx-quality.json
+    options:
+      labels:
+        app: ltx-quality
+        workload: visual
+        family: ltx
+        mode: quality
+      disableNameSuffixHash: true
+
+resources:
+  - ../../../comfy-base
+
+patches:
+  - target:
+      kind: Deployment
+      name: comfy-base
+    path: patches/deployment.json
+  - target:
+      kind: Service
+      name: comfy-base
+    path: patches/service.json

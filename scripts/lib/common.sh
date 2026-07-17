@@ -235,6 +235,8 @@ get_model_profile() {
     comfy-base)          echo "1 60Gi ComfyUI base (visual; Spark unified-memory patches)" ;;
     flux-fast)           echo "1 60Gi FLUX.2 Klein 9B NVFP4+Nunchaku (visual fast)" ;;
     flux-quality)        echo "1 70Gi FLUX.2 Dev FP8 (visual quality)" ;;
+    ltx-balanced)        echo "1 70Gi LTX-2.3 distilled FP8 (visual video balanced)" ;;
+    ltx-quality)         echo "1 80Gi LTX-2.3 BF16 distilled (visual video quality)" ;;
     *)                   echo "unknown unknown unknown model" ;;
   esac
 }

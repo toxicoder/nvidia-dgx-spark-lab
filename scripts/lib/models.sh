@@ -65,6 +65,8 @@ get_model_deployment() {
     comfy-base) echo "k8s/workloads/comfy-base/comfy-base-deployment.yaml" ;;
     flux-fast) echo "k8s/workloads/comfy-visual/flux/fast/kustomization.yaml" ;;
     flux-quality) echo "k8s/workloads/comfy-visual/flux/quality/kustomization.yaml" ;;
+    ltx-balanced) echo "k8s/workloads/comfy-visual/ltx/balanced/kustomization.yaml" ;;
+    ltx-quality) echo "k8s/workloads/comfy-visual/ltx/quality/kustomization.yaml" ;;
     *) echo "" ;;
   esac
 }
@@ -96,6 +98,8 @@ get_model_svc() {
     comfy-base) echo "k8s/workloads/comfy-base/service.yaml" ;;
     flux-fast) echo "k8s/workloads/comfy-visual/flux/fast/kustomization.yaml" ;;
     flux-quality) echo "k8s/workloads/comfy-visual/flux/quality/kustomization.yaml" ;;
+    ltx-balanced) echo "k8s/workloads/comfy-visual/ltx/balanced/kustomization.yaml" ;;
+    ltx-quality) echo "k8s/workloads/comfy-visual/ltx/quality/kustomization.yaml" ;;
     *) echo "" ;;
   esac
 }
@@ -739,6 +743,12 @@ start_model() {
     flux-quality)
       if type start_flux_quality &>/dev/null; then start_flux_quality; else err "visual.sh missing"; exit 1; fi
       ;;
+    ltx-balanced)
+      if type start_ltx_balanced &>/dev/null; then start_ltx_balanced; else err "visual.sh missing"; exit 1; fi
+      ;;
+    ltx-quality)
+      if type start_ltx_quality &>/dev/null; then start_ltx_quality; else err "visual.sh missing"; exit 1; fi
+      ;;
     *)
       err "Unknown model for start_model: $model"
       exit 1
@@ -773,7 +783,7 @@ stop_model() {
     kimi-test|kimi|nemotron-3-ultra|nemotron-3-nano-30b|nemotron-3-nano-omni-30b|nemotron-3-super-120b|glm-5.2|glm-5.2-rpc|ray-head|ray-worker|qwen3.5-122b-a10b-nvfp4|qwen3.5-397b-spark2|qwen3.5-397b-nvfp4|qwen3.5-397b-nvfp4-worker-1|qwen3.5-397b-nvfp4-worker-2|qwen3.5-397b-nvfp4-worker-3|qwen3.6-27b-nvfp4|qwen3.6-35b-a3b-nvfp4)
       stop_inference_job "$target"
       ;;
-    nemotron-retriever-embed|nemotron-retriever-rerank|nemotron-parse|nemotron-safety-guard|nemotron-speech-asr|nemotron-speech-tts|comfy-base|flux-fast|flux-quality)
+    nemotron-retriever-embed|nemotron-retriever-rerank|nemotron-parse|nemotron-safety-guard|nemotron-speech-asr|nemotron-speech-tts|comfy-base|flux-fast|flux-quality|ltx-balanced|ltx-quality)
       stop_inference_deployment "$target"
       ;;
     visual)

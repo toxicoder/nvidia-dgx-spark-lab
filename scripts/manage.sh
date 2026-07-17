@@ -468,6 +468,22 @@ case "${1:-help}" in
     check_cluster_access
     start_flux_quality
     ;;
+  start-ltx-balanced)
+    ## start-ltx-balanced
+    # @command start-ltx-balanced
+    # LTX-2.3 distilled FP8 (balanced audio-synced video).
+    require_kubectl
+    check_cluster_access
+    start_ltx_balanced
+    ;;
+  start-ltx-quality)
+    ## start-ltx-quality
+    # @command start-ltx-quality
+    # LTX-2.3 BF16 distilled (quality video).
+    require_kubectl
+    check_cluster_access
+    start_ltx_quality
+    ;;
   start-qwen36-27b|start-qwen3.6-27b)
     ## start-qwen36-27b
     # @command start-qwen36-27b
@@ -852,6 +868,8 @@ Commands:
   stop-comfy-base   Stop ComfyUI base Deployment (PVC retained)
   start-flux-fast   FLUX.2 Klein 9B NVFP4+Nunchaku (fast)
   start-flux-quality FLUX.2 Dev FP8 (quality)
+  start-ltx-balanced LTX-2.3 distilled FP8 (balanced video)
+  start-ltx-quality  LTX-2.3 BF16 distilled (quality video)
   start-coder    Deploy Coder (VS Code workspaces) via Helm
   start-kasm     Deploy Kasm Workspaces via Helm
   start-mcp      Deploy MCP agent toolkit (default stack)

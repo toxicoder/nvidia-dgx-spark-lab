@@ -288,6 +288,7 @@ qwen3.5-397b-nvfp4: 4-node Qwen 397B NVFP4 (SGLang distributed)
 qwen3.6-27b-nvfp4: 1-node Qwen3.6 27B dense NVFP4 (quality)
 qwen3.6-35b-a3b-nvfp4: 1-node Qwen3.6 35B-A3B MoE NVFP4-Fast (speed)
 qwen36-dual-spark-1: concurrent both on 1× Spark (GPU time-slicing)
+comfy-base: ComfyUI visual base (Deployment; Spark unified-memory patches)
 
 Model/job definitions - centralized, portable bash (no associative arrays for macOS /bin/bash 3.2 compat + set -u).
 Use lookup functions.
@@ -765,6 +766,82 @@ Usage:
 
 
 
+<!-- source: scripts/utilities/download-ltx.sh -->
+
+## download-ltx
+
+Download LTX-2.3 ComfyUI components (Kijai split checkpoints).
+
+Tiers:
+  --tier balanced  distilled FP8 (default for speed)
+  --tier quality   BF16 distilled / full-precision family weights
+  --tier all       balanced + quality
+
+```bash
+Usage:
+  ./scripts/utilities/download-ltx.sh status [--tier ...] [--json]
+  ./scripts/utilities/download-ltx.sh run [--tier ...]
+```
+
+### Command: download-ltx
+
+### Function `tier_repo`
+
+@function tier_repo
+Map tier id to primary Hugging Face repo id.
+
+### Function `tier_min_gb`
+
+@function tier_min_gb
+Shared HF repo; quality may pull larger BF16 files (min GB differs).
+
+### Function `tier_dir`
+
+@function tier_dir
+Local download directory for a tier (separate paths per tier).
+
+### Function `check_hf_cli`
+
+@function check_hf_cli
+Require huggingface-cli or hf on PATH.
+
+### Function `hf_download`
+
+@function hf_download
+Invoke huggingface-cli download or hf download with the given args.
+
+### Function `tier_size_gb`
+
+@function tier_size_gb
+On-disk size of a directory in GB (0 if missing).
+
+### Function `tiers_to_process`
+
+@function tiers_to_process
+Expand TIER into the list of tier ids to process.
+
+### Function `parse_args`
+
+@function parse_args
+Parse CLI flags into CMD, TIER, and JSON_FLAG.
+
+### Function `link_into_comfy`
+
+@function link_into_comfy
+Best-effort symlink snapshot files into Comfy model subdirs.
+
+### Function `cmd_status`
+
+@function cmd_status
+Print tier readiness (JSON with --json).
+
+### Function `cmd_run`
+
+@function cmd_run
+Download selected tiers and link into Comfy paths.
+
+
+
 <!-- source: scripts/utilities/mcp-stack.sh -->
 
 ## mcp-stack
@@ -1043,6 +1120,83 @@ Dashboard can trigger sync and show status.
 ### Command: sync-ollama-models
 
 ### Command: ollama-sync
+
+
+
+<!-- source: scripts/utilities/download-flux.sh -->
+
+## download-flux
+
+Download FLUX.2 checkpoints for ComfyUI visual workloads on DGX Spark.
+
+Tiers:
+  --tier fast      black-forest-labs/FLUX.2-klein-9b-nvfp4 (+ optional Nunchaku)
+  --tier quality   black-forest-labs/FLUX.2-dev (FP8-oriented Comfy layout)
+  --tier all       fast + quality
+
+```bash
+Usage:
+  ./scripts/utilities/download-flux.sh status [--tier ...] [--json]
+  ./scripts/utilities/download-flux.sh run [--tier ...]
+
+```
+
+Weights land under MODELS_DIR (default /mnt/models) with Comfy-friendly layout.
+
+### Command: download-flux
+
+### Function `tier_repo`
+
+@function tier_repo
+Map tier id to primary Hugging Face repo id.
+
+### Function `tier_min_gb`
+
+@function tier_min_gb
+Minimum on-disk GB required for tier readiness.
+
+### Function `tier_dir`
+
+@function tier_dir
+Local download directory for a tier.
+
+### Function `comfy_link_dir`
+
+@function comfy_link_dir
+ComfyUI models subdir for tier (under MODELS_DIR/comfy).
+
+### Function `check_hf_cli`
+
+@function check_hf_cli
+
+### Function `hf_download`
+
+@function hf_download
+
+### Function `tier_size_gb`
+
+@function tier_size_gb
+
+### Function `tiers_to_process`
+
+@function tiers_to_process
+
+### Function `parse_args`
+
+@function parse_args
+
+### Function `cmd_status`
+
+@function cmd_status
+
+### Function `link_into_comfy`
+
+@function link_into_comfy
+Best-effort symlink snapshot files into Comfy diffusion_models dir.
+
+### Function `cmd_run`
+
+@function cmd_run
 
 
 
@@ -1339,6 +1493,77 @@ Deploy helpers for agent-tools namespace workloads and policy gates.
 ### Function `stop_mcp_stack`
 
 @function stop_mcp_stack
+
+
+
+<!-- source: scripts/lib/visual.sh -->
+
+## Visual generative AI (ComfyUI / FLUX / LTX) helpers
+
+Lifecycle for DGX Spark visual workloads: comfy-base, flux-*, ltx-*, flux-to-ltx.
+Heavy GPU + unified-memory consumers — manual start only, capacity-gated.
+
+!!! warning
+
+    Safety:
+      - One visual Deployment at a time (label workload=visual)
+      - enforce_capacity before apply
+      - Heavy confirmation for GPU visual starts
+      - Never auto-starts on reboot
+
+### Function `get_visual_kustomize_dir`
+
+@function get_visual_kustomize_dir
+Returns relative kustomize path for a visual model id, or empty if unknown.
+
+### Function `guard_active_visual`
+
+@function guard_active_visual
+Fail if another visual Deployment is already present (exclusive GPU policy).
+@param $1  Model id being started (allowed if it is the only match).
+
+### Function `apply_visual_kustomize`
+
+@function apply_visual_kustomize
+Apply a visual kustomize directory under REPO_ROOT.
+@param $1  Relative directory path
+
+### Function `check_visual_unified_memory`
+
+@function check_visual_unified_memory
+Pre-flight: warn/fail if cluster allocatable memory looks too low for model request.
+Uses resource-policy request memory; fails only when allocatable < request (strict).
+@param $1  Model id
+
+### Function `check_visual_weights_hint`
+
+@function check_visual_weights_hint
+Non-fatal warn if common Comfy model dirs look empty.
+
+### Function `start_visual_workload`
+
+@function start_visual_workload
+Generic visual starter: confirm (if heavy) + capacity + exclusivity + apply -k.
+@param $1  Model id (policy key)
+@param $2  Optional human label
+
+### Command: start-flux-fast
+
+### Command: start-flux-quality
+
+### Command: start-ltx-balanced
+
+### Command: start-ltx-quality
+
+### Command: start-flux-to-ltx
+
+### Command: start-comfy-base
+
+### Command: stop-comfy-base
+
+### Command: stop-visual
+
+### Command: status-visual
 
 
 
