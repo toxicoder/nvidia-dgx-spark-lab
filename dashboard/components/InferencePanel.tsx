@@ -34,7 +34,13 @@ const STARTABLE_MODELS: { id: InferenceModelName; label: string; heavy: boolean 
   { id: "qwen3.5-397b-spark2", label: "qwen-397b-spark2", heavy: true },
   { id: "qwen3.5-397b-nvfp4", label: "qwen-397b-nvfp4", heavy: true },
   { id: "qwen3.6-27b-nvfp4", label: "qwen3.6-27b", heavy: true },
-  { id: "qwen3.6-35b-a3b-nvfp4", label: "qwen3.6-35b-a3b", heavy: true }
+  { id: "qwen3.6-35b-a3b-nvfp4", label: "qwen3.6-35b-a3b", heavy: true },
+  { id: "comfy-base", label: "comfy-base", heavy: true },
+  { id: "flux-fast", label: "flux-fast", heavy: true },
+  { id: "flux-quality", label: "flux-quality", heavy: true },
+  { id: "ltx-balanced", label: "ltx-balanced", heavy: true },
+  { id: "ltx-quality", label: "ltx-quality", heavy: true },
+  { id: "flux-to-ltx", label: "flux-to-ltx", heavy: true }
 ];
 
 interface InferencePanelProps {
@@ -128,7 +134,9 @@ export function InferencePanel({ initialStatus }: InferencePanelProps): React.JS
 
   return (
     <div data-testid="inference-panel" className="space-y-4">
-      <div className={panelSubheaderClass}>Inference workloads (ai-inference)</div>
+      <div className={panelSubheaderClass}>
+        Inference &amp; visual workloads (ai-inference; ComfyUI via port-forward :8188)
+      </div>
 
       {status.error && <p className="text-sm text-destructive">{status.error}</p>}
 
