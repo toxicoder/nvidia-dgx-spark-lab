@@ -492,6 +492,22 @@ case "${1:-help}" in
     check_cluster_access
     start_flux_to_ltx
     ;;
+  stop-visual)
+    ## stop-visual
+    # @command stop-visual
+    # Stop all visual Deployments (label workload=visual). PVCs retained.
+    require_kubectl
+    check_cluster_access
+    stop_visual
+    ;;
+  status-visual)
+    ## status-visual
+    # @command status-visual
+    # Show visual Deployments, pods, and services.
+    require_kubectl
+    check_cluster_access
+    status_visual
+    ;;
   start-qwen36-27b|start-qwen3.6-27b)
     ## start-qwen36-27b
     # @command start-qwen36-27b
@@ -879,6 +895,8 @@ Commands:
   start-ltx-balanced LTX-2.3 distilled FP8 (balanced video)
   start-ltx-quality  LTX-2.3 BF16 distilled (quality video)
   start-flux-to-ltx  Flux→LTX T2I→I2V+audio pipeline (90Gi)
+  stop-visual        Stop all visual ComfyUI Deployments (PVC retained)
+  status-visual      Show visual Deployments / pods / services
   start-coder    Deploy Coder (VS Code workspaces) via Helm
   start-kasm     Deploy Kasm Workspaces via Helm
   start-mcp      Deploy MCP agent toolkit (default stack)
