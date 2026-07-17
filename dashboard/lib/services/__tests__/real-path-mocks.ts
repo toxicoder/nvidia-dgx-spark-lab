@@ -57,10 +57,12 @@ function promisifyMock(fn: { name?: string }) {
   return m().execFileAsync;
 }
 
+// Cast vi.fn() mocks before call — TS 6 treats Mock as non-callable without this.
+type AnyFn = (...args: unknown[]) => unknown;
 const fsPromises = {
-  mkdtemp: (...args: unknown[]) => m().fsMkdtemp(...args),
-  writeFile: (...args: unknown[]) => m().fsWriteFile(...args),
-  rm: (...args: unknown[]) => m().fsRm(...args)
+  mkdtemp: (...args: unknown[]) => (m().fsMkdtemp as AnyFn)(...args),
+  writeFile: (...args: unknown[]) => (m().fsWriteFile as AnyFn)(...args),
+  rm: (...args: unknown[]) => (m().fsRm as AnyFn)(...args)
 };
 
 vi.mock("child_process", () => {

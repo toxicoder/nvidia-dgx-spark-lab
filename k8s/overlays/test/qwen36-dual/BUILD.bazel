@@ -1,0 +1,12 @@
+"""Package purpose: Qwen3.6 dual test kustomize overlay."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "qwen36_dual_test",
+    srcs = glob(["**/*"]),
+    visibility = [
+        "//k8s:__subpackages__",
+        "//tests:__pkg__",
+    ],
+)

@@ -16,6 +16,9 @@
 # qwen3.5-122b-a10b-nvfp4: 1-node Qwen 122B NVFP4 substitute for 397B NVFP4
 # qwen3.5-397b-spark2: 2-node Qwen 397B int4-AutoRound (vLLM TP=2 + Ray)
 # qwen3.5-397b-nvfp4: 4-node Qwen 397B NVFP4 (SGLang distributed)
+# qwen3.6-27b-nvfp4: 1-node Qwen3.6 27B dense NVFP4 (quality)
+# qwen3.6-35b-a3b-nvfp4: 1-node Qwen3.6 35B-A3B MoE NVFP4-Fast (speed)
+# qwen36-dual-spark-1: concurrent both on 1× Spark (GPU time-slicing)
 #
 # Model/job definitions - centralized, portable bash (no associative arrays for macOS /bin/bash 3.2 compat + set -u).
 # Use lookup functions.
@@ -41,6 +44,8 @@ get_model_job() {
     qwen3.5-397b-nvfp4-worker-1) echo "k8s/workloads/qwen3.5-397b-nvfp4/qwen3.5-397b-nvfp4-worker-1-job.yaml" ;;
     qwen3.5-397b-nvfp4-worker-2) echo "k8s/workloads/qwen3.5-397b-nvfp4/qwen3.5-397b-nvfp4-worker-2-job.yaml" ;;
     qwen3.5-397b-nvfp4-worker-3) echo "k8s/workloads/qwen3.5-397b-nvfp4/qwen3.5-397b-nvfp4-worker-3-job.yaml" ;;
+    qwen3.6-27b-nvfp4) echo "k8s/workloads/qwen3.6-27b-nvfp4/qwen3.6-27b-nvfp4-job.yaml" ;;
+    qwen3.6-35b-a3b-nvfp4) echo "k8s/workloads/qwen3.6-35b-a3b-nvfp4/qwen3.6-35b-a3b-nvfp4-job.yaml" ;;
     *) echo "" ;;
   esac
 }
@@ -81,6 +86,8 @@ get_model_svc() {
     qwen3.5-122b-a10b-nvfp4) echo "k8s/workloads/qwen3.5-122b-a10b-nvfp4/service.yaml" ;;
     qwen3.5-397b-spark2) echo "k8s/workloads/qwen3.5-397b-spark2/service.yaml" ;;
     qwen3.5-397b-nvfp4) echo "k8s/workloads/qwen3.5-397b-nvfp4/service.yaml" ;;
+    qwen3.6-27b-nvfp4) echo "k8s/workloads/qwen3.6-27b-nvfp4/service.yaml" ;;
+    qwen3.6-35b-a3b-nvfp4) echo "k8s/workloads/qwen3.6-35b-a3b-nvfp4/service.yaml" ;;
     *) echo "" ;;
   esac
 }
@@ -290,6 +297,111 @@ start_qwen3_5_122b_nvfp4() {
   warn "=== QWEN 3.5 122B NVFP4 (1-node substitute for 397B NVFP4) ==="
   warn "Uses RedHatAI/Qwen3.5-122B-A10B-NVFP4 (~75 GB). Requires vLLM cu130-nightly."
   start_nemotron_llm "qwen3.5-122b-a10b-nvfp4" "Qwen 3.5 122B NVFP4"
+}
+
+# @function ensure_gpu_time_slicing_config
+# Applies k8s/base/gpu-time-slicing ConfigMap (replicas=2). Does not reconfigure
+# the device plugin by itself; dual preflight verifies allocatable GPUs ≥ 2.
+ensure_gpu_time_slicing_config() {
+  local path="${REPO_ROOT}/k8s/base/gpu-time-slicing"
+  if [[ ! -d "$path" ]]; then
+    err "Missing GPU time-slicing manifests at ${path}"
+    return 1
+  fi
+  log "Applying GPU time-slicing ConfigMap (replicas=2)..."
+  kubectl apply -k "$path" || return 1
+}
+
+# @function check_logical_gpus_for_dual
+# Fail dual start if node has fewer than 2 allocatable nvidia.com/gpu (needs time-slicing).
+check_logical_gpus_for_dual() {
+  local alloc
+  alloc=$(kubectl get nodes -o jsonpath='{range .items[*]}{.status.allocatable.nvidia\.com/gpu}{"\n"}{end}' 2>/dev/null \
+    | awk '{s+=$1} END {print s+0}')
+  if [[ -z "$alloc" || "$alloc" -lt 2 ]]; then
+    err "Dual Qwen3.6 needs ≥2 allocatable nvidia.com/gpu (got: ${alloc:-0})."
+    err "Enable device-plugin time-slicing (ConfigMap applied; reconfigure GPU Operator devicePlugin.config)."
+    err "See k8s/base/gpu-time-slicing/README.md and ansible gpu_operator (gpu_time_slicing_enabled)."
+    return 1
+  fi
+  log "Logical GPUs allocatable: ${alloc} (ok for dual)"
+  return 0
+}
+
+# @function start_qwen36_27b
+# Exclusive Qwen3.6 27B NVFP4 dense (quality, high gpu-mem-util).
+start_qwen36_27b() {
+  warn "=== QWEN 3.6 27B NVFP4 (dense, quality, exclusive) ==="
+  warn "unsloth/Qwen3.6-27B-NVFP4 · MTP · CUTE_DSL_ARCH=sm_121a · ~48 Gi"
+  start_nemotron_llm "qwen3.6-27b-nvfp4" "Qwen 3.6 27B NVFP4"
+}
+
+# @function start_qwen36_35b_a3b
+# Exclusive Qwen3.6 35B-A3B NVFP4-Fast MoE (speed).
+start_qwen36_35b_a3b() {
+  warn "=== QWEN 3.6 35B-A3B NVFP4-Fast (MoE, speed, exclusive) ==="
+  warn "unsloth/Qwen3.6-35B-A3B-NVFP4-Fast · MTP · moe-backend flashinfer_b12x · ~48 Gi"
+  start_nemotron_llm "qwen3.6-35b-a3b-nvfp4" "Qwen 3.6 35B-A3B NVFP4"
+}
+
+# @function start_qwen36_dual
+# Concurrent both Qwen3.6 models via dual overlay + GPU time-slicing.
+start_qwen36_dual() {
+  warn "=== QWEN 3.6 DUAL (27B + 35B-A3B, time-sliced GPU) ==="
+  warn "Both models load concurrently with gpu-mem-util ~0.38 and max-len 65536."
+  warn "Requires 2 logical GPUs (time-slicing) and ~96 Gi combined memory headroom."
+  warn "For full 128K–256K context, run exclusive start-qwen36-27b or start-qwen36-35b-a3b instead."
+
+  if [[ "${LAB_NON_INTERACTIVE:-}" != "1" ]]; then
+    echo
+    read -r -p "Start Qwen3.6 dual stack? [yes/NO] " response
+    if [[ ! "$response" =~ ^[Yy][Ee][Ss]$ ]]; then
+      log "Aborted."
+      exit 0
+    fi
+  else
+    require_heavy_confirm "qwen36-dual-spark-1" "Qwen3.6 dual requires confirmation." || exit 1
+  fi
+
+  ensure_namespace
+  ensure_gpu_time_slicing_config || exit 1
+  check_logical_gpus_for_dual || exit 1
+  enforce_capacity "stack:qwen36-dual-spark-1" || exit 1
+
+  guard_active_job "qwen3.6-27b-nvfp4" || exit 1
+  guard_active_job "qwen3.6-35b-a3b-nvfp4" || exit 1
+
+  local overlay="${REPO_ROOT}/k8s/overlays/single-node/qwen36-dual"
+  log "Applying dual overlay: ${overlay}"
+  kubectl apply -k "$overlay" -n "${NAMESPACE}"
+  log "Qwen3.6 dual submitted. Monitor: ./scripts/manage.sh status-qwen36"
+  log "Open WebUI: ensure openaiBaseApiUrls includes both ai-inference services."
+  wait_for_job "qwen3.6-27b-nvfp4" || true
+  wait_for_job "qwen3.6-35b-a3b-nvfp4" || true
+}
+
+# @function stop_qwen36
+# Stop both Qwen3.6 Jobs (ignore missing).
+stop_qwen36() {
+  log "Stopping Qwen3.6 jobs..."
+  stop_inference_job "qwen3.6-27b-nvfp4"
+  stop_inference_job "qwen3.6-35b-a3b-nvfp4"
+  log "Qwen3.6 stopped."
+}
+
+# @function status_qwen36
+# Show pods/jobs for Qwen3.6 family.
+status_qwen36() {
+  log "=== Qwen3.6 status (namespace ${NAMESPACE}) ==="
+  kubectl get jobs -n "${NAMESPACE}" -l family=qwen3.6 -o wide 2>/dev/null || true
+  kubectl get pods -n "${NAMESPACE}" -l family=qwen3.6 -o wide 2>/dev/null || true
+  kubectl get svc -n "${NAMESPACE}" qwen3.6-27b-nvfp4 qwen3.6-35b-a3b-nvfp4 2>/dev/null || true
+  echo
+  log "Health tips:"
+  echo "  kubectl port-forward -n ${NAMESPACE} svc/qwen3.6-27b-nvfp4 8001:8000 &"
+  echo "  curl -s http://127.0.0.1:8001/v1/models | head"
+  echo "  kubectl port-forward -n ${NAMESPACE} svc/qwen3.6-35b-a3b-nvfp4 8002:8000 &"
+  echo "  curl -s http://127.0.0.1:8002/v1/models | head"
 }
 
 # @function start_qwen3_5_397b_spark2
@@ -602,6 +714,9 @@ start_model() {
     qwen3.5-122b-a10b-nvfp4) start_qwen3_5_122b_nvfp4 ;;
     qwen3.5-397b-spark2) start_qwen3_5_397b_spark2 ;;
     qwen3.5-397b-nvfp4) start_qwen3_5_397b_nvfp4 ;;
+    qwen3.6-27b-nvfp4) start_qwen36_27b ;;
+    qwen3.6-35b-a3b-nvfp4) start_qwen36_35b_a3b ;;
+    qwen36-dual-spark-1|qwen36-dual) start_qwen36_dual ;;
     *)
       err "Unknown model for start_model: $model"
       exit 1
@@ -619,13 +734,17 @@ stop_model() {
         nemotron-3-super-120b glm-5.2 glm-5.2-rpc \
         qwen3.5-122b-a10b-nvfp4 qwen3.5-397b-spark2 \
         qwen3.5-397b-nvfp4 qwen3.5-397b-nvfp4-worker-1 qwen3.5-397b-nvfp4-worker-2 qwen3.5-397b-nvfp4-worker-3 \
+        qwen3.6-27b-nvfp4 qwen3.6-35b-a3b-nvfp4 \
         ray-head ray-worker \
         -n "${NAMESPACE}" --ignore-not-found=true --grace-period=30 || true
       kubectl delete deployment nemotron-retriever-embed nemotron-retriever-rerank nemotron-parse \
         nemotron-safety-guard nemotron-speech-asr nemotron-speech-tts \
         -n "${NAMESPACE}" --ignore-not-found=true --grace-period=30 || true
       ;;
-    kimi-test|kimi|nemotron-3-ultra|nemotron-3-nano-30b|nemotron-3-nano-omni-30b|nemotron-3-super-120b|glm-5.2|glm-5.2-rpc|ray-head|ray-worker|qwen3.5-122b-a10b-nvfp4|qwen3.5-397b-spark2|qwen3.5-397b-nvfp4|qwen3.5-397b-nvfp4-worker-1|qwen3.5-397b-nvfp4-worker-2|qwen3.5-397b-nvfp4-worker-3)
+    qwen36|qwen3.6|qwen36-dual)
+      stop_qwen36
+      ;;
+    kimi-test|kimi|nemotron-3-ultra|nemotron-3-nano-30b|nemotron-3-nano-omni-30b|nemotron-3-super-120b|glm-5.2|glm-5.2-rpc|ray-head|ray-worker|qwen3.5-122b-a10b-nvfp4|qwen3.5-397b-spark2|qwen3.5-397b-nvfp4|qwen3.5-397b-nvfp4-worker-1|qwen3.5-397b-nvfp4-worker-2|qwen3.5-397b-nvfp4-worker-3|qwen3.6-27b-nvfp4|qwen3.6-35b-a3b-nvfp4)
       stop_inference_job "$target"
       ;;
     nemotron-retriever-embed|nemotron-retriever-rerank|nemotron-parse|nemotron-safety-guard|nemotron-speech-asr|nemotron-speech-tts)

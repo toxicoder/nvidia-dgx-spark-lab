@@ -113,3 +113,7 @@ node_modules/
 dashboard/tests/visual/goldens/**/*-snapshots/
 # Scratch/debug PNGs from manual golden diff sessions (never commit).
 **/tests/visual/goldens/_*
+
+# Pytest coverage data
+.coverage
+**/.coverage

@@ -39,4 +39,4 @@ The root `.gitignore` blocks common leak vectors: `.env*`, `kubeconfig/`, `herme
 
 ## History hygiene
 
-When rebuilding local git history, record the pre-rebuild tree hash (`git rev-parse HEAD`) and scan object storage for accidentally committed secret paths before sharing clones outside trusted environments.
+Before sharing clones outside trusted environments, scan the tree and git history for accidentally committed secret paths (for example with `git log --all --full-history -- '**/.env*' '**/secrets*'` and a review of large binary blobs).
