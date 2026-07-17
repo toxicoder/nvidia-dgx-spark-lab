@@ -1,0 +1,52 @@
+[
+  { "op": "replace", "path": "/metadata/name", "value": "flux-to-ltx" },
+  { "op": "replace", "path": "/metadata/labels/app", "value": "flux-to-ltx" },
+  { "op": "add", "path": "/metadata/labels/family", "value": "flux-to-ltx" },
+  { "op": "add", "path": "/metadata/labels/mode", "value": "pipeline" },
+  { "op": "replace", "path": "/spec/selector/matchLabels/app", "value": "flux-to-ltx" },
+  { "op": "replace", "path": "/spec/template/metadata/labels/app", "value": "flux-to-ltx" },
+  { "op": "add", "path": "/spec/template/metadata/labels/family", "value": "flux-to-ltx" },
+  { "op": "add", "path": "/spec/template/metadata/labels/mode", "value": "pipeline" },
+  { "op": "replace", "path": "/spec/template/spec/containers/0/resources/requests/memory", "value": "90Gi" },
+  { "op": "replace", "path": "/spec/template/spec/containers/0/resources/requests/cpu", "value": "12" },
+  { "op": "replace", "path": "/spec/template/spec/containers/0/resources/limits/cpu", "value": "18" },
+  { "op": "replace", "path": "/spec/template/spec/containers/0/env/8/value", "value": "flux-to-ltx" },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env/-",
+    "value": { "name": "LAB_PIPELINE", "value": "flux-to-ltx" }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env/-",
+    "value": { "name": "LAB_FLUX_TIER", "value": "fast" }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env/-",
+    "value": { "name": "LAB_LTX_TIER", "value": "balanced" }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env/-",
+    "value": { "name": "LAB_VISUAL_ENABLE_NUNCHAKU", "value": "1" }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/volumes/-",
+    "value": {
+      "name": "pipeline-workflow",
+      "configMap": { "name": "flux-to-ltx-workflow" }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/volumeMounts/-",
+    "value": {
+      "name": "pipeline-workflow",
+      "mountPath": "/comfy-state/ComfyUI/user/default/workflows/lab-flux-to-ltx.json",
+      "subPath": "lab-flux-to-ltx.json",
+      "readOnly": true
+    }
+  }
+]
