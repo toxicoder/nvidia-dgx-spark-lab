@@ -357,6 +357,14 @@
       "requires_validation": [
         "kimi-test"
       ]
+    },
+    "comfy-base": {
+      "gpus": 1,
+      "memory": "60Gi",
+      "cpu": "8",
+      "heavy": true,
+      "job_name": "comfy-base",
+      "kind": "deployment"
     }
   },
   "stacks": {

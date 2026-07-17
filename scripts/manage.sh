@@ -74,7 +74,7 @@ NAMESPACE="ai-inference"
 
 # Source common modular libs. Fail fast if missing in normal use (tests ensure copies).
 SCRIPT_LIB_DIR="${SCRIPT_LIB_DIR:-${SCRIPT_DIR}/lib}"
-for lib in common.sh check_tool.sh domains.sh resources.sh models.sh mcp.sh hermes.sh open-webui.sh monitoring.sh dev.sh secrets.sh sso.sh; do
+for lib in common.sh check_tool.sh domains.sh resources.sh models.sh visual.sh mcp.sh hermes.sh open-webui.sh monitoring.sh dev.sh secrets.sh sso.sh; do
   if [[ -f "${SCRIPT_LIB_DIR}/$lib" ]]; then
     # shellcheck disable=SC1090
     source "${SCRIPT_LIB_DIR}/$lib"
@@ -431,6 +431,26 @@ case "${1:-help}" in
     require_kubectl
     check_cluster_access
     start_qwen3_5_397b_nvfp4
+    ;;
+  start-comfy-base)
+    ## start-comfy-base
+    # @command start-comfy-base
+    # ComfyUI base runtime with DGX Spark unified-memory patches (1 GPU, heavy).
+    # First PVC install can take 10–30+ minutes. Access via port-forward :8188.
+    #
+    # Safety:
+    #   Capacity gate + confirmation. Exclusive with other visual workloads.
+    require_kubectl
+    check_cluster_access
+    start_comfy_base
+    ;;
+  stop-comfy-base)
+    ## stop-comfy-base
+    # @command stop-comfy-base
+    # Stop ComfyUI base Deployment (retains comfy-state PVC).
+    require_kubectl
+    check_cluster_access
+    stop_comfy_base
     ;;
   start-qwen36-27b|start-qwen3.6-27b)
     ## start-qwen36-27b
@@ -812,6 +832,8 @@ Commands:
   start-ray      Deploy Ray head+worker for multi-node (two-node)
   start-nemotron Deploy Nemotron 3 Ultra (with Ray, safety checks)
   start-glm      Deploy GLM-5.2 (with Ray, safety checks)
+  start-comfy-base  Deploy ComfyUI base (visual; Spark unified-memory patches)
+  stop-comfy-base   Stop ComfyUI base Deployment (PVC retained)
   start-coder    Deploy Coder (VS Code workspaces) via Helm
   start-kasm     Deploy Kasm Workspaces via Helm
   start-mcp      Deploy MCP agent toolkit (default stack)
