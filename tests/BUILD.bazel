@@ -100,6 +100,33 @@ sh_test(
 )
 
 sh_test(
+    name = "bats_visual_test",
+    size = "medium",
+    timeout = "short",
+    srcs = ["bats_runner.sh"],
+    args = ["visual.bats"],
+    data = _BATS_COMMON_DATA + [
+        "bats/visual.bats",
+        "//k8s/workloads/comfy-visual/flux/fast:flux_fast",
+        "//k8s/workloads/comfy-visual/flux/quality:flux_quality",
+        "//k8s/workloads/comfy-visual/ltx/balanced:ltx_balanced",
+        "//k8s/workloads/comfy-visual/ltx/quality:ltx_quality",
+        "//k8s/workloads/comfy-visual/flux-to-ltx:flux_to_ltx",
+    ],
+)
+
+sh_test(
+    name = "bats_comfy_scripts_test",
+    size = "small",
+    timeout = "short",
+    srcs = ["bats_runner.sh"],
+    args = ["comfy_scripts.bats"],
+    data = _BATS_COMMON_DATA + [
+        "bats/comfy_scripts.bats",
+    ],
+)
+
+sh_test(
     name = "bats_check_tool_test",
     size = "small",
     timeout = "short",
@@ -152,10 +179,12 @@ test_suite(
     name = "bats",
     tests = [
         ":bats_check_tool_test",
+        ":bats_comfy_scripts_test",
         ":bats_domains_test",
         ":bats_manage_test",
         ":bats_tooling_test",
         ":bats_utilities_test",
+        ":bats_visual_test",
     ],
     visibility = ["//visibility:public"],
 )
@@ -241,6 +270,18 @@ sh_test(
 )
 
 sh_test(
+    name = "doc_coverage_unit",
+    size = "small",
+    timeout = "short",
+    srcs = ["doc_coverage_unit.sh"],
+    data = [
+        "doc_coverage.py",
+        "test_doc_coverage.py",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sh_test(
     name = "shell_coverage",
     size = "large",
     timeout = "eternal",
@@ -251,6 +292,8 @@ sh_test(
         "bats/manage.bats",
         "bats/tooling.bats",
         "bats/utilities.bats",
+        "bats/comfy_scripts.bats",
+        "bats/visual.bats",
         "bats_runner.sh",
         "//k8s/auth/generated:generated_auth",
         "//k8s/cert-manager/generated:generated_certs",
