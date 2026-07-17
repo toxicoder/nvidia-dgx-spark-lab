@@ -19,6 +19,7 @@
 # qwen3.6-27b-nvfp4: 1-node Qwen3.6 27B dense NVFP4 (quality)
 # qwen3.6-35b-a3b-nvfp4: 1-node Qwen3.6 35B-A3B MoE NVFP4-Fast (speed)
 # qwen36-dual-spark-1: concurrent both on 1× Spark (GPU time-slicing)
+# comfy-base: ComfyUI visual base (Deployment; Spark unified-memory patches)
 #
 # Model/job definitions - centralized, portable bash (no associative arrays for macOS /bin/bash 3.2 compat + set -u).
 # Use lookup functions.
@@ -60,6 +61,8 @@ get_model_deployment() {
     nemotron-safety-guard) echo "k8s/workloads/nemotron-safety-guard/nemotron-safety-guard-deployment.yaml" ;;
     nemotron-speech-asr) echo "k8s/workloads/nemotron-speech-asr/nemotron-speech-asr-deployment.yaml" ;;
     nemotron-speech-tts) echo "k8s/workloads/nemotron-speech-tts/nemotron-speech-tts-deployment.yaml" ;;
+    # Visual ComfyUI: full bundle is kustomize (PVC + ConfigMaps); path points at primary Deployment.
+    comfy-base) echo "k8s/workloads/comfy-base/comfy-base-deployment.yaml" ;;
     *) echo "" ;;
   esac
 }
@@ -88,6 +91,7 @@ get_model_svc() {
     qwen3.5-397b-nvfp4) echo "k8s/workloads/qwen3.5-397b-nvfp4/service.yaml" ;;
     qwen3.6-27b-nvfp4) echo "k8s/workloads/qwen3.6-27b-nvfp4/service.yaml" ;;
     qwen3.6-35b-a3b-nvfp4) echo "k8s/workloads/qwen3.6-35b-a3b-nvfp4/service.yaml" ;;
+    comfy-base) echo "k8s/workloads/comfy-base/service.yaml" ;;
     *) echo "" ;;
   esac
 }
@@ -717,6 +721,14 @@ start_model() {
     qwen3.6-27b-nvfp4) start_qwen36_27b ;;
     qwen3.6-35b-a3b-nvfp4) start_qwen36_35b_a3b ;;
     qwen36-dual-spark-1|qwen36-dual) start_qwen36_dual ;;
+    comfy-base)
+      if type start_comfy_base &>/dev/null; then
+        start_comfy_base
+      else
+        err "visual.sh not loaded; cannot start comfy-base"
+        exit 1
+      fi
+      ;;
     *)
       err "Unknown model for start_model: $model"
       exit 1
@@ -739,7 +751,11 @@ stop_model() {
         -n "${NAMESPACE}" --ignore-not-found=true --grace-period=30 || true
       kubectl delete deployment nemotron-retriever-embed nemotron-retriever-rerank nemotron-parse \
         nemotron-safety-guard nemotron-speech-asr nemotron-speech-tts \
+        comfy-base \
         -n "${NAMESPACE}" --ignore-not-found=true --grace-period=30 || true
+      if type stop_visual &>/dev/null; then
+        stop_visual || true
+      fi
       ;;
     qwen36|qwen3.6|qwen36-dual)
       stop_qwen36
@@ -747,8 +763,15 @@ stop_model() {
     kimi-test|kimi|nemotron-3-ultra|nemotron-3-nano-30b|nemotron-3-nano-omni-30b|nemotron-3-super-120b|glm-5.2|glm-5.2-rpc|ray-head|ray-worker|qwen3.5-122b-a10b-nvfp4|qwen3.5-397b-spark2|qwen3.5-397b-nvfp4|qwen3.5-397b-nvfp4-worker-1|qwen3.5-397b-nvfp4-worker-2|qwen3.5-397b-nvfp4-worker-3|qwen3.6-27b-nvfp4|qwen3.6-35b-a3b-nvfp4)
       stop_inference_job "$target"
       ;;
-    nemotron-retriever-embed|nemotron-retriever-rerank|nemotron-parse|nemotron-safety-guard|nemotron-speech-asr|nemotron-speech-tts)
+    nemotron-retriever-embed|nemotron-retriever-rerank|nemotron-parse|nemotron-safety-guard|nemotron-speech-asr|nemotron-speech-tts|comfy-base)
       stop_inference_deployment "$target"
+      ;;
+    visual)
+      if type stop_visual &>/dev/null; then
+        stop_visual
+      else
+        stop_inference_deployment "comfy-base"
+      fi
       ;;
     ray)
       stop_inference_job "ray-head"

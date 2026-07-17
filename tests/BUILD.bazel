@@ -67,6 +67,7 @@ _BATS_COMMON_DATA = [
     "//scripts:lib/common.sh",
     "//scripts:lib/paths.sh",
     "//scripts:lib/models.sh",
+    "//scripts:lib/visual.sh",
     "//scripts:lib/dev.sh",
     "//scripts:lib/resources.sh",
     "//scripts:lib/secrets.sh",
@@ -76,6 +77,7 @@ _BATS_COMMON_DATA = [
     "//scripts:lib/monitoring.sh",
     "//scripts:lib/open-webui.sh",
     "//scripts:lib/domains.sh",
+    "//k8s/workloads/comfy-base:comfy_base",
 ]
 
 # Split BATS files into separate sh_test targets so Bazel can run them in parallel.
@@ -207,6 +209,7 @@ sh_test(
         "//k8s/workloads/qwen3.5-397b-spark2:qwen3_5_397b_spark2_job",
         "//k8s/workloads/qwen3.6-27b-nvfp4:qwen3_6_27b_nvfp4_job",
         "//k8s/workloads/qwen3.6-35b-a3b-nvfp4:qwen3_6_35b_a3b_nvfp4_job",
+        "//k8s/workloads/comfy-base:comfy_base",
         "//k8s/workloads/ray-head:ray_head",
         "//k8s/workloads/ray-worker:ray_worker",
         "//mcp:safety_data",
