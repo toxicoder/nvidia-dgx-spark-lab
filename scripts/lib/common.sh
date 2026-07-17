@@ -237,6 +237,7 @@ get_model_profile() {
     flux-quality)        echo "1 70Gi FLUX.2 Dev FP8 (visual quality)" ;;
     ltx-balanced)        echo "1 70Gi LTX-2.3 distilled FP8 (visual video balanced)" ;;
     ltx-quality)         echo "1 80Gi LTX-2.3 BF16 distilled (visual video quality)" ;;
+    flux-to-ltx)         echo "1 90Gi Flux→LTX T2I→I2V+audio pipeline (both models resident)" ;;
     *)                   echo "unknown unknown unknown model" ;;
   esac
 }

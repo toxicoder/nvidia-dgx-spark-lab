@@ -1,0 +1,7 @@
+[
+  { "op": "replace", "path": "/metadata/name", "value": "flux-to-ltx" },
+  { "op": "replace", "path": "/metadata/labels/app", "value": "flux-to-ltx" },
+  { "op": "add", "path": "/metadata/labels/family", "value": "flux-to-ltx" },
+  { "op": "add", "path": "/metadata/labels/mode", "value": "pipeline" },
+  { "op": "replace", "path": "/spec/selector/app", "value": "flux-to-ltx" }
+]

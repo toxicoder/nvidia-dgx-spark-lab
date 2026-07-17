@@ -210,6 +210,12 @@ start_ltx_quality() {
   start_visual_workload "ltx-quality" "LTX-2.3 BF16 distilled (quality video)"
 }
 
+# @function start_flux_to_ltx
+# @command start-flux-to-ltx
+start_flux_to_ltx() {
+  start_visual_workload "flux-to-ltx" "Flux→LTX T2I→I2V+audio pipeline (90Gi)"
+}
+
 # @function start_comfy_base
 # Start the shared ComfyUI base runtime.
 # @command start-comfy-base

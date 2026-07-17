@@ -397,6 +397,14 @@
       "heavy": true,
       "job_name": "ltx-quality",
       "kind": "deployment"
+    },
+    "flux-to-ltx": {
+      "gpus": 1,
+      "memory": "90Gi",
+      "cpu": "12",
+      "heavy": true,
+      "job_name": "flux-to-ltx",
+      "kind": "deployment"
     }
   },
   "stacks": {

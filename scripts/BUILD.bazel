@@ -51,6 +51,7 @@ sh_binary(
         "//k8s/workloads/comfy-visual/flux/quality:flux_quality",
         "//k8s/workloads/comfy-visual/ltx/balanced:ltx_balanced",
         "//k8s/workloads/comfy-visual/ltx/quality:ltx_quality",
+        "//k8s/workloads/comfy-visual/flux-to-ltx:flux_to_ltx",
         "//k8s/dev:dev_dashboard",
     ],
     visibility = ["//visibility:public"],

@@ -484,6 +484,14 @@ case "${1:-help}" in
     check_cluster_access
     start_ltx_quality
     ;;
+  start-flux-to-ltx)
+    ## start-flux-to-ltx
+    # @command start-flux-to-ltx
+    # Combined Flux Klein → LTX I2V+audio pipeline in one pod (90Gi).
+    require_kubectl
+    check_cluster_access
+    start_flux_to_ltx
+    ;;
   start-qwen36-27b|start-qwen3.6-27b)
     ## start-qwen36-27b
     # @command start-qwen36-27b
@@ -870,6 +878,7 @@ Commands:
   start-flux-quality FLUX.2 Dev FP8 (quality)
   start-ltx-balanced LTX-2.3 distilled FP8 (balanced video)
   start-ltx-quality  LTX-2.3 BF16 distilled (quality video)
+  start-flux-to-ltx  Flux→LTX T2I→I2V+audio pipeline (90Gi)
   start-coder    Deploy Coder (VS Code workspaces) via Helm
   start-kasm     Deploy Kasm Workspaces via Helm
   start-mcp      Deploy MCP agent toolkit (default stack)
