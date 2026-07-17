@@ -48,6 +48,7 @@ sh_binary(
         "requirements.txt",
         "setup-docs.sh",
         "sso.md",
+        "visual-generative-ai.md",
         "//:mkdocs.yml",
         # Script sources that feed the code generators (so Bazel correctly
         # invalidates docs targets when structured comments or sources change).
@@ -89,6 +90,7 @@ sh_binary(
         "setup-docs.sh",
         "sso.md",
         "troubleshooting.md",
+        "visual-generative-ai.md",
         "//:mkdocs.yml",
         "//scripts:doc_sources",
     ],
@@ -170,6 +172,7 @@ _RENDER_TEST_DATA = [
     "tests/visual",
     "tests/visual/goldens",
     "troubleshooting.md",
+    "visual-generative-ai.md",
     "//:mkdocs.yml",
     "//scripts:doc_sources",
 ]
