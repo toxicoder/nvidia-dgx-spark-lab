@@ -1,0 +1,20 @@
+"""Package purpose: FLUX.2 fast visual workload kustomize overlay."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "flux_fast",
+    srcs = [
+        "README.md",
+        "kustomization.yaml",
+        "patches/deployment.json",
+        "patches/service.json",
+        "workflows/lab-flux-fast.json",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)

@@ -1,0 +1,32 @@
+# Purpose: FLUX.2 Klein 9B NVFP4 + Nunchaku (fast) overlay on comfy-base
+# Source of truth: k8s/workloads/comfy-visual/flux/fast/
+# Regenerate: n/a
+# Safety: manual start only; exclusive GPU visual workload
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+configMapGenerator:
+  - name: flux-fast-workflow
+    files:
+      - lab-flux-fast.json=workflows/lab-flux-fast.json
+    options:
+      labels:
+        app: flux-fast
+        workload: visual
+        family: flux
+        mode: fast
+      disableNameSuffixHash: true
+
+resources:
+  - ../../../comfy-base
+
+patches:
+  - target:
+      kind: Deployment
+      name: comfy-base
+    path: patches/deployment.json
+  - target:
+      kind: Service
+      name: comfy-base
+    path: patches/service.json

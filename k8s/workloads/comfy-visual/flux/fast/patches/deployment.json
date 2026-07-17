@@ -1,0 +1,48 @@
+[
+  { "op": "replace", "path": "/metadata/name", "value": "flux-fast" },
+  { "op": "replace", "path": "/metadata/labels/app", "value": "flux-fast" },
+  { "op": "add", "path": "/metadata/labels/family", "value": "flux" },
+  { "op": "add", "path": "/metadata/labels/mode", "value": "fast" },
+  { "op": "replace", "path": "/spec/selector/matchLabels/app", "value": "flux-fast" },
+  { "op": "replace", "path": "/spec/template/metadata/labels/app", "value": "flux-fast" },
+  { "op": "add", "path": "/spec/template/metadata/labels/family", "value": "flux" },
+  { "op": "add", "path": "/spec/template/metadata/labels/mode", "value": "fast" },
+  {
+    "op": "replace",
+    "path": "/spec/template/spec/containers/0/env/8/value",
+    "value": "flux-fast"
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env/-",
+    "value": { "name": "LAB_VISUAL_ENABLE_NUNCHAKU", "value": "1" }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env/-",
+    "value": { "name": "LAB_FLUX_CHECKPOINT", "value": "FLUX.2-klein-9b-nvfp4" }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env/-",
+    "value": { "name": "LAB_FLUX_TIER", "value": "fast" }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/volumes/-",
+    "value": {
+      "name": "flux-workflow",
+      "configMap": { "name": "flux-fast-workflow" }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/volumeMounts/-",
+    "value": {
+      "name": "flux-workflow",
+      "mountPath": "/comfy-state/ComfyUI/user/default/workflows/lab-flux-fast.json",
+      "subPath": "lab-flux-fast.json",
+      "readOnly": true
+    }
+  }
+]

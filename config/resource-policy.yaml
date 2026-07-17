@@ -312,6 +312,20 @@ models:
     heavy: true
     job_name: comfy-base
     kind: deployment
+  flux-fast:
+    gpus: 1
+    memory: 60Gi
+    cpu: "8"
+    heavy: true
+    job_name: flux-fast
+    kind: deployment
+  flux-quality:
+    gpus: 1
+    memory: 70Gi
+    cpu: "8"
+    heavy: true
+    job_name: flux-quality
+    kind: deployment
 
 # Agentic stack presets — summed via stack:<id> capacity checks.
 stacks:

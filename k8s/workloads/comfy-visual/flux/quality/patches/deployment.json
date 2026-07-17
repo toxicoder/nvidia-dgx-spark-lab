@@ -1,0 +1,49 @@
+[
+  { "op": "replace", "path": "/metadata/name", "value": "flux-quality" },
+  { "op": "replace", "path": "/metadata/labels/app", "value": "flux-quality" },
+  { "op": "add", "path": "/metadata/labels/family", "value": "flux" },
+  { "op": "add", "path": "/metadata/labels/mode", "value": "quality" },
+  { "op": "replace", "path": "/spec/selector/matchLabels/app", "value": "flux-quality" },
+  { "op": "replace", "path": "/spec/template/metadata/labels/app", "value": "flux-quality" },
+  { "op": "add", "path": "/spec/template/metadata/labels/family", "value": "flux" },
+  { "op": "add", "path": "/spec/template/metadata/labels/mode", "value": "quality" },
+  { "op": "replace", "path": "/spec/template/spec/containers/0/resources/requests/memory", "value": "70Gi" },
+  {
+    "op": "replace",
+    "path": "/spec/template/spec/containers/0/env/8/value",
+    "value": "flux-quality"
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env/-",
+    "value": { "name": "LAB_VISUAL_ENABLE_NUNCHAKU", "value": "0" }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env/-",
+    "value": { "name": "LAB_FLUX_CHECKPOINT", "value": "FLUX.2-dev-fp8" }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env/-",
+    "value": { "name": "LAB_FLUX_TIER", "value": "quality" }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/volumes/-",
+    "value": {
+      "name": "flux-workflow",
+      "configMap": { "name": "flux-quality-workflow" }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/volumeMounts/-",
+    "value": {
+      "name": "flux-workflow",
+      "mountPath": "/comfy-state/ComfyUI/user/default/workflows/lab-flux-quality.json",
+      "subPath": "lab-flux-quality.json",
+      "readOnly": true
+    }
+  }
+]

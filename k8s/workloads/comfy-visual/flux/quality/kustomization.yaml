@@ -1,0 +1,32 @@
+# Purpose: FLUX.2 Dev FP8 (quality) overlay on comfy-base
+# Source of truth: k8s/workloads/comfy-visual/flux/quality/
+# Regenerate: n/a
+# Safety: manual start only; higher memory request than fast
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+configMapGenerator:
+  - name: flux-quality-workflow
+    files:
+      - lab-flux-quality.json=workflows/lab-flux-quality.json
+    options:
+      labels:
+        app: flux-quality
+        workload: visual
+        family: flux
+        mode: quality
+      disableNameSuffixHash: true
+
+resources:
+  - ../../../comfy-base
+
+patches:
+  - target:
+      kind: Deployment
+      name: comfy-base
+    path: patches/deployment.json
+  - target:
+      kind: Service
+      name: comfy-base
+    path: patches/service.json

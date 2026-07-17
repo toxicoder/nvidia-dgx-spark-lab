@@ -233,6 +233,8 @@ get_model_profile() {
     qwen3.6-35b-a3b-nvfp4) echo "1 48Gi Qwen3.6 35B-A3B NVFP4-Fast MoE (exclusive util 0.72; dual 0.38)" ;;
     qwen36-dual-spark-1|qwen36-dual) echo "2 96Gi Qwen3.6 dual 27B+35B (time-sliced; mid ctx)" ;;
     comfy-base)          echo "1 60Gi ComfyUI base (visual; Spark unified-memory patches)" ;;
+    flux-fast)           echo "1 60Gi FLUX.2 Klein 9B NVFP4+Nunchaku (visual fast)" ;;
+    flux-quality)        echo "1 70Gi FLUX.2 Dev FP8 (visual quality)" ;;
     *)                   echo "unknown unknown unknown model" ;;
   esac
 }

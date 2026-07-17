@@ -65,6 +65,85 @@ apply_visual_kustomize() {
   kubectl apply -k "${path}" -n "${NAMESPACE}"
 }
 
+# @function check_visual_unified_memory
+# Pre-flight: warn/fail if cluster allocatable memory looks too low for model request.
+# Uses resource-policy request memory; fails only when allocatable < request (strict).
+# @param $1  Model id
+check_visual_unified_memory() {
+  local model="$1"
+  local policy_path req_mem alloc_sum
+  policy_path=$(resource_policy_path 2>/dev/null || echo "${REPO_ROOT}/config/resource-policy.json")
+  req_mem=$(python3 - "$policy_path" "$model" <<'PY' 2>/dev/null || echo ""
+import json, sys
+from pathlib import Path
+p = json.loads(Path(sys.argv[1]).read_text())
+m = p.get("models", {}).get(sys.argv[2], {})
+print(m.get("memory", ""))
+PY
+)
+  if [[ -z "$req_mem" ]]; then
+    warn "No policy memory for ${model}; skipping unified-memory preflight"
+    return 0
+  fi
+  # Sum allocatable memory across nodes (Ki from kubectl).
+  alloc_sum=$(kubectl get nodes -o json 2>/dev/null | python3 -c '
+import json, sys
+try:
+    data = json.load(sys.stdin)
+except Exception:
+    print(0)
+    raise SystemExit
+total = 0
+for n in data.get("items", []):
+    mem = n.get("status", {}).get("allocatable", {}).get("memory", "0")
+    if mem.endswith("Ki"):
+        total += int(mem[:-2]) * 1024
+    elif mem.endswith("Mi"):
+        total += int(mem[:-2]) * 1024**2
+    elif mem.endswith("Gi"):
+        total += int(mem[:-2]) * 1024**3
+    else:
+        try:
+            total += int(mem)
+        except Exception:
+            pass
+print(total)
+' 2>/dev/null || echo 0)
+  if [[ "${alloc_sum}" == "0" || -z "${alloc_sum}" ]]; then
+    warn "Could not read node allocatable memory; continuing (capacity gate still applies)"
+    return 0
+  fi
+  local need_bytes
+  need_bytes=$(python3 -c "
+m='${req_mem}'
+if m.endswith('Gi'):
+    print(int(float(m[:-2])*1024**3))
+elif m.endswith('Mi'):
+    print(int(float(m[:-2])*1024**2))
+else:
+    print(0)
+")
+  if [[ "${need_bytes}" -gt 0 && "${alloc_sum}" -lt "${need_bytes}" ]]; then
+    err "Unified-memory preflight failed: need ~${req_mem} but cluster allocatable is lower"
+    err "Stop other GPU/memory heavy workloads and retry."
+    return 1
+  fi
+  log "Unified-memory preflight OK for ${model} (request ${req_mem})"
+  return 0
+}
+
+# @function check_visual_weights_hint
+# Non-fatal warn if common Comfy model dirs look empty.
+check_visual_weights_hint() {
+  local models_dir="${MODELS_DIR:-/mnt/models}"
+  if [[ ! -d "${models_dir}/comfy" ]]; then
+    warn "Models dir ${models_dir}/comfy not found on this host (downloads may be on Spark nodes only)."
+    warn "On the Spark node: bazelisk run //scripts:run-utility -- download-flux status"
+    return 0
+  fi
+  return 0
+}
+
 # @function start_visual_workload
 # Generic visual starter: confirm (if heavy) + capacity + exclusivity + apply -k.
 # @param $1  Model id (policy key)
@@ -98,11 +177,25 @@ start_visual_workload() {
   if [[ "$force_flag" != "--force" ]]; then
     enforce_capacity "model:${model}" || exit 1
   fi
+  check_visual_unified_memory "$model" || exit 1
+  check_visual_weights_hint || true
   guard_active_visual "$model" || exit 1
 
   apply_visual_kustomize "$kdir"
   log "${model} submitted. Monitor: kubectl get pods -n ${NAMESPACE} -l app=${model}"
   log "UI: kubectl -n ${NAMESPACE} port-forward svc/${model} 8188:8188"
+}
+
+# @function start_flux_fast
+# @command start-flux-fast
+start_flux_fast() {
+  start_visual_workload "flux-fast" "FLUX.2 Klein 9B NVFP4 + Nunchaku (fast)"
+}
+
+# @function start_flux_quality
+# @command start-flux-quality
+start_flux_quality() {
+  start_visual_workload "flux-quality" "FLUX.2 Dev FP8 (quality)"
 }
 
 # @function start_comfy_base
