@@ -40,14 +40,14 @@ make test-all
 | Docs (visual)     | `//docs:test_mkdocs_visual`        | Playwright screenshots vs goldens only |
 | Docs (combined)   | `//docs:test_mkdocs_render`        | build + visual (same as fast + visual) |
 | Safety invariants | `//tests:safety_invariants` + BATS + `make test-k8s` | No `Always` restart, low backoff, NCCL vars, GPU requests on ray, probes/securityContext on kimi, resource-policy registry sync |
-| Documentation coverage | `//tests:doc_coverage` (in `//:test-fast`) | `manage.sh` `# @command`, shell `# @function`, Python docstrings, YAML `# Purpose:`, BUILD `Package purpose:`, dashboard export JSDoc |
+| Documentation coverage | `//tests:doc_coverage` + `//tests:doc_coverage_unit` (in `//:test-fast` / suite) | `manage.sh` `# @command`, shell `# @function` (incl. `k8s/workloads/**/*.sh`), Python docstrings, YAML headers, **no inline ConfigMap scripts**, mkdocs nav pages listed in `docs/BUILD.bazel`, BUILD `Package purpose:`, dashboard export JSDoc |
 
 ## Safety invariants
 
 Safety checks are layered:
 
 1. **Bazel target** — `//tests:safety_invariants` (included in `//:test-fast`): manifest greps plus `config/resource-policy.json` registry sync.
-2. **Dynamic (BATS)** — `//tests:bats_manage_test` mocks `kubectl` and exercises confirmation prompts, pre-flight GPU checks, and manifest application for `start-kimi` / `start-test`.
+2. **Dynamic (BATS)** — `//tests:bats_manage_test` mocks `kubectl` and exercises confirmation prompts, pre-flight GPU checks, and manifest application for `start-kimi` / `start-test`. `//tests:bats_visual_test` covers ComfyUI visual starts (`start-flux-*`, `stop-visual`) and offline download utilities. `//tests:bats_comfy_scripts_test` covers standalone comfy-base install/run scripts and the Spark free-memory patch.
 3. **Static greps (Makefile `test-k8s`)** — same critical manifest checks for non-Bazel users.
 4. **CI** (`.github/workflows/ci.yml` `bazel-core` job) — runs `//:test-fast`, which includes `//tests:safety_invariants`.
 
@@ -55,6 +55,8 @@ Run locally:
 
 ```bash
 bazelisk test //tests:bats_manage_test
+bazelisk test //tests:bats_visual_test
+bazelisk test //tests:bats_comfy_scripts_test
 make test-k8s          # or full make test-all
 ```
 
