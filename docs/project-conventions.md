@@ -357,6 +357,43 @@ k8s/
 | --- | --- | --- |
 | lab-dashboard, Coder, Kasm, Grafana, Traefik, Authelia | Helm (values in `ansible/files/`) | Operational tooling; versioned upgrades |
 | kimi, nemotron, ray, qwen, glm | Raw YAML + kustomize | Auditable resources, restart policy, backoff |
+| comfy-base, flux-*, ltx-*, flux-to-ltx | Raw YAML + kustomize overlays | Long-lived Deployments; shared PVC + hostPath models |
+
+### Visual ComfyUI workloads
+
+| Pattern | Convention |
+| --- | --- |
+| Base runtime | `k8s/workloads/comfy-base/` |
+| Overlays | `k8s/workloads/comfy-visual/<family>/<mode>/` |
+| Labels | `workload: visual`, `runtime: comfyui`, `family: flux\|ltx\|…` |
+| Policy | `kind: deployment`, `heavy: true`, GPU 1 |
+| Lifecycle | `scripts/lib/visual.sh` + `manage.sh` visual commands |
+| Downloads | `scripts/utilities/download-flux.sh`, `download-ltx.sh` (`status`/`run`) |
+| Exclusivity | One visual Deployment at a time; `stop-visual` clears all |
+| Docs | [visual-generative-ai.md](visual-generative-ai.md) |
+
+### ConfigMap scripts (mandatory — no inline bodies)
+
+**Never** embed shell or Python in ConfigMap `data:` multi-line blocks (`foo.sh: |`, `bar.py: |`). That bypasses shellcheck, shfmt, mypy, and `# @function` gates.
+
+**Required pattern** (same as `mcp/k8s/workloads/*` and `k8s/workloads/comfy-base/`):
+
+1. Put the script in a real file next to the kustomization (e.g. `scripts/install-comfy.sh`).
+2. Reference it from `kustomization.yaml` via `configMapGenerator` + `files:`.
+3. Set `disableNameSuffixHash: true` when Deployments pin a fixed ConfigMap name.
+4. Keep full YAML headers on the kustomization; document the script with `# ##` / `# @function` like any other shell.
+
+```yaml
+configMapGenerator:
+  - name: comfy-base-scripts
+    files:
+      - install-comfy.sh=scripts/install-comfy.sh
+      - run-comfy.sh=scripts/run-comfy.sh
+    options:
+      disableNameSuffixHash: true
+```
+
+Enforced by `//tests:doc_coverage` (`no inline ConfigMap scripts`). Workflow JSON and plain config literals are fine; only `*.sh` / `*.bash` / `*.py` embeds are banned.
 
 ### Workload README template
 
@@ -559,12 +596,13 @@ Every tracked source file must have stack-appropriate documentation. This is enf
 
 | Stack | Required documentation | Typing |
 | --- | --- | --- |
-| **Shell** (`.sh`) | File-level `# ##` block; `# @command` on every `manage.sh` dispatch target and utility entrypoints; `# @function` on **every** function in `lib/` and utilities with `@param` / `@returns` where helpful | N/A (bash) |
+| **Shell** (`.sh`) | File-level `# ##` block; `# @command` on every `manage.sh` dispatch target and utility entrypoints; `# @function` on **every** function in `scripts/lib/`, `scripts/utilities/`, and workload scripts under `k8s/workloads/` / `mcp/` | N/A (bash) |
 | **Python** (`.py`) | Module docstring; docstring on every `def` / `class` with Args, Returns, Raises | `from __future__ import annotations`; full param/return types |
 | **TypeScript** (`.ts` / `.tsx`) | File-level module comment for services/actions; JSDoc on every exported function/class/component with `@param`, `@returns`, `@throws` | `strict: true`; explicit return types on exports |
 | **YAML/YML** (K8s, Ansible, Helm, config) | Top-of-file `#` header: Purpose, Source of truth, Regenerate (or `n/a`), Safety | N/A |
 | **BUILD.bazel** | Package-purpose `"""Package purpose: ..."""` docstring at top | N/A |
-| **Markdown** (`docs/`) | YAML frontmatter + "What's on this page" / "What this enables" (see below) | N/A |
+| **Markdown** (`docs/`) | YAML frontmatter + "What's on this page" / "What this enables" (see below); **every** page listed in `mkdocs.yml` `nav` must also be in `docs/BUILD.bazel` data (`//docs:serve`, `//docs:docs`, `_RENDER_TEST_DATA`) | N/A |
+| **ConfigMap-mounted scripts** | Real files + `configMapGenerator` `files:` only — never inline `*.sh`/`*.py` in ConfigMap `data:` | N/A |
 
 **Exceptions:**
 
@@ -572,6 +610,15 @@ Every tracked source file must have stack-appropriate documentation. This is enf
 - `components/ui/**` — shadcn generated; skip JSDoc
 - `lib/mocks/**`, `lib/types/**` — test fixtures and type-only modules
 - Embedded Python heredocs in shell — document via the enclosing `# @function`, not inline docstrings
+- `k8s/dev/images/**` Docker entrypoints — outside the workload shell `# ##` / `@function` gate
+
+**Coverage gates (fail `//:validate` / `//:test-fast`):**
+
+| Gate | Enforces |
+| --- | --- |
+| `//tests:doc_coverage` | `@command` / `@function` / YAML headers / no inline ConfigMap scripts / mkdocs↔Bazel page lists / BUILD package purpose / dashboard JSDoc |
+| `//tests:doc_coverage_unit` | Unit tests for the pure helpers behind those rules |
+| `//lints:shellcheck` (manual lint suite) | Real `.sh` files only (another reason not to embed scripts in YAML) |
 
 **Regenerate after API comment changes:**
 
