@@ -259,10 +259,46 @@ class TestMainIdempotent(unittest.TestCase):
         self.assertIn("Auto-Generated Shell Reference", content)
 
     def test_skips_write_when_unchanged_without_force(self) -> None:
-        """Unchanged content is not rewritten when ``--force`` is absent."""
-        first = run_main_with_temp_output(["generate_shell_docs.py", "--force"])
-        second = run_main_with_temp_output(["generate_shell_docs.py"])
-        self.assertEqual(first, second)
+        """Unchanged content hits the early-return path when ``--force`` is absent.
+
+        Uses a single temp output path for both runs so the second invocation
+        actually sees existing content (unlike two separate TemporaryDirectory calls).
+        """
+        import generate_shell_docs as mod
+        from unittest.mock import patch
+        from io import StringIO
+
+        with tempfile.TemporaryDirectory() as td:
+            out = Path(td) / "reference.md"
+            orig_out = mod.OUTPUT_FILE
+            orig_dir = mod.OUTPUT_DIR
+            mod.OUTPUT_FILE = out
+            mod.OUTPUT_DIR = Path(td)
+            try:
+                old_argv = sys.argv
+                sys.argv = ["generate_shell_docs.py", "--force"]
+                try:
+                    mod.main()
+                finally:
+                    sys.argv = old_argv
+                self.assertTrue(out.is_file())
+                first = out.read_text(encoding="utf-8")
+                mtime_after_write = out.stat().st_mtime_ns
+
+                buf = StringIO()
+                sys.argv = ["generate_shell_docs.py"]
+                try:
+                    with patch("sys.stdout", buf):
+                        mod.main()
+                finally:
+                    sys.argv = old_argv
+
+                self.assertIn("Shell reference is up to date", buf.getvalue())
+                self.assertEqual(out.read_text(encoding="utf-8"), first)
+                self.assertEqual(out.stat().st_mtime_ns, mtime_after_write)
+            finally:
+                mod.OUTPUT_FILE = orig_out
+                mod.OUTPUT_DIR = orig_dir
 
     def test_read_existing_handles_io_errors(self) -> None:
         """``main()`` tolerates read errors when comparing existing reference content."""

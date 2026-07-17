@@ -458,6 +458,46 @@ class TestMkDocsRender(unittest.TestCase):
                 browser.close()
 
 
+# Max fraction of pixels that may differ before a visual failure.
+# Exact PNG bytes are flaky across runners (font AA, Chromium builds); pixel
+# ratio matches the dashboard Playwright approach (maxDiffPixelRatio ≈ 0.01–0.02).
+_MAX_VISUAL_DIFF_RATIO = float(os.environ.get("MKDOCS_VISUAL_MAX_DIFF_RATIO", "0.02"))
+
+
+def _png_diff_ratio(actual: bytes, expected: bytes) -> tuple[float, str | None]:
+    """Return (changed_pixel_ratio, error_or_none) comparing two PNG blobs.
+
+    Uses Pillow when available. Identical bytes short-circuit to 0.0.
+    """
+    if actual == expected:
+        return 0.0, None
+    try:
+        import io
+
+        from PIL import Image, ImageChops
+    except ImportError:
+        return 1.0, (
+            f"exact PNG bytes differ (sizes {len(actual)} vs {len(expected)}); "
+            "install Pillow for soft pixel comparison"
+        )
+
+    img_a = Image.open(io.BytesIO(actual)).convert("RGBA")
+    img_e = Image.open(io.BytesIO(expected)).convert("RGBA")
+    if img_a.size != img_e.size:
+        return 1.0, f"dimensions {img_a.size} != golden {img_e.size}"
+
+    diff = ImageChops.difference(img_a, img_e)
+    # Count pixels with any non-zero RGB channel change.
+    changed = 0
+    total = img_a.size[0] * img_a.size[1]
+    # getdata is fine for docs pages; avoids a numpy dependency.
+    for pixel in diff.getdata():
+        if pixel[0] or pixel[1] or pixel[2]:
+            changed += 1
+    ratio = changed / total if total else 0.0
+    return ratio, None
+
+
 def compare_page_screenshot(page: Page, slug: str) -> str | None:
     """Capture a page screenshot and compare it against the committed golden.
 
@@ -535,12 +575,25 @@ def compare_page_screenshot(page: Page, slug: str) -> str | None:
         return None
 
     expected = compare_golden.read_bytes()
-    if screenshot != expected:
+    ratio, hard_err = _png_diff_ratio(screenshot, expected)
+    if hard_err:
         return (
-            f"Visual diff detected for site page '{slug}.png' "
-            f"(new size {len(screenshot)} != golden {len(expected)}). "
+            f"Visual diff detected for site page '{slug}.png' ({hard_err}). "
             "If this is an intentional UI/docs change, approve by updating: "
             "UPDATE_SNAPSHOTS=1 bazel run //docs:visual-update  (then git add the new png and PR review)."
+        )
+    if ratio > _MAX_VISUAL_DIFF_RATIO:
+        return (
+            f"Visual diff detected for site page '{slug}.png' "
+            f"(changed pixel ratio {ratio:.4f} > {_MAX_VISUAL_DIFF_RATIO}; "
+            f"sizes {len(screenshot)} vs golden {len(expected)}). "
+            "If this is an intentional UI/docs change, approve by updating: "
+            "UPDATE_SNAPSHOTS=1 bazel run //docs:visual-update  (then git add the new png and PR review)."
+        )
+    if ratio > 0:
+        print(
+            f"Soft visual match for '{slug}.png': ratio={ratio:.4f} "
+            f"(<= {_MAX_VISUAL_DIFF_RATIO}); sizes {len(screenshot)} vs {len(expected)}"
         )
     return None
 

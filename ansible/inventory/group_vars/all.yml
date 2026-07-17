@@ -54,6 +54,10 @@ nccl_env:
 # NVIDIA GPU Operator settings
 gpu_operator_version: "v24.3.0"
 gpu_operator_namespace: "gpu-operator"
+# Opt-in: advertise N logical GPUs per physical GPU (needed for dual Qwen3.6 concurrent Jobs).
+# When true, applies k8s/base/gpu-time-slicing ConfigMap and reconfigures device plugin.
+gpu_time_slicing_enabled: false
+gpu_time_slicing_replicas: 2
 
 # Resource defaults for heavy workloads (adjust per node count / total GPUs)
 # For 1 node: e.g. request/limit 8 (or whatever your single DGX has)

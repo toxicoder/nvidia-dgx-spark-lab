@@ -1,0 +1,21 @@
+# Purpose: Single-node dual Qwen3.6 overlay (lower util + mid context)
+# Source of truth: k8s/overlays/single-node/qwen36-dual/
+# Regenerate: n/a
+# Safety: requires GPU time-slicing (2 logical GPUs); manual start only
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../../workloads/qwen3.6-27b-nvfp4
+  - ../../../workloads/qwen3.6-35b-a3b-nvfp4
+
+patches:
+  - path: patches/dual-memory.yaml
+    target:
+      kind: Job
+      name: qwen3.6-27b-nvfp4
+  - path: patches/dual-memory.yaml
+    target:
+      kind: Job
+      name: qwen3.6-35b-a3b-nvfp4

@@ -1,0 +1,24 @@
+"""Package purpose: Qwen3.6 27B NVFP4 dense inference job manifests and service exports."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "qwen3_6_27b_nvfp4_job",
+    srcs = [
+        "kustomization.yaml",
+        "qwen3.6-27b-nvfp4-job.yaml",
+        "service.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+exports_files([
+    "kustomization.yaml",
+    "qwen3.6-27b-nvfp4-job.yaml",
+    "service.yaml",
+])

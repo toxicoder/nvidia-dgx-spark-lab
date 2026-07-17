@@ -337,6 +337,26 @@
       "cpu": "8",
       "heavy": false,
       "job_name": "qwen3.5-397b-nvfp4-worker-3"
+    },
+    "qwen3.6-27b-nvfp4": {
+      "gpus": 1,
+      "memory": "48Gi",
+      "cpu": "8",
+      "heavy": true,
+      "job_name": "qwen3.6-27b-nvfp4",
+      "requires_validation": [
+        "kimi-test"
+      ]
+    },
+    "qwen3.6-35b-a3b-nvfp4": {
+      "gpus": 1,
+      "memory": "48Gi",
+      "cpu": "8",
+      "heavy": true,
+      "job_name": "qwen3.6-35b-a3b-nvfp4",
+      "requires_validation": [
+        "kimi-test"
+      ]
     }
   },
   "stacks": {
@@ -640,6 +660,29 @@
         "safety"
       ],
       "quality_notes": "~250GB NVFP4 weights across 4 GPUs; displaces other LLM jobs"
+    },
+    "qwen36-dual-spark-1": {
+      "label": "Qwen3.6 dual (27B + 35B-A3B NVFP4)",
+      "min_nodes": 1,
+      "max_nodes": 1,
+      "heavy": true,
+      "tier": "safe",
+      "description": "Concurrent dense 27B + MoE 35B-A3B on one Spark via GPU time-slicing",
+      "stack_with": [
+        "qwen3.6-27b-nvfp4",
+        "qwen3.6-35b-a3b-nvfp4"
+      ],
+      "startup_order": [
+        "qwen3.6-27b-nvfp4",
+        "qwen3.6-35b-a3b-nvfp4"
+      ],
+      "requires_validation": [
+        "kimi-test"
+      ],
+      "pillars": [
+        "orchestrator"
+      ],
+      "quality_notes": "NVFP4 dual on 1\u00d7 Spark; time-sliced GPU; mid ctx default (~64K); exclusive for 256K"
     },
     "hermes-lab": {
       "label": "Hermes Agent (Docker)",

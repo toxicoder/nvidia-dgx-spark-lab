@@ -229,6 +229,9 @@ get_model_profile() {
     qwen3.5-122b-a10b-nvfp4) echo "1 95Gi Qwen 122B NVFP4 (1-node 397B substitute)" ;;
     qwen3.5-397b-spark2) echo "2 220Gi Qwen 397B int4-AutoRound (2-node; Ray + vLLM)" ;;
     qwen3.5-397b-nvfp4)  echo "4 460Gi+ Qwen 397B NVFP4 SGLang (4-node frontier)" ;;
+    qwen3.6-27b-nvfp4)   echo "1 48Gi Qwen3.6 27B NVFP4 dense (exclusive util 0.72; dual 0.38)" ;;
+    qwen3.6-35b-a3b-nvfp4) echo "1 48Gi Qwen3.6 35B-A3B NVFP4-Fast MoE (exclusive util 0.72; dual 0.38)" ;;
+    qwen36-dual-spark-1|qwen36-dual) echo "2 96Gi Qwen3.6 dual 27B+35B (time-sliced; mid ctx)" ;;
     *)                   echo "unknown unknown unknown model" ;;
   esac
 }

@@ -44,6 +44,8 @@ sh_binary(
         "//k8s/workloads/qwen3.5-122b-a10b-nvfp4:qwen3_5_122b_a10b_nvfp4_job",
         "//k8s/workloads/qwen3.5-397b-nvfp4:qwen3_5_397b_nvfp4_job",
         "//k8s/workloads/qwen3.5-397b-spark2:qwen3_5_397b_spark2_job",
+        "//k8s/workloads/qwen3.6-27b-nvfp4:qwen3_6_27b_nvfp4_job",
+        "//k8s/workloads/qwen3.6-35b-a3b-nvfp4:qwen3_6_35b_a3b_nvfp4_job",
         "//k8s/dev:dev_dashboard",
     ],
     visibility = ["//visibility:public"],

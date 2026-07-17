@@ -17,7 +17,7 @@ tags: [open-webui, agents, hermes, chat, sso]
 - Browser chat UI backed by Hermes MCP orchestration on the lab cluster
 - A polished agent surface without bypassing existing safety gates
 
-Deploy [Open WebUI](https://github.com/open-webui/open-webui) as a polished chat surface for lab AI agents. Conversations route through the **Hermes gateway** (`:8642/v1`), so MCP tools (SearXNG, fetch, memory, Context7, etc.) are orchestrated by Hermes — not by Open WebUI directly.
+Deploy [Open WebUI](https://github.com/open-webui/open-webui) as a polished chat surface for lab AI agents. Conversations can route through the **Hermes gateway** (`:8642/v1`) for MCP tools (SearXNG, fetch, memory, Context7, etc.), and through **direct vLLM OpenAI endpoints** for Qwen3.6-27B and Qwen3.6-35B-A3B when those Jobs are running (see [qwen36-dual-stack.md](qwen36-dual-stack.md)).
 
 ## Prerequisites
 

@@ -2,13 +2,18 @@
 #
 # ## download-qwen-models
 #
-# Download Qwen 3.5 tier models for Spark agentic stacks.
+# Download Qwen 3.5 tier models and Qwen3.6 dual-stack NVFP4 checkpoints.
 #
-# Tiers (substitutes when nvidia/Qwen3.5-397B-A17B-NVFP4 does not fit):
+# Tiers (Qwen 3.5 substitutes when nvidia/Qwen3.5-397B-A17B-NVFP4 does not fit):
 #   --tier 122b         RedHatAI/Qwen3.5-122B-A10B-NVFP4 (~75 GB, 1-node)
 #   --tier 397b-spark2  Intel/Qwen3.5-397B-A17B-int4-AutoRound (~200 GB, 2-node)
 #   --tier 397b-nvfp4   nvidia/Qwen3.5-397B-A17B-NVFP4 (~250 GB, 4-node)
-#   --tier all          All tiers (default)
+#
+# Qwen3.6 dual stack (1× Spark):
+#   --tier 27b-nvfp4       unsloth/Qwen3.6-27B-NVFP4
+#   --tier 35b-a3b-nvfp4   unsloth/Qwen3.6-35B-A3B-NVFP4-Fast
+#   --tier qwen36          Both Qwen3.6 NVFP4 tiers
+#   --tier all             All Qwen 3.5 tiers (default; does not include qwen36)
 #
 # Usage:
 #   ./scripts/utilities/download-qwen-models.sh status [--tier ...] [--json]
@@ -45,6 +50,8 @@ tier_repo() {
         122b) echo "RedHatAI/Qwen3.5-122B-A10B-NVFP4" ;;
         397b-spark2) echo "Intel/Qwen3.5-397B-A17B-int4-AutoRound" ;;
         397b-nvfp4) echo "nvidia/Qwen3.5-397B-A17B-NVFP4" ;;
+        27b-nvfp4) echo "unsloth/Qwen3.6-27B-NVFP4" ;;
+        35b-a3b-nvfp4) echo "unsloth/Qwen3.6-35B-A3B-NVFP4-Fast" ;;
         *) echo "" ;;
     esac
 }
@@ -58,6 +65,8 @@ tier_min_gb() {
         122b) echo 60 ;;
         397b-spark2) echo 180 ;;
         397b-nvfp4) echo 220 ;;
+        27b-nvfp4) echo 14 ;;
+        35b-a3b-nvfp4) echo 16 ;;
         *) echo 0 ;;
     esac
 }
@@ -114,11 +123,11 @@ tier_size_gb() {
 # Expand TIER=all to space-separated tier list.
 
 tiers_to_process() {
-    if [[ "$TIER" == "all" ]]; then
-        echo "122b 397b-spark2 397b-nvfp4"
-    else
-        echo "$TIER"
-    fi
+    case "$TIER" in
+        all) echo "122b 397b-spark2 397b-nvfp4" ;;
+        qwen36) echo "27b-nvfp4 35b-a3b-nvfp4" ;;
+        *) echo "$TIER" ;;
+    esac
 }
 
 # @function parse_args
@@ -193,5 +202,5 @@ parse_args "$@"
 case "$CMD" in
     status) cmd_status ;;
     run) cmd_run ;;
-    *) err "Usage: $0 status|run [--tier 122b|397b-spark2|397b-nvfp4|all] [--json]"; exit 1 ;;
+    *) err "Usage: $0 status|run [--tier 122b|397b-spark2|397b-nvfp4|27b-nvfp4|35b-a3b-nvfp4|qwen36|all] [--json]"; exit 1 ;;
 esac
