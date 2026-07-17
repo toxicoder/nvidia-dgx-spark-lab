@@ -1,0 +1,20 @@
+"""Package purpose: LTX quality visual workload kustomize overlay."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "ltx_quality",
+    srcs = [
+        "README.md",
+        "kustomization.yaml",
+        "patches/deployment.json",
+        "patches/service.json",
+        "workflows/lab-ltx-quality.json",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)

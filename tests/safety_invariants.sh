@@ -90,7 +90,7 @@ for m in kimi-test kimi ray-head ray-worker nemotron-3-ultra \
   qwen3.5-122b-a10b-nvfp4 qwen3.5-397b-spark2 qwen3.5-397b-nvfp4 \
   qwen3.5-397b-nvfp4-worker-1 qwen3.5-397b-nvfp4-worker-2 qwen3.5-397b-nvfp4-worker-3 \
   qwen3.6-27b-nvfp4 qwen3.6-35b-a3b-nvfp4 \
-  comfy-base flux-fast flux-quality; do
+  comfy-base flux-fast flux-quality ltx-balanced ltx-quality; do
   python3 -c "
 import json, sys
 from pathlib import Path
@@ -138,10 +138,12 @@ m = j['models']['comfy-base']
 assert m.get('kind') == 'deployment'
 assert m.get('gpus') == 1
 "
-echo "Checking flux visual overlays exist and register as deployments..."
+echo "Checking flux/ltx visual overlays exist and register as deployments..."
 for d in \
   k8s/workloads/comfy-visual/flux/fast \
-  k8s/workloads/comfy-visual/flux/quality; do
+  k8s/workloads/comfy-visual/flux/quality \
+  k8s/workloads/comfy-visual/ltx/balanced \
+  k8s/workloads/comfy-visual/ltx/quality; do
   test -f "${d}/kustomization.yaml"
   test -f "${d}/patches/deployment.json"
 done
@@ -149,12 +151,13 @@ python3 -c "
 import json
 from pathlib import Path
 j = json.loads(Path('config/resource-policy.json').read_text())
-for mid in ('flux-fast', 'flux-quality'):
+for mid in ('flux-fast', 'flux-quality', 'ltx-balanced', 'ltx-quality'):
     m = j['models'][mid]
     assert m.get('kind') == 'deployment', mid
     assert m.get('gpus') == 1, mid
 "
 test -f scripts/utilities/download-flux.sh
+test -f scripts/utilities/download-ltx.sh
 
 echo "Checking extended Nemotron LLM Jobs have safety fields..."
 for job in \

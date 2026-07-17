@@ -1,0 +1,7 @@
+[
+  { "op": "replace", "path": "/metadata/name", "value": "ltx-quality" },
+  { "op": "replace", "path": "/metadata/labels/app", "value": "ltx-quality" },
+  { "op": "add", "path": "/metadata/labels/family", "value": "ltx" },
+  { "op": "add", "path": "/metadata/labels/mode", "value": "quality" },
+  { "op": "replace", "path": "/spec/selector/app", "value": "ltx-quality" }
+]

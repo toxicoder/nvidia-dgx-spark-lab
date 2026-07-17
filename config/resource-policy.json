@@ -381,6 +381,22 @@
       "heavy": true,
       "job_name": "flux-quality",
       "kind": "deployment"
+    },
+    "ltx-balanced": {
+      "gpus": 1,
+      "memory": "70Gi",
+      "cpu": "8",
+      "heavy": true,
+      "job_name": "ltx-balanced",
+      "kind": "deployment"
+    },
+    "ltx-quality": {
+      "gpus": 1,
+      "memory": "80Gi",
+      "cpu": "8",
+      "heavy": true,
+      "job_name": "ltx-quality",
+      "kind": "deployment"
     }
   },
   "stacks": {

@@ -1,0 +1,45 @@
+[
+  { "op": "replace", "path": "/metadata/name", "value": "ltx-quality" },
+  { "op": "replace", "path": "/metadata/labels/app", "value": "ltx-quality" },
+  { "op": "add", "path": "/metadata/labels/family", "value": "ltx" },
+  { "op": "add", "path": "/metadata/labels/mode", "value": "quality" },
+  { "op": "replace", "path": "/spec/selector/matchLabels/app", "value": "ltx-quality" },
+  { "op": "replace", "path": "/spec/template/metadata/labels/app", "value": "ltx-quality" },
+  { "op": "add", "path": "/spec/template/metadata/labels/family", "value": "ltx" },
+  { "op": "add", "path": "/spec/template/metadata/labels/mode", "value": "quality" },
+  { "op": "replace", "path": "/spec/template/spec/containers/0/resources/requests/memory", "value": "80Gi" },
+  { "op": "replace", "path": "/spec/template/spec/containers/0/env/8/value", "value": "ltx-quality" },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env/-",
+    "value": { "name": "LAB_LTX_QUANT", "value": "bf16-distilled" }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env/-",
+    "value": { "name": "LAB_LTX_TIER", "value": "quality" }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env/-",
+    "value": { "name": "LAB_LTX_REPO", "value": "Kijai/LTX2.3_comfy" }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/volumes/-",
+    "value": {
+      "name": "ltx-workflow",
+      "configMap": { "name": "ltx-quality-workflow" }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/volumeMounts/-",
+    "value": {
+      "name": "ltx-workflow",
+      "mountPath": "/comfy-state/ComfyUI/user/default/workflows/lab-ltx-quality.json",
+      "subPath": "lab-ltx-quality.json",
+      "readOnly": true
+    }
+  }
+]

@@ -198,6 +198,18 @@ start_flux_quality() {
   start_visual_workload "flux-quality" "FLUX.2 Dev FP8 (quality)"
 }
 
+# @function start_ltx_balanced
+# @command start-ltx-balanced
+start_ltx_balanced() {
+  start_visual_workload "ltx-balanced" "LTX-2.3 distilled FP8 (balanced video)"
+}
+
+# @function start_ltx_quality
+# @command start-ltx-quality
+start_ltx_quality() {
+  start_visual_workload "ltx-quality" "LTX-2.3 BF16 distilled (quality video)"
+}
+
 # @function start_comfy_base
 # Start the shared ComfyUI base runtime.
 # @command start-comfy-base
