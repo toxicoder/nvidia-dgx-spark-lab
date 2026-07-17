@@ -452,6 +452,22 @@ case "${1:-help}" in
     check_cluster_access
     stop_comfy_base
     ;;
+  start-flux-fast)
+    ## start-flux-fast
+    # @command start-flux-fast
+    # FLUX.2 Klein 9B NVFP4 + Nunchaku (fast image). Preflight unified mem + capacity.
+    require_kubectl
+    check_cluster_access
+    start_flux_fast
+    ;;
+  start-flux-quality)
+    ## start-flux-quality
+    # @command start-flux-quality
+    # FLUX.2 Dev FP8 (quality image). Preflight unified mem + capacity.
+    require_kubectl
+    check_cluster_access
+    start_flux_quality
+    ;;
   start-qwen36-27b|start-qwen3.6-27b)
     ## start-qwen36-27b
     # @command start-qwen36-27b
@@ -834,6 +850,8 @@ Commands:
   start-glm      Deploy GLM-5.2 (with Ray, safety checks)
   start-comfy-base  Deploy ComfyUI base (visual; Spark unified-memory patches)
   stop-comfy-base   Stop ComfyUI base Deployment (PVC retained)
+  start-flux-fast   FLUX.2 Klein 9B NVFP4+Nunchaku (fast)
+  start-flux-quality FLUX.2 Dev FP8 (quality)
   start-coder    Deploy Coder (VS Code workspaces) via Helm
   start-kasm     Deploy Kasm Workspaces via Helm
   start-mcp      Deploy MCP agent toolkit (default stack)
