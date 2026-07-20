@@ -8,7 +8,7 @@ repos:
       - id: buildifier
         name: buildifier (Bazel BUILD/.bzl)
         entry: >-
-          bash -c 'find . -type f \( -name "BUILD*" -o -name "*.bzl" \) ! -path "*/bazel-*/*"
+          bash -c 'find . -type f \( -name BUILD -o -name BUILD.bazel -o -name "*.bzl" -o -name MODULE.bazel -o -name WORKSPACE -o -name WORKSPACE.bazel \) ! -path "*/bazel-*/*"
           ! -path "./site/*" ! -path "./.venv*" ! -path "./node_modules/*"
           ! -path "./bazel-bin/*" ! -path "./bazel-out/*" -print0
           | xargs -0 -r buildifier -mode=check'
@@ -32,9 +32,9 @@ repos:
 
       - id: prettier-yaml
         name: prettier (YAML format)
-        entry: bash scripts/yaml_format.sh --write
+        entry: prettier --write
         language: system
-        files: \.(ya?ml)$
+        types: [yaml]
         exclude: (^bazel-|/bazel-|^site/|\.venv|node_modules/|\.ya?ml\.j2$|helm/.*/templates/)
 
       - id: yamllint
