@@ -1,10 +1,17 @@
 # Purpose: Kustomize bundle for Prometheus scrape config
-# Source of truth: this file
-# Regenerate: n/a
+# Source of truth: k8s/monitoring/prometheus.yml (generated)
+# Regenerate: monitoring-stack.sh or manage.sh start-monitoring
 # Safety: apply with monitoring namespace
 
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-resources:
-  - prometheus-scrape-config.yaml
+configMapGenerator:
+  - name: prometheus-scrape-config
+    namespace: monitoring
+    files:
+      - prometheus.yml
+    options:
+      labels:
+        app.kubernetes.io/part-of: spark-lab-monitoring
+      disableNameSuffixHash: true
