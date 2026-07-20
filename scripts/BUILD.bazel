@@ -86,6 +86,9 @@ exports_files(
     ] + glob(
         ["lib/*.sh"],
         allow_empty = True,
+    ) + glob(
+        ["lib/py/*.py"],
+        allow_empty = True,
     ),
     visibility = [
         "//ansible:__pkg__",
@@ -122,6 +125,9 @@ filegroup(
         allow_empty = True,
     ) + glob(
         ["lib/*.sh"],
+        allow_empty = True,
+    ) + glob(
+        ["lib/py/*.py"],
         allow_empty = True,
     ),
     visibility = ["//visibility:public"],

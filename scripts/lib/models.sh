@@ -508,14 +508,7 @@ _stack_startup_order() {
   local stack_id="$1"
   local policy_path
   policy_path=$(resource_policy_path)
-  python3 - "$policy_path" "$stack_id" <<'PY'
-import json, sys
-from pathlib import Path
-policy = json.loads(Path(sys.argv[1]).read_text())
-stack = policy.get("stacks", {}).get(sys.argv[2], {})
-order = stack.get("startup_order") or stack.get("stack_with", [])
-print("\n".join(order))
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/models_stack_startup_order.py" "$policy_path" "$stack_id"
 }
 
 # @function start_nemotron_stack
@@ -575,17 +568,7 @@ stop_nemotron_stack() {
   policy_path=$(resource_policy_path)
 
   if [[ "$target" == "all" ]]; then
-    python3 - "$policy_path" <<'PY'
-import json, sys
-from pathlib import Path
-policy = json.loads(Path(sys.argv[1]).read_text())
-names = set()
-for stack in policy.get("stacks", {}).values():
-    for m in stack.get("stack_with", []):
-        names.add(m)
-for n in sorted(names):
-    print(n)
-PY
+    python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/models_stop_nemotron_stack.py" "$policy_path"
   else
     _stack_startup_order "$target" | tail -r
   fi | while IFS= read -r model; do
@@ -604,90 +587,14 @@ get_nemotron_catalog_json() {
   local policy_path catalog_path
   policy_path=$(resource_policy_path)
   catalog_path="${REPO_ROOT}/config/nemotron-catalog.yaml"
-  python3 - "$policy_path" "$catalog_path" <<'PY'
-import json, sys
-from pathlib import Path
-
-def load_yaml(path):
-    try:
-        import yaml
-        return yaml.safe_load(Path(path).read_text()) or {}
-    except Exception:
-        return {}
-
-policy = json.loads(Path(sys.argv[1]).read_text())
-catalog = load_yaml(sys.argv[2])
-stacks = policy.get("stacks", {})
-out = {
-    "models": catalog.get("models", {}),
-    "pillars": catalog.get("pillars", {}),
-    "stacks": stacks,
-    "qwen_tiers": catalog.get("qwen_tiers", {}),
-}
-print(json.dumps(out))
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/models_get_nemotron_catalog_json.py" "$policy_path" "$catalog_path"
 }
 
 # @function get_nemotron_stack_status_json
 get_nemotron_stack_status_json() {
   local policy_path
   policy_path=$(resource_policy_path)
-  python3 - "$policy_path" <<'PY'
-import json, subprocess, sys
-from pathlib import Path
-
-policy = json.loads(Path(sys.argv[1]).read_text())
-ns = "ai-inference"
-stacks_out = []
-
-def job_state(name):
-    try:
-        data = json.loads(subprocess.check_output(
-            ["kubectl", "get", "job", name, "-n", ns, "-o", "json"],
-            stderr=subprocess.DEVNULL, timeout=5))
-        st = data.get("status", {})
-        if (st.get("active") or 0) > 0:
-            return "running"
-        if (st.get("succeeded") or 0) > 0:
-            return "succeeded"
-        if (st.get("failed") or 0) > 0:
-            return "failed"
-        return "absent"
-    except Exception:
-        return "absent"
-
-def deploy_state(name):
-    try:
-        data = json.loads(subprocess.check_output(
-            ["kubectl", "get", "deployment", name, "-n", ns, "-o", "json"],
-            stderr=subprocess.DEVNULL, timeout=5))
-        ready = data.get("status", {}).get("readyReplicas") or 0
-        return "running" if ready > 0 else "pending"
-    except Exception:
-        return "absent"
-
-for sid, stack in policy.get("stacks", {}).items():
-    components = []
-    all_running = True
-    any_present = False
-    for m in stack.get("stack_with", []):
-        meta = policy.get("models", {}).get(m, {})
-        kind = meta.get("kind", "job")
-        state = deploy_state(m) if kind == "deployment" else job_state(m)
-        if state not in ("running", "succeeded"):
-            all_running = False
-        if state != "absent":
-            any_present = True
-        components.append({"model": m, "state": state})
-    stacks_out.append({
-        "id": sid,
-        "label": stack.get("label", sid),
-        "healthy": all_running and any_present,
-        "components": components,
-    })
-
-print(json.dumps({"stacks": stacks_out, "namespace": ns}))
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/models_get_nemotron_stack_status_json.py" "$policy_path"
 }
 
 # @function start_nemotron_llm
@@ -821,65 +728,5 @@ p = json.loads(Path('${policy_path}').read_text())
 print(json.dumps(list(p.get('models', {}).keys())))
 ")
 
-  python3 - "$models_json" "$policy_path" <<'PY'
-import json, subprocess, sys
-from pathlib import Path
-
-models = json.loads(sys.argv[1])
-policy = json.loads(Path(sys.argv[2]).read_text())
-ns = "ai-inference"
-out = {"jobs": [], "namespace": ns}
-
-model_meta = policy.get("models", {})
-
-for model in models:
-    job = model
-    meta = model_meta.get(model, {})
-    kind = meta.get("kind", "job")
-    try:
-        if kind == "deployment":
-            data = json.loads(subprocess.check_output(
-                ["kubectl", "get", "deployment", job, "-n", ns, "-o", "json"],
-                stderr=subprocess.DEVNULL, timeout=5,
-            ))
-            ready = data.get("status", {}).get("readyReplicas") or 0
-            out["jobs"].append({
-                "model": model,
-                "job": job,
-                "active": ready,
-                "state": "running" if ready > 0 else "absent",
-                "kind": "deployment",
-            })
-        else:
-            data = json.loads(subprocess.check_output(
-                ["kubectl", "get", "job", job, "-n", ns, "-o", "json"],
-                stderr=subprocess.DEVNULL, timeout=5,
-            ))
-            status = data.get("status", {})
-            out["jobs"].append({
-                "model": model,
-                "job": job,
-                "active": status.get("active", 0) or 0,
-                "succeeded": status.get("succeeded", 0) or 0,
-                "failed": status.get("failed", 0) or 0,
-                "state": "running" if (status.get("active") or 0) > 0 else (
-                    "succeeded" if (status.get("succeeded") or 0) > 0 else (
-                        "failed" if (status.get("failed") or 0) > 0 else "absent"
-                    )
-                ),
-                "kind": "job",
-            })
-    except subprocess.CalledProcessError:
-        out["jobs"].append({
-            "model": model,
-            "job": job,
-            "active": 0,
-            "state": "absent",
-            "kind": kind,
-        })
-    except Exception as e:
-        out["jobs"].append({"model": model, "job": job, "state": "error", "error": str(e), "kind": kind})
-
-print(json.dumps(out))
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/models_get_inference_status_json.py" "$models_json" "$policy_path"
 }

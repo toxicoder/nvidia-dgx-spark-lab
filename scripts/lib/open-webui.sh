@@ -23,25 +23,7 @@ openwebui_policy_json_path() {
 
 # @function _openwebui_load_policy_json
 _openwebui_load_policy_json() {
-  python3 - "$(openwebui_policy_json_path)" "$(openwebui_policy_path)" <<'PY'
-import json, sys
-from pathlib import Path
-
-def load_policy(json_path, yaml_path):
-    jp = Path(json_path)
-    if jp.is_file():
-        return json.loads(jp.read_text())
-    yp = Path(yaml_path)
-    if not yp.is_file():
-        return {}
-    try:
-        import yaml
-        return yaml.safe_load(yp.read_text()) or {}
-    except Exception:
-        return {}
-
-print(json.dumps(load_policy(sys.argv[1], sys.argv[2])))
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/open_webui_openwebui_load_policy_json.py" "$(openwebui_policy_json_path)" "$(openwebui_policy_path)"
 }
 
 # @function openwebui_control_plane_ip
@@ -102,44 +84,7 @@ policy = json.load(sys.stdin)
 print(policy.get('backends', {}).get('hermes_gateway', {}).get('port', 8642))
 ")
 
-  python3 - "$ip" "$port" <<'PY' | kubectl apply -f -
-import sys, yaml
-ip, port = sys.argv[1], int(sys.argv[2])
-docs = [
-    {
-        "apiVersion": "v1",
-        "kind": "Service",
-        "metadata": {
-            "name": "hermes-gateway",
-            "namespace": "dev",
-            "labels": {"app": "hermes-gateway", "lab.tier": "optional_dev"},
-        },
-        "spec": {
-            "clusterIP": "None",
-            "ports": [{"name": "http", "port": port, "targetPort": port, "protocol": "TCP"}],
-            "selector": {},
-        },
-    },
-    {
-        "apiVersion": "v1",
-        "kind": "Endpoints",
-        "metadata": {
-            "name": "hermes-gateway",
-            "namespace": "dev",
-            "labels": {"app": "hermes-gateway"},
-        },
-        "subsets": [
-            {
-                "addresses": [{"ip": ip}],
-                "ports": [{"name": "http", "port": port, "protocol": "TCP"}],
-            }
-        ],
-    },
-]
-for doc in docs:
-    print("---")
-    print(yaml.safe_dump(doc, sort_keys=False).rstrip())
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/open_webui_openwebui_apply_hermes_gateway.py" "$ip" "$port" | kubectl apply -f -
   log "Hermes gateway bridge → ${ip}:${port} (dev/hermes-gateway)"
 }
 
@@ -232,89 +177,7 @@ get_openwebui_status_json() {
   host="${LAB_SSO_HOST:-${DASHBOARD_HOST:-localhost}}"
   sso_host=$(echo "$policy_json" | python3 -c "import json,sys; print(json.load(sys.stdin).get('sso',{}).get('host','chat'))")
 
-  python3 - "$release" "$ns" "$local_d" "$public_d" "$primary" "$host" "$sso_host" "$OPENWEBUI_PORT" "$https_port" <<'PY'
-import json, subprocess, sys, urllib.request
-
-release, ns, local_d, public_d, primary, host, sso_host, nodeport, https_port = sys.argv[1:9]
-
-def helm_installed():
-    try:
-        out = subprocess.check_output(["helm", "list", "-n", ns, "-q"], text=True, stderr=subprocess.DEVNULL)
-        return release in out.split()
-    except Exception:
-        return False
-
-def pod_ready():
-    try:
-        out = subprocess.check_output(
-            ["kubectl", "get", "pods", "-n", ns, "-l", f"app.kubernetes.io/instance={release}",
-             "-o", "jsonpath={.items[?(@.status.phase=='Running')].metadata.name}"],
-            text=True,
-            stderr=subprocess.DEVNULL,
-        ).strip()
-        return bool(out)
-    except Exception:
-        return False
-
-def endpoint_ip():
-    try:
-        return subprocess.check_output(
-            ["kubectl", "get", "endpoints", "hermes-gateway", "-n", "dev",
-             "-o", "jsonpath={.subsets[0].addresses[0].ip}"],
-            text=True,
-            stderr=subprocess.DEVNULL,
-        ).strip()
-    except Exception:
-        return ""
-
-def hermes_gateway_ok():
-    ip = endpoint_ip()
-    if not ip:
-        return False, ""
-    url = f"http://{ip}:8642/v1/models"
-    try:
-        with urllib.request.urlopen(url, timeout=3) as resp:
-            return resp.status < 400, url
-    except Exception:
-        return False, url
-
-installed = helm_installed()
-ready = pod_ready() if installed else False
-state = "stopped"
-if installed:
-    state = "running" if ready else "starting"
-
-gw_ok, gw_url = hermes_gateway_ok() if installed else (False, "")
-
-status = {
-    "release": release,
-    "namespace": ns,
-    "state": state,
-    "helm_installed": installed,
-    "pod_ready": ready,
-    "urls": {
-        "local": f"https://{sso_host}.{local_d}:{https_port}/",
-        "public": f"https://{sso_host}.{public_d}/" if public_d else None,
-        "sso": (
-            f"https://{sso_host}.{public_d}/"
-            if primary == "public" and public_d
-            else f"https://{sso_host}.{local_d}:{https_port}/"
-        ),
-        "nodeport": f"http://{host}:{nodeport}",
-    },
-    "backend": {
-        "hermes_gateway": {
-            "url": gw_url or "http://hermes-gateway.dev.svc.cluster.local:8642/v1",
-            "reachable": gw_ok,
-            "endpoint_ip": endpoint_ip(),
-        }
-    },
-    "prerequisites": {
-        "hermes_stack": "hermes-lab",
-    },
-}
-print(json.dumps(status))
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/open_webui_get_openwebui_status_json.py" "$release" "$ns" "$local_d" "$public_d" "$primary" "$host" "$sso_host" "$OPENWEBUI_PORT" "$https_port"
 }
 
 # @function start_openwebui_stack

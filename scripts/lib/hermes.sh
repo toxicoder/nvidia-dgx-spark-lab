@@ -65,25 +65,7 @@ hermes_port_forward_pid_file() {
 
 # @function _hermes_load_policy_json
 _hermes_load_policy_json() {
-  python3 - "$(hermes_policy_json_path)" "$(hermes_policy_path)" <<'PY'
-import json, sys
-from pathlib import Path
-
-def load_policy(json_path, yaml_path):
-    jp = Path(json_path)
-    if jp.is_file():
-        return json.loads(jp.read_text())
-    yp = Path(yaml_path)
-    if not yp.is_file():
-        return {}
-    try:
-        import yaml
-        return yaml.safe_load(yp.read_text()) or {}
-    except Exception:
-        return {}
-
-print(json.dumps(load_policy(sys.argv[1], sys.argv[2])))
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/hermes_hermes_load_policy_json.py" "$(hermes_policy_json_path)" "$(hermes_policy_path)"
 }
 
 # @function hermes_ensure_data_dir
@@ -109,33 +91,7 @@ hermes_ensure_data_dir() {
   fi
 
   # Generate missing secrets in .env
-  python3 - "${data_dir}/.env" <<'PY'
-import re, subprocess, sys
-from pathlib import Path
-
-path = Path(sys.argv[1])
-text = path.read_text()
-changed = False
-
-def ensure_key(name):
-    global changed
-    m = re.search(rf'^{re.escape(name)}=(.*)$', text, re.M)
-    if not m or not m.group(1).strip():
-        val = subprocess.check_output(["openssl", "rand", "-hex", "32"], text=True).strip()
-        if m:
-            text_new = re.sub(rf'^{re.escape(name)}=.*$', f'{name}={val}', text, count=1, flags=re.M)
-        else:
-            text_new = text.rstrip() + f'\n{name}={val}\n'
-        return text_new, True
-    return text, False
-
-for key in ("API_SERVER_KEY", "HERMES_DASHBOARD_BASIC_AUTH_SECRET"):
-    text, c = ensure_key(key)
-    changed = changed or c
-
-if changed:
-    path.write_text(text)
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/hermes_hermes_ensure_data_dir.py" "${data_dir}/.env"
 }
 
 # @function hermes_render_config
@@ -145,136 +101,13 @@ hermes_render_config() {
   local stack_id="$1"
   local config_path="${2:-$(hermes_data_dir)/config.yaml}"
   local url_mode_override="${3:-}"
-  python3 - "$(hermes_policy_path)" "$config_path" "$stack_id" "$url_mode_override" <<'PY'
-import sys
-from pathlib import Path
-
-def load_yaml(path):
-    try:
-        import yaml
-        return yaml.safe_load(Path(path).read_text()) or {}
-    except Exception:
-        return {}
-
-policy = load_yaml(sys.argv[1])
-config_path = Path(sys.argv[2])
-stack_id = sys.argv[3]
-url_mode_override = sys.argv[4] if len(sys.argv) > 4 else ""
-
-stack = policy.get("stacks", {}).get(stack_id, {})
-if not stack:
-    raise SystemExit(f"Unknown Hermes stack: {stack_id}")
-
-preset_key = stack.get("inference_preset", "")
-preset = policy.get("inference_presets", {}).get(preset_key, {})
-mcp_names = stack.get("mcp_servers", [])
-
-url_mode = url_mode_override or stack.get("mcp_url_mode", "host_localhost")
-mode_defs = policy.get("url_modes", {}).get(url_mode, {})
-mcp_defs = mode_defs.get("mcp_servers") or policy.get("mcp_servers", {})
-
-cfg = load_yaml(str(config_path))
-if not cfg:
-    cfg = {}
-
-model = cfg.setdefault("model", {})
-model["provider"] = "custom"
-model["default"] = preset.get("model", "")
-model["api_key"] = "none"
-if preset.get("context_length"):
-    model["context_length"] = preset["context_length"]
-
-inference_port = policy.get("ports", {}).get("inference_local", 8000)
-inference_tpl = mode_defs.get(
-    "inference_base_url_template",
-    "http://127.0.0.1:{port}/v1",
-)
-if url_mode == "in_cluster":
-    svc = preset.get("service", "")
-    ns = preset.get("namespace", "ai-inference")
-    model["base_url"] = inference_tpl.format(service=svc, namespace=ns, port=8000)
-else:
-    model["base_url"] = inference_tpl.format(port=inference_port)
-
-mcp_servers = {}
-for name in mcp_names:
-    entry = mcp_defs.get(name, {})
-    if not entry.get("url"):
-        continue
-    mcp_servers[name] = {
-        "url": entry["url"],
-        "tools": {"prompts": False, "resources": False},
-    }
-cfg["mcp_servers"] = mcp_servers
-
-try:
-    import yaml
-    config_path.write_text(yaml.safe_dump(cfg, sort_keys=False, default_flow_style=False))
-except Exception as exc:
-    raise SystemExit(f"Failed to write config.yaml: {exc}") from exc
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/hermes_hermes_render_config.py" "$(hermes_policy_path)" "$config_path" "$stack_id" "$url_mode_override"
 }
 
 # @function hermes_check_prerequisites
 hermes_check_prerequisites() {
   local stack_id="$1"
-  python3 - "$(hermes_policy_path)" "$stack_id" <<'PY'
-import json, subprocess, sys
-from pathlib import Path
-
-def load_yaml(path):
-    try:
-        import yaml
-        return yaml.safe_load(Path(path).read_text()) or {}
-    except Exception:
-        return {}
-
-policy = load_yaml(sys.argv[1])
-stack_id = sys.argv[2]
-stack = policy.get("stacks", {}).get(stack_id, {})
-if not stack:
-    print(json.dumps({"ok": False, "error": f"unknown stack: {stack_id}"}))
-    sys.exit(1)
-
-errors = []
-preset_key = stack.get("inference_preset", "")
-preset = policy.get("inference_presets", {}).get(preset_key, {})
-svc = preset.get("service", "")
-ns = preset.get("namespace", "ai-inference")
-
-if svc:
-    try:
-        out = subprocess.check_output(
-            ["kubectl", "get", "pods", "-n", ns, "-l", f"app={svc}",
-             "-o", "jsonpath={.items[?(@.status.phase=='Running')].metadata.name}"],
-            text=True,
-        ).strip()
-        if not out:
-            errors.append(f"Inference service {svc} has no Running pods in {ns}")
-    except subprocess.CalledProcessError as exc:
-        errors.append(f"Failed to check inference pods for {svc}: {exc}")
-
-mcp_ns = "agent-tools"
-mcp_defs = policy.get("mcp_servers", {})
-for name in stack.get("mcp_servers", []):
-    dep = mcp_defs.get(name, {}).get("k8s_deployment", "")
-    if not dep:
-        continue
-    try:
-        ready = subprocess.check_output(
-            ["kubectl", "get", "deployment", dep, "-n", mcp_ns,
-             "-o", "jsonpath={.status.readyReplicas}"],
-            text=True,
-        ).strip()
-        if not ready or ready == "0":
-            errors.append(f"MCP deployment {dep} not ready in {mcp_ns}")
-    except subprocess.CalledProcessError:
-        errors.append(f"MCP deployment {dep} not found in {mcp_ns}")
-
-print(json.dumps({"ok": len(errors) == 0, "errors": errors, "inference_service": svc, "namespace": ns}))
-if errors:
-    sys.exit(1)
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/hermes_hermes_check_prerequisites.py" "$(hermes_policy_path)" "$stack_id"
 }
 
 # @function hermes_stop_port_forward
@@ -300,23 +133,7 @@ hermes_start_port_forward() {
 
   hermes_stop_port_forward
 
-  read -r svc ns < <(python3 - "$(hermes_policy_path)" "$stack_id" <<'PY'
-import sys
-from pathlib import Path
-
-def load_yaml(path):
-    try:
-        import yaml
-        return yaml.safe_load(Path(path).read_text()) or {}
-    except Exception:
-        return {}
-
-policy = load_yaml(sys.argv[1])
-stack = policy.get("stacks", {}).get(sys.argv[2], {})
-preset = policy.get("inference_presets", {}).get(stack.get("inference_preset", ""), {})
-print(preset.get("service", ""), preset.get("namespace", "ai-inference"))
-PY
-)
+  read -r svc ns < <(python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/hermes_hermes_start_port_forward.py" "$(hermes_policy_path)" "$stack_id")
 
   if [[ -z "$svc" ]]; then
     err "No inference service configured for stack ${stack_id}"
@@ -366,75 +183,7 @@ except Exception:
 print(p.get('container_name', 'hermes'))
 ")
 
-  python3 - "$data_dir" "$compose_file" "$container_name" "$(hermes_port_forward_pid_file)" <<'PY'
-import json, subprocess, sys, urllib.request
-from pathlib import Path
-
-data_dir, compose_file, container_name, pf_pid_file = sys.argv[1:5]
-
-def curl_ok(url, headers=None):
-    try:
-        req = urllib.request.Request(url, headers=headers or {})
-        with urllib.request.urlopen(req, timeout=3) as resp:
-            return resp.status < 400
-    except Exception:
-        return False
-
-def docker_state():
-    try:
-        out = subprocess.check_output(
-            ["docker", "inspect", "-f", "{{.State.Status}}", container_name],
-            text=True,
-            stderr=subprocess.DEVNULL,
-        ).strip()
-        return out
-    except Exception:
-        return "missing"
-
-pf_pid = None
-pf_alive = False
-if Path(pf_pid_file).is_file():
-    try:
-        pf_pid = int(Path(pf_pid_file).read_text().strip())
-        pf_alive = Path(f"/proc/{pf_pid}").exists()
-    except Exception:
-        pf_alive = False
-
-api_key = ""
-env_path = Path(data_dir) / ".env"
-if env_path.is_file():
-    for line in env_path.read_text().splitlines():
-        if line.startswith("API_SERVER_KEY="):
-            api_key = line.split("=", 1)[1].strip()
-            break
-
-status = {
-    "container": container_name,
-    "container_state": docker_state(),
-    "data_dir": data_dir,
-    "port_forward": {"pid": pf_pid, "alive": pf_alive},
-    "inference": {
-        "url": "http://127.0.0.1:8000/v1/models",
-        "reachable": curl_ok("http://127.0.0.1:8000/v1/models"),
-    },
-    "mcp_searxng": {
-        "url": "http://127.0.0.1:32100/sse",
-        "reachable": curl_ok("http://127.0.0.1:32100/sse"),
-    },
-    "gateway_api": {
-        "url": "http://127.0.0.1:8642/v1/models",
-        "reachable": curl_ok(
-            "http://127.0.0.1:8642/v1/models",
-            {"Authorization": f"Bearer {api_key}"} if api_key else {},
-        ),
-    },
-    "dashboard": {
-        "url": "http://127.0.0.1:9119/",
-        "reachable": curl_ok("http://127.0.0.1:9119/"),
-    },
-}
-print(json.dumps(status))
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/hermes_get_hermes_status_json.py" "$data_dir" "$compose_file" "$container_name" "$(hermes_port_forward_pid_file)"
 }
 
 # @function start_hermes_stack
@@ -479,25 +228,7 @@ sys.exit(0 if '${stack_id}' in p.get('stacks', {}) else 1)
 
   if ! hermes_check_prerequisites "$stack_id"; then
     local prereq_json
-    prereq_json=$(python3 - "$(hermes_policy_path)" "$stack_id" <<'PY' || true
-import json, subprocess, sys
-from pathlib import Path
-
-def load_yaml(path):
-    try:
-        import yaml
-        return yaml.safe_load(Path(path).read_text()) or {}
-    except Exception:
-        return {}
-
-policy = load_yaml(sys.argv[1])
-stack = policy.get("stacks", {}).get(sys.argv[2], {})
-print(json.dumps({
-    "requires_nemotron_stack": stack.get("requires_nemotron_stack"),
-    "requires_mcp_stack": stack.get("requires_mcp_stack"),
-}))
-PY
-)
+    prereq_json=$(python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/hermes_prereq_details.py" "$(hermes_policy_path)" "$stack_id" || true)
     err "Prerequisites not met for ${stack_id}"
     echo "$prereq_json" | python3 -m json.tool 2>/dev/null || echo "$prereq_json"
     err "Start required stacks first, e.g.:"

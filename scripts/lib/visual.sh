@@ -73,14 +73,7 @@ check_visual_unified_memory() {
   local model="$1"
   local policy_path req_mem alloc_sum
   policy_path=$(resource_policy_path 2>/dev/null || echo "${REPO_ROOT}/config/resource-policy.json")
-  req_mem=$(python3 - "$policy_path" "$model" <<'PY' 2>/dev/null || echo ""
-import json, sys
-from pathlib import Path
-p = json.loads(Path(sys.argv[1]).read_text())
-m = p.get("models", {}).get(sys.argv[2], {})
-print(m.get("memory", ""))
-PY
-)
+  req_mem=$(python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/visual_check_visual_unified_memory.py" "$policy_path" "$model" 2>/dev/null || echo "")
   if [[ -z "$req_mem" ]]; then
     warn "No policy memory for ${model}; skipping unified-memory preflight"
     return 0
