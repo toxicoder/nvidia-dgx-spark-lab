@@ -7,6 +7,7 @@
 # Modes (DASHBOARD_TEST_MODE):
 #   fast      — vitest run + lint + typecheck (no coverage, no visual)
 #   coverage  — vitest with 100% coverage gate only
+#   visual    — next build + Playwright only (unit already passed on host CI)
 #   full      — default: coverage + build + lint/tsc + Playwright visual
 #
 set -euo pipefail
@@ -60,9 +61,28 @@ case "$MODE" in
     echo "==> Dashboard coverage tests passed"
     exit 0
     ;;
+  visual)
+    # Host CI already ran Vitest + lint + tsc; avoid duplicate unit work.
+    echo "==> Dashboard visual mode: Next.js build + Playwright (unit skipped)"
+    echo "==> Next.js production build"
+    env "${VISUAL_HARNESS_ENV[@]}" npm run build
+    echo "==> Playwright visual regression"
+    export CI=1
+    export PLAYWRIGHT_SKIP_BUILD=1
+    for kv in "${VISUAL_HARNESS_ENV[@]}"; do
+      export "${kv?}"
+    done
+    if [[ "${UPDATE_SNAPSHOTS:-0}" == "1" ]]; then
+      npm run visual:update
+    else
+      npm run visual
+    fi
+    echo "==> Hermetic visual dashboard tests passed"
+    exit 0
+    ;;
   full) ;;
   *)
-    echo "test-entrypoint: unknown DASHBOARD_TEST_MODE=$MODE (use fast, coverage, full)" >&2
+    echo "test-entrypoint: unknown DASHBOARD_TEST_MODE=$MODE (use fast, coverage, visual, full)" >&2
     exit 2
     ;;
 esac

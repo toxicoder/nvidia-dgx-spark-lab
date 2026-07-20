@@ -2,6 +2,20 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Dev: Doctor",
+      "type": "shell",
+      "command": "bash .devcontainer/doctor.sh",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "Bazel: Validate (git-aware)",
       "type": "shell",
       "command": "bazelisk run //:validate",
@@ -54,6 +68,20 @@
       "label": "Bazel: Test Fast",
       "type": "shell",
       "command": "bazelisk test //:test-fast",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Bazel: Test Fast (CI config)",
+      "type": "shell",
+      "command": "bazelisk test //:test-fast --config=ci",
       "options": {
         "cwd": "${workspaceFolder}"
       },

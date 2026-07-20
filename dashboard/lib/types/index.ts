@@ -155,7 +155,13 @@ export type InferenceModelName =
   | "qwen3.5-397b-spark2"
   | "qwen3.5-397b-nvfp4"
   | "qwen3.6-27b-nvfp4"
-  | "qwen3.6-35b-a3b-nvfp4";
+  | "qwen3.6-35b-a3b-nvfp4"
+  | "comfy-base"
+  | "flux-fast"
+  | "flux-quality"
+  | "ltx-balanced"
+  | "ltx-quality"
+  | "flux-to-ltx";
 
 export type NemotronStackId =
   | "nemotron-agentic-spark-1"

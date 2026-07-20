@@ -23,14 +23,8 @@ spec:
       priorityClassName: lab-optional
       containers:
         - name: proxy
-          image: python:3.12-slim
+          image: lab-mcp/context7-proxy:local
           imagePullPolicy: IfNotPresent
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              pip install --no-cache-dir fastapi uvicorn httpx redis pyyaml
-              cd /app
-              exec uvicorn server:app --host 0.0.0.0 --port 8000
           env:
             - name: CONFIG_PATH
               value: /app/config.yaml

@@ -46,30 +46,7 @@ require_helm() {
 # @function _sso_policy_value
 _sso_policy_value() {
   local key="$1"
-  python3 - "$(sso_policy_path)" "$key" <<'PY'
-import sys
-from pathlib import Path
-
-def load_yaml(path):
-    try:
-        import yaml
-        return yaml.safe_load(Path(path).read_text()) or {}
-    except Exception:
-        return {}
-
-policy = load_yaml(sys.argv[1])
-keys = sys.argv[2].split(".")
-cur = policy
-for k in keys:
-    if not isinstance(cur, dict):
-        cur = None
-        break
-    cur = cur.get(k)
-if cur is None:
-    print("")
-else:
-    print(cur)
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/sso_sso_policy_value.py" "$(sso_policy_path)" "$key"
 }
 
 # @function ensure_sso_secrets

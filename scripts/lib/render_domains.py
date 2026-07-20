@@ -136,6 +136,9 @@ def service_url(host: str, apex: str, port: int, *, public_apex: bool) -> str:
 def dump_yaml(doc: Any) -> str:
     """Serialize a Python object to a YAML manifest string.
 
+    Multi-line strings use YAML literal block style (``|``) so generated
+    ConfigMaps stay readable instead of single-line escaped blobs.
+
     Args:
         doc: Mapping or other structure to render as YAML.
 
@@ -147,7 +150,25 @@ def dump_yaml(doc: Any) -> str:
     """
     if yaml is None:
         raise RuntimeError("PyYAML required to render YAML manifests")
-    return str(yaml.dump(doc, default_flow_style=False, sort_keys=False, allow_unicode=True))
+
+    class _Dumper(yaml.SafeDumper):
+        """Local dumper with multi-line string literal style."""
+
+    def _str_presenter(dumper: Any, data: str) -> Any:
+        if "\n" in data:
+            return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
+        return dumper.represent_scalar("tag:yaml.org,2002:str", data)
+
+    _Dumper.add_representer(str, _str_presenter)
+    return str(
+        yaml.dump(
+            doc,
+            Dumper=_Dumper,
+            default_flow_style=False,
+            sort_keys=False,
+            allow_unicode=True,
+        )
+    )
 
 
 def write_text(path: Path, content: str) -> None:
@@ -399,11 +420,17 @@ notifier:
 # OIDC provider keys and clients are injected from authelia-secrets (see scripts/lib/sso.sh).
 """
 
+    # Language-native Authelia config (lintable); ConfigMap embeds via literal |.
+    config_path = root / "k8s/auth/generated/configuration.yml"
+    write_text(config_path, config_yml if config_yml.endswith("\n") else config_yml + "\n")
+
     doc = {
         "apiVersion": "v1",
         "kind": "ConfigMap",
         "metadata": {"name": "authelia-config", "namespace": "auth"},
-        "data": {"configuration.yml": config_yml},
+        "data": {
+            "configuration.yml": config_yml if config_yml.endswith("\n") else config_yml + "\n"
+        },
     }
     write_text(root / "k8s/auth/generated/authelia-configmap.yaml", dump_yaml(doc))
 

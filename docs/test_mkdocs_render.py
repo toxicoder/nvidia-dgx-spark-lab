@@ -245,9 +245,19 @@ class TestMkDocsRender(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        """Build the MkDocs site once and optionally start a static file server."""
-        cls.site_dir = Path(tempfile.mkdtemp(prefix="mkdocs-render-test-"))
-        run_mkdocs_build_strict(cls.site_dir)
+        """Build the MkDocs site once and optionally start a static file server.
+
+        Reuses ``MKDOCS_SITE_DIR`` when set and already populated so CI can
+        share a single strict build across modes without rebuilding.
+        """
+        reuse = os.environ.get("MKDOCS_SITE_DIR", "").strip()
+        if reuse and (Path(reuse) / "index.html").exists():
+            cls.site_dir = Path(reuse)
+        else:
+            cls.site_dir = Path(reuse) if reuse else Path(
+                tempfile.mkdtemp(prefix="mkdocs-render-test-")
+            )
+            run_mkdocs_build_strict(cls.site_dir)
 
         # Visual support: start an in-process static server over the built site
         # so Playwright can load real rendered pages (including JS execution for

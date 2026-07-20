@@ -1,0 +1,21 @@
+# Purpose: Persistent ComfyUI state (install tree, custom_nodes, workflows, outputs)
+# Source of truth: k8s/workloads/comfy-base/
+# Regenerate: n/a
+# Safety: models stay on hostPath /mnt/models; PVC holds mutable Comfy state only
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: comfy-state
+  namespace: ai-inference
+  labels:
+    app: comfy-base
+    workload: visual
+    runtime: comfyui
+spec:
+  accessModes:
+    - ReadWriteOnce
+  # K3s local-path (or cluster default). Operator may bind to a host path StorageClass.
+  resources:
+    requests:
+      storage: 100Gi

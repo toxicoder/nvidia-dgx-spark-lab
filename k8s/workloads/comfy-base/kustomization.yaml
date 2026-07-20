@@ -1,0 +1,38 @@
+# Purpose: Kustomize bundle for ComfyUI base visual workload
+# Source of truth: k8s/workloads/comfy-base/
+# Regenerate: n/a
+# Safety: manual start via manage.sh; heavy GPU resources when deployed
+#
+# Scripts live under scripts/ and are materialised via configMapGenerator
+# (same pattern as mcp/k8s/workloads/*) so shellcheck/mypy/shfmt can lint them.
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ai-inference
+
+configMapGenerator:
+  - name: comfy-base-scripts
+    files:
+      - install-comfy.sh=scripts/install-comfy.sh
+      - run-comfy.sh=scripts/run-comfy.sh
+    options:
+      labels:
+        app: comfy-base
+        workload: visual
+        runtime: comfyui
+      disableNameSuffixHash: true
+  - name: comfy-base-spark-patches
+    files:
+      - patch_get_free_memory.py=scripts/patch_get_free_memory.py
+    options:
+      labels:
+        app: comfy-base
+        workload: visual
+        runtime: comfyui
+      disableNameSuffixHash: true
+
+resources:
+  - pvc.yaml
+  - comfy-base-deployment.yaml
+  - service.yaml

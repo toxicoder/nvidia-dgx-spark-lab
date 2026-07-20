@@ -23,19 +23,8 @@ spec:
       priorityClassName: lab-optional
       containers:
         - name: gateway
-          image: node:22-bookworm-slim
+          image: lab-mcp/mcp-searxng:local
           imagePullPolicy: IfNotPresent
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              npm install -g supergateway
-              export SEARXNG_URL="${SEARXNG_URL:-http://searxng.agent-tools.svc.cluster.local:8080/}"
-              exec supergateway \
-                --stdio "npx -y searxng-deepdive" \
-                --port 8000 \
-                --ssePath /sse \
-                --streamableHttpPath /mcp \
-                --baseUrl http://127.0.0.1:8000
           env:
             - name: SEARXNG_URL
               value: "http://searxng.agent-tools.svc.cluster.local:8080/"

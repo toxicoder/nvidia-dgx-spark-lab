@@ -1,0 +1,7 @@
+[
+  { "op": "replace", "path": "/metadata/name", "value": "ltx-balanced" },
+  { "op": "replace", "path": "/metadata/labels/app", "value": "ltx-balanced" },
+  { "op": "add", "path": "/metadata/labels/family", "value": "ltx" },
+  { "op": "add", "path": "/metadata/labels/mode", "value": "balanced" },
+  { "op": "replace", "path": "/spec/selector/app", "value": "ltx-balanced" }
+]

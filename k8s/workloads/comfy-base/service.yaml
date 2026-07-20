@@ -1,0 +1,22 @@
+# Purpose: ClusterIP Service for ComfyUI base / visual workloads (port 8188)
+# Source of truth: k8s/workloads/comfy-base/
+# Regenerate: n/a
+# Safety: ClusterIP only; access via kubectl port-forward (no public Ingress in v0.1)
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: comfy-base
+  namespace: ai-inference
+  labels:
+    app: comfy-base
+    workload: visual
+    runtime: comfyui
+spec:
+  selector:
+    app: comfy-base
+  ports:
+    - port: 8188
+      targetPort: 8188
+      name: http
+  type: ClusterIP

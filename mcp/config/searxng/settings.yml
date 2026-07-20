@@ -1,6 +1,6 @@
 # Purpose: SearXNG instance settings for MCP search stack
-# Source of truth: this file
-# Regenerate: n/a
+# Source of truth: mcp/k8s/workloads/searxng/settings.yml (deployed via configMapGenerator)
+# Regenerate: n/a — keep in sync with workload settings.yml
 # Safety: replace secret_key before production use
 
 use_default_settings: true
@@ -9,7 +9,7 @@ general:
   instance_name: "DGX Spark Lab Search"
 
 server:
-  secret_key: "change-me-in-secret"
+  secret_key: "lab-searxng-dev-only"
   limiter: false
   image_proxy: false
 

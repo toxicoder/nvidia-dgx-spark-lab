@@ -29,6 +29,7 @@ make test-all
 |-------------------|------------------------------------|-----------------------------------------------|
 | Shell scripts     | `//tests:bats` + shellcheck | `manage.sh` commands, safety, modular libs (models/dev/domains/status) |
 | Lab domains       | `//tests:bats_domains_test` | `lab-domains.yaml` render pipeline, FQDN helpers, generated SSO manifests; teardown restores tracked generated artifacts |
+| Devcontainer      | `//tests:bats_devcontainer_test` | Multi-arch pin SSOT, doctor/post-create help, no `releases/latest` in Dockerfile |
 | Shell line coverage | `//tests:shell_coverage` (`manual`) | kcov 100% on `scripts/**/*.sh`; **5 parallel BATS shards** merged into one report. Linux amd64 + `SYS_PTRACE`. Bazel `eternal` caps at **3600s** — on slow hosts (Docker Desktop amd64 emulation) run `bash tests/shell_coverage.sh` directly instead |
 | TypeScript/Next.js (dashboard) | `bazelisk run //dashboard:test` (Vitest; alias `//dashboard:unit-test`) | host services, actions, Treemap viz, panels (with mocks) |
 | Dashboard (fast)  | `bazelisk run //dashboard:fast-test` | Vitest + ESLint + typecheck on host (no Docker, no Playwright). Default in `//:validate` when dashboard paths change. |
@@ -36,18 +37,18 @@ make test-all
 | Dashboard (local) | `bazelisk run //dashboard:visual`  | Local Playwright only; `//dashboard:visual-test` is `manual` in Bazel |
 | Kubernetes YAML   | `//lints:k8s` + Makefile `test-k8s` | syntax, schema (kubeconform), critical fields (resources, restartPolicy, NCCL) |
 | Ansible playbooks | `//ansible:validate` + ansible-lint | all playbooks + group vars + modular roles    |
-| Docs (fast)       | `//docs:test_mkdocs_build` (in `//:test-fast`) | mkdocs strict build, frontmatter, HTML/mermaid/asset checks (no Playwright) |
+| Docs (fast)       | `//docs:test_mkdocs_build` (local / docs job; not in `//:test-fast`) | mkdocs strict build, frontmatter, HTML/mermaid/asset checks (no Playwright) |
 | Docs (visual)     | `//docs:test_mkdocs_visual`        | Playwright screenshots vs goldens only |
 | Docs (combined)   | `//docs:test_mkdocs_render`        | build + visual (same as fast + visual) |
 | Safety invariants | `//tests:safety_invariants` + BATS + `make test-k8s` | No `Always` restart, low backoff, NCCL vars, GPU requests on ray, probes/securityContext on kimi, resource-policy registry sync |
-| Documentation coverage | `//tests:doc_coverage` (in `//:test-fast`) | `manage.sh` `# @command`, shell `# @function`, Python docstrings, YAML `# Purpose:`, BUILD `Package purpose:`, dashboard export JSDoc |
+| Documentation coverage | `//tests:doc_coverage` + `//tests:doc_coverage_unit` (in `//:test-fast` / suite) | `manage.sh` `# @command`, shell `# @function` (incl. `k8s/workloads/**/*.sh`), Python docstrings, YAML headers, **no inline ConfigMap language embeds**, **no multi-line shell in mcp manifests**, mkdocs nav pages listed in `docs/BUILD.bazel`, BUILD `Package purpose:`, dashboard export JSDoc |
 
 ## Safety invariants
 
 Safety checks are layered:
 
 1. **Bazel target** — `//tests:safety_invariants` (included in `//:test-fast`): manifest greps plus `config/resource-policy.json` registry sync.
-2. **Dynamic (BATS)** — `//tests:bats_manage_test` mocks `kubectl` and exercises confirmation prompts, pre-flight GPU checks, and manifest application for `start-kimi` / `start-test`.
+2. **Dynamic (BATS)** — `//tests:bats_manage_test` mocks `kubectl` and exercises confirmation prompts, pre-flight GPU checks, and manifest application for `start-kimi` / `start-test`. `//tests:bats_visual_test` covers ComfyUI visual starts (`start-flux-*`, `stop-visual`) and offline download utilities. `//tests:bats_comfy_scripts_test` covers standalone comfy-base install/run scripts and the Spark free-memory patch.
 3. **Static greps (Makefile `test-k8s`)** — same critical manifest checks for non-Bazel users.
 4. **CI** (`.github/workflows/ci.yml` `bazel-core` job) — runs `//:test-fast`, which includes `//tests:safety_invariants`.
 
@@ -55,6 +56,8 @@ Run locally:
 
 ```bash
 bazelisk test //tests:bats_manage_test
+bazelisk test //tests:bats_visual_test
+bazelisk test //tests:bats_comfy_scripts_test
 make test-k8s          # or full make test-all
 ```
 
@@ -84,7 +87,7 @@ Uses `dashboard/Dockerfile.test` + `dashboard/scripts/run-hermetic-tests.sh`. Lo
 
 Every push and PR runs the complete suite via GitHub Actions (see `.github/workflows/ci.yml`).
 
-Path-filtered parallel jobs: `bazel-core` (`//:test-fast` + lint), `dashboard-unit` (host fast tests), `dashboard-hermetic` (cached Docker + Playwright), `docs-and-render` (`//docs:test_mkdocs_build` then `//docs:test_mkdocs_visual`). Safety greps live in `//tests:safety_invariants` inside `//:test-fast`.
+Path-filtered parallel jobs: `bazel-core` (`//:test-fast` + lint), `dashboard-unit` (host fast tests), `dashboard-hermetic` (Docker + Playwright; skips re-Vitest when unit passed), `docs-and-render` (single `//docs:test_mkdocs_render`). Safety greps live in `//tests:safety_invariants` inside `//:test-fast`. See `docs/BUILDING_WITH_BAZEL.md` for path-filter details.
 
 ## Adding New Tests
 

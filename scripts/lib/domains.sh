@@ -18,52 +18,7 @@ lab_domains_path() {
 # @function _lab_domains_load
 # Emit key=value lines for domain config (env overrides file).
 _lab_domains_load() {
-  python3 - "$(lab_domains_path)" <<'PY'
-import json, os, sys
-from pathlib import Path
-
-def load_yaml(path: Path) -> dict:
-    try:
-        import yaml  # type: ignore
-        return yaml.safe_load(path.read_text()) or {}
-    except Exception:
-        return json.loads(path.with_suffix(".json").read_text())
-
-cfg = load_yaml(Path(sys.argv[1]))
-sso = cfg.get("sso") or {}
-tls = cfg.get("tls") or {}
-
-def env(key: str, default: str) -> str:
-    return os.environ.get(key, default) or default
-
-local_d = env("LAB_LOCAL_DOMAIN", env("LAB_SSO_DOMAIN", str(cfg.get("local_domain", "lab.local"))))
-public_d = env("LAB_PUBLIC_DOMAIN", str(cfg.get("public_domain", "") or ""))
-primary = env("LAB_DOMAIN_PROFILE", env("LAB_PRIMARY_DOMAIN", str(cfg.get("primary", "local"))))
-email_d = env("LAB_EMAIL_DOMAIN", str(cfg.get("email_domain", local_d)))
-https_port = env("LAB_SSO_HTTPS_PORT", str(sso.get("https_port", 32443)))
-http_port = env("LAB_SSO_HTTP_PORT", str(sso.get("http_port", 32080)))
-acme_email = env("LAB_ACME_EMAIL", str(tls.get("acme_email", "") or ""))
-
-if primary not in ("local", "public"):
-    primary = "local"
-if primary == "public" and not public_d:
-    primary = "local"
-
-fields = {
-    "local_domain": local_d,
-    "public_domain": public_d,
-    "primary": primary,
-    "email_domain": email_d,
-    "https_port": https_port,
-    "http_port": http_port,
-    "acme_email": acme_email,
-    "local_issuer": str(tls.get("local_issuer", "lab-ca-issuer")),
-    "public_issuer": str(tls.get("public_issuer", "letsencrypt-prod")),
-    "acme_solver": str(tls.get("acme_solver", "http01")),
-}
-for k, v in fields.items():
-    print(f"{k}={v}")
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/domains_lab_domains_load.py" "$(lab_domains_path)"
 }
 
 # @function _lab_domains_get
@@ -169,55 +124,14 @@ lab_service_url() {
 # @function lab_hosts_file_line
 lab_hosts_file_line() {
   local ip="${1:-<node-ip>}"
-  python3 - "$ip" "$(lab_domains_path)" <<'PY'
-import json, sys
-from pathlib import Path
-
-def load_yaml(path: Path) -> dict:
-    try:
-        import yaml  # type: ignore
-        return yaml.safe_load(path.read_text()) or {}
-    except Exception:
-        return json.loads(path.with_suffix(".json").read_text())
-
-cfg = load_yaml(Path(sys.argv[2]))
-ip = sys.argv[1]
-local_d = cfg.get("local_domain", "lab.local")
-hosts = ["auth", "dashboard", "chat", "coder", "grafana", "headlamp", "kasm", "traefik", "oauth"]
-print(f"{ip} " + " ".join(f"{h}.{local_d}" for h in hosts))
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/domains_lab_hosts_file_line.py" "$ip" "$(lab_domains_path)"
 }
 
 # @function lab_domain_urls_json
 # Emit JSON with local/public URL maps for a service host.
 lab_domain_urls_json() {
   local host="${1:-}"
-  python3 - "$host" <<'PY'
-import json, os, subprocess, sys
-
-host = sys.argv[1]
-root = os.environ.get("REPO_ROOT", ".")
-loader = subprocess.check_output(
-    ["bash", "-c", f"source {root}/scripts/lib/domains.sh && _lab_domains_load"],
-    text=True,
-)
-cfg = dict(line.split("=", 1) for line in loader.splitlines() if "=" in line)
-local_d = cfg["local_domain"]
-public_d = cfg.get("public_domain", "")
-port = cfg.get("https_port", "32443")
-
-def url(profile: str) -> str:
-    apex = public_d if profile == "public" and public_d else local_d
-    fqdn = f"{host}.{apex}"
-    if profile == "public" and public_d:
-        return f"https://{fqdn}/"
-    return f"https://{fqdn}:{port}/"
-
-out = {"local": url("local")}
-if public_d:
-    out["public"] = url("public")
-print(json.dumps(out))
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/domains_lab_domain_urls_json.py" "$host"
 }
 
 # @function lab_ansible_values_file
@@ -293,37 +207,7 @@ domains_set() {
       *) err "Unknown domains set option: $1"; return 1 ;;
     esac
   done
-  python3 - "$(lab_domains_path)" "$local_d" "$public_d" "$primary" "$email" "$acme_email" <<'PY'
-import json, sys
-from pathlib import Path
-
-path = Path(sys.argv[1])
-args = sys.argv[2:]
-local_d, public_d, primary, email, acme_email = (args + [""] * 5)[:5]
-
-try:
-    import yaml  # type: ignore
-except ImportError:
-    sys.stderr.write("PyYAML required for domains set\n")
-    sys.exit(1)
-
-cfg = yaml.safe_load(path.read_text()) or {}
-if local_d:
-    cfg["local_domain"] = local_d
-if public_d or public_d == "":
-    cfg["public_domain"] = public_d
-if primary:
-    cfg["primary"] = primary
-if email:
-    cfg["email_domain"] = email
-tls = cfg.setdefault("tls", {})
-if acme_email:
-    tls["acme_email"] = acme_email
-path.write_text(yaml.dump(cfg, default_flow_style=False, sort_keys=False))
-json_path = path.with_suffix(".json")
-json_path.write_text(json.dumps(cfg, indent=2) + "\n")
-print(f"Updated {path}")
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/domains_domains_set.py" "$(lab_domains_path)" "$local_d" "$public_d" "$primary" "$email" "$acme_email"
   domains_render
 }
 

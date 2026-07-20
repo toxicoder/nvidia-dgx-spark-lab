@@ -21,25 +21,7 @@ mcp_policy_json_path() {
 
 # @function _mcp_load_policy_json
 _mcp_load_policy_json() {
-  python3 - "$(mcp_policy_json_path)" "$(mcp_policy_path)" <<'PY'
-import json, sys
-from pathlib import Path
-
-def load_policy(json_path, yaml_path):
-    jp = Path(json_path)
-    if jp.is_file():
-        return json.loads(jp.read_text())
-    yp = Path(yaml_path)
-    if not yp.is_file():
-        return {}
-    try:
-        import yaml
-        return yaml.safe_load(yp.read_text()) or {}
-    except Exception:
-        return {}
-
-print(json.dumps(load_policy(sys.argv[1], sys.argv[2])))
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/mcp_mcp_load_policy_json.py" "$(mcp_policy_json_path)" "$(mcp_policy_path)"
 }
 
 # @function mcp_namespace
@@ -55,45 +37,13 @@ ensure_mcp_namespace() {
 # @function _mcp_stack_startup_order
 _mcp_stack_startup_order() {
   local stack_id="$1"
-  python3 - "$(mcp_policy_path)" "$stack_id" <<'PY'
-import json, sys
-from pathlib import Path
-
-def load_yaml(path):
-    try:
-        import yaml
-        return yaml.safe_load(Path(path).read_text()) or {}
-    except Exception:
-        text = Path(path).read_text()
-        # minimal fallback: empty
-        return {}
-
-policy = load_yaml(sys.argv[1])
-stack = policy.get("stacks", {}).get(sys.argv[2], {})
-order = stack.get("startup_order") or stack.get("stack_with", [])
-print("\n".join(order))
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/mcp_mcp_stack_startup_order.py" "$(mcp_policy_path)" "$stack_id"
 }
 
 # @function _mcp_component_kustomize
 _mcp_component_kustomize() {
   local component="$1"
-  python3 - "$(mcp_policy_path)" "$component" <<'PY'
-import sys
-from pathlib import Path
-
-def load_yaml(path):
-    try:
-        import yaml
-        return yaml.safe_load(Path(path).read_text()) or {}
-    except Exception:
-        return {}
-
-policy = load_yaml(sys.argv[1])
-components = policy.get("components", {})
-entry = components.get(sys.argv[2], {})
-print(entry.get("kustomize", ""))
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/mcp_mcp_component_kustomize.py" "$(mcp_policy_path)" "$component"
 }
 
 # @function start_mcp_component
@@ -141,36 +91,7 @@ print(json.dumps({
 get_mcp_stack_status_json() {
   local ns
   ns=$(mcp_namespace)
-  python3 - "$ns" "$(mcp_policy_path)" <<'PY'
-import json, subprocess, sys
-from pathlib import Path
-
-def load_yaml(path):
-    try:
-        import yaml
-        return yaml.safe_load(Path(path).read_text()) or {}
-    except Exception:
-        return {}
-
-ns = sys.argv[1]
-policy = load_yaml(sys.argv[2])
-components = list(policy.get("components", {}).keys())
-raw = subprocess.check_output(
-    ["kubectl", "get", "deploy,statefulset,cronjob", "-n", ns, "-o", "json"],
-    text=True,
-)
-data = json.loads(raw)
-items = data.get("items", [])
-by_name = {}
-for item in items:
-    meta = item.get("metadata", {})
-    by_name[meta.get("name", "")] = {
-        "kind": item.get("kind"),
-        "ready": item.get("status", {}),
-    }
-out = {"namespace": ns, "components": {c: by_name.get(c, {"present": False}) for c in components}}
-print(json.dumps(out))
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/mcp_get_mcp_stack_status_json.py" "$ns" "$(mcp_policy_path)"
 }
 
 # @function start_mcp_stack
@@ -244,25 +165,7 @@ stop_mcp_stack() {
   policy_path=$(mcp_policy_path)
 
   if [[ "$target" == "all" ]]; then
-    python3 - "$policy_path" <<'PY'
-import sys
-from pathlib import Path
-
-def load_yaml(path):
-    try:
-        import yaml
-        return yaml.safe_load(Path(path).read_text()) or {}
-    except Exception:
-        return {}
-
-policy = load_yaml(sys.argv[1])
-names = set()
-for stack in policy.get("stacks", {}).values():
-    for c in stack.get("stack_with", []):
-        names.add(c)
-for n in sorted(names):
-    print(n)
-PY
+    python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/mcp_stop_mcp_stack.py" "$policy_path"
   else
     _mcp_stack_startup_order "$target" | tail -r
   fi | while IFS= read -r component; do

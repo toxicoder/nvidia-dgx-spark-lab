@@ -33,8 +33,11 @@ if [[ ! -f docs/requirements.txt ]]; then
   if [[ "$QUIET" != "true" ]]; then echo "Creating docs/requirements.txt..."; fi
   cat > docs/requirements.txt << 'EOF'
 mkdocs==1.6.1
-mkdocs-material==9.6.11
-mkdocs-glightbox==0.4.0
+mkdocs-material==9.7.6
+mkdocs-glightbox==0.5.2
+# Pin Playwright for reproducible visual goldens across local/CI Chromium builds.
+playwright==1.61.0
+Pillow>=10.0.0
 # mkdocs-git-revision-date-localized==1.3.0
 EOF
 elif [[ "$QUIET" != "true" ]]; then

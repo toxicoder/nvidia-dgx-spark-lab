@@ -71,7 +71,21 @@ bazelisk run //scripts:run-utility -- nemotron-stack start qwen-agentic-spark-2 
 bazelisk run //scripts:run-utility -- mcp-stack start mcp-agent-toolkit-full --confirm yes
 ```
 
-Edit `mcp/k8s/workloads/doc-ingest/configmap.yaml` to add documentation URLs to crawl.
+Edit `mcp/k8s/workloads/doc-ingest/doc-sources.json` to add documentation URLs to crawl.
+
+## Container images
+
+MCP gateways use **pre-baked** local images (`lab-mcp/<name>:local`) so pods do not
+`apt`/`npm`/`pip` install at startup. Build before first deploy:
+
+```bash
+bazelisk run //scripts:run-utility -- build-mcp-images run
+# or a single component:
+bazelisk run //scripts:run-utility -- build-mcp-images run -- component=mcp-fetch
+```
+
+Dockerfiles live under `mcp/docker/<name>/`. Deployments set `imagePullPolicy: IfNotPresent`
+so a local tag is enough on single-node labs (import into the cluster runtime if needed).
 
 ## GitHub vs Gitea
 

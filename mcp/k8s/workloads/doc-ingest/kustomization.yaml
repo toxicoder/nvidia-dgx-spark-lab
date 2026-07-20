@@ -7,12 +7,11 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 configMapGenerator:
-  - name: doc-ingest-script
+  - name: doc-ingest-config
     files:
-      - ingest.py
+      - DOC_SOURCES_JSON=doc-sources.json
 
 resources:
-  - configmap.yaml
   - cronjob.yaml
 
 generatorOptions:

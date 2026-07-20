@@ -288,6 +288,7 @@ qwen3.5-397b-nvfp4: 4-node Qwen 397B NVFP4 (SGLang distributed)
 qwen3.6-27b-nvfp4: 1-node Qwen3.6 27B dense NVFP4 (quality)
 qwen3.6-35b-a3b-nvfp4: 1-node Qwen3.6 35B-A3B MoE NVFP4-Fast (speed)
 qwen36-dual-spark-1: concurrent both on 1× Spark (GPU time-slicing)
+comfy-base: ComfyUI visual base (Deployment; Spark unified-memory patches)
 
 Model/job definitions - centralized, portable bash (no associative arrays for macOS /bin/bash 3.2 compat + set -u).
 Use lookup functions.
@@ -747,6 +748,27 @@ Usage: bazelisk run //:validate [-- --all | --update-goldens | --ci [--check-onl
 
   UPDATE_SNAPSHOTS=1 bazelisk run //:validate -- --update-goldens
 
+### Function `path_matches_ci_graph`
+
+Graph / orchestrator changes force all expensive CI slices.
+
+### Function `path_matches_ci_workflow`
+
+Workflow/action YAML only — does not force hermetic/docs by itself.
+
+
+
+<!-- source: scripts/ci_check_only.sh -->
+
+## ci_check_only — lightweight CI validate-gate
+
+Verifies path-filtered GitHub/Gitea jobs reported success (or were correctly
+skipped). No Bazel cold start — intended for the validate-gate job only.
+
+Env (set by CI):
+  BAZEL_CORE_RESULT, DASHBOARD_UNIT_RESULT, DASHBOARD_HERMETIC_RESULT, DOCS_RESULT
+  RUN_BAZEL_CORE, RUN_DASHBOARD, RUN_DOCS  (true/false or 1/0)
+
 
 
 <!-- source: scripts/yaml_format.sh -->
@@ -762,6 +784,117 @@ Usage:
 
   scripts/yaml_format.sh --write    # format in place (//:fix)
   scripts/yaml_format.sh --check    # verify formatting (lint)
+
+
+
+<!-- source: scripts/ci/install-lint-tools.sh -->
+
+## CI lint tool installer
+
+Install host lint and formatter binaries on Ubuntu GitHub/Gitea runners
+(and optionally other Linux hosts). Shared by setup-bazel and local bootstrap.
+
+Versions come from .devcontainer/tool-versions.env (single source of truth).
+Supports linux/amd64 and linux/arm64 (DGX Spark Grace, multi-arch self-hosted).
+
+Installs:
+
+  - shellcheck, yamllint, jq (apt)
+
+  - ansible, ansible-lint, ruff, mypy, prettier, pytest (pip / npm)
+
+  - kubeconform, buildifier, shfmt (release binaries, arch-aware)
+
+**Safety**:
+
+- Installs to system paths only; does not modify repo sources or cluster config.
+
+- Requires `sudo` for apt and `/usr/local/bin` placement when not root.
+
+- When LINT_BINS_CACHE_HIT=true, skips re-downloading release binaries.
+
+Usage (internal — called from setup-bazel / CI):
+  .github/scripts/install-lint-tools.sh
+
+### Function `detect_arch`
+
+Map uname -m → release asset arch (amd64|arm64).
+
+
+
+<!-- source: scripts/utilities/download-ltx.sh -->
+
+## download-ltx
+
+Download LTX-2.3 ComfyUI components (Kijai split checkpoints).
+
+Tiers:
+  --tier balanced  distilled FP8 (default for speed)
+  --tier quality   BF16 distilled / full-precision family weights
+  --tier all       balanced + quality
+
+```bash
+Usage:
+  ./scripts/utilities/download-ltx.sh status [--tier ...] [--json]
+  ./scripts/utilities/download-ltx.sh run [--tier ...]
+```
+
+### Command: download-ltx
+
+### Function `tier_repo`
+
+@function tier_repo
+Map tier id to primary Hugging Face repo id.
+
+### Function `tier_min_gb`
+
+@function tier_min_gb
+Shared HF repo; quality may pull larger BF16 files (min GB differs).
+
+### Function `tier_dir`
+
+@function tier_dir
+Local download directory for a tier (separate paths per tier).
+
+### Function `check_hf_cli`
+
+@function check_hf_cli
+Require huggingface-cli or hf on PATH.
+
+### Function `hf_download`
+
+@function hf_download
+Invoke huggingface-cli download or hf download with the given args.
+
+### Function `tier_size_gb`
+
+@function tier_size_gb
+On-disk size of a directory in GB (0 if missing).
+
+### Function `tiers_to_process`
+
+@function tiers_to_process
+Expand TIER into the list of tier ids to process.
+
+### Function `parse_args`
+
+@function parse_args
+Parse CLI flags into CMD, TIER, and JSON_FLAG.
+
+### Function `link_into_comfy`
+
+@function link_into_comfy
+Best-effort symlink snapshot files into Comfy model subdirs.
+
+### Function `cmd_status`
+
+@function cmd_status
+Print tier readiness (JSON with --json).
+
+### Function `cmd_run`
+
+@function cmd_run
+Download selected tiers and link into Comfy paths.
 
 
 
@@ -799,6 +932,48 @@ Usage:
 ### Command: sync-hermes-seed
 
 @description Sync Hermes workspace-dev profile files into the Coder spark-lab template seed directory.
+
+
+
+<!-- source: scripts/utilities/build-mcp-images.sh -->
+
+## build-mcp-images — build local lab-mcp/* container images for agent-tools
+
+Builds pre-baked MCP gateway images so Deployments do not apt/npm/pip at
+pod start. Run from a machine with Docker (or via Bazel utility runner).
+
+```bash
+Usage:
+  bazelisk run //scripts:run-utility -- build-mcp-images status
+  bazelisk run //scripts:run-utility -- build-mcp-images run
+  bazelisk run //scripts:run-utility -- build-mcp-images run -- component=mcp-fetch
+```
+
+### Command: status
+
+List MCP image Dockerfiles and whether local tags exist.
+
+### Function `status`
+
+List MCP image Dockerfiles and whether local tags exist.
+
+### Command: run
+
+Build one or all MCP images from the repository root.
+
+### Function `run`
+
+Build one or all MCP images from the repository root.
+
+### Function `usage`
+
+@function usage
+Print CLI help for build-mcp-images.
+
+### Function `main`
+
+@function main
+Dispatch utility subcommands (status/run).
 
 
 
@@ -899,6 +1074,39 @@ See reboot-safety.md and AGENTS for mandatory pre-reboot steps.
 ### Command: system-update
 
 ### Command: update-system
+
+
+
+<!-- source: scripts/utilities/install-dev-tools.sh -->
+
+## install-dev-tools
+
+Host-side bootstrap for contributors who are **not** using the devcontainer.
+Prefer the multi-arch devcontainer when possible (Apple Silicon, Windows,
+Linux, DGX Spark).
+
+```bash
+Usage:
+  ./scripts/utilities/install-dev-tools.sh status
+  ./scripts/utilities/install-dev-tools.sh run
+```
+
+### Command: install-dev-tools
+
+### Function `print_platform`
+
+@function print_platform
+Describe host OS/arch and recommended path.
+
+### Function `cmd_status`
+
+@function cmd_status
+Report whether key tools are on PATH.
+
+### Function `cmd_run`
+
+@function cmd_run
+Best-effort install of lint tools on this host.
 
 
 
@@ -1043,6 +1251,83 @@ Dashboard can trigger sync and show status.
 ### Command: sync-ollama-models
 
 ### Command: ollama-sync
+
+
+
+<!-- source: scripts/utilities/download-flux.sh -->
+
+## download-flux
+
+Download FLUX.2 checkpoints for ComfyUI visual workloads on DGX Spark.
+
+Tiers:
+  --tier fast      black-forest-labs/FLUX.2-klein-9b-nvfp4 (+ optional Nunchaku)
+  --tier quality   black-forest-labs/FLUX.2-dev (FP8-oriented Comfy layout)
+  --tier all       fast + quality
+
+```bash
+Usage:
+  ./scripts/utilities/download-flux.sh status [--tier ...] [--json]
+  ./scripts/utilities/download-flux.sh run [--tier ...]
+
+```
+
+Weights land under MODELS_DIR (default /mnt/models) with Comfy-friendly layout.
+
+### Command: download-flux
+
+### Function `tier_repo`
+
+@function tier_repo
+Map tier id to primary Hugging Face repo id.
+
+### Function `tier_min_gb`
+
+@function tier_min_gb
+Minimum on-disk GB required for tier readiness.
+
+### Function `tier_dir`
+
+@function tier_dir
+Local download directory for a tier.
+
+### Function `comfy_link_dir`
+
+@function comfy_link_dir
+ComfyUI models subdir for tier (under MODELS_DIR/comfy).
+
+### Function `check_hf_cli`
+
+@function check_hf_cli
+
+### Function `hf_download`
+
+@function hf_download
+
+### Function `tier_size_gb`
+
+@function tier_size_gb
+
+### Function `tiers_to_process`
+
+@function tiers_to_process
+
+### Function `parse_args`
+
+@function parse_args
+
+### Function `cmd_status`
+
+@function cmd_status
+
+### Function `link_into_comfy`
+
+@function link_into_comfy
+Best-effort symlink snapshot files into Comfy diffusion_models dir.
+
+### Function `cmd_run`
+
+@function cmd_run
 
 
 
@@ -1339,6 +1624,77 @@ Deploy helpers for agent-tools namespace workloads and policy gates.
 ### Function `stop_mcp_stack`
 
 @function stop_mcp_stack
+
+
+
+<!-- source: scripts/lib/visual.sh -->
+
+## Visual generative AI (ComfyUI / FLUX / LTX) helpers
+
+Lifecycle for DGX Spark visual workloads: comfy-base, flux-*, ltx-*, flux-to-ltx.
+Heavy GPU + unified-memory consumers — manual start only, capacity-gated.
+
+!!! warning
+
+    Safety:
+      - One visual Deployment at a time (label workload=visual)
+      - enforce_capacity before apply
+      - Heavy confirmation for GPU visual starts
+      - Never auto-starts on reboot
+
+### Function `get_visual_kustomize_dir`
+
+@function get_visual_kustomize_dir
+Returns relative kustomize path for a visual model id, or empty if unknown.
+
+### Function `guard_active_visual`
+
+@function guard_active_visual
+Fail if another visual Deployment is already present (exclusive GPU policy).
+@param $1  Model id being started (allowed if it is the only match).
+
+### Function `apply_visual_kustomize`
+
+@function apply_visual_kustomize
+Apply a visual kustomize directory under REPO_ROOT.
+@param $1  Relative directory path
+
+### Function `check_visual_unified_memory`
+
+@function check_visual_unified_memory
+Pre-flight: warn/fail if cluster allocatable memory looks too low for model request.
+Uses resource-policy request memory; fails only when allocatable < request (strict).
+@param $1  Model id
+
+### Function `check_visual_weights_hint`
+
+@function check_visual_weights_hint
+Non-fatal warn if common Comfy model dirs look empty.
+
+### Function `start_visual_workload`
+
+@function start_visual_workload
+Generic visual starter: confirm (if heavy) + capacity + exclusivity + apply -k.
+@param $1  Model id (policy key)
+@param $2  Optional human label
+
+### Command: start-flux-fast
+
+### Command: start-flux-quality
+
+### Command: start-ltx-balanced
+
+### Command: start-ltx-quality
+
+### Command: start-flux-to-ltx
+
+### Command: start-comfy-base
+
+### Command: stop-comfy-base
+
+### Command: stop-visual
+
+### Command: status-visual
 
 
 

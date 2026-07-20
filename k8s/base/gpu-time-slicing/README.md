@@ -1,6 +1,8 @@
 # GPU time-slicing (dual logical GPUs)
 
 Opt-in ConfigMap for NVIDIA device plugin time-slicing with `replicas: 2`.
+The device-plugin fragment lives in `any.yaml` and is wired via `configMapGenerator`
+(key `any`) so the fragment stays a real YAML file.
 
 ## When to use
 

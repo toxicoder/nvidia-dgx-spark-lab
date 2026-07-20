@@ -1,0 +1,7 @@
+[
+  { "op": "replace", "path": "/metadata/name", "value": "flux-quality" },
+  { "op": "replace", "path": "/metadata/labels/app", "value": "flux-quality" },
+  { "op": "add", "path": "/metadata/labels/family", "value": "flux" },
+  { "op": "add", "path": "/metadata/labels/mode", "value": "quality" },
+  { "op": "replace", "path": "/spec/selector/app", "value": "flux-quality" }
+]
