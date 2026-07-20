@@ -879,6 +879,48 @@ Usage:
 
 
 
+<!-- source: scripts/utilities/build-mcp-images.sh -->
+
+## build-mcp-images — build local lab-mcp/* container images for agent-tools
+
+Builds pre-baked MCP gateway images so Deployments do not apt/npm/pip at
+pod start. Run from a machine with Docker (or via Bazel utility runner).
+
+```bash
+Usage:
+  bazelisk run //scripts:run-utility -- build-mcp-images status
+  bazelisk run //scripts:run-utility -- build-mcp-images run
+  bazelisk run //scripts:run-utility -- build-mcp-images run -- component=mcp-fetch
+```
+
+### Command: status
+
+List MCP image Dockerfiles and whether local tags exist.
+
+### Function `status`
+
+List MCP image Dockerfiles and whether local tags exist.
+
+### Command: run
+
+Build one or all MCP images from the repository root.
+
+### Function `run`
+
+Build one or all MCP images from the repository root.
+
+### Function `usage`
+
+@function usage
+Print CLI help for build-mcp-images.
+
+### Function `main`
+
+@function main
+Dispatch utility subcommands (status/run).
+
+
+
 <!-- source: scripts/utilities/spark-clock.sh -->
 
 ## spark-clock

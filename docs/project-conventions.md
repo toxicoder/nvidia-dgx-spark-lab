@@ -203,7 +203,7 @@ Run `bazelisk run //:fix` after sets of changes. Pure linters (shellcheck, kubec
 | Tool | Scope | Settings |
 | --- | --- | --- |
 | **buildifier** | `BUILD*`, `*.bzl` | `-mode=fix` |
-| **shfmt** | `*.sh` | `-w -s -i 2 -ci` (2-space indent, simplify, indent case) |
+| **shfmt** | `*.sh` | `-w -s -i 2 -ci` (2-space indent, simplify, indent case); check via `//lints:shfmt` |
 | **ruff** | `docs/*.py`, root `*.py` | format + `check --fix` |
 | **mypy** | all tracked `*.py` | `strict = true` per `mypy.ini`; `//lints:mypy` (manual) |
 | **prettier** | dashboard TS/TSX/MD/JSON; repo YAML via `scripts/yaml_format.sh` | 2-space, 120 cols, double quotes (`prettier.config.mjs`) |
@@ -232,36 +232,131 @@ Hooks mirror Bazel lint tools: buildifier check, shfmt, shellcheck, prettier YAM
 
 ## 6. Shell scripts
 
-### Baseline
+This section is the lab’s **adapted professional Bash style guide**. It synthesizes Google’s Shell Style Guide, ShellCheck, shfmt, and bats-core practice, tailored to Bazel, kcov, and the generated shell reference.
 
-Every script starts with:
+### Philosophy
+
+| Principle | Lab practice |
+| --- | --- |
+| **Readability first** | Prefer clarity over clever one-liners |
+| **Small, focused functions** | One responsibility; extract aggressively |
+| **Fail fast and loudly** | `set -euo pipefail` on entry scripts; never continue in a broken state |
+| **Explicit over implicit** | Quote expansions; name locals; document public APIs |
+| **Testable by design** | Libs are sourceable; entry scripts use thin `main` + source guards |
+| **ShellCheck is mandatory** | Warnings are defects until fixed or justified with a comment |
+| **Consistency** | shfmt + this section beat personal taste |
+
+**When to use Bash:** orchestration, thin wrappers, cluster ops (`manage.sh`, utilities). Prefer Python (or another language) when a *new* piece needs complex data structures, non-trivial algorithms, or would be hard to unit-test in shell.
+
+**Lab exception (scale):** modular domain libraries under `scripts/lib/` may exceed ~100 lines because they are the operational surface. That is intentional—do not grow a single file with spaghetti; split domains instead. Do **not** rewrite `manage.sh` to Python without an explicit project decision.
+
+### Baseline (entry scripts)
+
+Every **executable** entry script starts with:
 
 ```bash
 #!/usr/bin/env bash
+#
+# ## short-name — one-line purpose
+#
+# Longer description, assumptions, usage, safety notes.
+
 set -euo pipefail
 ```
 
-Resolve paths explicitly:
+- Prefer `#!/usr/bin/env bash` (portability) over Google’s `#!/bin/bash`.
+- Optional: `set -Eeuo pipefail` when you install an `ERR` trap that must inherit into functions.
+- Optional: `IFS=$'\n\t'` only when the script benefits; do not change IFS globally in libs without care.
+- **Libraries** (`scripts/lib/*.sh`) are *sourced* and intentionally omit `set -euo`—they inherit the caller’s options.
+
+Resolve paths with project helpers (kcov-safe), not only raw `BASH_SOURCE`:
 
 ```bash
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+# shellcheck source=lib/paths.sh disable=SC1091
+source "$(cd "$(dirname "${0}")" && pwd)/lib/paths.sh"
+SCRIPT_DIR="$(lab_script_dir 1 scripts)"
+REPO_ROOT="$(lab_repo_root)"
 ```
 
-Source `lib/common.sh` for `log`, `warn`, `err`, and tool requirements. Utilities may redefine logging with a utility-specific prefix (e.g. `[spark-clock]`).
+Source `lib/common.sh` for `log`, `warn`, `err`, `die`, and shared helpers. Utilities may redefine logging with a utility-specific prefix (e.g. `[spark-clock]`), still on **stderr**.
 
-### `manage.sh` architecture
+### Canonical skeleton
 
-- **Thin dispatcher:** large `case` on `$1` delegates to `lib/*.sh` functions
-- **Preflight:** `require_kubectl` + `check_cluster_access` on mutating commands
-- **Kubeconfig:** auto-sets `KUBECONFIG` if `${REPO_ROOT}/kubeconfig/config` exists
-- **Default:** `help` when no args
+**Entry script** (utility or standalone tool):
 
-Libs loaded in fixed order: `common.sh`, `check_tool.sh`, `domains.sh`, `resources.sh`, `models.sh`, and domain modules (`mcp.sh`, `hermes.sh`, `dev.sh`, etc.).
+```bash
+#!/usr/bin/env bash
+#
+# ## tool-name
+#
+# Purpose and usage.
+#
+# @command tool-name
 
-### Structured documentation comments
+set -euo pipefail
 
-The docs generator (`docs/generate_shell_docs.py`) extracts these markers:
+# shellcheck source=../lib/paths.sh disable=SC1091
+source "$(cd "$(dirname "${0}")" && pwd)/../lib/paths.sh"
+SCRIPT_DIR="$(lab_script_dir 1 utilities)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+# shellcheck source=../lib/common.sh
+source "${REPO_ROOT}/scripts/lib/common.sh"
+
+# @function cmd_status
+# ...
+cmd_status() { ... }
+
+# @function main
+# Thin CLI dispatch.
+main() {
+  local sub="${1:-status}"
+  ...
+}
+
+# Source guard: allows tests/libs to source without executing.
+# kcov may clear BASH_SOURCE; empty BASH_SOURCE still runs main when executed.
+if [[ -z "${BASH_SOURCE[0]:-}" || "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi
+```
+
+**Library** (`scripts/lib/*.sh`): `# ##` header, `# @function` on every function, no top-level `main "$@"`, minimal side effects beyond defaults / soft path setup.
+
+### Formatting (shfmt is source of truth)
+
+| Rule | Value |
+| --- | --- |
+| Indent | 2 spaces, no tabs (except `<<-` heredocs) |
+| shfmt | `shfmt -w -s -i 2 -ci` (`//:fix`) / check: `//lints:shfmt` |
+| Conditionals | `[[ … ]]` preferred over `[` / `test` |
+| Command sub | `$(…)` not backticks |
+| Arithmetic | `(( … ))` / `$(( … ))` |
+| Lists | Arrays + `"${arr[@]}"` over space-joined strings |
+| Blank lines | Separate logical sections; never more than one consecutive blank |
+
+Soft line length: prefer ≤ 100–120 characters; break long pipelines with `|` at the start of the next line.
+
+### Variables, quoting, naming
+
+**Quoting (non-negotiable):** always double-quote expansions (`"${var}"`, `"${array[@]}"`, `"$(cmd)"`). Use `"$@"` (not `$*`) when forwarding arguments.
+
+| Kind | Pattern | Examples |
+| --- | --- | --- |
+| Locals / script vars | `lower_snake_case` | `job_name`, `json_flag` |
+| Env / constants | `UPPER_SNAKE_CASE` | `REPO_ROOT`, `NAMESPACE` |
+| Public functions | verb_noun | `start_kimi`, `check_capacity` |
+| Private helpers | `_prefix` | `_hermes_load_policy_json` |
+| Utility subcommands | `cmd_*` or `status`/`run` | `cmd_start` |
+
+- Declare every function variable with `local`.
+- Assign positionals to named locals immediately.
+- Prefer `local result; result="$(cmd)" || return 1` over `local result="$(cmd)"` when the exit status of `cmd` matters.
+
+### Functions and documentation
+
+- One responsibility per function; keep them short when practical.
+- Prefer pure-ish helpers (args in, stdout + status out); minimize global mutation.
+- **Structured comments** power the generated reference—use project markers, not Google `#####` banners:
 
 ```bash
 # ## Section Title
@@ -278,9 +373,42 @@ The docs generator (`docs/generate_shell_docs.py`) extracts these markers:
 
 # @function start_workload
 # Description of the helper function.
+# @param $1  Model or job id.
 ```
 
-Over-document in comments. The generated [shell reference](generated/shell/reference.md) is the public API surface.
+Over-document public APIs. Enforced by `//tests:doc_coverage` for gated paths.
+
+### Error handling, traps, logging
+
+| Pattern | Behavior |
+| --- | --- |
+| `require_kubectl`, `require_helm`, `require_jq` | `err` + `exit 1` |
+| `die "msg"` | `err` + `exit 1` (preferred for one-liners: `cmd \|\| die "…"`) |
+| Read-only probes | `\|\| true` tolerance |
+| Unknown subcommand | `err` + usage hint + `exit 1` |
+| Destructive ops (`cleanup`) | Require typing `DELETE` |
+| Heavy starts | Interactive `yes` or `LAB_NON_INTERACTIVE=1` + `LAB_CONFIRM_TOKEN=yes` |
+| Temps / locks | `mktemp` + `trap cleanup EXIT` (idempotent cleanup) |
+
+**Logging:** all diagnostics go to **stderr**; machine-readable or primary data goes to **stdout** so pipelines and `--json` stay clean.
+
+```bash
+log()  { echo -e "${GREEN}[manage]${NC} $*" >&2; }
+warn() { echo -e "${YELLOW}[manage][WARN]${NC} $*" >&2; }
+err()  { echo -e "${RED}[manage][ERROR]${NC} $*" >&2; }
+die()  { err "$@"; exit 1; }
+```
+
+Never leave `set -x` enabled in committed code.
+
+### `manage.sh` architecture
+
+- **Thin dispatcher:** large `case` on `$1` delegates to `lib/*.sh` functions
+- **Preflight:** `require_kubectl` + `check_cluster_access` on mutating commands
+- **Kubeconfig:** auto-sets `KUBECONFIG` if `${REPO_ROOT}/kubeconfig/config` exists
+- **Default:** `help` when no args
+
+Libs loaded in fixed order: `common.sh`, `check_tool.sh`, `domains.sh`, `resources.sh`, `models.sh`, and domain modules (`mcp.sh`, `hermes.sh`, `dev.sh`, etc.).
 
 ### Utility scripts pattern
 
@@ -293,8 +421,9 @@ Utilities in `scripts/utilities/` must implement:
 
 Additional rules:
 
-- Source `lib/common.sh`
-- Use structured comments (appear in generated docs automatically)
+- Source `lib/common.sh` (or redefine log/warn/err to stderr with a utility prefix)
+- Structured comments (`# ##` / `# @command` / `# @function`)
+- Thin `main` + **BASH_SOURCE source guard** (enforced by `//tests:doc_coverage`)
 - **Never touch inference workloads** (except dedicated stack utilities that go through Resource Guard)
 - Discoverable via Bazel `//scripts:run-utility`, dashboard Utilities panel, and docs generator
 
@@ -303,15 +432,40 @@ bazelisk run //scripts:run-utility -- spark-clock status
 bazelisk run //scripts:run-utility -- spark-clock run
 ```
 
-### Error handling
+### Unit testing (BATS)
 
-| Pattern | Behavior |
-| --- | --- |
-| `require_kubectl`, `require_helm`, `require_jq` | `err` + `exit 1` |
-| Read-only probes | `\|\| true` tolerance |
-| Unknown subcommand | `err` + usage hint + `exit 1` |
-| Destructive ops (`cleanup`) | Require typing `DELETE` |
-| Heavy starts | Interactive `yes` prompt or `LAB_NON_INTERACTIVE=1` + `LAB_CONFIRM_TOKEN=yes` |
+- Framework: **bats-core** (vendored hermetically under Bazel).
+- Tests live in `tests/bats/`; shared setup in `tests/bats/test_helper.bash`.
+- Mock external tools via `PATH` + temp binaries; use `LAB_MOCK_*` for capacity math.
+- Prefer one logical fact per `@test`; cover success and failure paths.
+- Run: `bazelisk test //tests:bats_manage_test` (and related shards).
+
+See [tests/README.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/tests/README.md).
+
+### Security and portability
+
+- Never `eval` untrusted input.
+- Quote expansions; prefer parameter expansion over unnecessary external processes.
+- `mktemp` + traps for temporary files.
+- No SUID/SGID shell scripts.
+- Assume Bash for tooling; keep **macOS `/bin/bash` 3.2** patterns where shared libs may run on developer Macs (`models.sh` avoids bash 4 associative arrays).
+- Prefer long options in non-interactive scripts when readability matters.
+
+### Tooling (non-negotiable)
+
+| Tool | Role | Target |
+| --- | --- | --- |
+| **ShellCheck** | Lint; severity warning fails | `//lints:shell` |
+| **shfmt** | Format (`//:fix`) + check | `//lints:shfmt` |
+| **BATS** | Behavior tests | `//tests:bats*` |
+| **doc_coverage** | Headers, `@function`, strict mode, main guards | `//tests:doc_coverage` |
+| **pre-commit** | Optional local mirror of ShellCheck + shfmt | `.pre-commit-config.yaml` |
+
+```bash
+bazelisk test //lints:shell //lints:shfmt --test_tag_filters=manual
+bazelisk run //:fix    # includes shfmt -w
+bazelisk run //:validate  # core includes //:lint (manual tags)
+```
 
 ### Resource Guard integration
 
@@ -320,9 +474,30 @@ bazelisk run //scripts:run-utility -- spark-clock run
 - Hermetic test env: `LAB_MOCK_NODES_JSON`, `LAB_MOCK_PODS_JSON`
 - `guard_active_job` refuses start when job already active
 
-### macOS compatibility
+### Professional script checklist
 
-`models.sh` avoids bash 4 associative arrays for `/bin/bash` 3.2 compatibility; uses `case` lookup instead.
+- [ ] Shebang + `set -euo pipefail` on **entry** scripts
+- [ ] File-level `# ##` header
+- [ ] `# @function` / `# @command` where doc_coverage gates apply
+- [ ] Locals + quoted expansions; `"$@"` for forwarding
+- [ ] Thin `main` + BASH_SOURCE source guard (utilities with `main()`)
+- [ ] Diagnostics on stderr (`log`/`warn`/`err`/`die`); data on stdout
+- [ ] Cleanup trap for temps/locks
+- [ ] ShellCheck clean (`//lints:shell`)
+- [ ] shfmt clean (`//lints:shfmt`)
+- [ ] BATS for non-trivial behavior
+- [ ] No ConfigMap language embeds (scripts/JSON/YAML); no multi-line shell in mcp manifests; no untrusted `eval`
+- [ ] Prefer Python when shell complexity budget is exhausted
+
+### Intentional deviations from generic “Google-only” guides
+
+| Topic | This lab |
+| --- | --- |
+| Shebang | `env bash` not `/bin/bash` |
+| Function docs | `# @function` / `# @param` for the docs generator |
+| Path resolution | `paths.sh` / `$0` fallbacks for kcov |
+| Script length | Modular multi-file shell OK for ops surface |
+| Libs + strict mode | Libs inherit caller `set -euo` |
 
 ---
 
@@ -372,16 +547,24 @@ k8s/
 | Exclusivity | One visual Deployment at a time; `stop-visual` clears all |
 | Docs | [visual-generative-ai.md](visual-generative-ai.md) |
 
-### ConfigMap scripts (mandatory — no inline bodies)
+### One primary language per source file (mandatory)
 
-**Never** embed shell or Python in ConfigMap `data:` multi-line blocks (`foo.sh: |`, `bar.py: |`). That bypasses shellcheck, shfmt, mypy, and `# @function` gates.
+**Never** mix languages in a single source file when a native file would work. In particular, do **not** embed secondary languages in Kubernetes YAML:
+
+| Anti-pattern | Prefer |
+| --- | --- |
+| ConfigMap `data:` with `foo.sh: \|` / `bar.py: \|` | Real script + `configMapGenerator` `files:` |
+| ConfigMap `lab-*.json: \|` workflow / config JSON | Real `.json` + `configMapGenerator` `files:` |
+| ConfigMap `settings.yml: \|` or nested YAML fragments | Real `.yml` / fragment file + generator |
+| ConfigMap `DOC_SOURCES_JSON: \|` env blobs | Real `.json` keyed as `DOC_SOURCES_JSON=path.json` |
+| Deployment `command: ["/bin/sh","-c"]` + multi-line `args: \|` | Real `entrypoint.sh` mounted at `/scripts` |
 
 **Required pattern** (same as `mcp/k8s/workloads/*` and `k8s/workloads/comfy-base/`):
 
-1. Put the script in a real file next to the kustomization (e.g. `scripts/install-comfy.sh`).
+1. Put the content in a real file next to the kustomization (e.g. `scripts/install-comfy.sh`, `workflows/lab-flux-fast.json`, `settings.yml`, `entrypoint.sh`).
 2. Reference it from `kustomization.yaml` via `configMapGenerator` + `files:`.
 3. Set `disableNameSuffixHash: true` when Deployments pin a fixed ConfigMap name.
-4. Keep full YAML headers on the kustomization; document the script with `# ##` / `# @function` like any other shell.
+4. Keep full YAML headers on the kustomization; document shell with `# ##` / `# @function` like any other script.
 
 ```yaml
 configMapGenerator:
@@ -391,9 +574,30 @@ configMapGenerator:
       - run-comfy.sh=scripts/run-comfy.sh
     options:
       disableNameSuffixHash: true
+  - name: flux-fast-workflow
+    files:
+      - lab-flux-fast.json=workflows/lab-flux-fast.json
+    options:
+      disableNameSuffixHash: true
 ```
 
-Enforced by `//tests:doc_coverage` (`no inline ConfigMap scripts`). Workflow JSON and plain config literals are fine; only `*.sh` / `*.bash` / `*.py` embeds are banned.
+Enforced by `//tests:doc_coverage` (`no inline ConfigMap language embeds`, `no multi-line shell in mcp manifests`).
+
+**Intentional exceptions** (not polyglot source — dual representation or platform-native):
+
+| Exception | Why allowed |
+| --- | --- |
+| Kustomize JSON Patch files (`patches/*.json`) next to YAML | Separate file, correct format for strategic/JSON merge patches |
+| Policy YAML + JSON twins (`resource-policy.yaml` / `.json`) | Human vs machine SoT pair |
+| Short inference Job `sh -c` one-liners for `$(ENV)` expansion | Kubernetes does not expand env in plain `args` |
+| Ansible `shell:` / cloud-init / Jinja2 templates | Platform-native embedding |
+| `*.example.yaml` Secret templates with nested YAML keys | Operator copy-paste examples |
+| Generated ConfigMaps (scrape/authelia) | Generators write pure sibling YAML (`prometheus.yml`, `configuration.yml`) plus readable literal-block ConfigMaps — do not hand-edit outputs |
+| Tiny one-line `python3 -c` JSON field picks in shell | Acceptable when a full module would be noise; multi-line Python belongs in `scripts/lib/py/` |
+
+### ConfigMap scripts (mandatory — no inline bodies)
+
+Scripts are the historical special case of the rule above: never embed shell or Python in ConfigMap `data:` multi-line blocks.
 
 ### Workload README template
 
@@ -602,7 +806,7 @@ Every tracked source file must have stack-appropriate documentation. This is enf
 | **YAML/YML** (K8s, Ansible, Helm, config) | Top-of-file `#` header: Purpose, Source of truth, Regenerate (or `n/a`), Safety | N/A |
 | **BUILD.bazel** | Package-purpose `"""Package purpose: ..."""` docstring at top | N/A |
 | **Markdown** (`docs/`) | YAML frontmatter + "What's on this page" / "What this enables" (see below); **every** page listed in `mkdocs.yml` `nav` must also be in `docs/BUILD.bazel` data (`//docs:serve`, `//docs:docs`, `_RENDER_TEST_DATA`) | N/A |
-| **ConfigMap-mounted scripts** | Real files + `configMapGenerator` `files:` only — never inline `*.sh`/`*.py` in ConfigMap `data:` | N/A |
+| **ConfigMap language content** | Real files + `configMapGenerator` `files:` only — never multi-line embeds of scripts, JSON, nested YAML, or `*_JSON` blobs | N/A |
 
 **Exceptions:**
 
@@ -616,9 +820,10 @@ Every tracked source file must have stack-appropriate documentation. This is enf
 
 | Gate | Enforces |
 | --- | --- |
-| `//tests:doc_coverage` | `@command` / `@function` / YAML headers / no inline ConfigMap scripts / mkdocs↔Bazel page lists / BUILD package purpose / dashboard JSDoc |
+| `//tests:doc_coverage` | `@command` / `@function` / YAML headers / no inline ConfigMap language embeds / no multi-line shell in mcp manifests / mkdocs↔Bazel page lists / BUILD package purpose / dashboard JSDoc |
 | `//tests:doc_coverage_unit` | Unit tests for the pure helpers behind those rules |
-| `//lints:shellcheck` (manual lint suite) | Real `.sh` files only (another reason not to embed scripts in YAML) |
+| `//lints:shell` (manual lint suite) | ShellCheck on real `.sh` files (warnings fail; another reason not to embed scripts in YAML) |
+| `//lints:shfmt` (manual lint suite) | Format drift check (`shfmt -d -s -i 2 -ci`) |
 
 **Regenerate after API comment changes:**
 
@@ -695,7 +900,7 @@ Default workflow for non-trivial changes:
 
 | Area | Tools | Key targets |
 | --- | --- | --- |
-| Shell | BATS + shellcheck | `//tests:bats_manage_test`, `//tests:bats_utilities_test` |
+| Shell | BATS + shellcheck + shfmt | `//tests:bats_manage_test`, `//tests:bats_utilities_test`, `//lints:shell`, `//lints:shfmt` |
 | Kubernetes | yamllint + kubeconform + safety greps | `//lints:k8s`, `//tests:safety_invariants` |
 | Ansible | ansible-lint + syntax | `//ansible:validate` |
 | Dashboard | Vitest + Playwright (Docker) | `//dashboard:hermetic-test` |
@@ -786,12 +991,14 @@ Management script confirmations and Resource Guard gates must not be bypassed in
 
 ### Adding a utility script
 
-1. Create `scripts/utilities/<name>.sh` with `set -euo pipefail`
+1. Create `scripts/utilities/<name>.sh` with `#!/usr/bin/env bash` + `set -euo pipefail`
 2. Implement `status [--json]` and idempotent `run`
-3. Source `lib/common.sh`; add structured `# ##` / `# @command` comments
-4. Do not touch inference workloads
-5. Add BATS coverage in `tests/bats/utilities.bats`
-6. Verify discovery: `bazelisk run //scripts:run-utility -- <name> status`
+3. Source `lib/common.sh` (diagnostics on stderr); add structured `# ##` / `# @command` / `# @function` comments
+4. Thin `main` + BASH_SOURCE source guard (see §6 skeleton)
+5. Do not touch inference workloads
+6. Add BATS coverage in `tests/bats/utilities.bats`
+7. Verify discovery: `bazelisk run //scripts:run-utility -- <name> status`
+8. `bazelisk test //lints:shell //lints:shfmt --test_tag_filters=manual`
 
 ### Adding a dashboard panel
 
