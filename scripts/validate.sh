@@ -106,16 +106,19 @@ path_matches_dashboard() {
 
 path_matches_docs() {
   local path="$1"
+  # Do not fire docs/Playwright for arbitrary scripts — only shell doc sources
+  # and docs tree. Mirrors .github/workflows/ci.yml docs filter.
   [[ "$path" == docs/* ]] && return 0
   [[ "$path" == mkdocs.yml ]] && return 0
-  [[ "$path" == scripts/* ]] && return 0
+  [[ "$path" == scripts/manage.sh ]] && return 0
+  [[ "$path" == scripts/lib/* ]] && return 0
+  [[ "$path" == scripts/utilities/* ]] && return 0
   return 1
 }
 
-path_matches_ci_config() {
+# Graph / orchestrator changes force all expensive CI slices.
+path_matches_ci_graph() {
   local path="$1"
-  [[ "$path" == .github/* ]] && return 0
-  [[ "$path" == .gitea/* ]] && return 0
   [[ "$path" == BUILD.bazel ]] && return 0
   [[ "$path" == MODULE.bazel ]] && return 0
   [[ "$path" == MODULE.bazel.lock ]] && return 0
@@ -126,12 +129,28 @@ path_matches_ci_config() {
   return 1
 }
 
+# Workflow/action YAML only — does not force hermetic/docs by itself.
+path_matches_ci_workflow() {
+  local path="$1"
+  [[ "$path" == .github/* ]] && return 0
+  [[ "$path" == .gitea/* ]] && return 0
+  return 1
+}
+
+path_matches_ci_config() {
+  local path="$1"
+  path_matches_ci_graph "$path" && return 0
+  path_matches_ci_workflow "$path" && return 0
+  return 1
+}
+
 classify_path() {
   local path="$1"
   path_matches_bazel_core "$path" && echo bazel-core
   path_matches_dashboard "$path" && echo dashboard
   path_matches_docs "$path" && echo docs
-  path_matches_ci_config "$path" && echo ci-config
+  path_matches_ci_graph "$path" && echo ci-graph
+  path_matches_ci_workflow "$path" && echo ci-workflow
 }
 
 detect_changed_slices() {
@@ -165,6 +184,15 @@ detect_changed_slices() {
       bazel-core) want_bazel=1 ;;
       docs) want_docs=1 ;;
       dashboard) want_dashboard=1 ;;
+      # Graph/orchestrator changes force all expensive slices.
+      ci-graph)
+        want_bazel=1
+        want_docs=1
+        want_dashboard=1
+        ;;
+      # Workflow YAML alone: core only (setup-bazel / lint install paths).
+      ci-workflow) want_bazel=1 ;;
+      # Legacy label from older classify_path
       ci-config)
         want_bazel=1
         want_docs=1
@@ -191,11 +219,22 @@ resolve_slices() {
     RUN_BAZEL_CORE="${RUN_BAZEL_CORE:-${RUN_BAZEL:-0}}"
     RUN_DOCS="${RUN_DOCS:-0}"
     RUN_DASHBOARD="${RUN_DASHBOARD:-0}"
-    # ci-config forces all slices (same as workflow if conditions).
-    if [[ "${RUN_CI_CONFIG:-0}" == "1" || "${CI_CONFIG:-0}" == "1" ]]; then
+    # Graph/orchestrator changes force all slices. Workflow-only does not.
+    if [[ "${RUN_CI_GRAPH:-0}" == "1" || "${RUN_CI_GRAPH:-}" == "true" ]]; then
       RUN_BAZEL_CORE=1
       RUN_DOCS=1
       RUN_DASHBOARD=1
+    fi
+    # Legacy RUN_CI_CONFIG=1 meant "everything" — keep that for old callers.
+    if [[ "${RUN_CI_CONFIG:-0}" == "1" || "${RUN_CI_CONFIG:-}" == "true" ]]; then
+      if [[ "${RUN_CI_GRAPH:-0}" == "1" || "${RUN_CI_GRAPH:-}" == "true" ]]; then
+        :
+      elif [[ -z "${RUN_CI_GRAPH:-}" ]]; then
+        # Old workflows only set RUN_CI_CONFIG — preserve full force.
+        RUN_BAZEL_CORE=1
+        RUN_DOCS=1
+        RUN_DASHBOARD=1
+      fi
     fi
     # Normalize workflow true/false strings to 1/0.
     [[ "$RUN_BAZEL_CORE" == "true" ]] && RUN_BAZEL_CORE=1
@@ -259,12 +298,11 @@ run_core_slice() {
   echo "==> validate: core (build --nobuild, test-fast, lint, key builds)"
   need_bazel
   "$BAZEL" build //... --nobuild
+  # test-fast already includes //tests:manifest_coverage — do not re-run it.
   "$BAZEL" test //:test-fast
-  echo "==> validate: manifest exercise registry (k8s/helm/ansible/config)"
-  "$BAZEL" test //tests:manifest_coverage
   if [[ "$RUN_ALL" -eq 1 ]]; then
-    echo "==> validate: Python docs coverage (100%)"
-    "$BAZEL" test //docs:test_python_coverage
+    # python coverage is in test-fast; re-run is cheap when cached. Keep
+    # optional host-tool suites behind --all only.
     if command -v helm >/dev/null 2>&1; then
       echo "==> validate: helm chart template smoke test"
       "$BAZEL" test //helm:chart_test --test_tag_filters=manual

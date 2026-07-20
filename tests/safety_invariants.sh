@@ -89,7 +89,8 @@ for m in kimi-test kimi ray-head ray-worker nemotron-3-ultra \
   glm-5.2 glm-5.2-rpc \
   qwen3.5-122b-a10b-nvfp4 qwen3.5-397b-spark2 qwen3.5-397b-nvfp4 \
   qwen3.5-397b-nvfp4-worker-1 qwen3.5-397b-nvfp4-worker-2 qwen3.5-397b-nvfp4-worker-3 \
-  qwen3.6-27b-nvfp4 qwen3.6-35b-a3b-nvfp4; do
+  qwen3.6-27b-nvfp4 qwen3.6-35b-a3b-nvfp4 \
+  comfy-base flux-fast flux-quality ltx-balanced ltx-quality flux-to-ltx; do
   python3 -c "
 import json, sys
 from pathlib import Path
@@ -110,6 +111,61 @@ for dep in \
   grep -q 'resources:' "$dep"
   grep -qE 'kind:\s*Deployment' "$dep"
 done
+
+echo "Checking visual ComfyUI base Deployment safety fields..."
+COMFY_BASE="k8s/workloads/comfy-base/comfy-base-deployment.yaml"
+test -f "$COMFY_BASE"
+grep -qE 'kind:\s*Deployment' "$COMFY_BASE"
+grep -q 'resources:' "$COMFY_BASE"
+grep -q 'nvidia.com/gpu' "$COMFY_BASE"
+grep -q 'securityContext:' "$COMFY_BASE"
+grep -q 'workload: visual' "$COMFY_BASE"
+grep -q 'PYTORCH_CUDA_ALLOC_CONF' "$COMFY_BASE"
+grep -q 'expandable_segments:True' "$COMFY_BASE"
+test -f k8s/workloads/comfy-base/pvc.yaml
+test -f k8s/workloads/comfy-base/scripts/install-comfy.sh
+test -f k8s/workloads/comfy-base/scripts/run-comfy.sh
+test -f k8s/workloads/comfy-base/scripts/patch_get_free_memory.py
+grep -q 'LAB_SPARK_UNIFIED_MEMORY_PATCH\|virtual_memory\|get_free_memory' \
+  k8s/workloads/comfy-base/scripts/patch_get_free_memory.py
+grep -q 'configMapGenerator' k8s/workloads/comfy-base/kustomization.yaml
+grep -q 'disableNameSuffixHash' k8s/workloads/comfy-base/kustomization.yaml
+python3 -c "
+import json
+from pathlib import Path
+j = json.loads(Path('config/resource-policy.json').read_text())
+m = j['models']['comfy-base']
+assert m.get('kind') == 'deployment'
+assert m.get('gpus') == 1
+"
+echo "Checking flux/ltx visual overlays exist and register as deployments..."
+for d in \
+  k8s/workloads/comfy-visual/flux/fast \
+  k8s/workloads/comfy-visual/flux/quality \
+  k8s/workloads/comfy-visual/ltx/balanced \
+  k8s/workloads/comfy-visual/ltx/quality \
+  k8s/workloads/comfy-visual/flux-to-ltx; do
+  test -f "${d}/kustomization.yaml"
+  test -f "${d}/patches/deployment.json"
+  grep -q 'configMapGenerator' "${d}/kustomization.yaml"
+  # Workflow JSON is a real file (not ConfigMap data: | embed)
+  test "$(find "${d}/workflows" -name 'lab-*.json' 2>/dev/null | wc -l | tr -d ' ')" -ge 1
+  for wf in "${d}"/workflows/lab-*.json; do
+    python3 -m json.tool "$wf" >/dev/null
+  done
+done
+python3 -c "
+import json
+from pathlib import Path
+j = json.loads(Path('config/resource-policy.json').read_text())
+for mid in ('flux-fast', 'flux-quality', 'ltx-balanced', 'ltx-quality', 'flux-to-ltx'):
+    m = j['models'][mid]
+    assert m.get('kind') == 'deployment', mid
+    assert m.get('gpus') == 1, mid
+assert j['models']['flux-to-ltx']['memory'] == '90Gi'
+"
+test -f scripts/utilities/download-flux.sh
+test -f scripts/utilities/download-ltx.sh
 
 echo "Checking extended Nemotron LLM Jobs have safety fields..."
 for job in \

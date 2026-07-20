@@ -1,0 +1,39 @@
+{
+  "id": "lab-flux-quality",
+  "revision": 1,
+  "last_node_id": 1,
+  "last_link_id": 0,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Note",
+      "pos": [
+        40,
+        40
+      ],
+      "size": [
+        520,
+        220
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "LAB flux-quality (FLUX.2 Dev FP8)\\n\\n1. Load official FLUX.2 Dev workflow in ComfyUI\\n2. Weights via download-flux --tier quality\\n3. Prefer FP8 split checkpoints under /models/comfy\\n4. Higher fidelity than Klein NVFP4; slower\\n\\nDownload: bazelisk run //scripts:run-utility -- download-flux run --tier quality"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    }
+  ],
+  "links": [],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "lab_profile": "flux-quality",
+    "lab_checkpoint": "FLUX.2-dev-fp8"
+  },
+  "version": 0.4
+}

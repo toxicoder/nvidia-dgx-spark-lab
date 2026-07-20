@@ -23,18 +23,8 @@ spec:
       priorityClassName: lab-optional
       containers:
         - name: gateway
-          image: node:22-bookworm-slim
+          image: lab-mcp/mcp-memory:local
           imagePullPolicy: IfNotPresent
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              npm install -g supergateway @modelcontextprotocol/server-memory
-              exec supergateway \
-                --stdio "npx -y @modelcontextprotocol/server-memory /data/memory.json" \
-                --port 8000 \
-                --ssePath /sse \
-                --streamableHttpPath /mcp \
-                --baseUrl http://127.0.0.1:8000
           ports:
             - containerPort: 8000
               name: http

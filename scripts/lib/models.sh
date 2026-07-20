@@ -19,6 +19,7 @@
 # qwen3.6-27b-nvfp4: 1-node Qwen3.6 27B dense NVFP4 (quality)
 # qwen3.6-35b-a3b-nvfp4: 1-node Qwen3.6 35B-A3B MoE NVFP4-Fast (speed)
 # qwen36-dual-spark-1: concurrent both on 1× Spark (GPU time-slicing)
+# comfy-base: ComfyUI visual base (Deployment; Spark unified-memory patches)
 #
 # Model/job definitions - centralized, portable bash (no associative arrays for macOS /bin/bash 3.2 compat + set -u).
 # Use lookup functions.
@@ -60,6 +61,13 @@ get_model_deployment() {
     nemotron-safety-guard) echo "k8s/workloads/nemotron-safety-guard/nemotron-safety-guard-deployment.yaml" ;;
     nemotron-speech-asr) echo "k8s/workloads/nemotron-speech-asr/nemotron-speech-asr-deployment.yaml" ;;
     nemotron-speech-tts) echo "k8s/workloads/nemotron-speech-tts/nemotron-speech-tts-deployment.yaml" ;;
+    # Visual ComfyUI: full bundle is kustomize (PVC + ConfigMaps); path points at primary Deployment.
+    comfy-base) echo "k8s/workloads/comfy-base/comfy-base-deployment.yaml" ;;
+    flux-fast) echo "k8s/workloads/comfy-visual/flux/fast/kustomization.yaml" ;;
+    flux-quality) echo "k8s/workloads/comfy-visual/flux/quality/kustomization.yaml" ;;
+    ltx-balanced) echo "k8s/workloads/comfy-visual/ltx/balanced/kustomization.yaml" ;;
+    ltx-quality) echo "k8s/workloads/comfy-visual/ltx/quality/kustomization.yaml" ;;
+    flux-to-ltx) echo "k8s/workloads/comfy-visual/flux-to-ltx/kustomization.yaml" ;;
     *) echo "" ;;
   esac
 }
@@ -88,6 +96,12 @@ get_model_svc() {
     qwen3.5-397b-nvfp4) echo "k8s/workloads/qwen3.5-397b-nvfp4/service.yaml" ;;
     qwen3.6-27b-nvfp4) echo "k8s/workloads/qwen3.6-27b-nvfp4/service.yaml" ;;
     qwen3.6-35b-a3b-nvfp4) echo "k8s/workloads/qwen3.6-35b-a3b-nvfp4/service.yaml" ;;
+    comfy-base) echo "k8s/workloads/comfy-base/service.yaml" ;;
+    flux-fast) echo "k8s/workloads/comfy-visual/flux/fast/kustomization.yaml" ;;
+    flux-quality) echo "k8s/workloads/comfy-visual/flux/quality/kustomization.yaml" ;;
+    ltx-balanced) echo "k8s/workloads/comfy-visual/ltx/balanced/kustomization.yaml" ;;
+    ltx-quality) echo "k8s/workloads/comfy-visual/ltx/quality/kustomization.yaml" ;;
+    flux-to-ltx) echo "k8s/workloads/comfy-visual/flux-to-ltx/kustomization.yaml" ;;
     *) echo "" ;;
   esac
 }
@@ -494,14 +508,7 @@ _stack_startup_order() {
   local stack_id="$1"
   local policy_path
   policy_path=$(resource_policy_path)
-  python3 - "$policy_path" "$stack_id" <<'PY'
-import json, sys
-from pathlib import Path
-policy = json.loads(Path(sys.argv[1]).read_text())
-stack = policy.get("stacks", {}).get(sys.argv[2], {})
-order = stack.get("startup_order") or stack.get("stack_with", [])
-print("\n".join(order))
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/models_stack_startup_order.py" "$policy_path" "$stack_id"
 }
 
 # @function start_nemotron_stack
@@ -561,17 +568,7 @@ stop_nemotron_stack() {
   policy_path=$(resource_policy_path)
 
   if [[ "$target" == "all" ]]; then
-    python3 - "$policy_path" <<'PY'
-import json, sys
-from pathlib import Path
-policy = json.loads(Path(sys.argv[1]).read_text())
-names = set()
-for stack in policy.get("stacks", {}).values():
-    for m in stack.get("stack_with", []):
-        names.add(m)
-for n in sorted(names):
-    print(n)
-PY
+    python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/models_stop_nemotron_stack.py" "$policy_path"
   else
     _stack_startup_order "$target" | tail -r
   fi | while IFS= read -r model; do
@@ -590,90 +587,14 @@ get_nemotron_catalog_json() {
   local policy_path catalog_path
   policy_path=$(resource_policy_path)
   catalog_path="${REPO_ROOT}/config/nemotron-catalog.yaml"
-  python3 - "$policy_path" "$catalog_path" <<'PY'
-import json, sys
-from pathlib import Path
-
-def load_yaml(path):
-    try:
-        import yaml
-        return yaml.safe_load(Path(path).read_text()) or {}
-    except Exception:
-        return {}
-
-policy = json.loads(Path(sys.argv[1]).read_text())
-catalog = load_yaml(sys.argv[2])
-stacks = policy.get("stacks", {})
-out = {
-    "models": catalog.get("models", {}),
-    "pillars": catalog.get("pillars", {}),
-    "stacks": stacks,
-    "qwen_tiers": catalog.get("qwen_tiers", {}),
-}
-print(json.dumps(out))
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/models_get_nemotron_catalog_json.py" "$policy_path" "$catalog_path"
 }
 
 # @function get_nemotron_stack_status_json
 get_nemotron_stack_status_json() {
   local policy_path
   policy_path=$(resource_policy_path)
-  python3 - "$policy_path" <<'PY'
-import json, subprocess, sys
-from pathlib import Path
-
-policy = json.loads(Path(sys.argv[1]).read_text())
-ns = "ai-inference"
-stacks_out = []
-
-def job_state(name):
-    try:
-        data = json.loads(subprocess.check_output(
-            ["kubectl", "get", "job", name, "-n", ns, "-o", "json"],
-            stderr=subprocess.DEVNULL, timeout=5))
-        st = data.get("status", {})
-        if (st.get("active") or 0) > 0:
-            return "running"
-        if (st.get("succeeded") or 0) > 0:
-            return "succeeded"
-        if (st.get("failed") or 0) > 0:
-            return "failed"
-        return "absent"
-    except Exception:
-        return "absent"
-
-def deploy_state(name):
-    try:
-        data = json.loads(subprocess.check_output(
-            ["kubectl", "get", "deployment", name, "-n", ns, "-o", "json"],
-            stderr=subprocess.DEVNULL, timeout=5))
-        ready = data.get("status", {}).get("readyReplicas") or 0
-        return "running" if ready > 0 else "pending"
-    except Exception:
-        return "absent"
-
-for sid, stack in policy.get("stacks", {}).items():
-    components = []
-    all_running = True
-    any_present = False
-    for m in stack.get("stack_with", []):
-        meta = policy.get("models", {}).get(m, {})
-        kind = meta.get("kind", "job")
-        state = deploy_state(m) if kind == "deployment" else job_state(m)
-        if state not in ("running", "succeeded"):
-            all_running = False
-        if state != "absent":
-            any_present = True
-        components.append({"model": m, "state": state})
-    stacks_out.append({
-        "id": sid,
-        "label": stack.get("label", sid),
-        "healthy": all_running and any_present,
-        "components": components,
-    })
-
-print(json.dumps({"stacks": stacks_out, "namespace": ns}))
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/models_get_nemotron_stack_status_json.py" "$policy_path"
 }
 
 # @function start_nemotron_llm
@@ -717,6 +638,29 @@ start_model() {
     qwen3.6-27b-nvfp4) start_qwen36_27b ;;
     qwen3.6-35b-a3b-nvfp4) start_qwen36_35b_a3b ;;
     qwen36-dual-spark-1|qwen36-dual) start_qwen36_dual ;;
+    comfy-base)
+      if type start_comfy_base &>/dev/null; then
+        start_comfy_base
+      else
+        err "visual.sh not loaded; cannot start comfy-base"
+        exit 1
+      fi
+      ;;
+    flux-fast)
+      if type start_flux_fast &>/dev/null; then start_flux_fast; else err "visual.sh missing"; exit 1; fi
+      ;;
+    flux-quality)
+      if type start_flux_quality &>/dev/null; then start_flux_quality; else err "visual.sh missing"; exit 1; fi
+      ;;
+    ltx-balanced)
+      if type start_ltx_balanced &>/dev/null; then start_ltx_balanced; else err "visual.sh missing"; exit 1; fi
+      ;;
+    ltx-quality)
+      if type start_ltx_quality &>/dev/null; then start_ltx_quality; else err "visual.sh missing"; exit 1; fi
+      ;;
+    flux-to-ltx)
+      if type start_flux_to_ltx &>/dev/null; then start_flux_to_ltx; else err "visual.sh missing"; exit 1; fi
+      ;;
     *)
       err "Unknown model for start_model: $model"
       exit 1
@@ -739,7 +683,11 @@ stop_model() {
         -n "${NAMESPACE}" --ignore-not-found=true --grace-period=30 || true
       kubectl delete deployment nemotron-retriever-embed nemotron-retriever-rerank nemotron-parse \
         nemotron-safety-guard nemotron-speech-asr nemotron-speech-tts \
+        comfy-base \
         -n "${NAMESPACE}" --ignore-not-found=true --grace-period=30 || true
+      if type stop_visual &>/dev/null; then
+        stop_visual || true
+      fi
       ;;
     qwen36|qwen3.6|qwen36-dual)
       stop_qwen36
@@ -747,8 +695,15 @@ stop_model() {
     kimi-test|kimi|nemotron-3-ultra|nemotron-3-nano-30b|nemotron-3-nano-omni-30b|nemotron-3-super-120b|glm-5.2|glm-5.2-rpc|ray-head|ray-worker|qwen3.5-122b-a10b-nvfp4|qwen3.5-397b-spark2|qwen3.5-397b-nvfp4|qwen3.5-397b-nvfp4-worker-1|qwen3.5-397b-nvfp4-worker-2|qwen3.5-397b-nvfp4-worker-3|qwen3.6-27b-nvfp4|qwen3.6-35b-a3b-nvfp4)
       stop_inference_job "$target"
       ;;
-    nemotron-retriever-embed|nemotron-retriever-rerank|nemotron-parse|nemotron-safety-guard|nemotron-speech-asr|nemotron-speech-tts)
+    nemotron-retriever-embed|nemotron-retriever-rerank|nemotron-parse|nemotron-safety-guard|nemotron-speech-asr|nemotron-speech-tts|comfy-base|flux-fast|flux-quality|ltx-balanced|ltx-quality|flux-to-ltx)
       stop_inference_deployment "$target"
+      ;;
+    visual)
+      if type stop_visual &>/dev/null; then
+        stop_visual
+      else
+        stop_inference_deployment "comfy-base"
+      fi
       ;;
     ray)
       stop_inference_job "ray-head"
@@ -773,65 +728,5 @@ p = json.loads(Path('${policy_path}').read_text())
 print(json.dumps(list(p.get('models', {}).keys())))
 ")
 
-  python3 - "$models_json" "$policy_path" <<'PY'
-import json, subprocess, sys
-from pathlib import Path
-
-models = json.loads(sys.argv[1])
-policy = json.loads(Path(sys.argv[2]).read_text())
-ns = "ai-inference"
-out = {"jobs": [], "namespace": ns}
-
-model_meta = policy.get("models", {})
-
-for model in models:
-    job = model
-    meta = model_meta.get(model, {})
-    kind = meta.get("kind", "job")
-    try:
-        if kind == "deployment":
-            data = json.loads(subprocess.check_output(
-                ["kubectl", "get", "deployment", job, "-n", ns, "-o", "json"],
-                stderr=subprocess.DEVNULL, timeout=5,
-            ))
-            ready = data.get("status", {}).get("readyReplicas") or 0
-            out["jobs"].append({
-                "model": model,
-                "job": job,
-                "active": ready,
-                "state": "running" if ready > 0 else "absent",
-                "kind": "deployment",
-            })
-        else:
-            data = json.loads(subprocess.check_output(
-                ["kubectl", "get", "job", job, "-n", ns, "-o", "json"],
-                stderr=subprocess.DEVNULL, timeout=5,
-            ))
-            status = data.get("status", {})
-            out["jobs"].append({
-                "model": model,
-                "job": job,
-                "active": status.get("active", 0) or 0,
-                "succeeded": status.get("succeeded", 0) or 0,
-                "failed": status.get("failed", 0) or 0,
-                "state": "running" if (status.get("active") or 0) > 0 else (
-                    "succeeded" if (status.get("succeeded") or 0) > 0 else (
-                        "failed" if (status.get("failed") or 0) > 0 else "absent"
-                    )
-                ),
-                "kind": "job",
-            })
-    except subprocess.CalledProcessError:
-        out["jobs"].append({
-            "model": model,
-            "job": job,
-            "active": 0,
-            "state": "absent",
-            "kind": kind,
-        })
-    except Exception as e:
-        out["jobs"].append({"model": model, "job": job, "state": "error", "error": str(e), "kind": kind})
-
-print(json.dumps(out))
-PY
+  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/models_get_inference_status_json.py" "$models_json" "$policy_path"
 }

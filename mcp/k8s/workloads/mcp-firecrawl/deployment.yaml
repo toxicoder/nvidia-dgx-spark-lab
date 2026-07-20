@@ -23,20 +23,8 @@ spec:
       priorityClassName: lab-optional
       containers:
         - name: gateway
-          image: node:22-bookworm-slim
+          image: lab-mcp/mcp-firecrawl:local
           imagePullPolicy: IfNotPresent
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              npm install -g supergateway firecrawl-mcp
-              export FIRECRAWL_API_URL="http://firecrawl-api.agent-tools.svc.cluster.local:3002"
-              export FIRECRAWL_API_KEY="${FIRECRAWL_API_KEY:-local-dev-key}"
-              exec supergateway \
-                --stdio "npx -y firecrawl-mcp" \
-                --port 8000 \
-                --ssePath /sse \
-                --streamableHttpPath /mcp \
-                --baseUrl http://127.0.0.1:8000
           env:
             - name: FIRECRAWL_API_URL
               value: "http://firecrawl-api.agent-tools.svc.cluster.local:3002"

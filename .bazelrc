@@ -48,15 +48,23 @@ build:ci --show_progress_rate_limit=5
 test:ci --test_output=errors
 test:ci --test_summary=detailed
 build:ci --remote_download_minimal   # Faster: avoid downloading unnecessary intermediates (build without the bytes)
+test:ci --remote_download_minimal
 # Higher parallelism on CI runners (override locally if needed)
 build:ci --jobs=HOST_CPUS
 build:ci --local_resources=memory=HOST_RAM*0.8
-# Remote cache hints (enable with --remote_cache=... if using bazel-remote/BuildBuddy/etc.)
+test:ci --jobs=HOST_CPUS
+test:ci --local_resources=memory=HOST_RAM*0.8
+# Remote cache (optional): set REMOTE_CACHE_URL in CI secrets and pass
+#   --remote_cache=$REMOTE_CACHE_URL
+# e.g. BuildBuddy / bazel-remote / GCS. Uncomment defaults when a shared cache exists:
 # build:ci --remote_cache=grpc://your-cache:9092
+# test:ci --remote_cache=grpc://your-cache:9092
 
 # Parallelism comes from split BATS targets (//tests:bats_*). Add shard_count
 # on individual tests if a suite outgrows runner capacity.
 test:ci --test_sharding_strategy=disabled
+# Fail one test without aborting siblings (more signal per CI run).
+test:ci --keep_going
 
 # =============================================================================
 # Language / Tool Specific (will expand)

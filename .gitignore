@@ -30,6 +30,10 @@ Thumbs.db
 # Hermes Agent runtime data (secrets, sessions, memories)
 hermes/data/
 
+# Agent CLI local state (if ever created under the workspace tree)
+.grok/
+**/.grok/
+
 # Misc
 *.bak
 
@@ -40,6 +44,8 @@ hermes/data/
 mcp/config/secrets.env
 k8s/auth/secrets.yaml
 !k8s/auth/secrets.example.yaml
+# Never commit agent auth dumps under the workspace
+**/.grok/auth.json
 
 # Python virtualenvs (docs tooling, local dev)
 .venv*/

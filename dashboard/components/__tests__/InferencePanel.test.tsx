@@ -35,7 +35,7 @@ describe("InferencePanel", () => {
     render(<InferencePanel initialStatus={fakeInferenceWorkloadsStatus} />);
 
     expect(screen.getByTestId("inference-panel")).toBeInTheDocument();
-    expect(screen.getByText(/Inference workloads/i)).toBeInTheDocument();
+    expect(screen.getByText(/Inference.*visual workloads/i)).toBeInTheDocument();
     expect(screen.getAllByText("kimi-test").length).toBeGreaterThan(0);
     expect(screen.getAllByRole("button", { name: /kimi-test/i }).length).toBeGreaterThan(0);
   });
