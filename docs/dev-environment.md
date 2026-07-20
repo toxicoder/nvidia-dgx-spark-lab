@@ -31,6 +31,7 @@ tags: [devcontainer, contributing, bazel, onboarding, multi-arch]
 - Branch all feature work **from `development`** and open PRs **into `development`**.
 - **Promotion path:** feature → `development` → (optional) `dev` → `main` (always via PR).
 - **Never force-push** `development` or `main`.
+- Protected branches require **linear history** — merge with **squash** or **rebase** (merge commits are blocked).
 
 Clone and start from the integration tip:
 

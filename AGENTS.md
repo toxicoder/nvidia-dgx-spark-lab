@@ -15,6 +15,7 @@ Subdirectory addenda extend the conventions doc:
 - **Promotion path:** feature → `development` → (optional) `dev` → `main` (always via PR).
 - **Never force-push** `development` or `main`.
 - Do not open long-lived feature PRs into `main` by default; land on `development` first, then promote.
+- Protected branches require **linear history** — use **squash** or **rebase** merge (not merge commits).
 
 ## AI agent workflow
 
