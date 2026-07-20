@@ -51,6 +51,7 @@ nav:
       - Architecture: architecture.md
       - Monitoring & Observability: monitoring-observability.md
   - How-to Guides:
+      - Developer Environment: dev-environment.md
       - Bazel Documentation: BUILDING_WITH_BAZEL.md
       - Gitea CI Setup: gitea-ci-setup.md
       - Dev Workspaces & Dashboard: dev-workspaces.md

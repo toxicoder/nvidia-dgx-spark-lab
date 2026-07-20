@@ -190,7 +190,7 @@ See [BUILDING_WITH_BAZEL.md](BUILDING_WITH_BAZEL.md) for targets, devcontainer s
 
 ### Devcontainer
 
-The `.devcontainer/` image includes bazelisk, buildifier, shfmt, ruff, mypy, ansible, kubectl, helm, shellcheck, bats, yamllint, Node.js 22, and Playwright. Use it for consistent tooling across platforms.
+The multi-arch `.devcontainer/` image (linux/amd64 + arm64) includes bazelisk, buildifier, shfmt, ruff, mypy, ansible, kubectl, helm, kubeconform, shellcheck, bats, yamllint, Node.js 22, Python 3.11, and Playwright. Versions are pinned in `.devcontainer/tool-versions.env` (shared with CI). Works on Apple Silicon, Windows (Docker Desktop), Linux, and DGX Spark. See [dev-environment.md](dev-environment.md).
 
 ---
 

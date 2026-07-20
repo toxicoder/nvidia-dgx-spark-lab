@@ -232,43 +232,45 @@ Bazel is now the established primary system. The Makefile and direct commands re
 
 ## Development Container
 
-This repository includes a first-class developer container (`.devcontainer/`) that supports a wide range of workstations (including Apple Silicon arm64 and x86_64/amd64 hosts). It provides a consistent development experience with all required tools pre-installed:
+First-class multi-arch contributor environment (`.devcontainer/`): **linux/amd64 + linux/arm64**.
 
-- `bazelisk` / `bazel`
-- `buildifier`
-- `ansible`, `ansible-lint`
-- `kubectl`, `helm`
-- `shellcheck`, `bats`, `yamllint` (kubeconform planned — see Phase G; run via `bazelisk test //lints:k8s` on hosts with kubeconform installed)
-- Python, Docker CLI, and common CLI utilities (ripgrep, etc.)
+| Host | Notes |
+| --- | --- |
+| macOS Apple Silicon / Intel | Docker Desktop |
+| Windows x86_64 | Docker Desktop + WSL2 |
+| Linux amd64/arm64 | Docker Engine / Podman |
+| NVIDIA DGX Spark (Grace arm64) | Docker/Podman on-box |
+
+Pinned tools (see `.devcontainer/tool-versions.env`, shared with CI): bazelisk, buildifier, shfmt, shellcheck, kubeconform, kubectl, helm, ansible, ruff, mypy, Node **22**, Python **3.11**, prettier, bats, kcov.
+
+Full onboarding: **[dev-environment.md](dev-environment.md)**.
 
 ### Using the Dev Container
-1. Open the repo in VS Code.
-2. Click "Reopen in Container" when prompted (or use Command Palette → "Dev Containers: Reopen in Container").
-3. The container will build with all required tools pre-installed:
-   - `bazelisk` / `bazel`
-   - `buildifier`
-   - `ansible`, `ansible-lint`
-   - `kubectl`, `helm`
-   - `shellcheck`, `bats`, `yamllint` (kubeconform coming in Phase G)
-   - Python, Docker CLI, etc.
-4. Inside the container you can immediately run:
-   ```bash
-   bazelisk test //:test
-   bazelisk test //:lint
-   ```
+
+1. Open the repo in VS Code or Cursor (Docker running).
+2. Command Palette → **Dev Containers: Reopen in Container**.
+3. After `post-create` + doctor:
+
+```bash
+bash .devcontainer/doctor.sh
+bazelisk run //:fix
+bazelisk run //:validate
+bazelisk test //:test-fast --config=ci
+bazelisk test //:lint --test_tag_filters=manual
+```
+
+Docker for hermetic dashboard tests uses **docker-outside-of-docker** (host engine). Create does **not** gate on the full suite; use `//:validate` before PRs.
 
 ### Code-Driven Documentation
 
-Reference material for commands, helpers, and dashboard internals is generated from source comments (see the main plan and `docs/generate_shell_docs.py` + TypeDoc setup in `dashboard/`).
+Reference material for commands, helpers, and dashboard internals is generated from source comments (`docs/generate_shell_docs.py` + TypeDoc in `dashboard/`).
 
-After changing comments in `scripts/` or adding JSDoc in `dashboard/`, run:
+After changing comments in `scripts/` or JSDoc in `dashboard/`:
 
 ```bash
-bazel run //docs:docs          # or ./docs/manage-docs.sh build --strict
+bazelisk run //docs:docs
 ```
 
-Generated content lands in `docs/generated/` and is automatically part of the MkDocs site (under Reference).
+Generated content lands in `docs/generated/` and is part of the MkDocs site (Reference).
 
-The container is defined in `.devcontainer/devcontainer.json` + `Dockerfile`. It uses a multi-architecture base image so it works on both Apple Silicon and Intel/AMD workstations.
-
-See `AGENTS.md` for guidelines when using AI coding assistants with this project.
+See `AGENTS.md` for AI coding assistant workflow.

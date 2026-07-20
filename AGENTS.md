@@ -69,6 +69,13 @@ On every change touching workloads, scripts, manifests, NCCL, restart policies, 
 
 Non-negotiable invariants: [docs/project-conventions.md § Safety invariants](docs/project-conventions.md#14-non-negotiable-safety-invariants).
 
+### Contributor environment (devcontainer)
+
+- Prefer `.devcontainer/` (multi-arch **linux/amd64 + linux/arm64**): Apple Silicon, Windows Docker Desktop, Linux, NVIDIA DGX Spark (Grace ARM).
+- Tool pins: `.devcontainer/tool-versions.env` (shared with CI via `scripts/ci/install-lint-tools.sh`).
+- After open: `bash .devcontainer/doctor.sh` then `//:fix` / `//:validate`.
+- Full guide: [docs/dev-environment.md](docs/dev-environment.md).
+
 ### Visual generative AI (ComfyUI / FLUX / LTX)
 
 - Workloads live under `k8s/workloads/comfy-base/` and `k8s/workloads/comfy-visual/` (Deployments, label `workload: visual`).
