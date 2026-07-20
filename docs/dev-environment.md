@@ -76,6 +76,26 @@ bazelisk run //:validate
 | K8s | kubectl (pinned), helm, kubeconform |
 | Ansible | ansible, ansible-lint |
 | Docker | **docker-outside-of-docker** (host engine) for hermetic dashboard images |
+| Agent CLIs | [Grok Build](https://github.com/xai-org/grok-build) (`grok`), [Hermes Agent](https://github.com/NousResearch/hermes-agent) (`hermes`) via post-create |
+
+### Agent CLIs and secrets
+
+Post-create runs `.devcontainer/install-agent-clis.sh` (skip with
+`DEVCONTAINER_SKIP_AGENT_CLIS=1`). Installers **never** write API keys.
+
+```bash
+grok login          # interactive auth → volume ~/.grok (not git)
+hermes setup        # interactive provider/model → volume ~/.hermes (not git)
+```
+
+!!! warning "Never commit agent credentials"
+    Do not put `GROK_DEPLOYMENT_KEY`, OpenRouter/OpenAI/etc. keys, or Hermes
+    auth files in the repo, in `devcontainer.json` env blocks, or in screenshots
+    of create logs. Auth lives only on Docker volumes or your host home dir.
+    See [SECURITY.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/SECURITY.md).
+
+Hermes **on the Spark host** (Docker gateway stacks) is documented separately in
+[hermes-agent.md](hermes-agent.md).
 
 Lifecycle (optimized):
 

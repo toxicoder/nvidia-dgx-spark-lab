@@ -37,6 +37,7 @@ filegroup(
         ".devcontainer/README.md",
         ".devcontainer/devcontainer.json",
         ".devcontainer/doctor.sh",
+        ".devcontainer/install-agent-clis.sh",
         ".devcontainer/post-create.sh",
         ".devcontainer/tool-versions.env",
     ],
