@@ -102,9 +102,10 @@ monitoring_generate_prometheus_scrape_config() {
 
 # @function monitoring_apply_prometheus_scrape_config
 monitoring_apply_prometheus_scrape_config() {
-  local generated
+  local generated mon_dir
   generated="$(monitoring_generate_prometheus_scrape_config)"
-  kubectl apply -f "$generated"
+  mon_dir="$(dirname "$generated")"
+  kubectl apply -k "$mon_dir"
 }
 
 # @function deploy_node_exporter

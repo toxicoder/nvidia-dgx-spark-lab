@@ -294,19 +294,19 @@ def dump_yaml_literal(doc: Any) -> str:
     if yaml is None:
         return str(doc)
 
-    def str_presenter(dumper: Any, data: str) -> Any:
+    def _str_presenter(dumper: Any, data: str) -> Any:
         if "\n" in data:
             return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
         return dumper.represent_scalar("tag:yaml.org,2002:str", data)
 
     # Local Dumper so we do not mutate global state across imports.
-    class _Dumper(yaml.SafeDumper):
+    class _LiteralDumper(yaml.SafeDumper):
         pass
 
-    _Dumper.add_representer(str, str_presenter)
+    _Dumper.add_representer(str, _str_presenter)
     return yaml.dump(
         doc,
-        Dumper=_Dumper,
+        Dumper=_LiteralDumper,
         default_flow_style=False,
         sort_keys=False,
         allow_unicode=True,
@@ -314,11 +314,15 @@ def dump_yaml_literal(doc: Any) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """CLI: probes_path spark0_ip out_configmap_yaml."""
+    """CLI: probes_path spark0_ip out_prometheus_yml_or_configmap_path.
+
+    Writes language-native ``prometheus.yml`` next to (or as) the out path.
+    ConfigMap is materialised by ``k8s/monitoring/kustomization.yaml``.
+    """
     args = argv if argv is not None else sys.argv[1:]
     if len(args) != 3:
         print(
-            "usage: prometheus_scrape.py <probes.yaml> <spark0_ip> <out-configmap.yaml>",
+            "usage: prometheus_scrape.py <probes.yaml> <spark0_ip> <out-path>",
             file=sys.stderr,
         )
         return 2
@@ -330,7 +334,11 @@ def main(argv: list[str] | None = None) -> int:
     }
 
     out_path = Path(out_file)
-    pure_path = out_path.with_name("prometheus.yml")
+    if out_path.name.endswith(".yaml") and out_path.name != "prometheus.yml":
+        pure_path = out_path.with_name("prometheus.yml")
+    else:
+        pure_path = out_path if out_path.suffix in {".yml", ".yaml"} else out_path / "prometheus.yml"
+
     if yaml:
         pure_body = yaml.dump(
             prometheus_yml, default_flow_style=False, sort_keys=False, allow_unicode=True
@@ -343,29 +351,13 @@ def main(argv: list[str] | None = None) -> int:
         "# Regenerate: monitoring-stack.sh or manage.sh start-monitoring\n"
         "# Safety: read-only scrape targets; no cluster credentials\n\n"
     )
+    pure_header = pure_header.encode().decode("unicode_escape")
+    pure_path.parent.mkdir(parents=True, exist_ok=True)
     pure_path.write_text(pure_header + pure_body, encoding="utf-8")
-
-    prom_text = pure_body if pure_body.endswith("\n") else pure_body + "\n"
-    cm = {
-        "apiVersion": "v1",
-        "kind": "ConfigMap",
-        "metadata": {
-            "name": "prometheus-scrape-config",
-            "namespace": "monitoring",
-            "labels": {"app.kubernetes.io/part-of": "spark-lab-monitoring"},
-        },
-        "data": {"prometheus.yml": prom_text},
-    }
-    header = (
-        "# Purpose: Prometheus scrape configuration ConfigMap for the monitoring stack\n"
-        "# Source of truth: generated from config/monitoring-probes.yaml via "
-        "scripts/lib/py/prometheus_scrape.py\n"
-        "# Regenerate: monitoring-stack.sh or manage.sh start-monitoring\n"
-        "# Safety: read-only scrape targets; no cluster credentials\n"
-        "# Note: pure scrape YAML also written to prometheus.yml (prefer editing probes + regen)\n\n"
-    )
-    out_path.write_text(header + dump_yaml_literal(cm), encoding="utf-8")
-    print(out_file)
+    legacy_cm = pure_path.with_name("prometheus-scrape-config.yaml")
+    if legacy_cm.is_file():
+        legacy_cm.unlink()
+    print(str(pure_path))
     return 0
 
 

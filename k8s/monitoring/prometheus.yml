@@ -1,0 +1,240 @@
+# Purpose: Prometheus scrape configuration (language-native YAML)
+# Source of truth: config/monitoring-probes.yaml via prometheus_scrape.py
+# Regenerate: monitoring-stack.sh or manage.sh start-monitoring
+# Safety: read-only scrape targets; no cluster credentials
+
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+scrape_configs:
+- job_name: prometheus
+  static_configs:
+  - targets:
+    - localhost:9090
+- job_name: node-exporter
+  kubernetes_sd_configs:
+  - role: endpoints
+    namespaces:
+      names:
+      - monitoring
+  relabel_configs:
+  - source_labels:
+    - __meta_kubernetes_service_name
+    regex: node-exporter-prometheus-node-exporter
+    action: keep
+  - source_labels:
+    - __meta_kubernetes_endpoint_port_name
+    regex: metrics
+    action: keep
+  - source_labels:
+    - __meta_kubernetes_pod_node_name
+    target_label: node
+- job_name: dcgm
+  kubernetes_sd_configs:
+  - role: endpoints
+    namespaces:
+      names:
+      - gpu-operator
+  relabel_configs:
+  - source_labels:
+    - __meta_kubernetes_service_name
+    regex: nvidia-dcgm-exporter
+    action: keep
+  - source_labels:
+    - __meta_kubernetes_pod_node_name
+    target_label: node
+- job_name: kube-state-metrics
+  kubernetes_sd_configs:
+  - role: endpoints
+    namespaces:
+      names:
+      - monitoring
+  relabel_configs:
+  - source_labels:
+    - __meta_kubernetes_service_name
+    regex: kube-state-metrics
+    action: keep
+- job_name: kubernetes-pods-annotated
+  kubernetes_sd_configs:
+  - role: pod
+  relabel_configs:
+  - source_labels:
+    - __meta_kubernetes_pod_annotation_prometheus_io_scrape
+    regex: 'true'
+    action: keep
+  - source_labels:
+    - __meta_kubernetes_pod_annotation_prometheus_io_path
+    target_label: __metrics_path__
+    regex: (.+)
+  - source_labels:
+    - __address__
+    - __meta_kubernetes_pod_annotation_prometheus_io_port
+    regex: ([^:]+)(?::\d+)?;(\d+)
+    replacement: $1:$2
+    target_label: __address__
+  - source_labels:
+    - __meta_kubernetes_namespace
+    target_label: namespace
+  - source_labels:
+    - __meta_kubernetes_pod_name
+    target_label: pod
+  - source_labels:
+    - __meta_kubernetes_pod_label_app
+    target_label: app
+- job_name: kubernetes-services-annotated
+  kubernetes_sd_configs:
+  - role: service
+  relabel_configs:
+  - source_labels:
+    - __meta_kubernetes_service_annotation_prometheus_io_scrape
+    regex: 'true'
+    action: keep
+  - source_labels:
+    - __meta_kubernetes_service_annotation_prometheus_io_path
+    target_label: __metrics_path__
+    regex: (.+)
+  - source_labels:
+    - __address__
+    - __meta_kubernetes_service_annotation_prometheus_io_port
+    regex: ([^:]+)(?::\d+)?;(\d+)
+    replacement: $1:$2
+    target_label: __address__
+  - source_labels:
+    - __meta_kubernetes_namespace
+    target_label: namespace
+  - source_labels:
+    - __meta_kubernetes_service_name
+    target_label: service
+- job_name: traefik
+  kubernetes_sd_configs:
+  - role: endpoints
+    namespaces:
+      names:
+      - traefik
+  relabel_configs:
+  - source_labels:
+    - __meta_kubernetes_service_name
+    regex: traefik
+    action: keep
+  - source_labels:
+    - __meta_kubernetes_endpoint_port_name
+    regex: metrics
+    action: keep
+- job_name: ray-head
+  kubernetes_sd_configs:
+  - role: service
+    namespaces:
+      names:
+      - ai-inference
+  metrics_path: /metrics
+  relabel_configs:
+  - source_labels:
+    - __meta_kubernetes_service_name
+    regex: ray-head
+    action: keep
+- job_name: blackbox-cluster
+  metrics_path: /probe
+  params:
+    module:
+    - http_2xx
+  static_configs:
+  - targets:
+    - prometheus-server.monitoring.svc.cluster.local:80
+    - kube-state-metrics.monitoring.svc.cluster.local:8080
+    - traefik.traefik.svc.cluster.local:9100
+    - cert-manager.cert-manager.svc.cluster.local:9402
+    - authelia.auth.svc.cluster.local:9959
+    - nvidia-dcgm-exporter.gpu-operator.svc.cluster.local:9400
+    labels:
+      probe_type: cluster
+  relabel_configs:
+  - source_labels:
+    - __address__
+    target_label: __param_target
+  - source_labels:
+    - __param_target
+    target_label: instance
+  - target_label: __address__
+    replacement: blackbox-exporter-prometheus-blackbox-exporter.monitoring.svc.cluster.local:9115
+- job_name: blackbox-inference
+  metrics_path: /probe
+  params:
+    module:
+    - http_2xx
+  static_configs:
+  - targets:
+    - kimi-test.ai-inference.svc.cluster.local:8000
+    - kimi.ai-inference.svc.cluster.local:8000
+    - nemotron-3-ultra.ai-inference.svc.cluster.local:8000
+    - nemotron-3-nano-30b.ai-inference.svc.cluster.local:8000
+    - nemotron-3-nano-omni-30b.ai-inference.svc.cluster.local:8000
+    - nemotron-3-super-120b.ai-inference.svc.cluster.local:8000
+    - glm-5.2.ai-inference.svc.cluster.local:8000
+    - qwen3.5-122b-a10b-nvfp4.ai-inference.svc.cluster.local:8000
+    - qwen3.5-397b-nvfp4.ai-inference.svc.cluster.local:8000
+    - qwen3.5-397b-spark2.ai-inference.svc.cluster.local:8000
+    - qwen3.6-27b-nvfp4.ai-inference.svc.cluster.local:8000
+    - qwen3.6-35b-a3b-nvfp4.ai-inference.svc.cluster.local:8000
+    - nemotron-retriever-embed.ai-inference.svc.cluster.local:8000
+    - nemotron-retriever-rerank.ai-inference.svc.cluster.local:8000
+    - nemotron-parse.ai-inference.svc.cluster.local:8000
+    - nemotron-safety-guard.ai-inference.svc.cluster.local:8000
+    - nemotron-speech-asr.ai-inference.svc.cluster.local:8000
+    - nemotron-speech-tts.ai-inference.svc.cluster.local:8000
+    - ray-head.ai-inference.svc.cluster.local:8000
+    labels:
+      probe_type: inference
+  relabel_configs:
+  - source_labels:
+    - __address__
+    target_label: __param_target
+  - source_labels:
+    - __param_target
+    target_label: instance
+  - target_label: __address__
+    replacement: blackbox-exporter-prometheus-blackbox-exporter.monitoring.svc.cluster.local:9115
+- job_name: blackbox-mcp
+  metrics_path: /probe
+  params:
+    module:
+    - http_2xx
+  static_configs:
+  - targets:
+    - 127.0.0.1:32100
+    - 127.0.0.1:32101
+    - 127.0.0.1:32102
+    - 127.0.0.1:32103
+    - 127.0.0.1:32104
+    - 127.0.0.1:32105
+    - 127.0.0.1:32106
+    labels:
+      probe_type: mcp
+  relabel_configs:
+  - source_labels:
+    - __address__
+    target_label: __param_target
+  - source_labels:
+    - __param_target
+    target_label: instance
+  - target_label: __address__
+    replacement: blackbox-exporter-prometheus-blackbox-exporter.monitoring.svc.cluster.local:9115
+- job_name: blackbox-host
+  metrics_path: /probe
+  params:
+    module:
+    - http_2xx
+  static_configs:
+  - targets:
+    - http://127.0.0.1:8642/v1/models
+    - http://127.0.0.1:9119/
+    labels:
+      probe_type: host
+  relabel_configs:
+  - source_labels:
+    - __address__
+    target_label: __param_target
+  - source_labels:
+    - __param_target
+    target_label: instance
+  - target_label: __address__
+    replacement: blackbox-exporter-prometheus-blackbox-exporter.monitoring.svc.cluster.local:9115
