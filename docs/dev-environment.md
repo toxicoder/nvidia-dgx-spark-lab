@@ -12,6 +12,7 @@ tags: [devcontainer, contributing, bazel, onboarding, multi-arch]
 - Recommended path: multi-arch Dev Container
 - First-five-minutes workflow (`doctor` → `//:fix` → `//:validate`)
 - Host bootstrap without a container
+- Branching model for contributions
 - Caches, Docker, troubleshooting
 
 **What this enables**
@@ -23,6 +24,25 @@ tags: [devcontainer, contributing, bazel, onboarding, multi-arch]
 !!! note "Software contribution vs cluster ops"
     This page is for **writing and testing code** in this repository.  
     Bringing up K3s on DGX Spark nodes is covered in [Getting Started](getting-started.md).
+
+## Branching model
+
+- **Primary integration branch:** `development` (protected, PR-required).
+- Branch all feature work **from `development`** and open PRs **into `development`**.
+- **Promotion path:** feature → `development` → (optional) `dev` → `main` (always via PR).
+- **Never force-push** `development` or `main`.
+- Protected branches require **linear history** — merge with **squash** or **rebase** (merge commits are blocked).
+
+Clone and start from the integration tip:
+
+```bash
+git fetch origin
+git checkout development
+git pull origin development
+git checkout -b feature/your-change
+```
+
+See also [CONTRIBUTING.md (repo root)](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md) and [AGENTS.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md).
 
 ## Supported platforms
 
