@@ -46,12 +46,20 @@ filegroup(
     ],
 )
 
-_BATS_COMMON_DATA = [
+# Minimal runfiles shared by most BATS suites (runner + policy + manage entry).
+_BATS_MIN = [
     "README.md",
     "bats/test_helper.bash",
     ":bats_tool",
     "//config:resource_policy",
-    "//mcp:safety_data",
+    "//scripts:manage.sh",
+    "//scripts:lib/check_tool.sh",
+    "//scripts:lib/common.sh",
+    "//scripts:lib/paths.sh",
+]
+
+# manage.bats exercises inference/dev/mcp/hermes lifecycle — needs libs + key manifests.
+_BATS_MANAGE_DATA = _BATS_MIN + [
     "//hermes:safety_data",
     "//k8s/base:namespace",
     "//k8s/dev:dev_dashboard",
@@ -61,23 +69,19 @@ _BATS_COMMON_DATA = [
     "//k8s/workloads/nemotron-3-ultra:nemotron_job",
     "//k8s/workloads/ray-head:ray_head",
     "//k8s/workloads/ray-worker:ray_worker",
-    "//scripts:manage.sh",
-    "//scripts:utilities",
-    "//scripts:lib/check_tool.sh",
-    "//scripts:lib/common.sh",
-    "//scripts:lib/paths.sh",
-    "//scripts:lib/models.sh",
-    "//scripts:lib/visual.sh",
+    "//mcp:safety_data",
     "//scripts:lib/dev.sh",
-    "//scripts:lib/resources.sh",
-    "//scripts:lib/secrets.sh",
-    "//scripts:lib/mcp.sh",
+    "//scripts:lib/domains.sh",
     "//scripts:lib/hermes.sh",
-    "//scripts:lib/workspace-hermes.sh",
+    "//scripts:lib/mcp.sh",
+    "//scripts:lib/models.sh",
     "//scripts:lib/monitoring.sh",
     "//scripts:lib/open-webui.sh",
-    "//scripts:lib/domains.sh",
-    "//k8s/workloads/comfy-base:comfy_base",
+    "//scripts:lib/resources.sh",
+    "//scripts:lib/secrets.sh",
+    "//scripts:lib/visual.sh",
+    "//scripts:lib/workspace-hermes.sh",
+    "//scripts:utilities",
 ]
 
 # Split BATS files into separate sh_test targets so Bazel can run them in parallel.
@@ -87,7 +91,7 @@ sh_test(
     timeout = "short",
     srcs = ["bats_runner.sh"],
     args = ["manage.bats"],
-    data = _BATS_COMMON_DATA + ["bats/manage.bats"],
+    data = _BATS_MANAGE_DATA + ["bats/manage.bats"],
 )
 
 sh_test(
@@ -96,7 +100,12 @@ sh_test(
     timeout = "short",
     srcs = ["bats_runner.sh"],
     args = ["utilities.bats"],
-    data = _BATS_COMMON_DATA + ["bats/utilities.bats"],
+    data = _BATS_MIN + [
+        "bats/utilities.bats",
+        "//scripts:utilities",
+        "//scripts:lib/resources.sh",
+        "//scripts:lib/models.sh",
+    ],
 )
 
 sh_test(
@@ -105,13 +114,18 @@ sh_test(
     timeout = "short",
     srcs = ["bats_runner.sh"],
     args = ["visual.bats"],
-    data = _BATS_COMMON_DATA + [
+    data = _BATS_MIN + [
         "bats/visual.bats",
+        "//k8s/workloads/comfy-base:comfy_base",
         "//k8s/workloads/comfy-visual/flux-to-ltx:flux_to_ltx",
         "//k8s/workloads/comfy-visual/flux/fast:flux_fast",
         "//k8s/workloads/comfy-visual/flux/quality:flux_quality",
         "//k8s/workloads/comfy-visual/ltx/balanced:ltx_balanced",
         "//k8s/workloads/comfy-visual/ltx/quality:ltx_quality",
+        "//scripts:lib/models.sh",
+        "//scripts:lib/resources.sh",
+        "//scripts:lib/visual.sh",
+        "//scripts:utilities",
     ],
 )
 
@@ -121,8 +135,9 @@ sh_test(
     timeout = "short",
     srcs = ["bats_runner.sh"],
     args = ["comfy_scripts.bats"],
-    data = _BATS_COMMON_DATA + [
+    data = _BATS_MIN + [
         "bats/comfy_scripts.bats",
+        "//k8s/workloads/comfy-base:comfy_base",
     ],
 )
 
@@ -132,7 +147,7 @@ sh_test(
     timeout = "short",
     srcs = ["bats_runner.sh"],
     args = ["check_tool.bats"],
-    data = _BATS_COMMON_DATA + ["bats/check_tool.bats"],
+    data = _BATS_MIN + ["bats/check_tool.bats"],
 )
 
 sh_test(
@@ -196,6 +211,8 @@ exports_files(
 
 sh_test(
     name = "kustomize_build",
+    size = "small",
+    timeout = "short",
     srcs = ["kustomize_build.sh"],
     data = [
         "//k8s/overlays/prod:overlay_prod",
@@ -209,6 +226,8 @@ sh_test(
 
 sh_test(
     name = "safety_invariants",
+    size = "medium",
+    timeout = "moderate",
     srcs = ["safety_invariants.sh"],
     data = [
         "//ansible:all_playbooks",
@@ -286,7 +305,7 @@ sh_test(
     size = "large",
     timeout = "eternal",
     srcs = ["shell_coverage.sh"],
-    data = _BATS_COMMON_DATA + [
+    data = _BATS_MANAGE_DATA + [
         "bats/check_tool.bats",
         "bats/domains.bats",
         "bats/manage.bats",
@@ -298,6 +317,12 @@ sh_test(
         "//k8s/auth/generated:generated_auth",
         "//k8s/cert-manager/generated:generated_certs",
         "//k8s/dev/dashboard:dashboard_all",
+        "//k8s/workloads/comfy-base:comfy_base",
+        "//k8s/workloads/comfy-visual/flux-to-ltx:flux_to_ltx",
+        "//k8s/workloads/comfy-visual/flux/fast:flux_fast",
+        "//k8s/workloads/comfy-visual/flux/quality:flux_quality",
+        "//k8s/workloads/comfy-visual/ltx/balanced:ltx_balanced",
+        "//k8s/workloads/comfy-visual/ltx/quality:ltx_quality",
         "//scripts:lib/sso.sh",
         "//scripts:render_domains_py",
         "//scripts:validate",

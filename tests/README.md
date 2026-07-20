@@ -36,7 +36,7 @@ make test-all
 | Dashboard (local) | `bazelisk run //dashboard:visual`  | Local Playwright only; `//dashboard:visual-test` is `manual` in Bazel |
 | Kubernetes YAML   | `//lints:k8s` + Makefile `test-k8s` | syntax, schema (kubeconform), critical fields (resources, restartPolicy, NCCL) |
 | Ansible playbooks | `//ansible:validate` + ansible-lint | all playbooks + group vars + modular roles    |
-| Docs (fast)       | `//docs:test_mkdocs_build` (in `//:test-fast`) | mkdocs strict build, frontmatter, HTML/mermaid/asset checks (no Playwright) |
+| Docs (fast)       | `//docs:test_mkdocs_build` (local / docs job; not in `//:test-fast`) | mkdocs strict build, frontmatter, HTML/mermaid/asset checks (no Playwright) |
 | Docs (visual)     | `//docs:test_mkdocs_visual`        | Playwright screenshots vs goldens only |
 | Docs (combined)   | `//docs:test_mkdocs_render`        | build + visual (same as fast + visual) |
 | Safety invariants | `//tests:safety_invariants` + BATS + `make test-k8s` | No `Always` restart, low backoff, NCCL vars, GPU requests on ray, probes/securityContext on kimi, resource-policy registry sync |
@@ -86,7 +86,7 @@ Uses `dashboard/Dockerfile.test` + `dashboard/scripts/run-hermetic-tests.sh`. Lo
 
 Every push and PR runs the complete suite via GitHub Actions (see `.github/workflows/ci.yml`).
 
-Path-filtered parallel jobs: `bazel-core` (`//:test-fast` + lint), `dashboard-unit` (host fast tests), `dashboard-hermetic` (cached Docker + Playwright), `docs-and-render` (`//docs:test_mkdocs_build` then `//docs:test_mkdocs_visual`). Safety greps live in `//tests:safety_invariants` inside `//:test-fast`.
+Path-filtered parallel jobs: `bazel-core` (`//:test-fast` + lint), `dashboard-unit` (host fast tests), `dashboard-hermetic` (Docker + Playwright; skips re-Vitest when unit passed), `docs-and-render` (single `//docs:test_mkdocs_render`). Safety greps live in `//tests:safety_invariants` inside `//:test-fast`. See `docs/BUILDING_WITH_BAZEL.md` for path-filter details.
 
 ## Adding New Tests
 
