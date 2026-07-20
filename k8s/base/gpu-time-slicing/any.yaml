@@ -1,0 +1,11 @@
+# Purpose: NVIDIA device-plugin time-slicing fragment (ConfigMap key "any")
+# Source of truth: k8s/base/gpu-time-slicing/any.yaml
+# Regenerate: n/a
+# Safety: opt-in for dual concurrent workloads; apply via manage/ansible
+
+version: v1
+sharing:
+  timeSlicing:
+    resources:
+      - name: nvidia.com/gpu
+        replicas: 2
