@@ -16,7 +16,7 @@ Thank you for helping improve the lab. This file is a short hub; detailed conven
 - Create feature/work branches **from `development`** and open PRs **back into `development`**.
 - **Promotion path:** feature → `development` → (optional) `dev` → `main` (always via PR).
 - **Never force-push** `development` or `main`.
-- Prefer merge commits when integrating long-lived branches so history stays intact.
+- Protected branches enforce **linear history** — merge PRs with **squash** or **rebase** (merge commits are blocked by the ruleset).
 
 ## Before you open a PR
 
