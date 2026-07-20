@@ -10,6 +10,14 @@ Thank you for helping improve the lab. This file is a short hub; detailed conven
 2. Read [docs/project-conventions.md](docs/project-conventions.md) for naming, patterns, formatting, safety, and testing across all stacks.
 3. For **cluster / DGX hardware** ops (not required to edit code), see [docs/getting-started.md](docs/getting-started.md).
 
+## Branching model
+
+- **Primary integration branch:** `development` (protected; changes only via pull request).
+- Create feature/work branches **from `development`** and open PRs **back into `development`**.
+- **Promotion path:** feature → `development` → (optional) `dev` → `main` (always via PR).
+- **Never force-push** `development` or `main`.
+- Prefer merge commits when integrating long-lived branches so history stays intact.
+
 ## Before you open a PR
 
 ```bash

@@ -8,6 +8,14 @@ Subdirectory addenda extend the conventions doc:
 
 - [dashboard/AGENTS.md](dashboard/AGENTS.md) — Next.js dashboard specifics
 
+## Branching model
+
+- **Primary integration branch:** `development` (protected, PR-required).
+- **All feature work** starts from `development` and is merged back via pull request.
+- **Promotion path:** feature → `development` → (optional) `dev` → `main` (always via PR).
+- **Never force-push** `development` or `main`.
+- Do not open long-lived feature PRs into `main` by default; land on `development` first, then promote.
+
 ## AI agent workflow
 
 ### Planning and task tracking
