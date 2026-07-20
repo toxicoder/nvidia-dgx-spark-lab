@@ -40,7 +40,7 @@ make test-all
 | Docs (visual)     | `//docs:test_mkdocs_visual`        | Playwright screenshots vs goldens only |
 | Docs (combined)   | `//docs:test_mkdocs_render`        | build + visual (same as fast + visual) |
 | Safety invariants | `//tests:safety_invariants` + BATS + `make test-k8s` | No `Always` restart, low backoff, NCCL vars, GPU requests on ray, probes/securityContext on kimi, resource-policy registry sync |
-| Documentation coverage | `//tests:doc_coverage` + `//tests:doc_coverage_unit` (in `//:test-fast` / suite) | `manage.sh` `# @command`, shell `# @function` (incl. `k8s/workloads/**/*.sh`), Python docstrings, YAML headers, **no inline ConfigMap scripts**, mkdocs nav pages listed in `docs/BUILD.bazel`, BUILD `Package purpose:`, dashboard export JSDoc |
+| Documentation coverage | `//tests:doc_coverage` + `//tests:doc_coverage_unit` (in `//:test-fast` / suite) | `manage.sh` `# @command`, shell `# @function` (incl. `k8s/workloads/**/*.sh`), Python docstrings, YAML headers, **no inline ConfigMap language embeds**, **no multi-line shell in mcp manifests**, mkdocs nav pages listed in `docs/BUILD.bazel`, BUILD `Package purpose:`, dashboard export JSDoc |
 
 ## Safety invariants
 

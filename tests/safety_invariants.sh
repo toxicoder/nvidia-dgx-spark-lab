@@ -147,6 +147,12 @@ for d in \
   k8s/workloads/comfy-visual/flux-to-ltx; do
   test -f "${d}/kustomization.yaml"
   test -f "${d}/patches/deployment.json"
+  grep -q 'configMapGenerator' "${d}/kustomization.yaml"
+  # Workflow JSON is a real file (not ConfigMap data: | embed)
+  test "$(find "${d}/workflows" -name 'lab-*.json' 2>/dev/null | wc -l | tr -d ' ')" -ge 1
+  for wf in "${d}"/workflows/lab-*.json; do
+    python3 -m json.tool "$wf" >/dev/null
+  done
 done
 python3 -c "
 import json
