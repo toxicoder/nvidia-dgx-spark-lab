@@ -41,6 +41,7 @@ nav:
       - Reboot Safety: reboot-safety.md
       - Models & Resources: models-catalog.md
       - Qwen3.6 Dual Stack: qwen36-dual-stack.md
+      - Visual Generative AI: visual-generative-ai.md
       - Nemotron Agentic Stack: nemotron-agentic-stack.md
       - MCP Agent Toolkit: mcp-agent-toolkit.md
       - Hermes Agent (Docker): hermes-agent.md
@@ -50,6 +51,7 @@ nav:
       - Architecture: architecture.md
       - Monitoring & Observability: monitoring-observability.md
   - How-to Guides:
+      - Developer Environment: dev-environment.md
       - Bazel Documentation: BUILDING_WITH_BAZEL.md
       - Gitea CI Setup: gitea-ci-setup.md
       - Dev Workspaces & Dashboard: dev-workspaces.md

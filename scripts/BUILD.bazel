@@ -46,6 +46,12 @@ sh_binary(
         "//k8s/workloads/qwen3.5-397b-spark2:qwen3_5_397b_spark2_job",
         "//k8s/workloads/qwen3.6-27b-nvfp4:qwen3_6_27b_nvfp4_job",
         "//k8s/workloads/qwen3.6-35b-a3b-nvfp4:qwen3_6_35b_a3b_nvfp4_job",
+        "//k8s/workloads/comfy-base:comfy_base",
+        "//k8s/workloads/comfy-visual/flux/fast:flux_fast",
+        "//k8s/workloads/comfy-visual/flux/quality:flux_quality",
+        "//k8s/workloads/comfy-visual/ltx/balanced:ltx_balanced",
+        "//k8s/workloads/comfy-visual/ltx/quality:ltx_quality",
+        "//k8s/workloads/comfy-visual/flux-to-ltx:flux_to_ltx",
         "//k8s/dev:dev_dashboard",
     ],
     visibility = ["//visibility:public"],
@@ -79,6 +85,9 @@ exports_files(
         "lib/render_domains.py",
     ] + glob(
         ["lib/*.sh"],
+        allow_empty = True,
+    ) + glob(
+        ["lib/py/*.py"],
         allow_empty = True,
     ),
     visibility = [
@@ -117,6 +126,9 @@ filegroup(
     ) + glob(
         ["lib/*.sh"],
         allow_empty = True,
+    ) + glob(
+        ["lib/py/*.py"],
+        allow_empty = True,
     ),
     visibility = ["//visibility:public"],
 )
@@ -146,5 +158,17 @@ sh_binary(
     name = "validate",
     srcs = ["validate.sh"],
     data = ["lib/paths.sh"],
+    visibility = ["//visibility:public"],
+)
+
+# CI / host lint-tool installer (multi-arch; versions from .devcontainer/tool-versions.env).
+exports_files(
+    ["ci/install-lint-tools.sh"],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "ci_install_lint_tools",
+    srcs = ["ci/install-lint-tools.sh"],
     visibility = ["//visibility:public"],
 )

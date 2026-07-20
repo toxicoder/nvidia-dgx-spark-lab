@@ -1,0 +1,39 @@
+{
+  "id": "lab-ltx-quality",
+  "revision": 1,
+  "last_node_id": 1,
+  "last_link_id": 0,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Note",
+      "pos": [
+        40,
+        40
+      ],
+      "size": [
+        560,
+        240
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "LAB ltx-quality (LTX-2.3 bf16-distilled)\n\n1. Install ComfyUI-LTXVideo / Kijai nodes if missing\n2. Weights: Kijai/LTX2.3_comfy (transformer + Gemma3 TE + projection + audio VAE)\n3. Quant profile: bf16-distilled\n4. Use official LTX 2.3 I2V + audio workflow templates\n\nDownload: bazelisk run //scripts:run-utility -- download-ltx run --tier quality"
+      ],
+      "color": "#234",
+      "bgcolor": "#456"
+    }
+  ],
+  "links": [],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "lab_profile": "ltx-quality",
+    "lab_quant": "bf16-distilled"
+  },
+  "version": 0.4
+}

@@ -117,9 +117,9 @@ See `dashboard/typedoc.json` and the package.json `docs:generate` script.
 
 Docs render tests are split for speed:
 
-- `//docs:test_mkdocs_build` — mkdocs strict build + HTML/source checks (in `//:test-fast`)
+- `//docs:test_mkdocs_build` — mkdocs strict build + HTML/source checks (local fail-fast; **not** in `//:test-fast` — needs MkDocs installed)
 - `//docs:test_mkdocs_visual` — Playwright screenshots vs goldens only
-- `//docs:test_mkdocs_render` — combined (build + visual); included in `bazel test //:test`
+- `//docs:test_mkdocs_render` — combined (one MkDocs build + visual); **CI docs job** and `bazel test //:test`
 
 CI runs build + visual as separate steps in **docs-and-render**; `//:test-fast` covers the fast build path without Playwright.
 
@@ -165,11 +165,21 @@ bazelisk run //:validate -- --update-goldens  # regenerate visual baselines (rev
 bazelisk run //:fix                         # formatters + auto-fix linters (trusted tools)
 ```
 
-`//:validate` always runs core checks (`build //... --nobuild`, `//:test-fast`, `//:lint`, key builds). When paths under `docs/` or `scripts/` change it also runs `//docs:docs` + `//docs:test_mkdocs_build` (fast). Use `--all` for `//docs:test_mkdocs_render` (visual) and `//dashboard:hermetic-test` (Docker + Playwright). Default dashboard slice uses `//dashboard:fast-test` (host Vitest + lint + typecheck).
+`//:validate` always runs core checks (`build //... --nobuild`, `//:test-fast`, `//:lint`, key builds). When docs-relevant paths change (`docs/**`, shell doc sources under `scripts/manage.sh` / `lib` / `utilities`) it also runs `//docs:docs` + `//docs:test_mkdocs_build` (fast). Use `--all` for `//docs:test_mkdocs_render` (visual) and `//dashboard:hermetic-test` (Docker + Playwright). Default dashboard slice uses `//dashboard:fast-test` (host Vitest + lint + typecheck).
 
 `//:fix` uses only well-trusted software (buildifier, shfmt, ruff, prettier) and is the recommended one-command way to programmatically clean the tree.
 
-CI uses path-filtered parallel jobs: **bazel-core** (`//:test-fast` + lint + build), **dashboard-unit** (host fast tests), **dashboard-hermetic** (cached Docker + Playwright), **docs-and-render** (`//docs:test_mkdocs_build` + `//docs:test_mkdocs_visual`), plus **validate-gate** (`bazelisk run //:validate -- --ci --check-only`). Shared setup lives in `.github/actions/setup-bazel`. See `.github/workflows/ci.yml`, `.gitea/workflows/ci.yml`, and `.bazelrc` (`--config=ci`).
+CI uses path-filtered parallel jobs (optimized for wall time):
+
+| Job | When | What |
+| --- | --- | --- |
+| **bazel-core** | scripts/k8s/… or CI graph/workflow | `//:test-fast` + `//:lint` + key builds |
+| **dashboard-unit** | dashboard/** or CI graph | Host Vitest + lint + tsc |
+| **dashboard-hermetic** | after unit success | Docker build + Playwright (`DASHBOARD_TEST_MODE=visual` skips re-Vitest) |
+| **docs-and-render** | docs/**, shell doc sources, or CI graph | **Single** `//docs:test_mkdocs_render` (one MkDocs build) |
+| **validate-gate** | always | Pure bash `scripts/ci_check_only.sh` (no Bazel cold start) |
+
+**Path filter notes:** `scripts/**` no longer always runs docs — only `scripts/manage.sh`, `scripts/lib/**`, and `scripts/utilities/**` (shell doc sources). Editing only `.github/workflows/*` runs bazel-core (and gate), not hermetic/docs. Shared setup: `.github/actions/setup-bazel` (pinned Bazelisk + disk/repo + lint-tool caches). See `.github/workflows/ci.yml`, `.gitea/workflows/ci.yml`, and `.bazelrc` (`--config=ci`).
 
 Use queries heavily:
 
@@ -222,43 +232,45 @@ Bazel is now the established primary system. The Makefile and direct commands re
 
 ## Development Container
 
-This repository includes a first-class developer container (`.devcontainer/`) that supports a wide range of workstations (including Apple Silicon arm64 and x86_64/amd64 hosts). It provides a consistent development experience with all required tools pre-installed:
+First-class multi-arch contributor environment (`.devcontainer/`): **linux/amd64 + linux/arm64**.
 
-- `bazelisk` / `bazel`
-- `buildifier`
-- `ansible`, `ansible-lint`
-- `kubectl`, `helm`
-- `shellcheck`, `bats`, `yamllint` (kubeconform planned — see Phase G; run via `bazelisk test //lints:k8s` on hosts with kubeconform installed)
-- Python, Docker CLI, and common CLI utilities (ripgrep, etc.)
+| Host | Notes |
+| --- | --- |
+| macOS Apple Silicon / Intel | Docker Desktop |
+| Windows x86_64 | Docker Desktop + WSL2 |
+| Linux amd64/arm64 | Docker Engine / Podman |
+| NVIDIA DGX Spark (Grace arm64) | Docker/Podman on-box |
+
+Pinned tools (see `.devcontainer/tool-versions.env`, shared with CI): bazelisk, buildifier, shfmt, shellcheck, kubeconform, kubectl, helm, ansible, ruff, mypy, Node **22**, Python **3.11**, prettier, bats, kcov.
+
+Full onboarding: **[dev-environment.md](dev-environment.md)**.
 
 ### Using the Dev Container
-1. Open the repo in VS Code.
-2. Click "Reopen in Container" when prompted (or use Command Palette → "Dev Containers: Reopen in Container").
-3. The container will build with all required tools pre-installed:
-   - `bazelisk` / `bazel`
-   - `buildifier`
-   - `ansible`, `ansible-lint`
-   - `kubectl`, `helm`
-   - `shellcheck`, `bats`, `yamllint` (kubeconform coming in Phase G)
-   - Python, Docker CLI, etc.
-4. Inside the container you can immediately run:
-   ```bash
-   bazelisk test //:test
-   bazelisk test //:lint
-   ```
+
+1. Open the repo in VS Code or Cursor (Docker running).
+2. Command Palette → **Dev Containers: Reopen in Container**.
+3. After `post-create` + doctor:
+
+```bash
+bash .devcontainer/doctor.sh
+bazelisk run //:fix
+bazelisk run //:validate
+bazelisk test //:test-fast --config=ci
+bazelisk test //:lint --test_tag_filters=manual
+```
+
+Docker for hermetic dashboard tests uses **docker-outside-of-docker** (host engine). Create does **not** gate on the full suite; use `//:validate` before PRs.
 
 ### Code-Driven Documentation
 
-Reference material for commands, helpers, and dashboard internals is generated from source comments (see the main plan and `docs/generate_shell_docs.py` + TypeDoc setup in `dashboard/`).
+Reference material for commands, helpers, and dashboard internals is generated from source comments (`docs/generate_shell_docs.py` + TypeDoc in `dashboard/`).
 
-After changing comments in `scripts/` or adding JSDoc in `dashboard/`, run:
+After changing comments in `scripts/` or JSDoc in `dashboard/`:
 
 ```bash
-bazel run //docs:docs          # or ./docs/manage-docs.sh build --strict
+bazelisk run //docs:docs
 ```
 
-Generated content lands in `docs/generated/` and is automatically part of the MkDocs site (under Reference).
+Generated content lands in `docs/generated/` and is part of the MkDocs site (Reference).
 
-The container is defined in `.devcontainer/devcontainer.json` + `Dockerfile`. It uses a multi-architecture base image so it works on both Apple Silicon and Intel/AMD workstations.
-
-See `AGENTS.md` for guidelines when using AI coding assistants with this project.
+See `AGENTS.md` for AI coding assistant workflow.

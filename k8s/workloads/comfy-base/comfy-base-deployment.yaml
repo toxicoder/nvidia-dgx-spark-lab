@@ -1,0 +1,177 @@
+# Purpose: ComfyUI base runtime for visual generative AI on DGX Spark (GB10)
+# Source of truth: k8s/workloads/comfy-base/
+# Regenerate: n/a
+# Safety: manual start only via manage.sh; consumes 1 GPU + large unified memory
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: comfy-base
+  namespace: ai-inference
+  labels:
+    app: comfy-base
+    workload: visual
+    runtime: comfyui
+    family: comfy
+    mode: base
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: comfy-base
+  template:
+    metadata:
+      labels:
+        app: comfy-base
+        workload: visual
+        runtime: comfyui
+        family: comfy
+        mode: base
+      annotations:
+        prometheus.io/scrape: "false"
+    spec:
+      # Prefer highspeed-labeled nodes when present (single-GPU visual; optional affinity).
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 50
+              preference:
+                matchExpressions:
+                  - key: nvidia-dgx-spark/highspeed
+                    operator: In
+                    values:
+                      - "dual-400g"
+      priorityClassName: lab-inference
+      initContainers:
+        - name: comfy-install
+          # CUDA 13 devel for aarch64 (GB10); init may compile optional extensions.
+          image: nvcr.io/nvidia/cuda:13.0.0-devel-ubuntu24.04
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN", "FOWNER", "DAC_OVERRIDE"]
+          env:
+            - name: COMFY_HOME
+              value: "/comfy-state/ComfyUI"
+            - name: COMFY_USER
+              value: "1000"
+            - name: PIP_DISABLE_PIP_VERSION_CHECK
+              value: "1"
+            - name: DEBIAN_FRONTEND
+              value: "noninteractive"
+          command: ["/bin/bash", "/scripts/install-comfy.sh"]
+          volumeMounts:
+            - name: comfy-state
+              mountPath: /comfy-state
+            - name: model-storage
+              mountPath: /models
+            - name: install-scripts
+              mountPath: /scripts
+              readOnly: true
+            - name: spark-patches
+              mountPath: /patches
+              readOnly: true
+          resources:
+            requests:
+              cpu: "2"
+              memory: "4Gi"
+            limits:
+              cpu: "8"
+              memory: "16Gi"
+      containers:
+        - name: comfyui
+          image: nvcr.io/nvidia/cuda:13.0.0-runtime-ubuntu24.04
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          workingDir: /comfy-state/ComfyUI
+          command: ["/bin/bash", "/scripts/run-comfy.sh"]
+          ports:
+            - containerPort: 8188
+              name: http
+              protocol: TCP
+          env:
+            - name: COMFY_HOME
+              value: "/comfy-state/ComfyUI"
+            - name: HF_HOME
+              value: "/models"
+            - name: HUGGINGFACE_HUB_CACHE
+              value: "/models/hub"
+            - name: PYTORCH_CUDA_ALLOC_CONF
+              value: "expandable_segments:True"
+            - name: CUDA_MODULE_LOADING
+              value: "LAZY"
+            - name: NVIDIA_VISIBLE_DEVICES
+              value: "all"
+            - name: NVIDIA_DRIVER_CAPABILITIES
+              value: "compute,utility"
+            # Hint for Nunchaku / NVFP4 paths on Blackwell (GB10).
+            - name: LAB_VISUAL_ENABLE_NVFP4
+              value: "1"
+            - name: LAB_VISUAL_PROFILE
+              value: "base"
+          resources:
+            requests:
+              cpu: "8"
+              memory: "60Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "16"
+              memory: "100Gi"
+              nvidia.com/gpu: "1"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8188
+            initialDelaySeconds: 180
+            periodSeconds: 15
+            timeoutSeconds: 10
+            failureThreshold: 40
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8188
+            initialDelaySeconds: 600
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 6
+          volumeMounts:
+            - name: comfy-state
+              mountPath: /comfy-state
+            - name: model-storage
+              mountPath: /models
+            - name: install-scripts
+              mountPath: /scripts
+              readOnly: true
+            - name: spark-patches
+              mountPath: /patches
+              readOnly: true
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: comfy-state
+          persistentVolumeClaim:
+            claimName: comfy-state
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate
+        - name: install-scripts
+          configMap:
+            name: comfy-base-scripts
+            defaultMode: 0755
+        - name: spark-patches
+          configMap:
+            name: comfy-base-spark-patches
+            defaultMode: 0644
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 16Gi

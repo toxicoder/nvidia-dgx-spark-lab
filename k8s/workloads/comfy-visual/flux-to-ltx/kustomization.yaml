@@ -1,0 +1,32 @@
+# Purpose: Combined Flux → LTX text-to-image-to-video pipeline (single pod)
+# Source of truth: k8s/workloads/comfy-visual/flux-to-ltx/
+# Regenerate: n/a
+# Safety: manual start only; 90Gi memory request to keep both models resident
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+configMapGenerator:
+  - name: flux-to-ltx-workflow
+    files:
+      - lab-flux-to-ltx.json=workflows/lab-flux-to-ltx.json
+    options:
+      labels:
+        app: flux-to-ltx
+        workload: visual
+        family: flux-to-ltx
+        mode: pipeline
+      disableNameSuffixHash: true
+
+resources:
+  - ../../comfy-base
+
+patches:
+  - target:
+      kind: Deployment
+      name: comfy-base
+    path: patches/deployment.json
+  - target:
+      kind: Service
+      name: comfy-base
+    path: patches/service.json

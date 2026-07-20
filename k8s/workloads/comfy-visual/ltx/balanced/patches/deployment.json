@@ -1,0 +1,45 @@
+[
+  { "op": "replace", "path": "/metadata/name", "value": "ltx-balanced" },
+  { "op": "replace", "path": "/metadata/labels/app", "value": "ltx-balanced" },
+  { "op": "add", "path": "/metadata/labels/family", "value": "ltx" },
+  { "op": "add", "path": "/metadata/labels/mode", "value": "balanced" },
+  { "op": "replace", "path": "/spec/selector/matchLabels/app", "value": "ltx-balanced" },
+  { "op": "replace", "path": "/spec/template/metadata/labels/app", "value": "ltx-balanced" },
+  { "op": "add", "path": "/spec/template/metadata/labels/family", "value": "ltx" },
+  { "op": "add", "path": "/spec/template/metadata/labels/mode", "value": "balanced" },
+  { "op": "replace", "path": "/spec/template/spec/containers/0/resources/requests/memory", "value": "70Gi" },
+  { "op": "replace", "path": "/spec/template/spec/containers/0/env/8/value", "value": "ltx-balanced" },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env/-",
+    "value": { "name": "LAB_LTX_QUANT", "value": "distilled-fp8" }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env/-",
+    "value": { "name": "LAB_LTX_TIER", "value": "balanced" }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env/-",
+    "value": { "name": "LAB_LTX_REPO", "value": "Kijai/LTX2.3_comfy" }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/volumes/-",
+    "value": {
+      "name": "ltx-workflow",
+      "configMap": { "name": "ltx-balanced-workflow" }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/volumeMounts/-",
+    "value": {
+      "name": "ltx-workflow",
+      "mountPath": "/comfy-state/ComfyUI/user/default/workflows/lab-ltx-balanced.json",
+      "subPath": "lab-ltx-balanced.json",
+      "readOnly": true
+    }
+  }
+]

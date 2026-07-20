@@ -357,6 +357,54 @@
       "requires_validation": [
         "kimi-test"
       ]
+    },
+    "comfy-base": {
+      "gpus": 1,
+      "memory": "60Gi",
+      "cpu": "8",
+      "heavy": true,
+      "job_name": "comfy-base",
+      "kind": "deployment"
+    },
+    "flux-fast": {
+      "gpus": 1,
+      "memory": "60Gi",
+      "cpu": "8",
+      "heavy": true,
+      "job_name": "flux-fast",
+      "kind": "deployment"
+    },
+    "flux-quality": {
+      "gpus": 1,
+      "memory": "70Gi",
+      "cpu": "8",
+      "heavy": true,
+      "job_name": "flux-quality",
+      "kind": "deployment"
+    },
+    "ltx-balanced": {
+      "gpus": 1,
+      "memory": "70Gi",
+      "cpu": "8",
+      "heavy": true,
+      "job_name": "ltx-balanced",
+      "kind": "deployment"
+    },
+    "ltx-quality": {
+      "gpus": 1,
+      "memory": "80Gi",
+      "cpu": "8",
+      "heavy": true,
+      "job_name": "ltx-quality",
+      "kind": "deployment"
+    },
+    "flux-to-ltx": {
+      "gpus": 1,
+      "memory": "90Gi",
+      "cpu": "12",
+      "heavy": true,
+      "job_name": "flux-to-ltx",
+      "kind": "deployment"
     }
   },
   "stacks": {

@@ -46,6 +46,14 @@ tags: [models, inference, safety, resources, vllm]
 | qwen3.6-27b-nvfp4     | 1    | 48Gi        | Qwen3.6 27B dense NVFP4 (quality + MTP) | Exclusive util 0.72; dual util 0.38 | 1-node            |
 | qwen3.6-35b-a3b-nvfp4 | 1    | 48Gi        | Qwen3.6 35B-A3B MoE NVFP4-Fast (speed) | flashinfer_b12x; dual stack with 27B | 1-node            |
 | qwen36-dual-spark-1   | 2*   | 96Gi        | Concurrent 27B + 35B-A3B (*logical GPUs) | Time-slicing required | 1-node dual       |
+| comfy-base            | 1    | 60Gi        | ComfyUI visual base (Spark patches) | Manual; exclusive visual | 1-node            |
+| flux-fast             | 1    | 60Gi        | FLUX.2 Klein 9B NVFP4+Nunchaku | Manual; ~4s/1024² target | 1-node            |
+| flux-quality          | 1    | 70Gi        | FLUX.2 Dev FP8 quality | Manual; higher fidelity | 1-node            |
+| ltx-balanced          | 1    | 70Gi        | LTX-2.3 distilled FP8 video | Manual; audio-synced | 1-node            |
+| ltx-quality           | 1    | 80Gi        | LTX-2.3 BF16 distilled video | Manual | 1-node            |
+| flux-to-ltx           | 1    | 90Gi        | Flux→LTX T2I→I2V+audio pipeline | Manual; both models resident | 1-node            |
+
+See [Visual Generative AI on DGX Spark](visual-generative-ai.md) for ComfyUI details.
 
 **Image + NCCL + hostNetwork unification/consistency** (across kimi, kimi-test, nemotron-3-ultra):
 

@@ -17,7 +17,8 @@ jobs:
       bazel-core: ${{ steps.filter.outputs.bazel-core }}
       dashboard: ${{ steps.filter.outputs.dashboard }}
       docs: ${{ steps.filter.outputs.docs }}
-      ci-config: ${{ steps.filter.outputs.ci-config }}
+      ci-graph: ${{ steps.filter.outputs.ci-graph }}
+      ci-workflow: ${{ steps.filter.outputs.ci-workflow }}
     steps:
       - uses: actions/checkout@v7
 
@@ -38,12 +39,16 @@ jobs:
             dashboard:
               - 'dashboard/**'
               - 'scripts/utilities/**'
+            # Shell doc sources only — not every scripts/** path (avoids Playwright
+            # for pure validate/CI orchestration edits).
             docs:
               - 'docs/**'
               - 'mkdocs.yml'
-              - 'scripts/**'
-            ci-config:
-              - '.github/**'
+              - 'scripts/manage.sh'
+              - 'scripts/lib/**'
+              - 'scripts/utilities/**'
+            # Graph/orchestrator: force all expensive jobs.
+            ci-graph:
               - 'BUILD.bazel'
               - 'MODULE.bazel'
               - 'MODULE.bazel.lock'
@@ -51,12 +56,17 @@ jobs:
               - '.bazelversion'
               - 'fix.sh'
               - 'scripts/validate.sh'
+            # Workflow/action YAML alone: bazel-core only (setup-bazel / lint install).
+            ci-workflow:
+              - '.github/**'
+              - '.gitea/**'
 
   bazel-core:
     needs: changes
     if: |
       needs.changes.outputs.bazel-core == 'true' ||
-      needs.changes.outputs.ci-config == 'true'
+      needs.changes.outputs.ci-graph == 'true' ||
+      needs.changes.outputs.ci-workflow == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -76,14 +86,15 @@ jobs:
     needs: changes
     if: |
       needs.changes.outputs.dashboard == 'true' ||
-      needs.changes.outputs.ci-config == 'true'
+      needs.changes.outputs.ci-graph == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          # Match .devcontainer/tool-versions.env NODE_MAJOR and dashboard engines.
+          node-version: "22"
           cache: npm
           cache-dependency-path: dashboard/package-lock.json
 
@@ -95,10 +106,12 @@ jobs:
         run: bazelisk run //dashboard:fast-test
 
   dashboard-hermetic:
-    needs: changes
+    needs: [changes, dashboard-unit]
     if: |
-      needs.changes.outputs.dashboard == 'true' ||
-      needs.changes.outputs.ci-config == 'true'
+      always() &&
+      !cancelled() &&
+      (needs.changes.outputs.dashboard == 'true' || needs.changes.outputs.ci-graph == 'true') &&
+      (needs.dashboard-unit.result == 'success' || needs.dashboard-unit.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -106,7 +119,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Build and run hermetic dashboard tests
+      - name: Build hermetic dashboard test image
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -116,14 +129,21 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Run hermetic test container
-        run: docker run --rm lab-dashboard-test:ci
+      # Unit already ran Vitest+lint+tsc on the host; hermetic focuses on
+      # production build + Playwright (and coverage when visual mode needs it).
+      - name: Run hermetic tests (build + visual; unit skipped when host unit passed)
+        run: |
+          if [[ "${{ needs.dashboard-unit.result }}" == "success" ]]; then
+            docker run --rm -e DASHBOARD_TEST_MODE=visual lab-dashboard-test:ci
+          else
+            docker run --rm -e DASHBOARD_TEST_MODE=full lab-dashboard-test:ci
+          fi
 
   docs-and-render:
     needs: changes
     if: |
       needs.changes.outputs.docs == 'true' ||
-      needs.changes.outputs.ci-config == 'true'
+      needs.changes.outputs.ci-graph == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -161,11 +181,9 @@ jobs:
           pip install -r docs/requirements.txt
           python -m playwright install --with-deps chromium
 
-      - name: Docs build test (fast)
-        run: bazelisk test //docs:test_mkdocs_build --config=ci
-
-      - name: Docs visual golden test
-        run: bazelisk test //docs:test_mkdocs_visual --config=ci
+      # Single MkDocs build + HTML checks + Playwright (one setUpClass build).
+      - name: Docs build + visual regression (single MkDocs build)
+        run: bazelisk test //docs:test_mkdocs_render --config=ci
 
   validate-gate:
     needs: [changes, bazel-core, dashboard-unit, dashboard-hermetic, docs-and-render]
@@ -174,18 +192,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: ./.github/actions/setup-bazel
-        with:
-          install-lint-tools: "false"
-
+      # Pure bash gate — no Bazelisk / disk-cache cold start.
       - name: Validate gate (path-filter consistency)
         env:
           BAZEL_CORE_RESULT: ${{ needs.bazel-core.result }}
           DASHBOARD_UNIT_RESULT: ${{ needs.dashboard-unit.result }}
           DASHBOARD_HERMETIC_RESULT: ${{ needs.dashboard-hermetic.result }}
           DOCS_RESULT: ${{ needs.docs-and-render.result }}
-          RUN_BAZEL_CORE: ${{ needs.changes.outputs.bazel-core == 'true' || needs.changes.outputs.ci-config == 'true' }}
-          RUN_DASHBOARD: ${{ needs.changes.outputs.dashboard == 'true' || needs.changes.outputs.ci-config == 'true' }}
-          RUN_DOCS: ${{ needs.changes.outputs.docs == 'true' || needs.changes.outputs.ci-config == 'true' }}
-          RUN_CI_CONFIG: ${{ needs.changes.outputs.ci-config == 'true' }}
-        run: bazelisk run //:validate -- --ci --check-only
+          RUN_BAZEL_CORE: ${{ needs.changes.outputs.bazel-core == 'true' || needs.changes.outputs.ci-graph == 'true' || needs.changes.outputs.ci-workflow == 'true' }}
+          RUN_DASHBOARD: ${{ needs.changes.outputs.dashboard == 'true' || needs.changes.outputs.ci-graph == 'true' }}
+          RUN_DOCS: ${{ needs.changes.outputs.docs == 'true' || needs.changes.outputs.ci-graph == 'true' }}
+        run: bash scripts/ci_check_only.sh

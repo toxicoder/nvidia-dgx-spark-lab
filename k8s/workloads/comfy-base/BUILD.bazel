@@ -1,0 +1,32 @@
+"""Package purpose: ComfyUI base visual workload manifests (Deployment, PVC, Service, ConfigMaps)."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "comfy_base",
+    srcs = [
+        "comfy-base-deployment.yaml",
+        "kustomization.yaml",
+        "pvc.yaml",
+        "scripts/install-comfy.sh",
+        "scripts/patch_get_free_memory.py",
+        "scripts/run-comfy.sh",
+        "service.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+exports_files([
+    "comfy-base-deployment.yaml",
+    "kustomization.yaml",
+    "pvc.yaml",
+    "scripts/install-comfy.sh",
+    "scripts/patch_get_free_memory.py",
+    "scripts/run-comfy.sh",
+    "service.yaml",
+])

@@ -23,13 +23,8 @@ spec:
       priorityClassName: lab-optional
       containers:
         - name: gitea-mcp
-          image: python:3.12-slim
+          image: lab-mcp/mcp-gitea:local
           imagePullPolicy: IfNotPresent
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              pip install --no-cache-dir uv
-              exec uvx gitea-mcp serve --transport http --host 0.0.0.0 --port 8000 --path /mcp
           env:
             - name: GITEA_URL
               valueFrom:

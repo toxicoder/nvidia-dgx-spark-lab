@@ -1,0 +1,41 @@
+{
+  "id": "lab-flux-to-ltx",
+  "revision": 1,
+  "last_node_id": 1,
+  "last_link_id": 0,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Note",
+      "pos": [
+        40,
+        40
+      ],
+      "size": [
+        600,
+        280
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "LAB flux-to-ltx pipeline (single pod)\\n\\nFlow: text \u2192 FLUX.2 Klein NVFP4 image \u2192 LTX-2.3 I2V + audio\\n\\nDefaults: LAB_FLUX_TIER=fast, LAB_LTX_TIER=balanced\\nMemory: 90Gi request to keep both model families resident on GB10\\n\\n1. Ensure weights: download-flux --tier fast && download-ltx --tier balanced\\n2. Load Flux T2I then LTX I2V+audio graph (or merge in UI)\\n3. Keep models loaded; avoid unloading between stages\\n\\nStart: bazelisk run //:manage -- start-flux-to-ltx"
+      ],
+      "color": "#322",
+      "bgcolor": "#544"
+    }
+  ],
+  "links": [],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "lab_profile": "flux-to-ltx",
+    "lab_flux_tier": "fast",
+    "lab_ltx_tier": "balanced",
+    "lab_pipeline": true
+  },
+  "version": 0.4
+}

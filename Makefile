@@ -216,13 +216,13 @@ test-ansible:
 # =============================================================================
 
 ci-install-deps:
-	@echo -e "$(YELLOW)→ Installing test dependencies (Linux/Debian-based example)...$(NC)"
-	@# Delegate to shared script for reduced duplication
-	bash .github/scripts/install-lint-tools.sh || true
+	@echo -e "$(YELLOW)→ Installing test dependencies (Linux amd64/arm64; multi-arch pins from tool-versions.env)...$(NC)"
+	@# Prefer scripts/ci (SSOT); .github wrapper delegates here too.
+	bash scripts/ci/install-lint-tools.sh || true
 	@# BATS via direct (not in shared lint script)
 	curl -sL https://github.com/bats-core/bats-core/archive/refs/tags/v1.11.0.tar.gz | tar xz -C /tmp && sudo /tmp/bats-core-1.11.0/install.sh /usr/local || true
 	@echo -e "$(GREEN)→ Dependencies installed (verify with 'make lint' or 'bazelisk test //:test')$(NC)"
-	@echo "Also recommended: install bazelisk (see docs/BUILDING_WITH_BAZEL.md)"
+	@echo "Preferred: Dev Containers (docs/dev-environment.md) for Apple Silicon / Windows / Spark parity."
 
 clean:
 	find . -name '*.retry' -delete || true

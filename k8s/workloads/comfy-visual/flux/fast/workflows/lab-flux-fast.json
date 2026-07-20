@@ -1,0 +1,40 @@
+{
+  "id": "lab-flux-fast",
+  "revision": 1,
+  "last_node_id": 1,
+  "last_link_id": 0,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Note",
+      "pos": [
+        40,
+        40
+      ],
+      "size": [
+        520,
+        220
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "LAB flux-fast (FLUX.2 Klein 9B NVFP4 + Nunchaku)\\n\\n1. Load Comfy template: Flux2 Klein text-to-image\\n2. Checkpoints expected under models/diffusion_models (via /models/comfy)\\n3. HF: black-forest-labs/FLUX.2-klein-9b-nvfp4\\n4. Optional Nunchaku: tonera/FLUX.2-klein-9B-Nunchaku\\n5. Target ~4s / 1024\u00b2 on GB10 with NVFP4\\n\\nDownload: bazelisk run //scripts:run-utility -- download-flux run --tier fast"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    }
+  ],
+  "links": [],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "lab_profile": "flux-fast",
+    "lab_checkpoint": "FLUX.2-klein-9b-nvfp4",
+    "lab_enable_nunchaku": true
+  },
+  "version": 0.4
+}

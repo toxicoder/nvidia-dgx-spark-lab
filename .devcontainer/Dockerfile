@@ -1,119 +1,152 @@
-# .devcontainer/Dockerfile
-# Developer container for nvidia-dgx-spark-lab
-# Supports multiple architectures (including x86_64 and Apple Silicon arm64).
-# Uses a multi-arch base image for broad workstation compatibility.
+# syntax=docker/dockerfile:1
+# ## Contributor dev image for nvidia-dgx-spark-lab
+#
+# Multi-arch Linux image (linux/amd64 + linux/arm64) so the same definition
+# works on:
+#   - Apple Silicon (arm64 host → arm64 container via Docker Desktop)
+#   - Intel Mac / Windows x86_64 / Linux amd64 (Docker Desktop or native)
+#   - NVIDIA DGX Spark (Grace ARM64) running Docker/Podman
+#
+# Tool versions: .devcontainer/tool-versions.env (single source of truth).
+# Docker engine: provided by the docker-outside-of-docker feature (host socket),
+# not installed in this Dockerfile.
+#
+# Build context: .devcontainer/ (see devcontainer.json).
 
 FROM mcr.microsoft.com/devcontainers/base:ubuntu-22.04
 
-# Build arg set automatically by Docker buildx for target architecture
 ARG TARGETARCH=amd64
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
 
-# Avoid interactive prompts
-ENV DEBIAN_FRONTEND=noninteractive
+# Pins (must match tool-versions.env — enforced by tests/bats/devcontainer.bats)
+ARG BAZELISK_VERSION=v1.25.0
+ARG BUILDIFIER_VERSION=v8.2.1
+ARG SHFMT_ASSET_VERSION=3.10.0
+ARG KUBECONFORM_VERSION=v0.8.0
+ARG HELM_VERSION=v3.15.0
+ARG KUBECTL_VERSION=v1.30.14
+ARG PRETTIER_VERSION=3.9.4
 
-# Install base tools and project dependencies
+COPY tool-versions.env /tmp/tool-versions.env
+
+# Single apt layer: base CLIs used by //:lint, BATS, docs, and k8s smoke paths.
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    apt-transport-https \
     build-essential \
+    ca-certificates \
     curl \
-    wget \
+    fd-find \
+    fzf \
     git \
-    make \
+    gnupg \
     jq \
+    kcov \
+    lsb-release \
+    make \
     python3 \
     python3-pip \
     python3-venv \
-    ansible \
+    ripgrep \
     shellcheck \
     bats \
-    kcov \
+    wget \
     yamllint \
-    # For Kubernetes / Helm work
-    apt-transport-https \
-    ca-certificates \
-    gnupg \
-    lsb-release \
-    && rm -rf /var/lib/apt/lists/*
+    unzip \
+    xz-utils \
+    && rm -rf /var/lib/apt/lists/* \
+    && (command -v fdfind >/dev/null && ln -sf "$(command -v fdfind)" /usr/local/bin/fd || true)
 
-# Install kubectl (architecture-aware)
-RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/${TARGETARCH}/kubectl" \
-    && chmod +x kubectl \
-    && mv kubectl /usr/local/bin/
-
-# Install Helm (get-helm.sh auto-detects architecture)
-RUN curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 \
-    && chmod +x get_helm.sh \
-    && ./get_helm.sh --version v3.15.0 \
-    && rm get_helm.sh
-
-# Install Bazelisk (architecture-aware)
-RUN case "${TARGETARCH}" in \
-      amd64) BAZEL_ARCH=amd64 ;; \
-      arm64) BAZEL_ARCH=arm64 ;; \
-      *) echo "Unsupported arch: ${TARGETARCH}"; exit 1 ;; \
-    esac && \
-    curl -L https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-${BAZEL_ARCH} -o /usr/local/bin/bazelisk \
+# Map Docker TARGETARCH → upstream asset names (amd64|arm64 only).
+RUN set -euo pipefail; \
+    case "${TARGETARCH}" in \
+      amd64|arm64) ARCH="${TARGETARCH}" ;; \
+      *) echo "Unsupported TARGETARCH=${TARGETARCH} (need amd64 or arm64)" >&2; exit 1 ;; \
+    esac; \
+    echo "Installing pinned CLIs for linux/${ARCH}..."; \
+    # kubectl (pinned; matches kubeconform kubernetes 1.30 schema minor)
+    curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl" \
+      -o /usr/local/bin/kubectl \
+    && chmod +x /usr/local/bin/kubectl \
+    && kubectl version --client; \
+    # Helm
+    curl -fsSL "https://get.helm.sh/helm-${HELM_VERSION}-linux-${ARCH}.tar.gz" \
+      -o /tmp/helm.tgz \
+    && tar -xzf /tmp/helm.tgz -C /tmp \
+    && install "/tmp/linux-${ARCH}/helm" /usr/local/bin/helm \
+    && rm -rf /tmp/helm.tgz "/tmp/linux-${ARCH}" \
+    && helm version; \
+    # Bazelisk
+    curl -fsSL "https://github.com/bazelbuild/bazelisk/releases/download/${BAZELISK_VERSION}/bazelisk-linux-${ARCH}" \
+      -o /usr/local/bin/bazelisk \
     && chmod +x /usr/local/bin/bazelisk \
-    && ln -s /usr/local/bin/bazelisk /usr/local/bin/bazel
+    && ln -sf /usr/local/bin/bazelisk /usr/local/bin/bazel \
+    && bazelisk version; \
+    # Buildifier
+    curl -fsSL "https://github.com/bazelbuild/buildtools/releases/download/${BUILDIFIER_VERSION}/buildifier-linux-${ARCH}" \
+      -o /usr/local/bin/buildifier \
+    && chmod +x /usr/local/bin/buildifier \
+    && buildifier --version || true; \
+    # shfmt
+    curl -fsSL "https://github.com/mvdan/sh/releases/download/v${SHFMT_ASSET_VERSION}/shfmt_v${SHFMT_ASSET_VERSION}_linux_${ARCH}" \
+      -o /usr/local/bin/shfmt \
+    && chmod +x /usr/local/bin/shfmt \
+    && shfmt --version; \
+    # kubeconform
+    curl -fsSL "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-${ARCH}.tar.gz" \
+      -o /tmp/kubeconform.tgz \
+    && tar -xzf /tmp/kubeconform.tgz -C /usr/local/bin kubeconform \
+    && chmod +x /usr/local/bin/kubeconform \
+    && rm -f /tmp/kubeconform.tgz \
+    && kubeconform -v
 
-# Install Buildifier (architecture-aware)
-RUN case "${TARGETARCH}" in \
-      amd64) BUILDIFIER_ARCH=amd64 ;; \
-      arm64) BUILDIFIER_ARCH=arm64 ;; \
-      *) echo "Unsupported arch: ${TARGETARCH}"; exit 1 ;; \
-    esac && \
-    curl -L https://github.com/bazelbuild/buildtools/releases/latest/download/buildifier-linux-${BUILDIFIER_ARCH} -o /usr/local/bin/buildifier \
-    && chmod +x /usr/local/bin/buildifier
-
-# Install shfmt (trusted shell formatter, architecture-aware)
-RUN case "${TARGETARCH}" in \
-      amd64) SHFMT_ARCH=amd64 ;; \
-      arm64) SHFMT_ARCH=arm64 ;; \
-      *) echo "Unsupported arch: ${TARGETARCH}"; exit 1 ;; \
-    esac && \
-    curl -L "https://github.com/mvdan/sh/releases/latest/download/shfmt_v3.10.0_linux_${SHFMT_ARCH}" -o /usr/local/bin/shfmt \
-    && chmod +x /usr/local/bin/shfmt
-
-# Install kubeconform (Kubernetes 1.30.0 schema validation; architecture-aware)
-RUN case "${TARGETARCH}" in \
-      amd64) KUBECONFORM_ARCH=amd64 ;; \
-      arm64) KUBECONFORM_ARCH=arm64 ;; \
-      *) echo "Unsupported arch: ${TARGETARCH}"; exit 1 ;; \
-    esac && \
-    curl -sL "https://github.com/yannh/kubeconform/releases/download/v0.8.0/kubeconform-linux-${KUBECONFORM_ARCH}.tar.gz" \
-      | tar xz -C /usr/local/bin kubeconform \
-    && chmod +x /usr/local/bin/kubeconform
-
-# Install additional Python tools for linting + formatting (ruff is the modern trusted choice)
+# Python lint/test/docs helpers (feature may also install Python 3.11; these are PATH tools).
+# ansible via pip for consistent version across amd64/arm64.
 RUN pip3 install --no-cache-dir --break-system-packages \
+    "ansible>=2.14" \
     ansible-lint \
     mypy \
-    yamllint \
+    pre-commit \
+    pytest \
+    pytest-cov \
     ruff \
     types-PyYAML \
-    # Any other project Python deps
+    yamllint
 
-# Install Docker CLI (optional, for local k8s testing if needed)
-RUN curl -fsSL https://get.docker.com | sh
+# prettier for //lints:yaml_format and //:fix (Node feature installs npm later;
+# re-run in a later layer isn't possible after features — install via standalone binary fallback).
+# Prefer npm when available post-features; bake a node-based global when node exists,
+# otherwise install a platform binary via npm's optional path during post-create.
+# Here we only ensure pip/apt tools; prettier is installed in a small step using
+# the node that may not exist yet. post-create + doctor treat prettier as optional
+# if dashboard/node_modules/.bin/prettier exists after npm ci.
+#
+# Install prettier with a tiny standalone approach: download npm's prettier package
+# is deferred to post-create when Node feature is present. CI install-lint-tools
+# installs the same PRETTIER_VERSION globally.
 
-# Create vscode user if not present (devcontainer base usually has it)
 ARG USERNAME=vscode
-RUN if ! id -u $USERNAME > /dev/null 2>&1; then \
-        useradd -m -s /bin/bash $USERNAME; \
-    fi
+RUN if ! id -u "${USERNAME}" >/dev/null 2>&1; then \
+      useradd -m -s /bin/bash "${USERNAME}"; \
+    fi \
+    && mkdir -p /home/${USERNAME}/.cache/bazel-disk \
+                /home/${USERNAME}/.cache/bazel-repo \
+                /home/${USERNAME}/.cache/pip \
+                /home/${USERNAME}/.cache/ms-playwright \
+                /home/${USERNAME}/.npm \
+                /home/${USERNAME}/.local/bin \
+    && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ripgrep \
-    fd-find \
-    fzf \
-    && rm -rf /var/lib/apt/lists/*
+# Welcome banner (linux container; host can be macOS/Windows/Spark).
+USER ${USERNAME}
+RUN printf '%s\n' \
+  'echo "nvidia-dgx-spark-lab dev container ($(uname -m))"' \
+  'echo "  doctor:  bash .devcontainer/doctor.sh"' \
+  'echo "  fix:     bazelisk run //:fix"' \
+  'echo "  validate: bazelisk run //:validate"' \
+  'echo "  docs:    bazelisk run //docs:serve -- --port 8080"' \
+  >> ~/.bashrc
 
-# Post install cleanup
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Default to vscode user
-USER vscode
-WORKDIR /workspaces/nvidia-dgx-spark-lab
-
-# Helpful message
-RUN echo 'echo "Welcome to nvidia-dgx-spark-lab dev container"' >> ~/.bashrc
-RUN echo 'echo "Use: bazelisk test //:test   |   make test (legacy parallel)"' >> ~/.bashrc
+# Do not hardcode WORKDIR to a fixed clone path — Dev Containers set workspaceFolder.
+WORKDIR /workspaces
