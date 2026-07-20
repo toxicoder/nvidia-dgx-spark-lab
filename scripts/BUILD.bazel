@@ -160,3 +160,15 @@ sh_binary(
     data = ["lib/paths.sh"],
     visibility = ["//visibility:public"],
 )
+
+# CI / host lint-tool installer (multi-arch; versions from .devcontainer/tool-versions.env).
+exports_files(
+    ["ci/install-lint-tools.sh"],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "ci_install_lint_tools",
+    srcs = ["ci/install-lint-tools.sh"],
+    visibility = ["//visibility:public"],
+)

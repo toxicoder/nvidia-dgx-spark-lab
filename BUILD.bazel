@@ -29,6 +29,20 @@ exports_files([
     "prettier.config.mjs",
 ])
 
+# Devcontainer sources for hermetic contributor-env tests (multi-arch amd64/arm64).
+filegroup(
+    name = "devcontainer",
+    srcs = [
+        ".devcontainer/Dockerfile",
+        ".devcontainer/README.md",
+        ".devcontainer/devcontainer.json",
+        ".devcontainer/doctor.sh",
+        ".devcontainer/post-create.sh",
+        ".devcontainer/tool-versions.env",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # Re-export the primary operational binary.
 alias(
     name = "manage",

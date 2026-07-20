@@ -2,25 +2,40 @@
   "name": "nvidia-dgx-spark-lab",
   "build": {
     "dockerfile": "Dockerfile",
-    "context": "."
+    "context": ".",
+    "args": {
+      // Keep in sync with tool-versions.env (bats enforces Dockerfile ARG defaults).
+      "BAZELISK_VERSION": "v1.25.0",
+      "BUILDIFIER_VERSION": "v8.2.1",
+      "SHFMT_ASSET_VERSION": "3.10.0",
+      "KUBECONFORM_VERSION": "v0.8.0",
+      "HELM_VERSION": "v3.15.0",
+      "KUBECTL_VERSION": "v1.30.14",
+      "PRETTIER_VERSION": "3.9.4"
+    }
   },
+  // Multi-platform: image is linux/amd64 + linux/arm64.
+  // Hosts: macOS Apple Silicon, Windows x86_64 Docker Desktop, Linux, DGX Spark (Grace ARM).
   "features": {
-    // Docker in Docker for any container testing if needed
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+    // Use host Docker Engine (Desktop / WSL2 / Linux socket). Faster than DinD on macOS.
+    // Hermetic dashboard tests: docker build -f dashboard/Dockerfile.test
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
       "version": "latest",
-      "enableNonRootDocker": true,
       "moby": true
     },
-    // Python feature for better management
     "ghcr.io/devcontainers/features/python:1": {
       "version": "3.11",
       "installTools": true
     },
-    // Node for dashboard (Next.js) development and tests
     "ghcr.io/devcontainers/features/node:1": {
       "version": "22",
-      "installYarn": true
+      "installYarn": false
     }
+  },
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "8gb",
+    "storage": "32gb"
   },
   "customizations": {
     "vscode": {
@@ -38,27 +53,46 @@
         "ms-playwright.playwright",
         "redhat.vscode-yaml",
         "redhat.ansible",
-        "ms-kubernetes-tools.vscode-kubernetes-tools",
-        "ms-vscode-remote.remote-containers"
+        "ms-kubernetes-tools.vscode-kubernetes-tools"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
-        "python.defaultInterpreterPath": "/usr/local/bin/python3",
-        "bazel.buildifierExecutable": "/usr/local/bin/buildifier"
+        "python.defaultInterpreterPath": "/usr/local/python/current/bin/python",
+        "bazel.buildifierExecutable": "/usr/local/bin/buildifier",
+        "remote.localPortHost": "allInterfaces"
       }
     }
   },
-  "forwardPorts": [3000, 8080],
-  "postCreateCommand": "bash .devcontainer/post-create.sh",
-  "postStartCommand": "bazelisk version || echo 'Bazelisk ready'",
-  "remoteUser": "vscode",
-  "containerEnv": {
-    "PYTHONUNBUFFERED": "1"
+  "forwardPorts": [3000, 8000, 8080],
+  "portsAttributes": {
+    "3000": { "label": "Dashboard (Next.js)", "onAutoForward": "notify" },
+    "8000": { "label": "MkDocs default", "onAutoForward": "silent" },
+    "8080": { "label": "MkDocs (serve --port 8080)", "onAutoForward": "notify" }
   },
+  // Persist expensive caches across rebuilds (Bazel, npm, pip, Playwright).
   "mounts": [
-    // Optional: mount host docker socket if needed
-    // "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+    "source=dgx-lab-bazel-disk,target=/home/vscode/.cache/bazel-disk,type=volume",
+    "source=dgx-lab-bazel-repo,target=/home/vscode/.cache/bazel-repo,type=volume",
+    "source=dgx-lab-npm,target=/home/vscode/.npm,type=volume",
+    "source=dgx-lab-pip,target=/home/vscode/.cache/pip,type=volume",
+    "source=dgx-lab-playwright,target=/home/vscode/.cache/ms-playwright,type=volume"
   ],
+  "containerEnv": {
+    "PYTHONUNBUFFERED": "1",
+    "REQUIRE_LINT_TOOLS": "1",
+    "PIP_DISABLE_PIP_VERSION_CHECK": "1"
+  },
+  "remoteEnv": {
+    "PATH": "${containerWorkspaceFolder}/dashboard/node_modules/.bin:/home/vscode/.local/bin:/usr/local/python/current/bin:${containerEnv:PATH}"
+  },
+  "remoteUser": "vscode",
+  // Connect after deps install; full suite is not part of create.
+  "updateContentCommand": "bash .devcontainer/post-create.sh --deps-only",
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "bash .devcontainer/doctor.sh --quiet || true",
+  "waitFor": "updateContentCommand",
+  // kcov / debuggers
   "capAdd": ["SYS_PTRACE"],
-  "securityOpt": ["seccomp=unconfined"]
+  "securityOpt": ["seccomp=unconfined"],
+  "init": true
 }
