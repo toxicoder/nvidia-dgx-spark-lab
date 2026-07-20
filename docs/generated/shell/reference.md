@@ -787,6 +787,41 @@ Usage:
 
 
 
+<!-- source: scripts/ci/install-lint-tools.sh -->
+
+## CI lint tool installer
+
+Install host lint and formatter binaries on Ubuntu GitHub/Gitea runners
+(and optionally other Linux hosts). Shared by setup-bazel and local bootstrap.
+
+Versions come from .devcontainer/tool-versions.env (single source of truth).
+Supports linux/amd64 and linux/arm64 (DGX Spark Grace, multi-arch self-hosted).
+
+Installs:
+
+  - shellcheck, yamllint, jq (apt)
+
+  - ansible, ansible-lint, ruff, mypy, prettier, pytest (pip / npm)
+
+  - kubeconform, buildifier, shfmt (release binaries, arch-aware)
+
+**Safety**:
+
+- Installs to system paths only; does not modify repo sources or cluster config.
+
+- Requires `sudo` for apt and `/usr/local/bin` placement when not root.
+
+- When LINT_BINS_CACHE_HIT=true, skips re-downloading release binaries.
+
+Usage (internal — called from setup-bazel / CI):
+  .github/scripts/install-lint-tools.sh
+
+### Function `detect_arch`
+
+Map uname -m → release asset arch (amd64|arm64).
+
+
+
 <!-- source: scripts/utilities/download-ltx.sh -->
 
 ## download-ltx
@@ -1039,6 +1074,39 @@ See reboot-safety.md and AGENTS for mandatory pre-reboot steps.
 ### Command: system-update
 
 ### Command: update-system
+
+
+
+<!-- source: scripts/utilities/install-dev-tools.sh -->
+
+## install-dev-tools
+
+Host-side bootstrap for contributors who are **not** using the devcontainer.
+Prefer the multi-arch devcontainer when possible (Apple Silicon, Windows,
+Linux, DGX Spark).
+
+```bash
+Usage:
+  ./scripts/utilities/install-dev-tools.sh status
+  ./scripts/utilities/install-dev-tools.sh run
+```
+
+### Command: install-dev-tools
+
+### Function `print_platform`
+
+@function print_platform
+Describe host OS/arch and recommended path.
+
+### Function `cmd_status`
+
+@function cmd_status
+Report whether key tools are on PATH.
+
+### Function `cmd_run`
+
+@function cmd_run
+Best-effort install of lint tools on this host.
 
 
 

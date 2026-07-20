@@ -4,9 +4,11 @@ Thank you for helping improve the lab. This file is a short hub; detailed conven
 
 ## Quick start
 
-1. Read [docs/getting-started.md](docs/getting-started.md) for cluster setup and day-to-day operations.
+1. **Set up the contributor environment** (multi-arch: Apple Silicon, Windows x86, Linux, DGX Spark Grace):
+   - Preferred: open the [devcontainer](.devcontainer/) — see [docs/dev-environment.md](docs/dev-environment.md).
+   - Then: `bash .devcontainer/doctor.sh` → `bazelisk run //:fix` → `bazelisk run //:validate`.
 2. Read [docs/project-conventions.md](docs/project-conventions.md) for naming, patterns, formatting, safety, and testing across all stacks.
-3. Use the [devcontainer](.devcontainer/) for consistent tooling (bazelisk, shellcheck, Node.js 22, etc.).
+3. For **cluster / DGX hardware** ops (not required to edit code), see [docs/getting-started.md](docs/getting-started.md).
 
 ## Before you open a PR
 
