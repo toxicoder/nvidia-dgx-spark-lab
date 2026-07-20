@@ -190,11 +190,28 @@ sh_test(
     ],
 )
 
+sh_test(
+    name = "bats_devcontainer_test",
+    size = "small",
+    timeout = "short",
+    srcs = ["bats_runner.sh"],
+    args = ["devcontainer.bats"],
+    data = [
+        "bats/devcontainer.bats",
+        "bats/test_helper.bash",
+        ":bats_tool",
+        "//:devcontainer",
+        "//scripts:ci_install_lint_tools",
+        "//scripts:manage.sh",
+    ],
+)
+
 test_suite(
     name = "bats",
     tests = [
         ":bats_check_tool_test",
         ":bats_comfy_scripts_test",
+        ":bats_devcontainer_test",
         ":bats_domains_test",
         ":bats_manage_test",
         ":bats_tooling_test",

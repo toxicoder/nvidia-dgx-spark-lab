@@ -29,6 +29,7 @@ make test-all
 |-------------------|------------------------------------|-----------------------------------------------|
 | Shell scripts     | `//tests:bats` + shellcheck | `manage.sh` commands, safety, modular libs (models/dev/domains/status) |
 | Lab domains       | `//tests:bats_domains_test` | `lab-domains.yaml` render pipeline, FQDN helpers, generated SSO manifests; teardown restores tracked generated artifacts |
+| Devcontainer      | `//tests:bats_devcontainer_test` | Multi-arch pin SSOT, doctor/post-create help, no `releases/latest` in Dockerfile |
 | Shell line coverage | `//tests:shell_coverage` (`manual`) | kcov 100% on `scripts/**/*.sh`; **5 parallel BATS shards** merged into one report. Linux amd64 + `SYS_PTRACE`. Bazel `eternal` caps at **3600s** — on slow hosts (Docker Desktop amd64 emulation) run `bash tests/shell_coverage.sh` directly instead |
 | TypeScript/Next.js (dashboard) | `bazelisk run //dashboard:test` (Vitest; alias `//dashboard:unit-test`) | host services, actions, Treemap viz, panels (with mocks) |
 | Dashboard (fast)  | `bazelisk run //dashboard:fast-test` | Vitest + ESLint + typecheck on host (no Docker, no Playwright). Default in `//:validate` when dashboard paths change. |
