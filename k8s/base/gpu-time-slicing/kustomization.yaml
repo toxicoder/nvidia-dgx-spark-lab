@@ -6,5 +6,13 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-resources:
-  - time-slicing-config.yaml
+configMapGenerator:
+  - name: time-slicing-config
+    namespace: gpu-operator
+    files:
+      - any=any.yaml
+    options:
+      labels:
+        app.kubernetes.io/part-of: nvidia-dgx-spark-lab
+        app.kubernetes.io/component: gpu-time-slicing
+      disableNameSuffixHash: true

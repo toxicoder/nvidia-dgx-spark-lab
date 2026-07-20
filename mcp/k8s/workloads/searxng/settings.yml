@@ -1,28 +1,23 @@
-# Purpose: SearXNG instance settings for MCP search stack
-# Source of truth: mcp/k8s/workloads/searxng/settings.yml (deployed via configMapGenerator)
-# Regenerate: n/a — keep in sync with workload settings.yml
-# Safety: replace secret_key before production use
+# Purpose: SearXNG instance settings for MCP search stack (ConfigMap via kustomize)
+# Source of truth: mcp/k8s/workloads/searxng/settings.yml
+# Regenerate: n/a
+# Safety: secret_key is lab-dev placeholder; replace for production
 
 use_default_settings: true
-
 general:
   instance_name: "DGX Spark Lab Search"
-
 server:
   secret_key: "lab-searxng-dev-only"
   limiter: false
   image_proxy: false
-
 search:
   safe_search: 1
   autocomplete: ""
   formats:
     - html
     - json
-
 redis:
   url: redis://redis.agent-tools.svc.cluster.local:6379/0
-
 outgoing:
   request_timeout: 10.0
   max_request_timeout: 15.0

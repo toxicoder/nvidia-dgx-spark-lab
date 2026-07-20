@@ -6,7 +6,16 @@ package(default_visibility = ["//visibility:public"])
 
 filegroup(
     name = "k8s_manifests",
-    srcs = glob(["k8s/**/*.yaml"]),
+    srcs = glob(
+        [
+            "k8s/**/*.yaml",
+            "k8s/**/*.yml",
+            "k8s/**/*.json",
+            "k8s/**/*.sh",
+            "k8s/**/*.py",
+        ],
+        allow_empty = True,
+    ),
 )
 
 filegroup(
