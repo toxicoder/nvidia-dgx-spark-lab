@@ -19,6 +19,12 @@ tags: [hermes, agents, docker, mcp, nemotron]
 
 Run [Hermes Agent](https://hermes-agent.nousresearch.com/docs/user-guide/docker) on the Spark K3s node as a persistent gateway, reusing lab inference and MCP services.
 
+!!! note "Contributor laptop vs Spark host"
+    The multi-arch **devcontainer** can install the Hermes **CLI** (`hermes`) for
+    local agent-assisted coding — see [dev-environment.md](dev-environment.md).
+    That is separate from this page’s **host Docker gateway** on DGX Spark nodes.
+    Never commit API keys or `hermes/data/.env` from either path.
+
 ## Architecture
 
 Hermes runs in Docker with **host networking** so it can reach:

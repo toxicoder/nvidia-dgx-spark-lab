@@ -74,6 +74,7 @@ Non-negotiable invariants: [docs/project-conventions.md § Safety invariants](do
 - Prefer `.devcontainer/` (multi-arch **linux/amd64 + linux/arm64**): Apple Silicon, Windows Docker Desktop, Linux, NVIDIA DGX Spark (Grace ARM).
 - Tool pins: `.devcontainer/tool-versions.env` (shared with CI via `scripts/ci/install-lint-tools.sh`).
 - After open: `bash .devcontainer/doctor.sh` then `//:fix` / `//:validate`.
+- Optional agent CLIs (post-create): **Grok Build** (`grok`) and **Hermes Agent** (`hermes`). Auth is interactive only — **never** commit API keys, `GROK_DEPLOYMENT_KEY`, or `~/.grok` / `~/.hermes` state.
 - Full guide: [docs/dev-environment.md](docs/dev-environment.md).
 
 ### Visual generative AI (ComfyUI / FLUX / LTX)

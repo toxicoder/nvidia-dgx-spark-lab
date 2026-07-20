@@ -47,9 +47,29 @@ Full guide: [docs/dev-environment.md](../docs/dev-environment.md).
 | `post-create.sh` | Workspace deps (`npm ci`, docs, Playwright) |
 | `doctor.sh` | Verify required tools |
 
+## Agent CLIs (Grok Build + Hermes)
+
+Post-create installs official CLIs (optional if network is blocked):
+
+| CLI | Upstream | Auth (never commit) |
+| --- | --- | --- |
+| `grok` | [xai-org/grok-build](https://github.com/xai-org/grok-build) | `grok login` → volume `~/.grok` |
+| `hermes` | [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) | `hermes setup` → volume `~/.hermes` |
+
+```bash
+bash .devcontainer/install-agent-clis.sh   # re-run if needed
+DEVCONTAINER_SKIP_AGENT_CLIS=1 …           # skip during post-create
+```
+
+**Privacy:** no API keys or `GROK_DEPLOYMENT_KEY` in image env metadata. Do not
+export secrets into committed `devcontainer.json`. See [SECURITY.md](../SECURITY.md).
+
+Lab **host Docker** Hermes stacks (`hermes/`, `start-hermes`) are separate from
+this CLI install — see [docs/hermes-agent.md](../docs/hermes-agent.md).
+
 ## Design choices
 
 - **docker-outside-of-docker** — uses the host Docker socket (fast on macOS; works with Desktop/WSL2). Needed for `//dashboard:hermetic-test`.
 - **No full-suite gate on create** — optional `DEVCONTAINER_SMOKE=1` only.
-- **Named volumes** for Bazel disk/repo, npm, pip, Playwright caches across rebuilds.
+- **Named volumes** for Bazel disk/repo, npm, pip, Playwright caches and agent homes (`~/.grok`, `~/.hermes`) across rebuilds.
 - **`REQUIRE_LINT_TOOLS=1`** — missing linters fail like CI (no silent skips).

@@ -135,6 +135,15 @@ if command -v pre-commit >/dev/null 2>&1 && [[ -d .git ]]; then
   pre-commit install || echo "post-create: pre-commit install skipped" >&2
 fi
 
+# ---------------------------------------------------------------------------
+# Agent CLIs (Grok Build + Hermes Agent) — no secrets; auth is interactive
+# ---------------------------------------------------------------------------
+if [[ -x "${SCRIPT_DIR}/install-agent-clis.sh" || -f "${SCRIPT_DIR}/install-agent-clis.sh" ]]; then
+  echo "→ install-agent-clis (grok + hermes; privacy-safe)"
+  bash "${SCRIPT_DIR}/install-agent-clis.sh" ||
+    echo "post-create: agent CLI install skipped or partial (optional)" >&2
+fi
+
 if [[ ${DEPS_ONLY} -eq 1 ]]; then
   echo "=== Deps-only post-create complete ==="
   exit 0
@@ -184,6 +193,11 @@ Recommended next steps:
   bazelisk run //docs:serve -- --port 8080
   cd dashboard && npm run dev                 # http://localhost:3000
   bash .devcontainer/doctor.sh
+
+Agent CLIs (optional; never commit API keys):
+  grok login                                  # Grok Build TUI — https://github.com/xai-org/grok-build
+  hermes setup                                # Hermes Agent — https://github.com/NousResearch/hermes-agent
+  # Auth lives in volume-mounted ~/.grok and ~/.hermes only (see SECURITY.md).
 
 Platform notes:
   - Image is multi-arch Linux (amd64 + arm64): Apple Silicon, Windows x86 Docker,

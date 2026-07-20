@@ -80,3 +80,38 @@ setup() {
   run grep -E 'docker-in-docker' "${DEVCONTAINER_DIR}/devcontainer.json"
   [ "$status" -ne 0 ]
 }
+
+@test "install-agent-clis.sh exists and is executable help-safe" {
+  [[ -f "${DEVCONTAINER_DIR}/install-agent-clis.sh" ]]
+  run bash "${DEVCONTAINER_DIR}/install-agent-clis.sh" --help
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"grok"* ]] || [[ "$output" == *"Grok"* ]]
+  [[ "$output" == *"hermes"* ]] || [[ "$output" == *"Hermes"* ]]
+}
+
+@test "devcontainer mounts persist agent home dirs without embedding secrets" {
+  grep -q 'dgx-lab-grok-home' "${DEVCONTAINER_DIR}/devcontainer.json"
+  grep -q 'dgx-lab-hermes-home' "${DEVCONTAINER_DIR}/devcontainer.json"
+  grep -q '/home/vscode/.grok' "${DEVCONTAINER_DIR}/devcontainer.json"
+  grep -q '/home/vscode/.hermes' "${DEVCONTAINER_DIR}/devcontainer.json"
+}
+
+@test "devcontainer does not forward host secret env via localEnv" {
+  # Never ship API keys / deployment keys into container metadata.
+  run grep -E 'localEnv:.*(API_KEY|TOKEN|SECRET|PASSWORD|GROK_DEPLOYMENT)' \
+    "${DEVCONTAINER_DIR}/devcontainer.json"
+  [ "$status" -ne 0 ]
+}
+
+@test "devcontainer sources have no live-looking API key material" {
+  # sk-… live keys, non-empty GROK_DEPLOYMENT_KEY assignments, export KEY=secret.
+  # Placeholders like none / change-me / empty are allowed in comments/docs.
+  run grep -RE \
+    'sk-[A-Za-z0-9]{16,}|GROK_DEPLOYMENT_KEY=[[:alnum:]_-]{8,}|export[[:space:]]+[A-Z0-9_]*(API_KEY|TOKEN|SECRET|PASSWORD)=[^n"'\''[:space:]]{8,}' \
+    "${DEVCONTAINER_DIR}"
+  [ "$status" -ne 0 ]
+}
+
+@test "post-create wires agent CLI installer" {
+  grep -q 'install-agent-clis' "${DEVCONTAINER_DIR}/post-create.sh"
+}

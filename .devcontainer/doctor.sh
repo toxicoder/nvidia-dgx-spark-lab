@@ -177,6 +177,8 @@ check_optional docker "hermetic dashboard image builds (host Docker / DooD)"
 check_optional kcov "shell coverage on Linux"
 check_optional pre-commit "optional git hooks"
 check_optional pytest "docs python coverage"
+check_optional grok "Grok Build CLI (post-create install; then grok login)"
+check_optional hermes "Hermes Agent CLI (post-create install; then hermes setup)"
 
 # Soft checks for workspace deps (do not fail create when network skipped)
 if [[ -d "${REPO_ROOT}/dashboard/node_modules" ]]; then

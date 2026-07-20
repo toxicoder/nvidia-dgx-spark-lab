@@ -24,7 +24,11 @@ def _ensure_key(name):
         return text_new, True
     return text, False
 
-for key in ("API_SERVER_KEY", "HERMES_DASHBOARD_BASIC_AUTH_SECRET"):
+for key in (
+    "API_SERVER_KEY",
+    "HERMES_DASHBOARD_BASIC_AUTH_SECRET",
+    "HERMES_DASHBOARD_BASIC_AUTH_PASSWORD",
+):
     text, c = _ensure_key(key)
     changed = changed or c
 

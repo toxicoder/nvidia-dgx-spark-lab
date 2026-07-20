@@ -69,13 +69,17 @@
     "8000": { "label": "MkDocs default", "onAutoForward": "silent" },
     "8080": { "label": "MkDocs (serve --port 8080)", "onAutoForward": "notify" }
   },
-  // Persist expensive caches across rebuilds (Bazel, npm, pip, Playwright).
+  // Persist expensive caches + agent auth homes across rebuilds.
+  // Auth state (~/.grok, ~/.hermes) stays on Docker volumes — never commit keys.
+  // Do NOT forward host API keys via localEnv (would leak into container metadata).
   "mounts": [
     "source=dgx-lab-bazel-disk,target=/home/vscode/.cache/bazel-disk,type=volume",
     "source=dgx-lab-bazel-repo,target=/home/vscode/.cache/bazel-repo,type=volume",
     "source=dgx-lab-npm,target=/home/vscode/.npm,type=volume",
     "source=dgx-lab-pip,target=/home/vscode/.cache/pip,type=volume",
-    "source=dgx-lab-playwright,target=/home/vscode/.cache/ms-playwright,type=volume"
+    "source=dgx-lab-playwright,target=/home/vscode/.cache/ms-playwright,type=volume",
+    "source=dgx-lab-grok-home,target=/home/vscode/.grok,type=volume",
+    "source=dgx-lab-hermes-home,target=/home/vscode/.hermes,type=volume"
   ],
   "containerEnv": {
     "PYTHONUNBUFFERED": "1",
@@ -83,7 +87,7 @@
     "PIP_DISABLE_PIP_VERSION_CHECK": "1"
   },
   "remoteEnv": {
-    "PATH": "${containerWorkspaceFolder}/dashboard/node_modules/.bin:/home/vscode/.local/bin:/usr/local/python/current/bin:${containerEnv:PATH}"
+    "PATH": "${containerWorkspaceFolder}/dashboard/node_modules/.bin:/home/vscode/.local/bin:/home/vscode/.hermes/bin:/usr/local/python/current/bin:${containerEnv:PATH}"
   },
   "remoteUser": "vscode",
   // Connect after deps install; full suite is not part of create.
