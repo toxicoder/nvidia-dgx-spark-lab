@@ -7,22 +7,27 @@
 # Creates pinned requirements, venv, updates .bazelignore if needed.
 # Supports QUIET=true for automation from manage-docs.sh
 #
+# Host/container note: a .venv-docs created on macOS/Windows is not usable
+# inside the Linux devcontainer (broken python symlinks). This script detects
+# unusable venvs and recreates them with the current python3.
+#
 # Usage: ./docs/setup-docs.sh
 #        QUIET=true ./docs/setup-docs.sh
+#        VENV_DIR=/path/to/venv ./docs/setup-docs.sh  # tests / advanced
 
 set -euo pipefail
 
 QUIET=${QUIET:-false}
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -n "${BUILD_WORKSPACE_DIRECTORY:-}" ]]; then
-    # bazel run support: operate on the real source checkout.
-    REPO_ROOT="${BUILD_WORKSPACE_DIRECTORY}"
+if [[ -n ${BUILD_WORKSPACE_DIRECTORY:-} ]]; then
+  # bazel run support: operate on the real source checkout.
+  REPO_ROOT="${BUILD_WORKSPACE_DIRECTORY}"
 else
-    REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+  REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 fi
 
-if [[ "$QUIET" != "true" ]]; then
+if [[ $QUIET != "true" ]]; then
   echo "=== nvidia-dgx-spark-lab Documentation Setup ==="
   echo "Repo root: ${REPO_ROOT}"
 fi
@@ -30,8 +35,8 @@ cd "${REPO_ROOT}"
 
 # Ensure docs/requirements.txt exists (pinned)
 if [[ ! -f docs/requirements.txt ]]; then
-  if [[ "$QUIET" != "true" ]]; then echo "Creating docs/requirements.txt..."; fi
-  cat > docs/requirements.txt << 'EOF'
+  if [[ $QUIET != "true" ]]; then echo "Creating docs/requirements.txt..."; fi
+  cat >docs/requirements.txt <<'EOF'
 mkdocs==1.6.1
 mkdocs-material==9.7.6
 mkdocs-glightbox==0.5.2
@@ -40,33 +45,77 @@ playwright==1.61.0
 Pillow>=10.0.0
 # mkdocs-git-revision-date-localized==1.3.0
 EOF
-elif [[ "$QUIET" != "true" ]]; then
+elif [[ $QUIET != "true" ]]; then
   echo "docs/requirements.txt already exists (pinned versions)."
 fi
 
-# Create isolated venv for docs
-VENV_DIR=".venv-docs"
-if [[ ! -d "${VENV_DIR}" ]]; then
-  if [[ "$QUIET" != "true" ]]; then echo "Creating isolated docs virtualenv at ${VENV_DIR}..."; fi
+# @function docs_venv_is_usable
+# Return 0 if VENV_DIR has a working python that can run under this OS.
+docs_venv_is_usable() {
+  local venv="${1:-}"
+  local py=""
+  if [[ -z ${venv} || ! -d ${venv} ]]; then
+    return 1
+  fi
+  if [[ -x "${venv}/bin/python" ]]; then
+    py="${venv}/bin/python"
+  elif [[ -x "${venv}/bin/python3" ]]; then
+    py="${venv}/bin/python3"
+  else
+    return 1
+  fi
+  # Broken host bind-mounts: symlink exists but target is missing / wrong OS.
+  if ! "${py}" -c 'import sys' >/dev/null 2>&1; then
+    return 1
+  fi
+  return 0
+}
+
+# Create isolated venv for docs (recreate when host/foreign venv is unusable).
+VENV_DIR="${VENV_DIR:-.venv-docs}"
+if docs_venv_is_usable "${VENV_DIR}"; then
+  if [[ $QUIET != "true" ]]; then
+    echo "Virtualenv ${VENV_DIR} already exists and is usable."
+  fi
+else
+  if [[ -d ${VENV_DIR} ]]; then
+    echo "setup-docs: recreating unusable docs venv at ${VENV_DIR} (host/foreign python?)" >&2
+    rm -rf "${VENV_DIR}"
+  elif [[ $QUIET != "true" ]]; then
+    echo "Creating isolated docs virtualenv at ${VENV_DIR}..."
+  fi
   python3 -m venv "${VENV_DIR}"
-elif [[ "$QUIET" != "true" ]]; then
-  echo "Virtualenv ${VENV_DIR} already exists."
 fi
 
-# Activate and install
+if ! docs_venv_is_usable "${VENV_DIR}"; then
+  echo "setup-docs: failed to create a usable virtualenv at ${VENV_DIR}" >&2
+  exit 1
+fi
+
+VENV_PY="${VENV_DIR}/bin/python"
+if [[ ! -x ${VENV_PY} ]]; then
+  VENV_PY="${VENV_DIR}/bin/python3"
+fi
+
+# Activate for PATH/VIRTUAL_ENV, but always install via venv python -m pip
+# so a broken activate cannot silently fall through to system pip.
 # shellcheck disable=SC1091
 source "${VENV_DIR}/bin/activate"
-pip install --upgrade pip setuptools wheel -q
-pip install -r docs/requirements.txt -q
+# Guard: pip/python on PATH must resolve into this venv after activate.
+if ! "${VENV_PY}" -c 'import sys; raise SystemExit(0 if sys.prefix else 1)'; then
+  echo "setup-docs: venv python is not executable after create" >&2
+  exit 1
+fi
+"${VENV_PY}" -m pip install --upgrade pip setuptools wheel -q
+"${VENV_PY}" -m pip install -r docs/requirements.txt -q
 
-if [[ "$QUIET" != "true" ]]; then
+if [[ $QUIET != "true" ]]; then
   echo "Documentation dependencies installed in ${VENV_DIR}."
 fi
-
 # Update .bazelignore (idempotent append)
 if ! grep -q "site/" .bazelignore 2>/dev/null; then
-  if [[ "$QUIET" != "true" ]]; then echo "Updating .bazelignore for docs artifacts..."; fi
-  cat >> .bazelignore << 'EOG'
+  if [[ $QUIET != "true" ]]; then echo "Updating .bazelignore for docs artifacts..."; fi
+  cat >>.bazelignore <<'EOG'
 
 # MkDocs generated output and venv (Bazel should ignore)
 site/
@@ -77,8 +126,8 @@ fi
 
 # Create minimal docs/BUILD.bazel if not present (lightweight, shell-based)
 if [[ ! -f docs/BUILD.bazel ]]; then
-  if [[ "$QUIET" != "true" ]]; then echo "Creating docs/BUILD.bazel (lightweight shell wrapper)..."; fi
-  cat > docs/BUILD.bazel << 'EOG'
+  if [[ $QUIET != "true" ]]; then echo "Creating docs/BUILD.bazel (lightweight shell wrapper)..."; fi
+  cat >docs/BUILD.bazel <<'EOG'
 """Bazel targets for documentation site (Material for MkDocs).
 
 Primary interface is still docs/manage-docs.sh for simplicity and
@@ -129,11 +178,11 @@ sh_binary(
     visibility = ["//visibility:public"],
 )
 EOG
-elif [[ "$QUIET" != "true" ]]; then
+elif [[ $QUIET != "true" ]]; then
   echo "docs/BUILD.bazel already exists."
 fi
 
-if [[ "$QUIET" != "true" ]]; then
+if [[ $QUIET != "true" ]]; then
   echo ""
   echo "=== Setup complete ==="
   echo "Activate venv: source .venv-docs/bin/activate"
