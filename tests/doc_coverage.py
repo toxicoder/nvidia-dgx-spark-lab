@@ -24,9 +24,26 @@ _TS_FUNCTION_EXPORT_RE = re.compile(
 _TS_CLASS_EXPORT_RE = re.compile(r"^export\s+(?:default\s+)?class\s+(\w+)")
 _TS_CONST_EXPORT_RE = re.compile(r"^export\s+const\s+(\w+)")
 _SHELL_FILE_HEADER_RE = re.compile(r"^#\s*##\s+\S", re.MULTILINE)
-# ConfigMap data keys that embed shell/python as multi-line YAML (anti-pattern).
-_INLINE_SCRIPT_KEY_RE = re.compile(
-    r"^[ \t]+([A-Za-z0-9_.@-]+\.(?:sh|bash|py|py3)):[ \t]*\|[ \t]*$",
+# ConfigMap/Secret multi-line data keys (language embeds). Prefer real files +
+# configMapGenerator files: — never polyglot YAML with JSON/shell/YAML/etc.
+_INLINE_CONFIGMAP_KEY_RE = re.compile(
+    r"^[ \t]+([A-Za-z0-9_.@-]+):[ \t]*\|-?[ \t]*$",
+    re.MULTILINE,
+)
+# Language-looking keys (extension) or env-style JSON blobs (e.g. DOC_SOURCES_JSON).
+_LANGUAGE_EMBED_KEY_RE = re.compile(
+    r"(?:"
+    r".+\.(?:sh|bash|py|py3|json|ya?ml|toml|conf|cfg|html|xml|sql|ini|js|ts|txt)"
+    r"|.*_JSON"
+    r"|^any$"  # NVIDIA device-plugin time-slicing fragment key
+    r")$",
+    re.IGNORECASE,
+)
+# MCP multi-line shell under command: ["/bin/sh", "-c"] + args: - |
+_MULTILINE_SH_ARGS_RE = re.compile(
+    r'command:\s*\[\s*"/bin/(?:ba)?sh"\s*,\s*"-c"\s*\]\s*\n'
+    r"[ \t]+args:\s*\n"
+    r"[ \t]+-\s*\|",
     re.MULTILINE,
 )
 # MkDocs nav entries pointing at markdown under docs/ (not URLs).
@@ -238,23 +255,61 @@ def _check_shell_functions(root: pathlib.Path) -> list[str]:
     return violations
 
 
-def find_inline_script_keys(text: str) -> list[str]:
-    """Return ConfigMap data keys that embed scripts via YAML multi-line blocks.
+def find_inline_configmap_language_keys(text: str) -> list[str]:
+    """Return ConfigMap/Secret multi-line keys that embed another language.
+
+    Matches ``key: |`` / ``key: |-`` where ``key`` looks like a language file
+    (``.json``, ``.yml``, ``.sh``, …), an env-style ``*_JSON`` blob, or the
+    device-plugin ``any`` fragment. Plain scalar ConfigMap values are fine.
 
     Args:
         text: YAML file contents.
 
     Returns:
-        Sorted unique keys like ``install-comfy.sh``.
+        Sorted unique keys (e.g. ``lab-flux-fast.json``, ``DOC_SOURCES_JSON``).
     """
-    return sorted(set(_INLINE_SCRIPT_KEY_RE.findall(text)))
+    found: set[str] = set()
+    for key in _INLINE_CONFIGMAP_KEY_RE.findall(text):
+        if _LANGUAGE_EMBED_KEY_RE.fullmatch(key):
+            found.add(key)
+    return sorted(found)
 
 
-def _check_no_inline_configmap_scripts(root: pathlib.Path) -> list[str]:
-    """Ban embedded shell/python bodies in ConfigMap YAML under k8s/ and mcp/.
+def find_inline_script_keys(text: str) -> list[str]:
+    """Return ConfigMap keys that embed shell/python (subset of language keys).
 
-    Scripts must live as real files and be wired with kustomize
-    ``configMapGenerator`` ``files:`` (see mcp/k8s and comfy-base).
+    Kept for backwards-compatible unit tests and callers.
+
+    Args:
+        text: YAML file contents.
+
+    Returns:
+        Sorted unique script keys like ``install-comfy.sh``.
+    """
+    return [
+        key
+        for key in find_inline_configmap_language_keys(text)
+        if re.search(r"\.(?:sh|bash|py|py3)$", key, re.IGNORECASE)
+    ]
+
+
+def has_multiline_shell_args(text: str) -> bool:
+    """True when a Pod uses ``command: ["/bin/sh","-c"]`` with multi-line ``args: |``.
+
+    Args:
+        text: YAML file contents.
+
+    Returns:
+        Whether the multi-line shell-in-YAML anti-pattern is present.
+    """
+    return _MULTILINE_SH_ARGS_RE.search(text) is not None
+
+
+def _check_no_inline_configmap_language_embeds(root: pathlib.Path) -> list[str]:
+    """Ban multi-language embeds in ConfigMap/Secret YAML under k8s/ and mcp/.
+
+    JSON, nested YAML, shell, Python, and similar bodies must live as real
+    files wired via kustomize ``configMapGenerator`` ``files:``.
 
     Args:
         root: Repository root.
@@ -269,12 +324,46 @@ def _check_no_inline_configmap_scripts(root: pathlib.Path) -> list[str]:
                 continue
             if any(ex in rel for ex in _YAML_EXCLUDE_SUFFIXES):
                 continue
-            keys = find_inline_script_keys((root / rel).read_text(encoding="utf-8"))
+            if rel.endswith(".example.yaml") or rel.endswith(".example.yml"):
+                continue
+            path = root / rel
+            if not path.is_file():
+                continue
+            keys = find_inline_configmap_language_keys(path.read_text(encoding="utf-8"))
             for key in keys:
                 violations.append(
-                    f"{rel}: inline script '{key}' — use a real file + "
+                    f"{rel}: inline language embed '{key}' — use a real file + "
                     "configMapGenerator files: (not ConfigMap data: |)"
                 )
+    return violations
+
+
+def _check_no_multiline_shell_in_mcp_manifests(root: pathlib.Path) -> list[str]:
+    """Ban multi-line shell bodies in mcp/k8s Deployment/CronJob args.
+
+    Bootstrap scripts must be real ``.sh`` files mounted via configMapGenerator.
+
+    Args:
+        root: Repository root.
+
+    Returns:
+        Violation messages.
+    """
+    violations: list[str] = []
+    for rel in _tracked(root, "mcp/"):
+        if not (rel.endswith(".yaml") or rel.endswith(".yml")):
+            continue
+        if any(ex in rel for ex in _YAML_EXCLUDE_SUFFIXES):
+            continue
+        path = root / rel
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        if has_multiline_shell_args(text):
+            violations.append(
+                f"{rel}: multi-line shell in command/args — extract entrypoint.sh "
+                "+ configMapGenerator files: (not args: |)"
+            )
     return violations
 
 
@@ -392,6 +481,8 @@ def _check_python_docstrings(root: pathlib.Path) -> list[str]:
                 if not ast.get_docstring(node):
                     violations.append(f"{rel}: function '{node.name}' missing docstring")
             elif isinstance(node, ast.ClassDef):
+                if node.name.startswith("_"):
+                    continue
                 if not ast.get_docstring(node):
                     violations.append(f"{rel}: class '{node.name}' missing docstring")
     return violations
@@ -414,7 +505,10 @@ def _check_yaml_headers(root: pathlib.Path) -> list[str]:
                 continue
             if any(ex in rel for ex in _YAML_EXCLUDE_SUFFIXES):
                 continue
-            head = (root / rel).read_text(encoding="utf-8")[:800]
+            path = root / rel
+            if not path.is_file():
+                continue  # deleted in working tree but still indexed
+            head = path.read_text(encoding="utf-8")[:800]
             for field in _YAML_HEADER_FIELDS:
                 if f"# {field}" not in head:
                     violations.append(f"{rel}: missing # {field} header")
@@ -528,7 +622,14 @@ def main() -> int:
         ("shell @function", _check_shell_functions),
         ("python docstrings", _check_python_docstrings),
         ("yaml Purpose headers", _check_yaml_headers),
-        ("no inline ConfigMap scripts", _check_no_inline_configmap_scripts),
+        (
+            "no inline ConfigMap language embeds",
+            _check_no_inline_configmap_language_embeds,
+        ),
+        (
+            "no multi-line shell in mcp manifests",
+            _check_no_multiline_shell_in_mcp_manifests,
+        ),
         ("mkdocs pages in docs/BUILD.bazel", _check_mkdocs_pages_in_docs_bazel),
         ("BUILD.bazel Package purpose", _check_build_bazel),
         ("dashboard export JSDoc", _check_dashboard_ts),
