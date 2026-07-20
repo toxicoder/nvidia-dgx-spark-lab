@@ -67,7 +67,10 @@ filegroup(
             "next.config.ts",
         ],
         allow_empty = True,
-    ) + ["@shadcn_ui//:all_sources"],  # Hermetic import of shadcn-ui/ui (https://github.com/shadcn-ui/ui) via Bazel
+    ),
+    # Note: full @shadcn_ui//:all_sources is NOT attached here — it bloated every
+    # dashboard runner's runfiles. Hermetic proof is //dashboard:shadcn_hermetic
+    # / :shadcn_imported (used where needed). Local components/ui is in the glob.
     visibility = ["//visibility:public"],
 )
 

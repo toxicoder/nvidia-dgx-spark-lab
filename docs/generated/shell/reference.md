@@ -748,6 +748,27 @@ Usage: bazelisk run //:validate [-- --all | --update-goldens | --ci [--check-onl
 
   UPDATE_SNAPSHOTS=1 bazelisk run //:validate -- --update-goldens
 
+### Function `path_matches_ci_graph`
+
+Graph / orchestrator changes force all expensive CI slices.
+
+### Function `path_matches_ci_workflow`
+
+Workflow/action YAML only — does not force hermetic/docs by itself.
+
+
+
+<!-- source: scripts/ci_check_only.sh -->
+
+## ci_check_only — lightweight CI validate-gate
+
+Verifies path-filtered GitHub/Gitea jobs reported success (or were correctly
+skipped). No Bazel cold start — intended for the validate-gate job only.
+
+Env (set by CI):
+  BAZEL_CORE_RESULT, DASHBOARD_UNIT_RESULT, DASHBOARD_HERMETIC_RESULT, DOCS_RESULT
+  RUN_BAZEL_CORE, RUN_DASHBOARD, RUN_DOCS  (true/false or 1/0)
+
 
 
 <!-- source: scripts/yaml_format.sh -->

@@ -139,6 +139,15 @@ sh_test(
 
 # Render test data (shared). Includes goldens so the test (and update) can
 # read committed screenshots for visual diff enforcement.
+# Generated nav pages: shell reference + dashboard-api README tree (strict mkdocs).
+_RENDER_GENERATED = glob(
+    [
+        "generated/shell/**",
+        "generated/dashboard-api/**",
+    ],
+    allow_empty = True,
+)
+
 _RENDER_TEST_DATA = [
     "BUILDING_WITH_BAZEL.md",
     "CONTRIBUTING.md",
@@ -147,7 +156,6 @@ _RENDER_TEST_DATA = [
     "dev-workspaces.md",
     "dgx-spark-notes.md",
     "generate_shell_docs.py",
-    "generated",
     "getting-started.md",
     "gitea-ci-setup.md",
     "hermes-agent.md",
@@ -175,7 +183,7 @@ _RENDER_TEST_DATA = [
     "visual-generative-ai.md",
     "//:mkdocs.yml",
     "//scripts:doc_sources",
-]
+] + _RENDER_GENERATED
 
 # Render test: actually runs mkdocs build (the server-side render of the
 # full site) and then inspects the produced HTML + source for elements
@@ -190,6 +198,8 @@ _RENDER_TEST_DATA = [
 # (followed by PR review of the golden diffs).
 sh_test(
     name = "test_mkdocs_build",
+    size = "medium",
+    timeout = "moderate",
     srcs = ["test_mkdocs_build.sh"],
     data = _RENDER_TEST_DATA,
     visibility = ["//visibility:public"],
@@ -197,6 +207,8 @@ sh_test(
 
 sh_test(
     name = "test_mkdocs_visual",
+    size = "large",
+    timeout = "long",
     srcs = ["test_mkdocs_visual.sh"],
     data = _RENDER_TEST_DATA,
     visibility = ["//visibility:public"],
@@ -204,6 +216,8 @@ sh_test(
 
 sh_test(
     name = "test_mkdocs_render",
+    size = "large",
+    timeout = "long",
     srcs = ["test_mkdocs_render.sh"],
     data = _RENDER_TEST_DATA,
     visibility = ["//visibility:public"],

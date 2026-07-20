@@ -50,11 +50,14 @@ alias(
     visibility = ["//visibility:public"],
 )
 
-# Fast hermetic core for CI (bazel-core job). Excludes Playwright-heavy docs render;
-# that runs in the docs-and-render CI job via //docs:test_mkdocs_render.
+# Fast hermetic core for CI (bazel-core job). Excludes Playwright-heavy docs render
+# and MkDocs strict build (needs host MkDocs) — both run in docs-and-render via
+# //docs:test_mkdocs_render.
+# Fast hermetic core for CI (bazel-core). Real MkDocs strict build lives in the
+# docs-and-render job (//docs:test_mkdocs_render) — runners without MkDocs skip
+# that build, so keep it out of test-fast for an honest core gate.
 _TEST_FAST = [
     "//docs:test_generate_shell_docs",
-    "//docs:test_mkdocs_build",
     "//docs:test_python_coverage",
     "//scripts:manage_help_test",
     "//tests:bats",

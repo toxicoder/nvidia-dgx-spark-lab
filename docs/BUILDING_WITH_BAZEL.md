@@ -117,9 +117,9 @@ See `dashboard/typedoc.json` and the package.json `docs:generate` script.
 
 Docs render tests are split for speed:
 
-- `//docs:test_mkdocs_build` — mkdocs strict build + HTML/source checks (in `//:test-fast`)
+- `//docs:test_mkdocs_build` — mkdocs strict build + HTML/source checks (local fail-fast; **not** in `//:test-fast` — needs MkDocs installed)
 - `//docs:test_mkdocs_visual` — Playwright screenshots vs goldens only
-- `//docs:test_mkdocs_render` — combined (build + visual); included in `bazel test //:test`
+- `//docs:test_mkdocs_render` — combined (one MkDocs build + visual); **CI docs job** and `bazel test //:test`
 
 CI runs build + visual as separate steps in **docs-and-render**; `//:test-fast` covers the fast build path without Playwright.
 
@@ -165,11 +165,21 @@ bazelisk run //:validate -- --update-goldens  # regenerate visual baselines (rev
 bazelisk run //:fix                         # formatters + auto-fix linters (trusted tools)
 ```
 
-`//:validate` always runs core checks (`build //... --nobuild`, `//:test-fast`, `//:lint`, key builds). When paths under `docs/` or `scripts/` change it also runs `//docs:docs` + `//docs:test_mkdocs_build` (fast). Use `--all` for `//docs:test_mkdocs_render` (visual) and `//dashboard:hermetic-test` (Docker + Playwright). Default dashboard slice uses `//dashboard:fast-test` (host Vitest + lint + typecheck).
+`//:validate` always runs core checks (`build //... --nobuild`, `//:test-fast`, `//:lint`, key builds). When docs-relevant paths change (`docs/**`, shell doc sources under `scripts/manage.sh` / `lib` / `utilities`) it also runs `//docs:docs` + `//docs:test_mkdocs_build` (fast). Use `--all` for `//docs:test_mkdocs_render` (visual) and `//dashboard:hermetic-test` (Docker + Playwright). Default dashboard slice uses `//dashboard:fast-test` (host Vitest + lint + typecheck).
 
 `//:fix` uses only well-trusted software (buildifier, shfmt, ruff, prettier) and is the recommended one-command way to programmatically clean the tree.
 
-CI uses path-filtered parallel jobs: **bazel-core** (`//:test-fast` + lint + build), **dashboard-unit** (host fast tests), **dashboard-hermetic** (cached Docker + Playwright), **docs-and-render** (`//docs:test_mkdocs_build` + `//docs:test_mkdocs_visual`), plus **validate-gate** (`bazelisk run //:validate -- --ci --check-only`). Shared setup lives in `.github/actions/setup-bazel`. See `.github/workflows/ci.yml`, `.gitea/workflows/ci.yml`, and `.bazelrc` (`--config=ci`).
+CI uses path-filtered parallel jobs (optimized for wall time):
+
+| Job | When | What |
+| --- | --- | --- |
+| **bazel-core** | scripts/k8s/… or CI graph/workflow | `//:test-fast` + `//:lint` + key builds |
+| **dashboard-unit** | dashboard/** or CI graph | Host Vitest + lint + tsc |
+| **dashboard-hermetic** | after unit success | Docker build + Playwright (`DASHBOARD_TEST_MODE=visual` skips re-Vitest) |
+| **docs-and-render** | docs/**, shell doc sources, or CI graph | **Single** `//docs:test_mkdocs_render` (one MkDocs build) |
+| **validate-gate** | always | Pure bash `scripts/ci_check_only.sh` (no Bazel cold start) |
+
+**Path filter notes:** `scripts/**` no longer always runs docs — only `scripts/manage.sh`, `scripts/lib/**`, and `scripts/utilities/**` (shell doc sources). Editing only `.github/workflows/*` runs bazel-core (and gate), not hermetic/docs. Shared setup: `.github/actions/setup-bazel` (pinned Bazelisk + disk/repo + lint-tool caches). See `.github/workflows/ci.yml`, `.gitea/workflows/ci.yml`, and `.bazelrc` (`--config=ci`).
 
 Use queries heavily:
 
