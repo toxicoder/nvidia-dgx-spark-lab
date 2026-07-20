@@ -15,10 +15,16 @@
 
 FROM mcr.microsoft.com/devcontainers/base:ubuntu-22.04
 
-ARG TARGETARCH=amd64
+# Injected by BuildKit from --platform / host arch (amd64|arm64). Do not
+# hardcode a default — ARG TARGETARCH=amd64 incorrectly pulls amd64 binaries
+# on Apple Silicon and DGX Spark (Grace arm64).
+ARG TARGETARCH
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8
+
+# Ubuntu /bin/sh is dash; pipefail and other bashisms need bash for RUN layers.
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
 # Pins (must match tool-versions.env — enforced by tests/bats/devcontainer.bats)
 ARG BAZELISK_VERSION=v1.25.0
@@ -59,8 +65,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && (command -v fdfind >/dev/null && ln -sf "$(command -v fdfind)" /usr/local/bin/fd || true)
 
 # Map Docker TARGETARCH → upstream asset names (amd64|arm64 only).
-RUN set -euo pipefail; \
-    case "${TARGETARCH}" in \
+# SHELL above already enables set -euo pipefail for this RUN.
+RUN case "${TARGETARCH}" in \
       amd64|arm64) ARCH="${TARGETARCH}" ;; \
       *) echo "Unsupported TARGETARCH=${TARGETARCH} (need amd64 or arm64)" >&2; exit 1 ;; \
     esac; \
@@ -103,7 +109,9 @@ RUN set -euo pipefail; \
 
 # Python lint/test/docs helpers (feature may also install Python 3.11; these are PATH tools).
 # ansible via pip for consistent version across amd64/arm64.
-RUN pip3 install --no-cache-dir --break-system-packages \
+# Ubuntu 22.04 ships pip 22.x without --break-system-packages (PEP 668 flag is
+# pip ≥23); jammy is not externally-managed, so a plain system install is fine.
+RUN pip3 install --no-cache-dir \
     "ansible>=2.14" \
     ansible-lint \
     mypy \
@@ -136,6 +144,8 @@ RUN if ! id -u "${USERNAME}" >/dev/null 2>&1; then \
                 /home/${USERNAME}/.cache/ms-playwright \
                 /home/${USERNAME}/.npm \
                 /home/${USERNAME}/.local/bin \
+                /home/${USERNAME}/.grok \
+                /home/${USERNAME}/.hermes \
     && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}
 
 # Welcome banner (linux container; host can be macOS/Windows/Spark).
