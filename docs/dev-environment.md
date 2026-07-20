@@ -101,11 +101,13 @@ bazelisk run //:validate
 ### Agent CLIs and secrets
 
 Post-create runs `.devcontainer/install-agent-clis.sh` (skip with
-`DEVCONTAINER_SKIP_AGENT_CLIS=1`). Installers **never** write API keys.
+`DEVCONTAINER_SKIP_AGENT_CLIS=1`). Installers put CLIs on PATH only — they
+**never** write API keys and **never** run interactive setup wizards during create.
+Configure when you actually need the tools:
 
 ```bash
 grok login          # interactive auth → volume ~/.grok (not git)
-hermes setup        # interactive provider/model → volume ~/.hermes (not git)
+hermes setup        # only when you use Hermes → volume ~/.hermes (not git)
 ```
 
 !!! warning "Never commit agent credentials"
@@ -124,7 +126,12 @@ Lifecycle (optimized):
 3. **postCreateCommand** — full post-create + doctor  
    Full `//:test` is **not** a create gate (optional `DEVCONTAINER_SMOKE=1`).
 
-Named volumes cache Bazel disk/repo, npm, pip, and Playwright across rebuilds.
+Named volumes cache Bazel disk/repo, npm, pip, Playwright, and agent homes
+(`~/.grok`, `~/.hermes`) across rebuilds.
+
+Feature pins for Dev Container Features live in
+[`.devcontainer/devcontainer-lock.json`](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/.devcontainer/devcontainer-lock.json)
+(**commit this file** — same role as other lockfiles).
 
 ### Day-to-day commands
 
@@ -140,6 +147,24 @@ bazelisk run //dashboard:hermetic-test      # needs host Docker
 ```
 
 VS Code tasks under **Terminal → Run Task** wrap the same targets.
+
+### IDE settings (workspace)
+
+[`.vscode/settings.json`](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/.vscode/settings.json)
+is tuned for this toolchain:
+
+| Concern | Extension / tool | Notes |
+| --- | --- | --- |
+| **Types** | Mypy (`mypy.ini`, `strict`) | Single type checker; daemon + workspace scope |
+| **Completions** | Pylance | `typeCheckingMode: off` (avoid double diagnostics) |
+| **Python format/lint** | Ruff (`ruff.toml`, includes **ANN**) | Format + fix + organize imports on save |
+| **Shell** | shfmt + shellcheck | 2-space indent; severity warning |
+| **Dashboard** | Prettier + ESLint + Vitest | Workspace TypeScript SDK under `dashboard/` |
+| **Git** | pull/sync rebase | Prefer **rebase merge** on protected branches |
+
+Container-only interpreter paths (`python.defaultInterpreterPath`, mypy
+interpreter) live in `.devcontainer/devcontainer.json` so host macOS/Windows
+checkouts are not forced onto Linux paths.
 
 ## Without a container (host tools)
 
@@ -198,6 +223,13 @@ flowchart LR
 | kcov / shell coverage | Linux container only; macOS host skips coverage (validate still OK) |
 | Stale Bazel cache | `docker volume rm dgx-lab-bazel-disk dgx-lab-bazel-repo` then rebuild |
 | Node version mismatch | Container and CI use **22**; set host Node 22 if not using the container |
+| `mkdir … ~/.grok/…: Permission denied` | Named volume `dgx-lab-grok-home` is root-owned. In-container: `sudo chown -R "$(id -u):$(id -g)" ~/.grok ~/.hermes` then `bash .devcontainer/install-agent-clis.sh`. Or on host: `docker volume rm dgx-lab-grok-home dgx-lab-hermes-home` and rebuild. |
+| `grok: command not found` | Agent CLI install is optional/non-blocking; re-run `bash .devcontainer/install-agent-clis.sh` after homes are writable, then `grok login`. |
+| Feature lockfile drift | Commit `.devcontainer/devcontainer-lock.json`; regenerate via Dev Containers rebuild / CLI when changing features. |
+| Mypy / Pylance `ENOENT` on `.venv-docs/bin/python` | Host macOS/Windows venv bind-mounted into Linux. Fix: `rm -rf .venv-docs && bash docs/setup-docs.sh` (post-create also recreates unusable venvs). IDE uses system Python 3.11 by default. |
+| `docs/manage-docs.sh status` says venv unusable | Same host venv issue; run `docs/setup-docs.sh`. |
+| Hermes “tools disabled” / missing API keys at create | Expected — create installs the CLI with `--skip-setup --non-interactive`. Run `hermes setup` only when you want Hermes. |
+| Bazel extension “query failed” right after open | First download of Bazel binary; post-create prewarms `bazelisk version`. Retry or wait for prewarm. |
 
 ## Related docs
 
