@@ -86,10 +86,13 @@ else
   python3 -m pip install --user -r docs/requirements.txt
 fi
 
-# Prefer venv python for playwright when present
+# Prefer a *usable* docs venv python for playwright (not a host-broken symlink).
 PLAYWRIGHT_PY=python3
-if [[ -x "${REPO_ROOT}/.venv-docs/bin/python" ]]; then
+if [[ -x "${REPO_ROOT}/.venv-docs/bin/python" ]] &&
+  "${REPO_ROOT}/.venv-docs/bin/python" -c 'import sys' >/dev/null 2>&1; then
   PLAYWRIGHT_PY="${REPO_ROOT}/.venv-docs/bin/python"
+elif [[ -d "${REPO_ROOT}/.venv-docs" ]]; then
+  echo "post-create: .venv-docs present but python unusable; using system python3" >&2
 fi
 
 echo "→ Playwright Chromium (+ OS deps when available)"
@@ -103,6 +106,12 @@ else
   fi
 fi
 
+# Pre-warm Bazel so vscode-bazel first query does not race the initial download.
+if command -v bazelisk >/dev/null 2>&1; then
+  echo "→ bazelisk version (prewarm)"
+  bazelisk version >/dev/null 2>&1 ||
+    echo "post-create: bazelisk prewarm skipped (non-fatal)" >&2
+fi
 # ---------------------------------------------------------------------------
 # Dashboard
 # ---------------------------------------------------------------------------
@@ -195,8 +204,9 @@ Recommended next steps:
   bash .devcontainer/doctor.sh
 
 Agent CLIs (optional; never commit API keys):
-  grok login                                  # Grok Build TUI — https://github.com/xai-org/grok-build
-  hermes setup                                # Hermes Agent — https://github.com/NousResearch/hermes-agent
+  # CLIs are installed during create without setup wizards.
+  grok login                                  # when you need Grok — https://github.com/xai-org/grok-build
+  hermes setup                                # when you need Hermes — https://github.com/NousResearch/hermes-agent
   # Auth lives in volume-mounted ~/.grok and ~/.hermes only (see SECURITY.md).
 
 Platform notes:
