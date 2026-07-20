@@ -4,16 +4,21 @@
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "editor.rulers": [100, 120],
+  "editor.linkedEditing": true,
+  "editor.guides.bracketPairs": true,
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
   "files.eol": "\n",
 
-  // ── Hide build artifacts and caches ──────────────────────────────────────
+  // ── Hide build artifacts, caches, and local venvs ────────────────────────
   "files.exclude": {
     "**/.git": true,
     "**/.DS_Store": true,
     "**/__pycache__": true,
     "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/.ruff_cache": true,
+    "**/.venv*": true,
     "**/node_modules": true,
     "**/.next": true,
     "**/bazel-bin": true,
@@ -31,6 +36,9 @@
     "**/bazel-lab": true,
     "**/__pycache__": true,
     "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/.ruff_cache": true,
+    "**/.venv*": true,
     "**/coverage": true,
     "**/test-results": true,
     "site": true
@@ -40,6 +48,9 @@
     "**/.next/**": true,
     "**/bazel-*/**": true,
     "**/__pycache__/**": true,
+    "**/.venv*/**": true,
+    "**/.mypy_cache/**": true,
+    "**/.ruff_cache/**": true,
     "site/**": true
   },
 
@@ -105,16 +116,64 @@
     "editor.formatOnSave": true
   },
 
-  // ── Python (ruff format + mypy strict) ───────────────────────────────────
+  // ── Python: Ruff (format + ANN/import lint) + Mypy strict (type ownership) ─
+  // Container interpreter pins live in .devcontainer/devcontainer.json only
+  // (host macOS/Windows paths differ). Do not set defaultInterpreterPath here.
+  //
+  // Type correctness: mypy.ini (strict, disallow_untyped_defs, py311).
+  // Annotation style: ruff.toml select includes ANN + google pydocstyle.
+  // Pylance typeCheckingMode stays "off" so mypy is the single type checker.
+  "python.languageServer": "Pylance",
   "python.analysis.typeCheckingMode": "off",
   "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.indexing": true,
+  // Include Pylance default excludes (**/__pycache__, **/.*) plus repo artifacts.
+  "python.analysis.exclude": [
+    "**/__pycache__",
+    "**/.*",
+    "**/node_modules",
+    "**/site",
+    "**/.venv*",
+    "**/bazel-*",
+    "**/.mypy_cache",
+    "**/.ruff_cache",
+    "**/coverage",
+    "**/test-results"
+  ],
+  // Workload-only third-party imports (fastapi/httpx/…) are ignored by mypy.ini;
+  // do not require them in the contributor base env for Pylance resolution.
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportMissingImports": "none"
+  },
+
   "ruff.configuration": "${workspaceFolder}/ruff.toml",
+  "ruff.configurationPreference": "filesystemFirst",
+  "ruff.importStrategy": "fromEnvironment",
+  "ruff.nativeServer": "on",
   "ruff.lineLength": 100,
   "ruff.organizeImports": true,
-  "mypy-type-checker.args": ["--config-file", "${workspaceFolder}/mypy.ini"],
-  "mypy-type-checker.reportingScope": "workspace",
+  "ruff.lint.enable": true,
+  "ruff.enable": true,
 
-  // ── Shell (shfmt + shellcheck) ───────────────────────────────────────────
+  "mypy-type-checker.args": ["--config-file", "${workspaceFolder}/mypy.ini"],
+  "mypy-type-checker.cwd": "${workspaceFolder}",
+  "mypy-type-checker.importStrategy": "fromEnvironment",
+  "mypy-type-checker.preferDaemon": true,
+  "mypy-type-checker.reportingScope": "workspace",
+  "mypy-type-checker.ignorePatterns": [
+    "**/site/**",
+    "**/.venv*/**",
+    "**/node_modules/**",
+    "**/bazel-*/**",
+    "**/__pycache__/**"
+  ],
+  "mypy-type-checker.severity": {
+    "error": "Error",
+    "note": "Information"
+  },
+
+  // ── Shell (shfmt + shellcheck; warnings = defects) ───────────────────────
   "shfmt.executable": "shfmt",
   "shfmt.args": ["-i", "2", "-s", "-ci"],
   "shellcheck.enable": true,
@@ -122,6 +181,7 @@
   "shellcheck.customArgs": ["-x", "--severity=warning"],
 
   // ── Bazel / Starlark ─────────────────────────────────────────────────────
+  "bazel.executable": "bazelisk",
   "bazel.buildifierFixOnFormat": true,
   "bazel.enableCodeLens": true,
 
@@ -130,10 +190,11 @@
   "prettier.ignorePath": ".prettierignore",
   "prettier.requireConfig": true,
 
-  // ── Dashboard TypeScript / ESLint ────────────────────────────────────────
-  "typescript.tsdk": "dashboard/node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true,
-  "typescript.preferences.importModuleSpecifier": "non-relative",
+  // ── Dashboard TypeScript / ESLint (js/ts.* keys; typescript.* tsdk deprecated) ─
+  "js/ts.tsdk.path": "dashboard/node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+  "js/ts.preferences.importModuleSpecifier": "non-relative",
+  "js/ts.preferences.preferTypeOnlyAutoImports": true,
   "eslint.useFlatConfig": true,
   "eslint.workingDirectories": [{ "directory": "dashboard", "changeProcessCWD": true }],
   "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
@@ -165,7 +226,10 @@
   // ── Terminal (macOS local dev; devcontainer overrides for Linux) ─────────
   "terminal.integrated.defaultProfile.osx": "zsh",
 
-  // ── Git ────────────────────────────────────────────────────────────────────
+  // ── Git (linear history; prefer rebase merge on protected branches) ──────
   "git.ignoreLimitWarning": true,
+  "git.pull.rebase": true,
+  "git.rebaseWhenSync": true,
+  "githubPullRequests.defaultMergeMethod": "rebase",
   "explorer.compactFolders": false
 }
