@@ -204,4 +204,47 @@ Finish relevant changes by updating documentation. See [docs/project-conventions
 - Use plan mode for ambiguous or large tasks.
 - Final responses should let a human quickly understand what was done and why it is safe/correct.
 
+### Efficiency of checks and tests (local + CI)
+
+Agents must **optimize for feedback speed** without weakening safety gates. Prefer the smallest correct slice first; escalate only when needed.
+
+| Cost | Prefer | Avoid as a first step |
+| --- | --- | --- |
+| Cheap | Targeted Bazel tests (`//tests:bats_*`, `//docs:test_command_vars`, `//docs:test_python_coverage`), `//dashboard:fast-test`, path-aware `//:validate` | Full `--all` on every edit |
+| Medium | `//:test-fast`, `//:lint --test_tag_filters=manual`, `//docs:test_mkdocs_build` | Rebuilding hermetic dashboard Docker for pure docs/shell changes |
+| Expensive | `//docs:test_mkdocs_render` (Playwright), `//dashboard:hermetic-test`, `//:validate -- --all` | Running these after every one-line change when a unit test would catch the bug |
+
+**Rules:**
+
+1. **Path-aware by default** — `bazelisk run //:validate` (no `--all`) mirrors CI path filters. Use `--all` before merge, after broad refactors, or when unsure.
+2. **Red–green on the smallest target** — fail a unit/BATS/docs unit test first; only then widen to render/hermetic suites.
+3. **Do not duplicate work** — one MkDocs build per test class (already shared); do not re-run hermetic dashboard when only `docs/**` or CI YAML changed.
+4. **When adding tests or CI** — prefer pure unit over e2e; keep `//:test-fast` free of host-MkDocs/Playwright; preserve GHA cache keys and path filters; never force every push on `development` to run the full matrix.
+5. **Commands** — Bazel entry points (`bazelisk run //:manage`, `//:validate`, `//docs:docs`); avoid ad-hoc loops of format+lint+full validate after each keystroke.
+6. **Safety is not optional latency** — never skip `//tests:safety_invariants`, Resource Guard checks, or capacity gates “to go faster.”
+
+See also [project-conventions § Testing](docs/project-conventions.md#12-testing) and CI path filters in `.github/workflows/ci.yml`.
+
+### End-of-session reflection (mandatory for agents)
+
+Before ending a multi-step coding session, **reflect** and act only under least privilege:
+
+1. **Did tools and commands match policy?** Bazel-first, path-aware validate, TDD evidence (red/green), relative paths, no secrets in commits.
+2. **Any hacky workaround?** e.g. `|| true` hiding real failures, editing generated files by hand, skipping tests, weakening auth or safety greps, force-push, elevating sudo, committing API keys.
+3. **If process friction was real**, prefer the **minimal, least-privilege** improvement:
+   - Document the correct command in `AGENTS.md` / `docs/project-conventions.md` / CONTRIBUTING rather than widening permissions.
+   - Devcontainer: add a tool only if CI or documented workflows already require it; pin versions in `.devcontainer/tool-versions.env`; never embed secrets or broaden sudo for convenience.
+   - Prefer an automated check (lint, bats, doc_coverage) when a convention is easy to violate — do not rely on human reminder alone.
+   - **Never** relax Resource Guard, safety invariants, restart policies, NCCL requirements, or auth to make agents faster.
+4. **Land improvements safely** — small follow-up commit on the current short-lived branch when the change is clearly in scope; otherwise note a future `chore/` / `docs/` PR. Do not open promotion PRs or push tags unless the maintainer asked.
+5. **Leave the tree green** for the slice you touched (`//:validate` path-aware or `--all` when appropriate).
+
+**Session reflection blurb (include in the final summary when non-trivial work happened):**
+
+```text
+Reflection: <what went well with tools/commands> /
+  <any workaround and whether it was cleaned up> /
+  <AGENTS/devcontainer/conventions updates if any, and why least-privilege>.
+```
+
 Follow these guidelines on every task in this repository.
