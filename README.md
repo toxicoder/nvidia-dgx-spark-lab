@@ -25,7 +25,7 @@
 
 - Quickly understanding the lab's scope (small 1-4 node DGX Spark clusters for large inference)
 - Seeing the emphasis on stability, explicit resources, and no auto-start of heavy jobs
-- Deciding where to go next ([Getting Started](https://toxicoder.github.io/nvidia-dgx-spark-lab/getting-started/) on the documentation site is the primary entry point)
+- Deciding where to go next ([Getting Started](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/) on the documentation site is the primary entry point)
 
 ## Goals
 
@@ -132,13 +132,13 @@ nvidia-dgx-spark-lab/
    ./scripts/manage.sh stop
    ```
 
-See the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/getting-started/) for the **hyper-detailed, step-by-step** walkthrough (with variants for 1/2/4 nodes, verification after every step, safety callouts, and heavy use of the live interactive panel).
+See the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/) for the **hyper-detailed, step-by-step** walkthrough (with variants for 1/2/4 nodes, verification after every step, safety callouts, and heavy use of the live interactive panel).
 
-The auto-generated command reference (from structured comments in the scripts) is at [Shell Commands & Helpers](https://toxicoder.github.io/nvidia-dgx-spark-lab/generated/shell/reference/) and is integrated throughout the main docs.
+The auto-generated command reference (from structured comments in the scripts) is at [Shell Commands & Helpers](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/generated/shell/reference/) and is integrated throughout the main docs.
 
 For model config defaults (reference only — authoritative values live in workload manifests), see `ansible/inventory/group_vars/all.yml` (`llm_*` vars).
 
-See the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/getting-started/) for full instructions.
+See the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/) for full instructions.
 
 ## Safety First
 
@@ -146,7 +146,7 @@ See the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab
 - No Deployments with `replicas` that auto-restart on large models.
 - The `manage.sh` script includes pre-flight resource checks and confirmation for heavy mode.
 - After reboot, workloads do **not** come back automatically. You must explicitly start them.
-- Always stop workloads before rebooting (see [Reboot Safety](https://toxicoder.github.io/nvidia-dgx-spark-lab/reboot-safety/)).
+- Always stop workloads before rebooting (see [Reboot Safety](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/reboot-safety/)).
 
 ## Modes
 
@@ -187,11 +187,11 @@ For browser-based agent chat with MCP tool orchestration, deploy the backing sta
 ./scripts/manage.sh start-open-webui
 ```
 
-See [Open WebUI](https://toxicoder.github.io/nvidia-dgx-spark-lab/open-webui/) and [Hermes Agent](https://toxicoder.github.io/nvidia-dgx-spark-lab/hermes-agent/).
+See [Open WebUI](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/open-webui/) and [Hermes Agent](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/hermes-agent/).
 
 ## Remote Development: Coder Workspaces + Kasm + Dashboard
 
-See [Dev Workspaces & Dashboard](https://toxicoder.github.io/nvidia-dgx-spark-lab/dev-workspaces/) for:
+See [Dev Workspaces & Dashboard](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/dev-workspaces/) for:
 
 - Setup with Ansible + Helm (Coder, Kasm, Headlamp + Grafana for metrics, custom lab portal).
 - `scripts/manage.sh` commands: `start-coder`, `start-kasm`, `start-monitoring`, `stop-dev` etc.
@@ -244,7 +244,7 @@ Direct tools (still fully supported for day-to-day cluster ops, especially runti
 ./scripts/manage.sh status
 ```
 
-See `docs/BUILDING_WITH_BAZEL.md`, the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/getting-started/), and `docs/CONTRIBUTING.md`.
+See `docs/BUILDING_WITH_BAZEL.md`, the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/), and `docs/CONTRIBUTING.md`.
 
 ### What the tests cover
 - Shell script correctness and safety logic (`scripts/manage.sh`)
@@ -296,7 +296,7 @@ Never rely on Kubernetes to auto-restart heavy inference pods.
 - Dual 400G links require correct interface naming and NCCL env vars; misconfiguration falls back to slower paths.
 - Watch for thermal/power limits on sustained inference.
 
-See [DGX Spark Notes](https://toxicoder.github.io/nvidia-dgx-spark-lab/dgx-spark-notes/) and [Reboot Safety](https://toxicoder.github.io/nvidia-dgx-spark-lab/reboot-safety/) for more.
+See [DGX Spark Notes](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/dgx-spark-notes/) and [Reboot Safety](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/reboot-safety/) for more.
 
 ## Contributing / Modifying
 
@@ -333,4 +333,4 @@ Your support helps maintain and improve this collection of development tools and
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-This repository contains infrastructure code, Kubernetes manifests, and scripts for a specialized AI lab cluster. It is not intended for production use outside controlled research / lab environments. Always follow the safety guidelines in [Reboot Safety](https://toxicoder.github.io/nvidia-dgx-spark-lab/reboot-safety/) and [AGENTS.md](AGENTS.md).
+This repository contains infrastructure code, Kubernetes manifests, and scripts for a specialized AI lab cluster. It is not intended for production use outside controlled research / lab environments. Always follow the safety guidelines in [Reboot Safety](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/reboot-safety/) and [AGENTS.md](AGENTS.md).
