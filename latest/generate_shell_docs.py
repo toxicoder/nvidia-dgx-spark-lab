@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Robust shell documentation extractor for nvidia-dgx-spark-lab.
+"""Robust shell documentation extractor for nvidia-dgx-spark-lab.
 
 Scans Bash files for structured comments and generates **beautiful, human-readable**
 Markdown reference suitable for MkDocs.
@@ -54,6 +53,7 @@ COMMAND_RE = re.compile(r"^#\s*@command\s+(.+)$")
 COMMENT_LINE_RE = re.compile(r"^#\s?(.*)$")
 FUNCTION_RE = re.compile(r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*\(\s*\)")
 
+
 def _format_body(body_lines: list[str]) -> str:
     """Turn a raw comment body into nice, human-readable Markdown.
 
@@ -92,13 +92,19 @@ def _format_body(body_lines: list[str]) -> str:
         if not s:
             return False
         # Strong signals for real command / usage content
-        if s.startswith((
-            "Usage:", "./scripts/manage.sh", "bazelisk run //", 
-            "ansible-playbook", "kubectl ", "helm "
-        )):
+        if s.startswith(
+            (
+                "Usage:",
+                "./scripts/manage.sh",
+                "bazelisk run //",
+                "ansible-playbook",
+                "kubectl ",
+                "helm ",
+            )
+        ):
             return True
         # Lines that are clearly shell one-liners (start with ./ or command + flag)
-        if re.match(r'^\./[a-z]', s) or re.match(r'^[a-z][a-z0-9_-]+\s+(-|--) ', s):
+        if re.match(r"^\./[a-z]", s) or re.match(r"^[a-z][a-z0-9_-]+\s+(-|--) ", s):
             return True
         return False
 
@@ -125,8 +131,9 @@ def _format_body(body_lines: list[str]) -> str:
                 nxt = lines[i]
                 if not nxt.strip():
                     break
-                if (nxt.strip().lower().startswith(("safety", "important", "warning", "note"))
-                        or looks_like_code_start(nxt)):
+                if nxt.strip().lower().startswith(
+                    ("safety", "important", "warning", "note")
+                ) or looks_like_code_start(nxt):
                     break
                 block.append(nxt)
                 i += 1
@@ -144,12 +151,16 @@ def _format_body(body_lines: list[str]) -> str:
                 nxt = lines[i]
                 if not nxt.strip():
                     # allow one blank inside example, but stop on second or real text
-                    if i + 1 < n and lines[i+1].strip():
+                    if i + 1 < n and lines[i + 1].strip():
                         code_block.append(nxt)
                         i += 1
                         continue
                     break
-                if not (nxt.strip().startswith(("#", " ", "\t")) or looks_like_code_start(nxt) or nxt.strip().startswith(("-", "*"))):
+                if not (
+                    nxt.strip().startswith(("#", " ", "\t"))
+                    or looks_like_code_start(nxt)
+                    or nxt.strip().startswith(("-", "*"))
+                ):
                     # looks like prose again
                     break
                 code_block.append(nxt)
@@ -173,7 +184,7 @@ def _format_body(body_lines: list[str]) -> str:
         # This makes generator output robust even if script comments use
         # compact "Description:\n- item" form (we also clean sources).
         stripped = line.strip()
-        if stripped.startswith(('- ', '* ', '+ ')) and out and out[-1].strip():
+        if stripped.startswith(("- ", "* ", "+ ")) and out and out[-1].strip():
             out.append("")
         out.append(line)
         i += 1
@@ -216,7 +227,11 @@ def extract_from_file(path: Path) -> list[str]:
             if not m:
                 break
             # Stop if we hit another doc marker
-            if SECTION_RE.match(lines[j]) or SUBSECTION_RE.match(lines[j]) or COMMAND_RE.match(lines[j]):
+            if (
+                SECTION_RE.match(lines[j])
+                or SUBSECTION_RE.match(lines[j])
+                or COMMAND_RE.match(lines[j])
+            ):
                 break
             content = m.group(1)
             # Skip obvious pure implementation / noise lines even if commented
@@ -292,7 +307,11 @@ def extract_from_file(path: Path) -> list[str]:
                 cm = COMMENT_LINE_RE.match(prev)
                 if cm and cm.group(1).strip():
                     # stop if we hit a marker line
-                    if SECTION_RE.match(prev) or SUBSECTION_RE.match(prev) or COMMAND_RE.match(prev):
+                    if (
+                        SECTION_RE.match(prev)
+                        or SUBSECTION_RE.match(prev)
+                        or COMMAND_RE.match(prev)
+                    ):
                         break
                     comment_block.insert(0, cm.group(1))
                     j -= 1
@@ -309,6 +328,7 @@ def extract_from_file(path: Path) -> list[str]:
 
     return docs
 
+
 def main() -> None:
     """Generate the shell reference Markdown from structured script comments.
 
@@ -317,6 +337,7 @@ def main() -> None:
     unchanged unless ``--force`` is passed on the command line.
     """
     import sys
+
     force = "--force" in sys.argv
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -383,6 +404,7 @@ def main() -> None:
 
     OUTPUT_FILE.write_text(new_content, encoding="utf-8")
     print(f"Generated {OUTPUT_FILE}")
+
 
 if __name__ == "__main__":
     main()

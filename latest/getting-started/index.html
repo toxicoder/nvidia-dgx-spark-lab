@@ -45,12 +45,14 @@
         
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
-        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Open Sans";--md-code-font:"Roboto Mono"}</style>
       
     
     
       <link rel="stylesheet" href="../assets/stylesheets/command-vars.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
     
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -96,6 +98,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+        
+      </div>
+    
     
       
 
@@ -134,9 +140,19 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_0">
     
-      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -144,9 +160,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to system preference" type="radio" name="__palette" id="__palette_2">
     
-      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -177,6 +193,11 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard="" data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+          </a>
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
@@ -1226,13 +1247,14 @@
 <div class="cluster-config admonition info" data-vars="SPARK0_IP,NAMESPACE,DASHBOARD_PORT">
   <p><strong>Live cluster variables</strong> (edits propagate to all examples + copies on this page)</p>
   <div>
-    <label>SPARK0_IP: <input data-var="SPARK0_IP" value="192.168.1.10" placeholder="spark0-ip"></label>
+    <!-- Defaults must match the primary profile button (1-node / localhost). -->
+    <label>SPARK0_IP: <input data-var="SPARK0_IP" value="localhost" placeholder="spark0-ip"></label>
     <label>NAMESPACE: <input data-var="NAMESPACE" value="ai-inference"></label>
     <label>PORT example: <input data-var="DASHBOARD_PORT" value="32082"></label>
   </div>
   <div>
-    <button data-profile="1node" class="md-button md-button--primary">1-node / localhost profile</button>
-    <button data-profile="2node" class="md-button">2-node typical profile</button>
+    <button type="button" data-profile="1node" class="md-button md-button--primary">1-node / localhost profile</button>
+    <button type="button" data-profile="2node" class="md-button">2-node typical profile</button>
     <small>(live updates + copy buttons respect current values)</small>
   </div>
 </div>
@@ -1241,7 +1263,7 @@
 <ul>
 <li>Prerequisites (nodes, SSH, workstation tools)</li>
 <li>Detailed inventory setup (1-node / 2-node / 4-node tabs)</li>
-<li>Step-by-step bootstrap of K3s + GPU Operator (Bazel-first + classic)</li>
+<li>Step-by-step bootstrap of <abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr> + <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> (<abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>-first + classic)</li>
 <li>High-speed network configuration for multi-node</li>
 <li>Management script usage, workload deployment, verification, and cleanup</li>
 <li>Reboot safety procedures</li>
@@ -1267,14 +1289,14 @@
 <li>
 <p>On your workstation:</p>
 </li>
-<li>Ansible &gt;= 2.14</li>
-<li>kubectl (will be installed/configured by Ansible)</li>
+<li><abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> &gt;= 2.14</li>
+<li>kubectl (will be installed/configured by <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr>)</li>
 <li>helm</li>
 </ul>
 <h2 id="step-1-prepare-inventory">Step 1: Prepare Inventory<a class="headerlink" href="#step-1-prepare-inventory" title="Permanent link">¶</a></h2>
 <div class="admonition warning">
-<p class="admonition-title">Bazel-first + Safety</p>
-<p>All examples below lead with Bazel where applicable.<br>
+<p class="admonition-title"><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>-first + Safety</p>
+<p>All examples below lead with <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> where applicable.<br>
 <strong>Never</strong> proceed without a working inventory and verified connectivity.<br>
 Heavy workloads can make SSH unresponsive — always have out-of-band console access ready.</p>
 </div>
@@ -1301,7 +1323,7 @@ Heavy workloads can make SSH unresponsive — always have out-of-band console ac
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">[spark1]</span>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="na">spark1 ansible_host</span><span class="o">=</span><span class="s">192.168.1.11 ansible_user=ubuntu</span>
 </span></code></pre></div>
-<p>Dual 400G links between nodes for NCCL.</p>
+<p>Dual 400G links between nodes for <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr>.</p>
 </div>
 <div class="tabbed-block">
 <p>Add spark2 and spark3 similarly. Ensure all high-speed cables are connected.</p>
@@ -1319,8 +1341,8 @@ Heavy workloads can make SSH unresponsive — always have out-of-band console ac
 <li>Confirm exact IPs (use <code>ip a</code> on the nodes via console if needed).</li>
 </ul>
 <p>See the auto-generated <a href="../generated/shell/reference/">Shell reference</a> for the <code>setup</code> helper that can guide this interactively.</p>
-<h2 id="step-2-bootstrap-k3s-cluster-hyper-detailed">Step 2: Bootstrap K3s Cluster (Hyper-Detailed)<a class="headerlink" href="#step-2-bootstrap-k3s-cluster-hyper-detailed" title="Permanent link">¶</a></h2>
-<p><strong>Bazel-first preferred</strong> (uses the wrapper that defaults to the example inventory safely):</p>
+<h2 id="step-2-bootstrap-k3s-cluster-hyper-detailed">Step 2: Bootstrap <abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr> Cluster (Hyper-Detailed)<a class="headerlink" href="#step-2-bootstrap-k3s-cluster-hyper-detailed" title="Permanent link">¶</a></h2>
+<p><strong><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>-first preferred</strong> (uses the wrapper that defaults to the example inventory safely):</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//ansible:bootstrap
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1"># or with real inventory</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//ansible:bootstrap<span class="w"> </span>--<span class="w"> </span>-i<span class="w"> </span>inventory/hosts.ini
@@ -1333,7 +1355,7 @@ Heavy workloads can make SSH unresponsive — always have out-of-band console ac
 <ol>
 <li>Installs prerequisites (containerd, etc.) on all nodes.</li>
 <li>Configures high-speed network (netplan + SSH) on 2+ node setups.</li>
-<li>Installs K3s server on spark0 (control-plane + worker).</li>
+<li>Installs <abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr> server on spark0 (control-plane + worker).</li>
 <li>Joins additional nodes as agents (workers).</li>
 <li>Applies labels (e.g., <code>highspeed=true</code> for multi-node).</li>
 <li>Sets up kubeconfig on the control node.</li>
@@ -1358,12 +1380,12 @@ Heavy workloads can make SSH unresponsive — always have out-of-band console ac
 <li>Re-run the specific play or the full bootstrap.</li>
 </ul>
 <p>See the full generated command reference for <code>setup</code> and related helpers: <a href="../generated/shell/reference/">Shell reference</a>.</p>
-<p><strong>Bazel equivalent for the whole guided flow</strong>:
+<p><strong><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> equivalent for the whole guided flow</strong>:
 </p><div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>setup
 </span></code></pre></div><p></p>
 <p>This prints the recommended sequence and can launch the first safe workload.</p>
-<h2 id="step-3-install-nvidia-gpu-operator-hyper-detailed">Step 3: Install NVIDIA GPU Operator (Hyper-Detailed)<a class="headerlink" href="#step-3-install-nvidia-gpu-operator-hyper-detailed" title="Permanent link">¶</a></h2>
-<p><strong>Bazel-first</strong>:
+<h2 id="step-3-install-nvidia-gpu-operator-hyper-detailed">Step 3: Install NVIDIA <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> (Hyper-Detailed)<a class="headerlink" href="#step-3-install-nvidia-gpu-operator-hyper-detailed" title="Permanent link">¶</a></h2>
+<p><strong><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>-first</strong>:
 </p><div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//ansible:gpu-operator<span class="w"> </span>--<span class="w"> </span>-i<span class="w"> </span>inventory/hosts.ini
 </span></code></pre></div><p></p>
 <p>Classic:
@@ -1371,9 +1393,9 @@ Heavy workloads can make SSH unresponsive — always have out-of-band console ac
 </span></code></pre></div><p></p>
 <h3 id="what-happens">What happens<a class="headerlink" href="#what-happens" title="Permanent link">¶</a></h3>
 <ul>
-<li>Deploys the NVIDIA GPU Operator (drivers, device plugin, DCGM exporter for monitoring).</li>
+<li>Deploys the NVIDIA <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> (drivers, device plugin, DCGM exporter for monitoring).</li>
 <li>Creates the <code>gpu-operator</code> namespace and required DaemonSets.</li>
-<li>Enables MIG / time-slicing if configured in inventory/group_vars.</li>
+<li>Enables <abbr title="Multi-Instance GPU — partitions a GPU into isolated instances.">MIG</abbr> / time-slicing if configured in inventory/group_vars.</li>
 </ul>
 <p><strong>Watch the rollout (run in a separate terminal)</strong>:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>gpu-operator<span class="w"> </span>-w
@@ -1396,7 +1418,7 @@ Heavy workloads can make SSH unresponsive — always have out-of-band console ac
 <li>See <a href="../troubleshooting/">troubleshooting.md</a> and the generated reference for <code>doctor</code>.</li>
 </ul>
 <p>After this step you should have a functional Kubernetes cluster with visible GPUs.</p>
-<p><strong>Next (Bazel or classic)</strong>:
+<p><strong>Next (<abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> or classic)</strong>:
 </p><div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>doctor
 </span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-test
 </span></code></pre></div><p></p>
@@ -1422,13 +1444,13 @@ Heavy workloads can make SSH unresponsive — always have out-of-band console ac
 <p>Validation (ping, SSH, basic test)</p>
 </li>
 <li>
-<p>NCCL scoped to highspeed</p>
+<p><abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> scoped to highspeed</p>
 </li>
 </ul>
 <p>For 1 node, skipped.</p>
 <h2 id="automation-convenience-recommended">Automation &amp; Convenience (recommended)<a class="headerlink" href="#automation-convenience-recommended" title="Permanent link">¶</a></h2>
-<p><strong>Early node prep (new strategic option - cloud-init):</strong></p>
-<p>For physical DGX nodes, use cloud-init for early OS/highspeed prep (prereqs, netplan, swapoff, sysctls) before full Ansible. This makes bootstrap faster and more consistent.</p>
+<p><strong>Early node prep (new strategic option - <abbr title="Early OS bootstrap configuration applied on first boot (network, packages, users).">cloud-init</abbr>):</strong></p>
+<p>For physical DGX nodes, use <abbr title="Early OS bootstrap configuration applied on first boot (network, packages, users).">cloud-init</abbr> for early OS/highspeed prep (prereqs, netplan, swapoff, sysctls) before full <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr>. This makes bootstrap faster and more consistent.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Render templates (Bazel or ansible)</span>
 </span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//ansible:playbook<span class="w"> </span>--<span class="w"> </span>--extra-vars<span class="w"> </span><span class="nv">run_cloud_init_prep</span><span class="o">=</span><span class="nb">true</span><span class="w">   </span><span class="c1"># or direct</span>
 </span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="c1"># Then feed rendered/ansible/cloud-init/rendered/user-data-*.yaml as user-data (iDRAC/MAAS) or apply manually + reboot.</span>
@@ -1495,7 +1517,7 @@ Heavy workloads can make SSH unresponsive — always have out-of-band console ac
 </span></code></pre></div>
 <h2 id="before-rebooting-hyper-detailed-safety-procedure">Before Rebooting (Hyper-Detailed Safety Procedure)<a class="headerlink" href="#before-rebooting-hyper-detailed-safety-procedure" title="Permanent link">¶</a></h2>
 <p><strong>Golden rule (repeated for emphasis)</strong>: Never reboot while heavy inference workloads are scheduled. Large models can exhaust host memory and make the node unreachable over SSH.</p>
-<p><strong>Bazel-first full sequence</strong>:</p>
+<p><strong><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>-first full sequence</strong>:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># 1. Stop from workstation</span>
 </span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>stop
 </span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>
@@ -1528,7 +1550,7 @@ Heavy workloads can make SSH unresponsive — always have out-of-band console ac
 <li>Read <a href="../reboot-safety/">reboot-safety.md</a></li>
 </ul>
 <h2 id="running-the-test-suite">Running the Test Suite<a class="headerlink" href="#running-the-test-suite" title="Permanent link">¶</a></h2>
-<p>Bazel is the primary way:</p>
+<p><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> is the primary way:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//:test
 </span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//:lint<span class="w"> </span>--test_tag_filters<span class="o">=</span>manual
 </span></code></pre></div>
@@ -1580,7 +1602,7 @@ The tests catch common mistakes (bad YAML, missing limits, accidental Always res
     %% Note: Node label is double-quoted for Mermaid 11+ parser compatibility ({{ }} is special)
     F[bazelisk run //docs:docs] --&gt; B
     F --&gt; D</code></pre><p></p>
-<p><strong>Triggering regeneration (Bazel-first, always)</strong>:
+<p><strong>Triggering regeneration (<abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>-first, always)</strong>:
 </p><div class="language-bash highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="c1"># Preferred (also runs the full strict site build)</span>
 </span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//docs:docs
 </span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>
@@ -1642,7 +1664,7 @@ The tests catch common mistakes (bad YAML, missing limits, accidental Always res
 <li>Read <a href="../reboot-safety/">reboot-safety.md</a></li>
 <li>Explore the <a href="../generated/shell/reference/">auto-generated command reference</a> for every option of <code>doctor</code>, <code>estimate</code>, <code>start-*</code>, etc.</li>
 </ul>
-<h2 id="running-the-test-suite-bazel-primary">Running the Test Suite (Bazel primary)<a class="headerlink" href="#running-the-test-suite-bazel-primary" title="Permanent link">¶</a></h2>
+<h2 id="running-the-test-suite-bazel-primary">Running the Test Suite (<abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> primary)<a class="headerlink" href="#running-the-test-suite-bazel-primary" title="Permanent link">¶</a></h2>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//:test
 </span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//:lint<span class="w"> </span>--test_tag_filters<span class="o">=</span>manual
 </span></code></pre></div>
@@ -1652,6 +1674,11 @@ The tests catch common mistakes (bad YAML, missing limits, accidental Always res
 </span></code></pre></div>
 <p>See the top-level <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/README.md#development--testing">README.md</a> and the tests/ directory for full details. The tests catch common mistakes (bad YAML, missing limits, accidental <code>Always</code> restart policies) without needing DGX hardware.</p>
 <p>The generator itself also has dedicated unit test coverage under <code>bazelisk test //docs:test_generate_shell_docs</code>.</p>
+<!--
+  Project-wide glossary abbreviations (Material tooltips).
+  Auto-appended to every page via pymdownx.snippets in mkdocs.yml.
+  Keep definitions short (tooltip-sized). Longer prose lives in docs/glossary.md.
+-->
 
 
 
@@ -1728,7 +1755,7 @@ The tests catch common mistakes (bad YAML, missing limits, accidental Always res
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "search.suggest", "search.highlight", "content.code.copy", "content.tabs.link", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>

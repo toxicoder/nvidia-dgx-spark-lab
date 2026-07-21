@@ -45,12 +45,14 @@
         
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
-        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Open Sans";--md-code-font:"Roboto Mono"}</style>
       
     
     
       <link rel="stylesheet" href="../assets/stylesheets/command-vars.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
     
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -96,6 +98,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+        
+      </div>
+    
     
       
 
@@ -134,9 +140,19 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_0">
     
-      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -144,9 +160,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to system preference" type="radio" name="__palette" id="__palette_2">
     
-      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -177,6 +193,11 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard="" data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+          </a>
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
@@ -974,6 +995,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1258,21 +1307,21 @@
   
 
 
-<h1 id="open-webui-agent-chat">Open WebUI (Agent Chat)<a class="headerlink" href="#open-webui-agent-chat" title="Permanent link">¶</a></h1>
+<h1 id="open-webui-agent-chat"><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> (Agent Chat)<a class="headerlink" href="#open-webui-agent-chat" title="Permanent link">¶</a></h1>
 <p><strong>What's on this page</strong></p>
 <ul>
-<li>Prerequisites and deploy paths for the Open WebUI Helm stack</li>
-<li>Hermes gateway backend wiring and SSO exposure options</li>
+<li>Prerequisites and deploy paths for the <abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> Helm stack</li>
+<li><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> gateway backend wiring and SSO exposure options</li>
 <li>Policy configuration and operational commands</li>
 </ul>
 <p><strong>What this enables</strong></p>
 <ul>
-<li>Browser chat UI backed by Hermes MCP orchestration on the lab cluster</li>
+<li>Browser chat UI backed by <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> <abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> orchestration on the lab cluster</li>
 <li>A polished agent surface without bypassing existing safety gates</li>
 </ul>
-<p>Deploy <a href="https://github.com/open-webui/open-webui">Open WebUI</a> as a polished chat surface for lab AI agents. Conversations can route through the <strong>Hermes gateway</strong> (<code>:8642/v1</code>) for MCP tools (SearXNG, fetch, memory, Context7, etc.), and through <strong>direct vLLM OpenAI endpoints</strong> for Qwen3.6-27B and Qwen3.6-35B-A3B when those Jobs are running (see <a href="../qwen36-dual-stack/">qwen36-dual-stack.md</a>).</p>
+<p>Deploy <a href="https://github.com/open-webui/open-webui"><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr></a> as a polished chat surface for lab AI agents. Conversations can route through the <strong><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> gateway</strong> (<code>:8642/v1</code>) for <abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> tools (SearXNG, fetch, memory, Context7, etc.), and through <strong>direct vLLM OpenAI endpoints</strong> for Qwen3.6-27B and Qwen3.6-35B-A3B when those Jobs are running (see <a href="../qwen36-dual-stack/">qwen36-dual-stack.md</a>).</p>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">¶</a></h2>
-<p>Bring up the agent stack before Open WebUI:</p>
+<p>Bring up the agent stack before <abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr>:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>nemotron-stack<span class="w"> </span>start<span class="w"> </span>nemotron-agentic-spark-1<span class="w"> </span>--confirm<span class="w"> </span>yes
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>mcp-stack<span class="w"> </span>start<span class="w"> </span>mcp-agent-toolkit<span class="w"> </span>--confirm<span class="w"> </span>yes
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>./scripts/manage.sh<span class="w"> </span>start-hermes
@@ -1285,7 +1334,7 @@
 <p>Stop:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>./scripts/manage.sh<span class="w"> </span>stop-open-webui
 </span></code></pre></div>
-<p>Open WebUI is <strong>not</strong> auto-started with <code>start-monitoring</code> or <code>start-hermes</code>.</p>
+<p><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> is <strong>not</strong> auto-started with <code>start-monitoring</code> or <code>start-hermes</code>.</p>
 <h2 id="access">Access<a class="headerlink" href="#access" title="Permanent link">¶</a></h2>
 <table>
 <thead>
@@ -1306,7 +1355,7 @@
 </tbody>
 </table>
 <p>Add <code>chat.lab.local</code> to <code>/etc/hosts</code> (see <a href="../sso/">sso.md</a>).</p>
-<p>Traefik forward-auth protects the SSO route. Open WebUI trusts the <code>Remote-User</code> header from Authelia for account mapping.</p>
+<p><abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr> forward-auth protects the SSO route. <abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> trusts the <code>Remote-User</code> header from <abbr title="Open-source authentication and authorization server used for lab SSO.">Authelia</abbr> for account mapping.</p>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">¶</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Browser → Traefik/Authelia → Open WebUI (dev namespace, Helm)
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>              ↓
@@ -1329,7 +1378,7 @@
 </thead>
 <tbody>
 <tr>
-<td>Start fails: Hermes not running</td>
+<td>Start fails: <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> not running</td>
 <td><code>./scripts/manage.sh start-hermes</code></td>
 </tr>
 <tr>
@@ -1337,22 +1386,27 @@
 <td>Re-run <code>start-open-webui</code> to refresh Endpoints IP after node IP change</td>
 </tr>
 <tr>
-<td>401 from Hermes</td>
-<td>Re-sync secrets: stop/start Open WebUI (reads <code>API_SERVER_KEY</code> from <code>hermes/data/.env</code>)</td>
+<td>401 from <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr></td>
+<td>Re-sync secrets: stop/start <abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> (reads <code>API_SERVER_KEY</code> from <code>hermes/data/.env</code>)</td>
 </tr>
 <tr>
 <td>Models empty in chat</td>
-<td>Confirm Hermes gateway: <code>curl -H "Authorization: Bearer $API_SERVER_KEY" http://127.0.0.1:8642/v1/models</code></td>
+<td>Confirm <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> gateway: <code>curl -H "Authorization: Bearer $API_SERVER_KEY" http://127.0.0.1:8642/v1/models</code></td>
 </tr>
 </tbody>
 </table>
 <h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">¶</a></h2>
 <ul>
-<li><a href="../hermes-agent/">hermes-agent.md</a> — gateway and MCP wiring</li>
+<li><a href="../hermes-agent/">hermes-agent.md</a> — gateway and <abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> wiring</li>
 <li><a href="../mcp-agent-toolkit/">mcp-agent-toolkit.md</a></li>
 <li><a href="../nemotron-agentic-stack/">nemotron-agentic-stack.md</a></li>
 <li><code>config/open-webui-policy.yaml</code></li>
 </ul>
+<!--
+  Project-wide glossary abbreviations (Material tooltips).
+  Auto-appended to every page via pymdownx.snippets in mkdocs.yml.
+  Keep definitions short (tooltip-sized). Longer prose lives in docs/glossary.md.
+-->
 
 
 
@@ -1429,7 +1483,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "search.suggest", "search.highlight", "content.code.copy", "content.tabs.link", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>

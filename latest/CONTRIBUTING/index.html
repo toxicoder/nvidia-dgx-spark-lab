@@ -45,12 +45,14 @@
         
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
-        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Open Sans";--md-code-font:"Roboto Mono"}</style>
       
     
     
       <link rel="stylesheet" href="../assets/stylesheets/command-vars.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
     
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -96,6 +98,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+        
+      </div>
+    
     
       
 
@@ -134,9 +140,19 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_0">
     
-      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -144,9 +160,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to system preference" type="radio" name="__palette" id="__palette_2">
     
-      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -177,6 +193,11 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard="" data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+          </a>
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
@@ -1161,11 +1182,11 @@
 <li>Keeping docs as code (never stale)</li>
 <li>Consistent experience across the site and generated refs</li>
 </ul>
-<p>For code, shell, Kubernetes, Ansible, config, and dashboard conventions, see <a href="../project-conventions/">project-conventions.md</a>. The repo-root <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a> is the short contribution hub.</p>
+<p>For code, shell, Kubernetes, <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr>, config, and dashboard conventions, see <a href="../project-conventions/">project-conventions.md</a>. The repo-root <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a> is the short contribution hub.</p>
 <p>Thank you for helping improve the documentation for nvidia-dgx-spark-lab!</p>
 <p>All changes to documentation must follow the same rigor as code changes.</p>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">¶</a></h2>
-<p>Bazel (primary):</p>
+<p><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> (primary):</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>bazel<span class="w"> </span>run<span class="w"> </span>//docs:serve<span class="w">                    </span><span class="c1"># Live preview (auto-opens browser)</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>bazel<span class="w"> </span>run<span class="w"> </span>//docs:serve<span class="w"> </span>--<span class="w"> </span>--port<span class="w"> </span><span class="m">8080</span><span class="w"> </span>--no-browser
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Make edits...</span>
@@ -1183,7 +1204,7 @@
 <ul>
 <li><strong>Home / Getting Started</strong> — New users</li>
 <li><strong>Concepts &amp; Notes</strong> — Background and important constraints (safety, resources, reboot)</li>
-<li><strong>How-to Guides</strong> — Task-oriented (Bazel docs, Gitea setup, etc.)</li>
+<li><strong>How-to Guides</strong> — Task-oriented (<abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> docs, Gitea setup, etc.)</li>
 <li><strong>Reference</strong> — Deeper or cross-cutting material</li>
 </ul>
 <p>Every major section should have a good <code>index.md</code>.</p>
@@ -1249,7 +1270,7 @@
 <li>"Last updated" is shown automatically when the git plugin is active.</li>
 </ul>
 <h2 id="pre-commit-hooks-optional">Pre-commit Hooks (Optional)<a class="headerlink" href="#pre-commit-hooks-optional" title="Permanent link">¶</a></h2>
-<p>For fast local checks before commit, install <a href="https://pre-commit.com/">pre-commit</a> and enable the repo hooks (buildifier, shfmt, shellcheck — same trusted tools as Bazel lint/<code>//:fix</code>):</p>
+<p>For fast local checks before commit, install <a href="https://pre-commit.com/">pre-commit</a> and enable the repo hooks (buildifier, shfmt, shellcheck — same trusted tools as <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> lint/<code>//:fix</code>):</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>pip<span class="w"> </span>install<span class="w"> </span>--user<span class="w"> </span>pre-commit
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>pre-commit<span class="w"> </span>install
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files<span class="w">   </span><span class="c1"># optional dry run</span>
@@ -1265,9 +1286,14 @@
 <li>[ ] Spell-checked (run codespell or manual review).</li>
 </ul>
 <h2 id="editing-this-site">Editing This Site<a class="headerlink" href="#editing-this-site" title="Permanent link">¶</a></h2>
-<p>Click "Edit this page" on the live site (powered by <code>edit_uri</code> in <code>mkdocs.yml</code>).</p>
+<p>Click <strong>Edit this page</strong> on the live site. Hooks stamp <code>edit_uri</code> from the published alias (<code>main</code> for <strong>latest</strong>, <code>development</code> for <strong>development</strong>), so the link opens the matching long-lived branch. In-page GitHub <code>blob</code>/<code>tree</code> source links are rewritten the same way at build time (see <code>docs/hooks.py</code>).</p>
 <h2 id="questions">Questions?<a class="headerlink" href="#questions" title="Permanent link">¶</a></h2>
-<p>Open an issue or discuss in the relevant PR. Documentation changes are reviewed with the same care as the rest of the Bazel-based project.</p>
+<p>Open an issue or discuss in the relevant PR. Documentation changes are reviewed with the same care as the rest of the <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>-based project.</p>
+<!--
+  Project-wide glossary abbreviations (Material tooltips).
+  Auto-appended to every page via pymdownx.snippets in mkdocs.yml.
+  Keep definitions short (tooltip-sized). Longer prose lives in docs/glossary.md.
+-->
 
 
 
@@ -1344,7 +1370,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "search.suggest", "search.highlight", "content.code.copy", "content.tabs.link", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>

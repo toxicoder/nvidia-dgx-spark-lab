@@ -45,12 +45,14 @@
         
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
-        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Open Sans";--md-code-font:"Roboto Mono"}</style>
       
     
     
       <link rel="stylesheet" href="../assets/stylesheets/command-vars.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
     
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -96,6 +98,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+        
+      </div>
+    
     
       
 
@@ -134,9 +140,19 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_0">
     
-      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -144,9 +160,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to system preference" type="radio" name="__palette" id="__palette_2">
     
-      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -177,6 +193,11 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard="" data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+          </a>
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
@@ -1035,6 +1056,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1383,7 +1432,7 @@
 <h1 id="visual-generative-ai-on-dgx-spark">Visual Generative AI on DGX Spark<a class="headerlink" href="#visual-generative-ai-on-dgx-spark" title="Permanent link">¶</a></h1>
 <p><strong>What's on this page</strong></p>
 <ul>
-<li>Architecture for ComfyUI visual workloads (FLUX.2 + LTX-2.3)</li>
+<li>Architecture for <abbr title="Node-based UI for diffusion / visual generative AI workflows.">ComfyUI</abbr> visual workloads (FLUX.2 + LTX-2.3)</li>
 <li>Spark unified-memory patches and why they matter</li>
 <li>Download, start/stop, and pipeline commands</li>
 <li>Provisional benchmarks and troubleshooting</li>
@@ -1391,7 +1440,7 @@
 <p><strong>What this enables</strong></p>
 <ul>
 <li>Production-grade <strong>manual</strong> lifecycle for image and audio-synced video gen</li>
-<li>Ultra-optimized paths for Blackwell NVFP4 / FP8 on 128 GB unified memory</li>
+<li>Ultra-optimized paths for Blackwell NVFP4 / FP8 on 128 GB <abbr title="CPU and GPU share one physical memory pool (Grace/Blackwell on DGX Spark).">unified memory</abbr></li>
 <li>Combined <strong>Flux → LTX</strong> text-to-image-to-video in a single pod</li>
 </ul>
 <h2 id="hardware-assumptions">Hardware assumptions<a class="headerlink" href="#hardware-assumptions" title="Permanent link">¶</a></h2>
@@ -1417,11 +1466,11 @@
 </tr>
 <tr>
 <td>Model cache</td>
-<td>hostPath <code>/mnt/models</code></td>
+<td><abbr title="Volume that mounts a file or directory from the host node filesystem.">hostPath</abbr> <code>/mnt/models</code></td>
 </tr>
 <tr>
 <td>Comfy state</td>
-<td>PVC <code>comfy-state</code> (install, custom_nodes, outputs)</td>
+<td><abbr title="PersistentVolumeClaim — Kubernetes request for durable storage.">PVC</abbr> <code>comfy-state</code> (install, custom_nodes, outputs)</td>
 </tr>
 </tbody>
 </table>
@@ -1483,7 +1532,7 @@
 <p>All are <strong>Deployments</strong> in <code>ai-inference</code>, label <code>workload: visual</code>, <strong>manual start only</strong>.</p>
 <h2 id="spark-specific-optimizations">Spark-specific optimizations<a class="headerlink" href="#spark-specific-optimizations" title="Permanent link">¶</a></h2>
 <h3 id="unified-memory-free-memory-patch">Unified-memory free-memory patch<a class="headerlink" href="#unified-memory-free-memory-patch" title="Permanent link">¶</a></h3>
-<p>On GB10, <code>cudaMemGetInfo</code> under-reports free “VRAM” when another CUDA process holds allocations. ComfyUI then thrash-offloads models onto the <strong>same</strong> physical RAM.</p>
+<p>On GB10, <code>cudaMemGetInfo</code> under-reports free “VRAM” when another CUDA process holds allocations. <abbr title="Node-based UI for diffusion / visual generative AI workflows.">ComfyUI</abbr> then thrash-offloads models onto the <strong>same</strong> physical RAM.</p>
 <p><strong>Fix (applied by init ConfigMap):</strong> override free-memory query with <code>psutil.virtual_memory().available</code> in <code>comfy/model_management.py</code>.</p>
 <h3 id="env-defaults">Env defaults<a class="headerlink" href="#env-defaults" title="Permanent link">¶</a></h3>
 <table>
@@ -1544,7 +1593,7 @@
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>download-flux<span class="w"> </span>run<span class="w"> </span>--tier<span class="w"> </span>fast
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>download-ltx<span class="w"> </span>run<span class="w"> </span>--tier<span class="w"> </span>balanced
 </span></code></pre></div>
-<p>Weights are snapshotted under <code>MODELS_DIR</code> (default <code>/mnt/models</code>) and best-effort linked into <code>models/comfy/*</code> for ComfyUI.</p>
+<p>Weights are snapshotted under <code>MODELS_DIR</code> (default <code>/mnt/models</code>) and best-effort linked into <code>models/comfy/*</code> for <abbr title="Node-based UI for diffusion / visual generative AI workflows.">ComfyUI</abbr>.</p>
 <p>Accept model licenses on Hugging Face (BFL / LTX community licenses) and set <code>HF_TOKEN</code> when required.</p>
 <h2 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">¶</a></h2>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Base runtime</span>
@@ -1573,8 +1622,8 @@
 <ol>
 <li>Download flux <strong>fast</strong> + ltx <strong>balanced</strong></li>
 <li><code>start-flux-to-ltx</code> (exclusive GPU, 90Gi request)</li>
-<li>In ComfyUI: run Flux T2I then LTX I2V + audio (workflow note auto-mounted under user workflows)</li>
-<li>Prefer keeping both model sets loaded; avoid full unload between stages on unified memory</li>
+<li>In <abbr title="Node-based UI for diffusion / visual generative AI workflows.">ComfyUI</abbr>: run Flux T2I then LTX I2V + audio (workflow note auto-mounted under user workflows)</li>
+<li>Prefer keeping both model sets loaded; avoid full unload between stages on <abbr title="CPU and GPU share one physical memory pool (Grace/Blackwell on DGX Spark).">unified memory</abbr></li>
 </ol>
 <h2 id="benchmarks-provisional">Benchmarks (provisional)<a class="headerlink" href="#benchmarks-provisional" title="Permanent link">¶</a></h2>
 <p>Figures are <strong>indicative</strong> until measured on your Spark image pin. Method: warm pod, single 1024² image or short clip, no concurrent LLM.</p>
@@ -1621,8 +1670,8 @@
 <h2 id="safety">Safety<a class="headerlink" href="#safety" title="Permanent link">¶</a></h2>
 <ul>
 <li><strong>No auto-start</strong> on reboot</li>
-<li>Explicit resources + Resource Guard <code>enforce_capacity</code></li>
-<li><strong>One visual Deployment at a time</strong> (<code>guard_active_visual</code>)</li>
+<li>Explicit resources + <abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> <code>enforce_capacity</code></li>
+<li><strong>One visual <abbr title="Kubernetes workload that keeps a desired replica set running continuously.">Deployment</abbr> at a time</strong> (<code>guard_active_visual</code>)</li>
 <li>Heavy confirmation for all visual starts</li>
 <li>Conflicts with large LLM Jobs on the same GPU — stop LLMs first</li>
 <li>Always <code>stop-visual</code> before node reboot (<a href="../reboot-safety/">reboot-safety</a>)</li>
@@ -1644,7 +1693,7 @@
 </tr>
 <tr>
 <td>Pending pod</td>
-<td>Capacity / headroom</td>
+<td>Capacity / <abbr title="Reserved free capacity Resource Guard keeps free so SSH and control plane stay responsive.">headroom</abbr></td>
 <td><code>manage.sh resources check --action model:flux-fast</code></td>
 </tr>
 <tr>
@@ -1664,7 +1713,7 @@
 </tr>
 <tr>
 <td>Cold start forever</td>
-<td>First PVC pip/git</td>
+<td>First <abbr title="PersistentVolumeClaim — Kubernetes request for durable storage.">PVC</abbr> pip/git</td>
 <td>Wait; check init container logs</td>
 </tr>
 </tbody>
@@ -1673,9 +1722,14 @@
 <ul>
 <li>Workload READMEs under <code>k8s/workloads/comfy-base/</code> and <code>k8s/workloads/comfy-visual/</code></li>
 <li><a href="../models-catalog/">Models catalog</a></li>
-<li><a href="../resource-guard/">Resource Guard</a></li>
+<li><a href="../resource-guard/"><abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr></a></li>
 <li><a href="../qwen36-dual-stack/">Qwen3.6 dual stack</a> (LLM counterpart patterns)</li>
 </ul>
+<!--
+  Project-wide glossary abbreviations (Material tooltips).
+  Auto-appended to every page via pymdownx.snippets in mkdocs.yml.
+  Keep definitions short (tooltip-sized). Longer prose lives in docs/glossary.md.
+-->
 
 
 
@@ -1752,7 +1806,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "search.suggest", "search.highlight", "content.code.copy", "content.tabs.link", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>

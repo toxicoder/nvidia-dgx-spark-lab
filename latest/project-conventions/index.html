@@ -45,12 +45,14 @@
         
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
-        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Open Sans";--md-code-font:"Roboto Mono"}</style>
       
     
     
       <link rel="stylesheet" href="../assets/stylesheets/command-vars.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
     
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -96,6 +98,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+        
+      </div>
+    
     
       
 
@@ -134,9 +140,19 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_0">
     
-      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -144,9 +160,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to system preference" type="radio" name="__palette" id="__palette_2">
     
-      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -177,6 +193,11 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard="" data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+          </a>
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
@@ -1512,6 +1533,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#efficiency-local-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Efficiency (local + CI)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#bats-hermetic-strategy" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1555,6 +1587,17 @@
     <span class="md-ellipsis">
       
         PR checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#branching-commits-and-promotion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branching, commits, and promotion
       
     </span>
   </a>
@@ -2694,6 +2737,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#efficiency-local-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Efficiency (local + CI)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#bats-hermetic-strategy" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2737,6 +2791,17 @@
     <span class="md-ellipsis">
       
         PR checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#branching-commits-and-promotion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branching, commits, and promotion
       
     </span>
   </a>
@@ -2904,7 +2969,7 @@
 <ul>
 <li>Core principles and sources of truth for the lab</li>
 <li>Cross-stack naming, formatting, and linting rules</li>
-<li>Patterns for shell scripts, Kubernetes, Ansible, config, and the dashboard</li>
+<li>Patterns for shell scripts, Kubernetes, <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr>, config, and the dashboard</li>
 <li>Documentation, testing, change discipline, and enforced safety invariants</li>
 <li>Quick-reference checklists for common tasks</li>
 </ul>
@@ -2919,8 +2984,8 @@
 <li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/dashboard/AGENTS.md">dashboard/AGENTS.md</a> — Next.js dashboard details</li>
 <li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/scripts/README.md">scripts/README.md</a> — <code>manage.sh</code> and utility scripts</li>
 <li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/tests/README.md">tests/README.md</a> — test targets and mocks</li>
-<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md">CONTRIBUTING.md (repo root)</a> — short contribution hub</li>
-<li><a href="../CONTRIBUTING/">CONTRIBUTING.md</a> — MkDocs prose and formatting rules</li>
+<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md">CONTRIBUTING.md (repo root)</a> — contribution hub and full branching / PR / promotion model</li>
+<li><a href="../CONTRIBUTING/">CONTRIBUTING.md</a> — <abbr title="Static site generator used for this documentation.">MkDocs</abbr> prose and formatting rules</li>
 </ul>
 <p>AI coding agents should also read <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md">AGENTS.md</a> for workflow-specific guidance.</p>
 <hr>
@@ -2936,7 +3001,7 @@
 <tbody>
 <tr>
 <td><strong>Stability first</strong></td>
-<td>SSH, K3s, and the dashboard must stay responsive under heavy GPU load.</td>
+<td>SSH, <abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr>, and the dashboard must stay responsive under heavy GPU load.</td>
 </tr>
 <tr>
 <td><strong>Explicit resources</strong></td>
@@ -2951,7 +3016,7 @@
 <td>Production inference Jobs use <code>restartPolicy: OnFailure</code> (or <code>Never</code>) with a low <code>backoffLimit</code>.</td>
 </tr>
 <tr>
-<td><strong>High-speed NCCL</strong></td>
+<td><strong>High-speed <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr></strong></td>
 <td>Multi-node workloads set <code>NCCL_SOCKET_IFNAME</code> and related vars for dual 400G links.</td>
 </tr>
 <tr>
@@ -2971,8 +3036,8 @@
 <td>Command reference and API docs are generated from structured source comments.</td>
 </tr>
 <tr>
-<td><strong>Bazel-first</strong></td>
-<td>Builds, tests, lint, docs, and launchers go through Bazel (<code>bazelisk</code>).</td>
+<td><strong><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>-first</strong></td>
+<td>Builds, tests, lint, docs, and launchers go through <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> (<code>bazelisk</code>).</td>
 </tr>
 </tbody>
 </table>
@@ -3006,11 +3071,11 @@
 <tr>
 <td>Network</td>
 <td>ConnectX-7, dual ~400G</td>
-<td>NCCL via <code>enp1s0f0np0,enp1s0f1np1</code></td>
+<td><abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> via <code>enp1s0f0np0,enp1s0f1np1</code></td>
 </tr>
 </tbody>
 </table>
-<p>Kubelet reservations (Ansible <code>k3s_kubelet_reserved_args</code>): <code>system-reserved=cpu=4,memory=64Gi</code> + <code>kube-reserved=cpu=2,memory=8Gi</code> per node. Resource Guard adds <strong>15% / 64Gi minimum headroom per node</strong> (<code>config/resource-policy.yaml</code>).</p>
+<p>Kubelet reservations (<abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> <code>k3s_kubelet_reserved_args</code>): <code>system-reserved=cpu=4,memory=64Gi</code> + <code>kube-reserved=cpu=2,memory=8Gi</code> per node. <abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> adds <strong>15% / 64Gi minimum <abbr title="Reserved free capacity Resource Guard keeps free so SSH and control plane stay responsive.">headroom</abbr> per node</strong> (<code>config/resource-policy.yaml</code>).</p>
 <p><strong>Manifest vs hardware:</strong> Some manifests and policy entries model aggregate multi-node GPU counts for larger clusters. On a <strong>2× Spark</strong> lab, only <strong>2 GPUs</strong> are physically allocatable — mocks, capacity checks, and dashboard fixtures should use realistic Spark numbers.</p>
 <hr>
 <h2 id="2-sources-of-truth">2. Sources of truth<a class="headerlink" href="#2-sources-of-truth" title="Permanent link">¶</a></h2>
@@ -3037,7 +3102,7 @@
 <tbody>
 <tr>
 <td><code>k8s/workloads/*/*.yaml</code></td>
-<td>Deployed CPU/GPU/memory, restart policy, NCCL env</td>
+<td>Deployed CPU/GPU/memory, restart policy, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> env</td>
 <td>Auditable; preferred for inference</td>
 </tr>
 <tr>
@@ -3052,7 +3117,7 @@
 </tr>
 <tr>
 <td><code>ansible/inventory/group_vars/all.yml</code></td>
-<td>Bootstrap defaults, chart versions, NCCL reference</td>
+<td>Bootstrap defaults, chart versions, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> reference</td>
 <td><strong>Reference only</strong> — not deployed resource limits</td>
 </tr>
 <tr>
@@ -3136,7 +3201,7 @@
 <td><code>ContainerIdSchema</code></td>
 </tr>
 <tr>
-<td>Ansible playbooks</td>
+<td><abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> playbooks</td>
 <td><code>playbooks/&lt;verb&gt;-&lt;noun&gt;.yml</code></td>
 <td><code>bootstrap-cluster.yml</code></td>
 </tr>
@@ -3189,7 +3254,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="ansible-inventory">Ansible inventory<a class="headerlink" href="#ansible-inventory" title="Permanent link">¶</a></h3>
+<h3 id="ansible-inventory"><abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> inventory<a class="headerlink" href="#ansible-inventory" title="Permanent link">¶</a></h3>
 <ul>
 <li>Hosts: <code>spark0</code>, <code>spark1</code>, …</li>
 <li>Groups: <code>k3s_server</code>, <code>k3s_agent</code>, <code>k3s_cluster</code></li>
@@ -3200,8 +3265,8 @@
 <li>Quotas: <code>lab-&lt;tier&gt;-quota</code> (e.g. <code>lab-inference-quota</code>)</li>
 </ul>
 <hr>
-<h2 id="4-bazel-first-workflow">4. Bazel-first workflow<a class="headerlink" href="#4-bazel-first-workflow" title="Permanent link">¶</a></h2>
-<p>Bazel is the <strong>only official</strong> build system. The <code>Makefile</code> is a thin compatibility shim.</p>
+<h2 id="4-bazel-first-workflow">4. <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>-first workflow<a class="headerlink" href="#4-bazel-first-workflow" title="Permanent link">¶</a></h2>
+<p><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> is the <strong>only official</strong> build system. The <code>Makefile</code> is a thin compatibility shim.</p>
 <h3 id="daily-commands">Daily commands<a class="headerlink" href="#daily-commands" title="Permanent link">¶</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:validate<span class="w">                    </span><span class="c1"># git-aware: core + docs/dashboard slices</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:validate<span class="w"> </span>--<span class="w"> </span>--all<span class="w">           </span><span class="c1"># full suite before merge</span>
@@ -3296,7 +3361,7 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pip<span class="w"> </span>install<span class="w"> </span>--user<span class="w"> </span>pre-commit
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>pre-commit<span class="w"> </span>install
 </span></code></pre></div>
-<p>Hooks mirror Bazel lint tools: buildifier check, shfmt, shellcheck, prettier YAML, yamllint. See <code>.pre-commit-config.yaml</code>.</p>
+<p>Hooks mirror <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> lint tools: buildifier check, shfmt, shellcheck, prettier YAML, yamllint. See <code>.pre-commit-config.yaml</code>.</p>
 <h3 id="typescript-dashboard">TypeScript (dashboard)<a class="headerlink" href="#typescript-dashboard" title="Permanent link">¶</a></h3>
 <ul>
 <li><code>strict: true</code>, <code>noImplicitAny</code>, <code>strictNullChecks</code></li>
@@ -3305,7 +3370,7 @@
 </ul>
 <hr>
 <h2 id="6-shell-scripts">6. Shell scripts<a class="headerlink" href="#6-shell-scripts" title="Permanent link">¶</a></h2>
-<p>This section is the lab’s <strong>adapted professional Bash style guide</strong>. It synthesizes Google’s Shell Style Guide, ShellCheck, shfmt, and bats-core practice, tailored to Bazel, kcov, and the generated shell reference.</p>
+<p>This section is the lab’s <strong>adapted professional Bash style guide</strong>. It synthesizes Google’s Shell Style Guide, ShellCheck, shfmt, and bats-core practice, tailored to <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>, kcov, and the generated shell reference.</p>
 <h3 id="philosophy">Philosophy<a class="headerlink" href="#philosophy" title="Permanent link">¶</a></h3>
 <table>
 <thead>
@@ -3592,15 +3657,15 @@
 <li>Source <code>lib/common.sh</code> (or redefine log/warn/err to stderr with a utility prefix)</li>
 <li>Structured comments (<code># ##</code> / <code># @command</code> / <code># @function</code>)</li>
 <li>Thin <code>main</code> + <strong>BASH_SOURCE source guard</strong> (enforced by <code>//tests:doc_coverage</code>)</li>
-<li><strong>Never touch inference workloads</strong> (except dedicated stack utilities that go through Resource Guard)</li>
-<li>Discoverable via Bazel <code>//scripts:run-utility</code>, dashboard Utilities panel, and docs generator</li>
+<li><strong>Never touch inference workloads</strong> (except dedicated stack utilities that go through <abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr>)</li>
+<li>Discoverable via <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> <code>//scripts:run-utility</code>, dashboard Utilities panel, and docs generator</li>
 </ul>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>spark-clock<span class="w"> </span>status
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>spark-clock<span class="w"> </span>run
 </span></code></pre></div>
 <h3 id="unit-testing-bats">Unit testing (BATS)<a class="headerlink" href="#unit-testing-bats" title="Permanent link">¶</a></h3>
 <ul>
-<li>Framework: <strong>bats-core</strong> (vendored hermetically under Bazel).</li>
+<li>Framework: <strong>bats-core</strong> (vendored hermetically under <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>).</li>
 <li>Tests live in <code>tests/bats/</code>; shared setup in <code>tests/bats/test_helper.bash</code>.</li>
 <li>Mock external tools via <code>PATH</code> + temp binaries; use <code>LAB_MOCK_*</code> for capacity math.</li>
 <li>Prefer one logical fact per <code>@test</code>; cover success and failure paths.</li>
@@ -3657,7 +3722,7 @@
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:fix<span class="w">    </span><span class="c1"># includes shfmt -w</span>
 </span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:validate<span class="w">  </span><span class="c1"># core includes //:lint (manual tags)</span>
 </span></code></pre></div>
-<h3 id="resource-guard-integration">Resource Guard integration<a class="headerlink" href="#resource-guard-integration" title="Permanent link">¶</a></h3>
+<h3 id="resource-guard-integration"><abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> integration<a class="headerlink" href="#resource-guard-integration" title="Permanent link">¶</a></h3>
 <ul>
 <li><code>check_capacity</code>, <code>enforce_capacity</code>, <code>require_heavy_confirm</code> in <code>lib/resources.sh</code></li>
 <li>Policy from <code>config/resource-policy.json</code></li>
@@ -3759,23 +3824,23 @@
 </thead>
 <tbody>
 <tr>
-<td>lab-dashboard, Coder, Kasm, Grafana, Traefik, Authelia</td>
+<td>lab-dashboard, Coder, Kasm, Grafana, <abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr>, <abbr title="Open-source authentication and authorization server used for lab SSO.">Authelia</abbr></td>
 <td>Helm (values in <code>ansible/files/</code>)</td>
 <td>Operational tooling; versioned upgrades</td>
 </tr>
 <tr>
 <td>kimi, nemotron, ray, qwen, glm</td>
-<td>Raw YAML + kustomize</td>
+<td>Raw YAML + <abbr title="Kubernetes native configuration management (overlays, patches, generators).">kustomize</abbr></td>
 <td>Auditable resources, restart policy, backoff</td>
 </tr>
 <tr>
 <td>comfy-base, flux-<em>, ltx-</em>, flux-to-ltx</td>
-<td>Raw YAML + kustomize overlays</td>
-<td>Long-lived Deployments; shared PVC + hostPath models</td>
+<td>Raw YAML + <abbr title="Kubernetes native configuration management (overlays, patches, generators).">kustomize</abbr> overlays</td>
+<td>Long-lived Deployments; shared <abbr title="PersistentVolumeClaim — Kubernetes request for durable storage.">PVC</abbr> + <abbr title="Volume that mounts a file or directory from the host node filesystem.">hostPath</abbr> models</td>
 </tr>
 </tbody>
 </table>
-<h3 id="visual-comfyui-workloads">Visual ComfyUI workloads<a class="headerlink" href="#visual-comfyui-workloads" title="Permanent link">¶</a></h3>
+<h3 id="visual-comfyui-workloads">Visual <abbr title="Node-based UI for diffusion / visual generative AI workflows.">ComfyUI</abbr> workloads<a class="headerlink" href="#visual-comfyui-workloads" title="Permanent link">¶</a></h3>
 <table>
 <thead>
 <tr>
@@ -3810,7 +3875,7 @@
 </tr>
 <tr>
 <td>Exclusivity</td>
-<td>One visual Deployment at a time; <code>stop-visual</code> clears all</td>
+<td>One visual <abbr title="Kubernetes workload that keeps a desired replica set running continuously.">Deployment</abbr> at a time; <code>stop-visual</code> clears all</td>
 </tr>
 <tr>
 <td>Docs</td>
@@ -3845,7 +3910,7 @@
 <td>Real <code>.json</code> keyed as <code>DOC_SOURCES_JSON=path.json</code></td>
 </tr>
 <tr>
-<td>Deployment <code>command: ["/bin/sh","-c"]</code> + multi-line <code>args: \|</code></td>
+<td><abbr title="Kubernetes workload that keeps a desired replica set running continuously.">Deployment</abbr> <code>command: ["/bin/sh","-c"]</code> + multi-line <code>args: \|</code></td>
 <td>Real <code>entrypoint.sh</code> mounted at <code>/scripts</code></td>
 </tr>
 </tbody>
@@ -3889,11 +3954,11 @@
 <td>Human vs machine SoT pair</td>
 </tr>
 <tr>
-<td>Short inference Job <code>sh -c</code> one-liners for <code>$(ENV)</code> expansion</td>
+<td>Short inference <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr> <code>sh -c</code> one-liners for <code>$(ENV)</code> expansion</td>
 <td>Kubernetes does not expand env in plain <code>args</code></td>
 </tr>
 <tr>
-<td>Ansible <code>shell:</code> / cloud-init / Jinja2 templates</td>
+<td><abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> <code>shell:</code> / <abbr title="Early OS bootstrap configuration applied on first boot (network, packages, users).">cloud-init</abbr> / Jinja2 templates</td>
 <td>Platform-native embedding</td>
 </tr>
 <tr>
@@ -3921,7 +3986,7 @@
 <li>Links to related workloads and docs</li>
 </ul>
 <p>Duplicate the <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/main/k8s/workloads/kimi-test">kimi-test</a> pattern for new workloads; scale resources upward only after validation.</p>
-<h3 id="job-safety-fields-required">Job safety fields (required)<a class="headerlink" href="#job-safety-fields-required" title="Permanent link">¶</a></h3>
+<h3 id="job-safety-fields-required"><abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr> safety fields (required)<a class="headerlink" href="#job-safety-fields-required" title="Permanent link">¶</a></h3>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nt">spec</span><span class="p">:</span>
 </span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="nt">backoffLimit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">          </span><span class="c1"># low for heavy production jobs</span>
 </span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">  </span><span class="nt">template</span><span class="p">:</span>
@@ -3936,7 +4001,7 @@
 </span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="w">              </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">enp1s0f0np0,enp1s0f1np1</span>
 </span></code></pre></div>
 <p>Production <code>kimi</code> also requires <code>securityContext</code>, <code>readinessProbe</code>, and <code>livenessProbe</code>.</p>
-<h3 id="bazel-integration">Bazel integration<a class="headerlink" href="#bazel-integration" title="Permanent link">¶</a></h3>
+<h3 id="bazel-integration"><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> integration<a class="headerlink" href="#bazel-integration" title="Permanent link">¶</a></h3>
 <p>Each workload/overlay has <code>BUILD.bazel</code> with <code>filegroup</code> targets and scoped <code>visibility</code> to <code>//k8s</code>, <code>//tests</code>, <code>//scripts</code>, <code>//lints</code>. <code>tests/kustomize_build.sh</code> smoke-tests overlays.</p>
 <h3 id="secrets">Secrets<a class="headerlink" href="#secrets" title="Permanent link">¶</a></h3>
 <ul>
@@ -3944,7 +4009,7 @@
 <li>Real secrets via dashboard vault or <code>manage.sh secrets</code> at runtime</li>
 </ul>
 <hr>
-<h2 id="8-ansible">8. Ansible<a class="headerlink" href="#8-ansible" title="Permanent link">¶</a></h2>
+<h2 id="8-ansible">8. <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr><a class="headerlink" href="#8-ansible" title="Permanent link">¶</a></h2>
 <h3 id="structure">Structure<a class="headerlink" href="#structure" title="Permanent link">¶</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>ansible/
 </span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>├── playbooks/           # Orchestration entry points
@@ -3983,7 +4048,7 @@
 </tr>
 <tr>
 <td><code>gpu_operator</code></td>
-<td>NVIDIA GPU Operator Helm</td>
+<td>NVIDIA <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> Helm</td>
 </tr>
 <tr>
 <td><code>highspeed_network</code></td>
@@ -4034,7 +4099,7 @@
 <tr>
 <td><code>sso-policy.yaml</code></td>
 <td>—</td>
-<td><code>lib/sso.sh</code>, Ansible SSO role (routes; domains in lab-domains)</td>
+<td><code>lib/sso.sh</code>, <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> SSO role (routes; domains in lab-domains)</td>
 </tr>
 </tbody>
 </table>
@@ -4167,7 +4232,7 @@
 <td><code>strict: true</code>; explicit return types on exports</td>
 </tr>
 <tr>
-<td><strong>YAML/YML</strong> (K8s, Ansible, Helm, config)</td>
+<td><strong>YAML/YML</strong> (K8s, <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr>, Helm, config)</td>
 <td>Top-of-file <code>#</code> header: Purpose, Source of truth, Regenerate (or <code>n/a</code>), Safety</td>
 <td>N/A</td>
 </tr>
@@ -4207,7 +4272,7 @@
 <tbody>
 <tr>
 <td><code>//tests:doc_coverage</code></td>
-<td><code>@command</code> / <code>@function</code> / YAML headers / no inline ConfigMap language embeds / no multi-line shell in mcp manifests / mkdocs↔Bazel page lists / BUILD package purpose / dashboard JSDoc</td>
+<td><code>@command</code> / <code>@function</code> / YAML headers / no inline ConfigMap language embeds / no multi-line shell in mcp manifests / mkdocs↔<abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> page lists / BUILD package purpose / dashboard JSDoc</td>
 </tr>
 <tr>
 <td><code>//tests:doc_coverage_unit</code></td>
@@ -4227,7 +4292,7 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//docs:docs<span class="w">          </span><span class="c1"># shell reference</span>
 </span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//dashboard:docs<span class="w">     </span><span class="c1"># dashboard API</span>
 </span></code></pre></div>
-<p>Hand-written docs live in <code>docs/</code> and are built with MkDocs Material. <strong>Full prose rules</strong> are in <a href="../CONTRIBUTING/">CONTRIBUTING.md</a>. Summary:</p>
+<p>Hand-written docs live in <code>docs/</code> and are built with <abbr title="Static site generator used for this documentation.">MkDocs</abbr> <abbr title="Material for MkDocs theme powering search, tabs, and tooltips on this site.">Material</abbr>. <strong>Full prose rules</strong> are in <a href="../CONTRIBUTING/">CONTRIBUTING.md</a>. Summary:</p>
 <h3 id="page-structure-required">Page structure (required)<a class="headerlink" href="#page-structure-required" title="Permanent link">¶</a></h3>
 <p>Every <code>.md</code> page needs YAML frontmatter (<code>title</code>, <code>description</code>, <code>tags</code>) and two scannable sections after the title:</p>
 <div class="language-markdown highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="gs">**What's on this page**</span>
@@ -4245,7 +4310,7 @@
 <li>Blank line before list items that follow prose ending in <code>:</code></li>
 <li>Mermaid: quote node labels with <code>{{...}}</code>; prefer <code>flowchart TD</code></li>
 <li>Use admonitions (<code>!!! warning</code>, <code>!!! info</code>) and tabs for alternatives</li>
-<li><strong>Links to repo-root files</strong> (outside <code>docs/</code>): use full GitHub URLs — MkDocs <code>--strict</code> rejects <code>../</code> paths to non-doc files</li>
+<li><strong>Links to repo-root files</strong> (outside <code>docs/</code>): use full GitHub URLs — <abbr title="Static site generator used for this documentation.">MkDocs</abbr> <code>--strict</code> rejects <code>../</code> paths to non-doc files</li>
 </ul>
 <h3 id="generated-reference">Generated reference<a class="headerlink" href="#generated-reference" title="Permanent link">¶</a></h3>
 <table>
@@ -4275,7 +4340,7 @@
 <ul>
 <li><strong>Home / Getting Started</strong> — new users</li>
 <li><strong>Concepts &amp; Notes</strong> — safety, resources, architecture</li>
-<li><strong>How-to Guides</strong> — task-oriented (Bazel, Gitea, dev workspaces)</li>
+<li><strong>How-to Guides</strong> — task-oriented (<abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>, Gitea, dev workspaces)</li>
 <li><strong>Reference</strong> — generated refs, contributing, conventions</li>
 </ul>
 <hr>
@@ -4340,7 +4405,7 @@
 <td><code>//lints:k8s</code>, <code>//tests:safety_invariants</code></td>
 </tr>
 <tr>
-<td>Ansible</td>
+<td><abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr></td>
 <td>ansible-lint + syntax</td>
 <td><code>//ansible:validate</code></td>
 </tr>
@@ -4356,6 +4421,35 @@
 </tr>
 </tbody>
 </table>
+<h3 id="efficiency-local-ci">Efficiency (local + CI)<a class="headerlink" href="#efficiency-local-ci" title="Permanent link">¶</a></h3>
+<p>Keep feedback fast without skipping safety:</p>
+<table>
+<thead>
+<tr>
+<th>Prefer first</th>
+<th>Escalate when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Targeted BATS / Vitest / docs unit (<code>//docs:test_command_vars</code>)</td>
+<td>Broad refactor or merge readiness</td>
+</tr>
+<tr>
+<td>Path-aware <code>bazelisk run //:validate</code></td>
+<td>Unsure which paths changed → <code>--all</code></td>
+</tr>
+<tr>
+<td><code>//dashboard:fast-test</code></td>
+<td>Full hermetic Docker + Playwright (<code>//dashboard:hermetic-test</code>)</td>
+</tr>
+<tr>
+<td><code>//docs:test_mkdocs_build</code></td>
+<td>Visual goldens (<code>//docs:test_mkdocs_render</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>CI path filters (<code>.github/workflows/ci.yml</code> / <code>.gitea/workflows/ci.yml</code>) intentionally skip expensive jobs when unrelated paths change. New tests must not force Playwright or hermetic Docker into <code>//:test-fast</code> without a strong reason. AI agents: see <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md">AGENTS.md</a> efficiency + end-of-session reflection sections.</p>
 <h3 id="bats-hermetic-strategy">BATS hermetic strategy<a class="headerlink" href="#bats-hermetic-strategy" title="Permanent link">¶</a></h3>
 <ol>
 <li><code>mktemp -d</code> per test in <code>setup()</code></li>
@@ -4378,7 +4472,7 @@
 <li>Update affected prose: workload READMEs, <code>docs/*.md</code>, root <code>README.md</code> as needed</li>
 <li>Regenerate docs when shell or dashboard API comments changed</li>
 <li>Run <code>bazelisk run //:fix</code> then <code>bazelisk run //:validate</code></li>
-<li><strong>Call out safety impact</strong> for workload, manifest, NCCL, restart policy, or resource changes</li>
+<li><strong>Call out safety impact</strong> for workload, manifest, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr>, restart policy, or resource changes</li>
 </ol>
 <h3 id="pr-checklist">PR checklist<a class="headerlink" href="#pr-checklist" title="Permanent link">¶</a></h3>
 <ul>
@@ -4391,6 +4485,16 @@
 <li>[ ] Safety impact documented in PR description</li>
 </ul>
 <p>Prefer editing the source of truth (comments, manifests, policy YAML) over duplicating prose elsewhere.</p>
+<h3 id="branching-commits-and-promotion">Branching, commits, and promotion<a class="headerlink" href="#branching-commits-and-promotion" title="Permanent link">¶</a></h3>
+<p>Full rules live in the root <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md#branching-commits-prs-and-promotion">CONTRIBUTING.md</a>.</p>
+<p>Key invariants that agents must follow:</p>
+<ul>
+<li>All feature and non-urgent fix work starts from and lands on <code>development</code>.</li>
+<li>Promotion to <code>main</code> is deliberate and requires a PR + full validation.</li>
+<li>Commit messages and PR descriptions are written for other developers (clear, imperative, safety-aware).</li>
+<li>Environments are expressed with Kustomize overlays and config files only — never with long-lived environment branches.</li>
+<li>After any promotion to <code>main</code>, an annotated tag is expected.</li>
+</ul>
 <hr>
 <h2 id="14-non-negotiable-safety-invariants">14. Non-negotiable safety invariants<a class="headerlink" href="#14-non-negotiable-safety-invariants" title="Permanent link">¶</a></h2>
 <p>Enforced by <code>tests/safety_invariants.sh</code> (in <code>//:test-fast</code>) and BATS. <strong>Do not weaken these without explicit review.</strong></p>
@@ -4427,7 +4531,7 @@
 <td><code>securityContext</code>, <code>readinessProbe</code>, <code>livenessProbe</code></td>
 </tr>
 <tr>
-<td>Resource Guard manifests</td>
+<td><abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> manifests</td>
 <td><code>lab-management</code> PriorityClass, <code>lab-inference-quota</code></td>
 </tr>
 <tr>
@@ -4435,7 +4539,7 @@
 <td>Every registered model exists in <code>resource-policy.json</code> <code>models</code></td>
 </tr>
 <tr>
-<td>Open WebUI / Hermes</td>
+<td><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> / <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr></td>
 <td>Policy files, ansible values, stack registration</td>
 </tr>
 </tbody>
@@ -4444,14 +4548,14 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//tests:safety_invariants
 </span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//tests:bats_manage_test
 </span></code></pre></div>
-<p>Management script confirmations and Resource Guard gates must not be bypassed in production code paths.</p>
+<p>Management script confirmations and <abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> gates must not be bypassed in production code paths.</p>
 <hr>
 <h2 id="quick-reference-checklists">Quick-reference checklists<a class="headerlink" href="#quick-reference-checklists" title="Permanent link">¶</a></h2>
 <h3 id="adding-a-new-inference-workload">Adding a new inference workload<a class="headerlink" href="#adding-a-new-inference-workload" title="Permanent link">¶</a></h3>
 <ol>
 <li>Copy <code>k8s/workloads/kimi-test/</code> structure (job, service, kustomization, README, BUILD.bazel)</li>
 <li>Set conservative <code>resources.requests</code>/<code>limits</code>, <code>restartPolicy: OnFailure</code>, low <code>backoffLimit</code></li>
-<li>Add NCCL env vars for multi-node workloads</li>
+<li>Add <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> env vars for multi-node workloads</li>
 <li>Register in <code>config/resource-policy.yaml</code> + <code>.json</code></li>
 <li>Add <code>get_model_job</code> mapping and <code>start-&lt;name&gt;</code> in <code>lib/models.sh</code> / <code>manage.sh</code></li>
 <li>Add model to <code>tests/safety_invariants.sh</code> registry</li>
@@ -4490,14 +4594,19 @@
 <hr>
 <h2 id="related-links">Related links<a class="headerlink" href="#related-links" title="Permanent link">¶</a></h2>
 <ul>
-<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md">CONTRIBUTING.md (repo root)</a> — short contribution hub</li>
-<li><a href="../CONTRIBUTING/">CONTRIBUTING.md (docs)</a> — MkDocs prose rules</li>
+<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md">CONTRIBUTING.md (repo root)</a> — contribution hub and full branching / PR / promotion model</li>
+<li><a href="../CONTRIBUTING/">CONTRIBUTING.md (docs)</a> — <abbr title="Static site generator used for this documentation.">MkDocs</abbr> prose rules</li>
 <li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md">AGENTS.md</a> — AI agent workflow</li>
-<li><a href="../BUILDING_WITH_BAZEL/">BUILDING_WITH_BAZEL.md</a> — Bazel targets and CI</li>
+<li><a href="../BUILDING_WITH_BAZEL/">BUILDING_WITH_BAZEL.md</a> — <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> targets and CI</li>
 <li><a href="../resource-guard/">resource-guard.md</a> — capacity policy deep dive</li>
 <li><a href="../reboot-safety/">reboot-safety.md</a> — stop-before-reboot procedures</li>
 <li><a href="../generated/shell/reference/">generated shell reference</a> — auto-generated commands</li>
 </ul>
+<!--
+  Project-wide glossary abbreviations (Material tooltips).
+  Auto-appended to every page via pymdownx.snippets in mkdocs.yml.
+  Keep definitions short (tooltip-sized). Longer prose lives in docs/glossary.md.
+-->
 
 
 
@@ -4574,7 +4683,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "search.suggest", "search.highlight", "content.code.copy", "content.tabs.link", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>

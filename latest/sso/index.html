@@ -45,12 +45,14 @@
         
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
-        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Open Sans";--md-code-font:"Roboto Mono"}</style>
       
     
     
       <link rel="stylesheet" href="../assets/stylesheets/command-vars.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
     
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -96,6 +98,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+        
+      </div>
+    
     
       
 
@@ -134,9 +140,19 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_0">
     
-      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -144,9 +160,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to system preference" type="radio" name="__palette" id="__palette_2">
     
-      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -177,6 +193,11 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard="" data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+          </a>
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
@@ -996,6 +1017,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1302,26 +1351,26 @@
   
 
 
-<h1 id="sso-with-traefik-and-authelia">SSO with Traefik and Authelia<a class="headerlink" href="#sso-with-traefik-and-authelia" title="Permanent link">¶</a></h1>
+<h1 id="sso-with-traefik-and-authelia">SSO with <abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr> and <abbr title="Open-source authentication and authorization server used for lab SSO.">Authelia</abbr><a class="headerlink" href="#sso-with-traefik-and-authelia" title="Permanent link">¶</a></h1>
 <p><strong>What's on this page</strong></p>
 <ul>
-<li>Traefik, Authelia, and oauth2-proxy architecture for lab HTTPS entry</li>
+<li><abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr>, <abbr title="Open-source authentication and authorization server used for lab SSO.">Authelia</abbr>, and oauth2-proxy architecture for lab HTTPS entry</li>
 <li>Bootstrap commands, domain URLs, and policy configuration</li>
 <li>Integration with monitoring and dashboard routes</li>
 </ul>
 <p><strong>What this enables</strong></p>
 <ul>
 <li>Single sign-on across lab web UIs without per-app credentials</li>
-<li>Consistent TLS termination and forward-auth middleware on Traefik</li>
+<li>Consistent TLS termination and forward-auth middleware on <abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr></li>
 </ul>
-<p>The lab uses <strong>production-grade Traefik v3</strong> (official Helm chart) as the unified HTTPS entry point, with <strong>Authelia</strong> for user management and forward-auth SSO. K3s bundled Traefik stays disabled; the standalone Helm install supports CRD middleware chains, TLS, and metrics.</p>
+<p>The lab uses <strong>production-grade <abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr> v3</strong> (official Helm chart) as the unified HTTPS entry point, with <strong><abbr title="Open-source authentication and authorization server used for lab SSO.">Authelia</abbr></strong> for user management and forward-auth SSO. <abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr> bundled <abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr> stays disabled; the standalone Helm install supports CRD middleware chains, TLS, and metrics.</p>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong>Traefik</strong> (<code>traefik</code> namespace) — reverse proxy on NodePorts <code>:32080</code> (HTTP redirect) and <code>:32443</code> (HTTPS)</li>
+<li><strong><abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr></strong> (<code>traefik</code> namespace) — reverse proxy on NodePorts <code>:32080</code> (HTTP redirect) and <code>:32443</code> (HTTPS)</li>
 <li><strong>cert-manager</strong> — self-signed CA for <code>*.lab.local</code> (swap to ACME for production)</li>
-<li><strong>Authelia</strong> (<code>auth</code> namespace) — login portal at <code>https://auth.lab.local</code>, session cookies for SSO</li>
+<li><strong><abbr title="Open-source authentication and authorization server used for lab SSO.">Authelia</abbr></strong> (<code>auth</code> namespace) — login portal at <code>https://auth.lab.local</code>, session cookies for SSO</li>
 <li><strong>oauth2-proxy</strong> — OIDC bridge for token-forwarding integrations</li>
-<li><strong>MCP agent toolkit</strong> — <strong>not</strong> behind SSO; API keys + NetworkPolicies only</li>
+<li><strong><abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> agent toolkit</strong> — <strong>not</strong> behind SSO; API keys + NetworkPolicies only</li>
 </ul>
 <h2 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link">¶</a></h2>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>./scripts/manage.sh<span class="w"> </span>sso<span class="w"> </span>ensure-secrets
@@ -1329,7 +1378,7 @@
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>./scripts/manage.sh<span class="w"> </span>start-monitoring<span class="w">   </span><span class="c1"># also starts SSO when SSO_ENABLED=1 (default)</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>./scripts/manage.sh<span class="w"> </span>sso<span class="w"> </span>urls
 </span></code></pre></div>
-<p>Or via Ansible:</p>
+<p>Or via <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr>:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ansible-playbook<span class="w"> </span>-i<span class="w"> </span>inventory/hosts.ini<span class="w"> </span>playbooks/install-sso.yml
 </span></code></pre></div>
 <h2 id="dns-hosts-file">DNS / hosts file<a class="headerlink" href="#dns-hosts-file" title="Permanent link">¶</a></h2>
@@ -1348,7 +1397,7 @@
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1"># macOS: sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain lab-ca.crt</span>
 </span></code></pre></div>
 <h2 id="user-management">User management<a class="headerlink" href="#user-management" title="Permanent link">¶</a></h2>
-<p>Default admin user is created by <code>sso ensure-secrets</code>. Change password via Authelia UI at <code>https://auth.lab.local</code> or edit the <code>authelia-secrets</code> Secret <code>users_database.yml</code> key.</p>
+<p>Default admin user is created by <code>sso ensure-secrets</code>. Change password via <abbr title="Open-source authentication and authorization server used for lab SSO.">Authelia</abbr> UI at <code>https://auth.lab.local</code> or edit the <code>authelia-secrets</code> Secret <code>users_database.yml</code> key.</p>
 <p>Access groups:</p>
 <ul>
 <li><code>admins</code> — full access</li>
@@ -1384,19 +1433,19 @@
 <td><code>https://auth.lab.local:32443</code></td>
 </tr>
 <tr>
-<td>Traefik UI</td>
+<td><abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr> UI</td>
 <td><code>https://traefik.lab.local:32443</code></td>
 </tr>
 </tbody>
 </table>
 <p>Legacy direct NodePorts (<code>:32082</code>, etc.) remain available when <code>SSO_BYPASS_NODEPORTS=1</code> (default) but bypass SSO.</p>
-<h2 id="mcp-exclusion">MCP exclusion<a class="headerlink" href="#mcp-exclusion" title="Permanent link">¶</a></h2>
-<p>MCP servers on ports <code>32100</code>–<code>32106</code> are machine-to-machine endpoints. They use <code>mcp-secrets</code> API keys and are not routed through Traefik. See <a href="../mcp-agent-toolkit/">MCP Agent Toolkit</a>.</p>
+<h2 id="mcp-exclusion"><abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> exclusion<a class="headerlink" href="#mcp-exclusion" title="Permanent link">¶</a></h2>
+<p><abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> servers on ports <code>32100</code>–<code>32106</code> are machine-to-machine endpoints. They use <code>mcp-secrets</code> API keys and are not routed through <abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr>. See <a href="../mcp-agent-toolkit/"><abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> Agent Toolkit</a>.</p>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">¶</a></h2>
 <ul>
 <li>Domains: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/config/lab-domains.yaml"><code>config/lab-domains.yaml</code></a> — local/public hostnames, ACME, ports</li>
 <li>Policy: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/config/sso-policy.yaml"><code>config/sso-policy.yaml</code></a> — routes and SSO component versions</li>
-<li>Traefik values: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/ansible/files/traefik-values.yaml"><code>ansible/files/traefik-values.yaml</code></a></li>
+<li><abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr> values: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/ansible/files/traefik-values.yaml"><code>ansible/files/traefik-values.yaml</code></a></li>
 <li>Middlewares: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/main/k8s/traefik/middlewares"><code>k8s/traefik/middlewares/</code></a></li>
 <li>Routes: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/k8s/auth/generated/routes.yaml"><code>k8s/auth/generated/routes.yaml</code></a> (rendered from lab-domains + sso-policy)</li>
 </ul>
@@ -1405,6 +1454,11 @@
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>./scripts/manage.sh<span class="w"> </span>start-monitoring<span class="w">   </span><span class="c1"># direct NodePorts only</span>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>./scripts/manage.sh<span class="w"> </span>stop-sso
 </span></code></pre></div>
+<!--
+  Project-wide glossary abbreviations (Material tooltips).
+  Auto-appended to every page via pymdownx.snippets in mkdocs.yml.
+  Keep definitions short (tooltip-sized). Longer prose lives in docs/glossary.md.
+-->
 
 
 
@@ -1481,7 +1535,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "search.suggest", "search.highlight", "content.code.copy", "content.tabs.link", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>

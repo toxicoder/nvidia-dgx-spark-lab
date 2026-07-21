@@ -45,12 +45,14 @@
         
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
-        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Open Sans";--md-code-font:"Roboto Mono"}</style>
       
     
     
       <link rel="stylesheet" href="../assets/stylesheets/command-vars.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
     
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -96,6 +98,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+        
+      </div>
+    
     
       
 
@@ -134,9 +140,19 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_0">
     
-      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -144,9 +160,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to system preference" type="radio" name="__palette" id="__palette_2">
     
-      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -177,6 +193,11 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard="" data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+          </a>
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
@@ -1018,6 +1039,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1346,31 +1395,31 @@
   
 
 
-<h1 id="hermes-agent-docker">Hermes Agent (Docker)<a class="headerlink" href="#hermes-agent-docker" title="Permanent link">¶</a></h1>
+<h1 id="hermes-agent-docker"><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> Agent (Docker)<a class="headerlink" href="#hermes-agent-docker" title="Permanent link">¶</a></h1>
 <p><strong>What's on this page</strong></p>
 <ul>
-<li>Host-network Docker architecture for Hermes on the Spark node</li>
-<li>Gateway API, dashboard, and MCP toolkit integration</li>
+<li>Host-network Docker architecture for <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> on the Spark node</li>
+<li>Gateway API, dashboard, and <abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> toolkit integration</li>
 <li>Deploy, policy, and workspace dev profile workflows</li>
 </ul>
 <p><strong>What this enables</strong></p>
 <ul>
-<li>Persistent agent gateway on the host with lab inference and MCP reachability</li>
-<li>Open WebUI and workspace dev flows through a single OpenAI-compatible API</li>
+<li>Persistent agent gateway on the host with lab inference and <abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> reachability</li>
+<li><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> and workspace dev flows through a single OpenAI-compatible API</li>
 </ul>
-<p>Run <a href="https://hermes-agent.nousresearch.com/docs/user-guide/docker">Hermes Agent</a> on the Spark K3s node as a persistent gateway, reusing lab inference and MCP services.</p>
+<p>Run <a href="https://hermes-agent.nousresearch.com/docs/user-guide/docker"><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> Agent</a> on the Spark <abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr> node as a persistent gateway, reusing lab inference and <abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> services.</p>
 <div class="admonition note">
 <p class="admonition-title">Contributor laptop vs Spark host</p>
-<p>The multi-arch <strong>devcontainer</strong> can install the Hermes <strong>CLI</strong> (<code>hermes</code>) for
+<p>The multi-arch <strong>devcontainer</strong> can install the <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> <strong>CLI</strong> (<code>hermes</code>) for
 local agent-assisted coding — see <a href="../dev-environment/">dev-environment.md</a>.
 That is separate from this page’s <strong>host Docker gateway</strong> on DGX Spark nodes.
 Never commit API keys or <code>hermes/data/.env</code> from either path.</p>
 </div>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">¶</a></h2>
-<p>Hermes runs in Docker with <strong>host networking</strong> so it can reach:</p>
+<p><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> runs in Docker with <strong>host networking</strong> so it can reach:</p>
 <ul>
 <li><strong>Inference</strong> — <code>kubectl port-forward</code> to <code>127.0.0.1:8000</code> (managed by <code>hermes-stack</code>)</li>
-<li><strong>MCP toolkit</strong> — NodePorts <code>32100–32106</code> on localhost</li>
+<li><strong><abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> toolkit</strong> — NodePorts <code>32100–32106</code> on localhost</li>
 </ul>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Spark host
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  ├─ kubectl port-forward → nemotron-3-nano-omni-30b:8000
@@ -1410,12 +1459,12 @@ Never commit API keys or <code>hermes/data/.env</code> from either path.</p>
 </thead>
 <tbody>
 <tr>
-<td><strong>Open WebUI (preferred chat)</strong></td>
+<td><strong><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> (preferred chat)</strong></td>
 <td><code>https://chat.lab.local:32443</code></td>
-<td>SSO via Traefik (see <a href="../open-webui/">open-webui.md</a>)</td>
+<td>SSO via <abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr> (see <a href="../open-webui/">open-webui.md</a>)</td>
 </tr>
 <tr>
-<td>Hermes dashboard</td>
+<td><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> dashboard</td>
 <td><code>http://&lt;node-ip&gt;:9119</code></td>
 <td>Basic auth (<code>hermes/data/.env</code>)</td>
 </tr>
@@ -1431,14 +1480,14 @@ Never commit API keys or <code>hermes/data/.env</code> from either path.</p>
 </tr>
 </tbody>
 </table>
-<p>Deploy Open WebUI after Hermes is running:</p>
+<p>Deploy <abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> after <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> is running:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>./scripts/manage.sh<span class="w"> </span>start-open-webui
 </span></code></pre></div>
 <p>Retrieve credentials:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>grep<span class="w"> </span>-E<span class="w"> </span><span class="s1">'^(API_SERVER_KEY|HERMES_DASHBOARD_BASIC_AUTH_)'</span><span class="w"> </span>hermes/data/.env
 </span></code></pre></div>
-<h2 id="mcp-integration">MCP integration<a class="headerlink" href="#mcp-integration" title="Permanent link">¶</a></h2>
-<p>Hermes connects to lab MCP servers over HTTP/SSE. Tools are registered with the <code>mcp_&lt;server&gt;_&lt;tool&gt;</code> prefix, for example:</p>
+<h2 id="mcp-integration"><abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> integration<a class="headerlink" href="#mcp-integration" title="Permanent link">¶</a></h2>
+<p><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> connects to lab <abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> servers over HTTP/SSE. Tools are registered with the <code>mcp_&lt;server&gt;_&lt;tool&gt;</code> prefix, for example:</p>
 <ul>
 <li><code>mcp_lab_searxng_*</code> — private web search</li>
 <li><code>mcp_lab_fetch_*</code> — URL fetch</li>
@@ -1466,8 +1515,8 @@ Never commit API keys or <code>hermes/data/.env</code> from either path.</p>
 <tr>
 <th>Stack ID</th>
 <th>Nemotron preset</th>
-<th>MCP preset</th>
-<th>Extra MCP</th>
+<th><abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> preset</th>
+<th>Extra <abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr></th>
 </tr>
 </thead>
 <tbody>
@@ -1494,13 +1543,13 @@ Never commit API keys or <code>hermes/data/.env</code> from either path.</p>
 <h2 id="workspace-dev-agent-coder-kasm">Workspace dev agent (Coder + Kasm)<a class="headerlink" href="#workspace-dev-agent-coder-kasm" title="Permanent link">¶</a></h2>
 <p>The host <code>hermes-lab</code> stack is a <strong>persistent lab operator</strong>. Coder and Kasm workspaces use a separate <strong><code>workspace-dev</code></strong> profile for coding assistance:</p>
 <ul>
-<li><strong>Profile:</strong> <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/main/hermes/profiles/workspace-dev"><code>hermes/profiles/workspace-dev/</code></a> (Hermes <a href="https://hermes-agent.nousresearch.com/docs/user-guide/profile-distributions">profile distribution</a>)</li>
+<li><strong>Profile:</strong> <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/main/hermes/profiles/workspace-dev"><code>hermes/profiles/workspace-dev/</code></a> (<abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> <a href="https://hermes-agent.nousresearch.com/docs/user-guide/profile-distributions">profile distribution</a>)</li>
 <li><strong>Stack ID:</strong> <code>hermes-workspace-dev</code> in <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/hermes/config/hermes-policy.yaml"><code>hermes-policy.yaml</code></a></li>
-<li><strong>Networking:</strong> <code>mcp_url_mode: in_cluster</code> — inference and MCP via cluster DNS, not host port-forward</li>
+<li><strong>Networking:</strong> <code>mcp_url_mode: in_cluster</code> — inference and <abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> via cluster DNS, not host port-forward</li>
 <li><strong>Terminal:</strong> <code>backend: local</code> — commands run in the workspace where you edit code</li>
 <li><strong>Memory:</strong> persistent cross-session memory disabled (unlike a personal assistant)</li>
 </ul>
-<p><strong>Coder:</strong> Hermes runs as a <strong>sidecar</strong> in each workspace pod (<code>k8s/dev/templates/coder-spark-lab/</code>). Dashboard at <code>http://127.0.0.1:9119</code> inside the workspace.</p>
+<p><strong>Coder:</strong> <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> runs as a <strong>sidecar</strong> in each workspace pod (<code>k8s/dev/templates/coder-spark-lab/</code>). Dashboard at <code>http://127.0.0.1:9119</code> inside the workspace.</p>
 <p><strong>Kasm:</strong> Custom desktop image <code>spark-lab-kasm-desktop:1.19.0</code> autostarts the gateway on session launch.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>workspace-hermes<span class="w"> </span>verify
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>workspace-hermes<span class="w"> </span>seed<span class="w"> </span>/tmp/hermes-ws-test
@@ -1508,8 +1557,8 @@ Never commit API keys or <code>hermes/data/.env</code> from either path.</p>
 <p>See <a href="../dev-workspaces/">dev-workspaces.md</a> for image build and template registration.</p>
 <h2 id="security">Security<a class="headerlink" href="#security" title="Permanent link">¶</a></h2>
 <ul>
-<li>Dashboard and API server require credentials (Hermes June 2026 hardening).</li>
-<li>MCP and inference port-forward are <strong>not</strong> behind Traefik SSO (same posture as MCP NodePorts).</li>
+<li>Dashboard and API server require credentials (<abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> June 2026 hardening).</li>
+<li><abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> and inference port-forward are <strong>not</strong> behind <abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr> SSO (same posture as <abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> NodePorts).</li>
 <li>Do not expose <code>:8642</code> / <code>:9119</code> on untrusted networks without VPN or firewall rules.</li>
 <li>Review <code>hermes/data/.env</code> before production; never commit <code>hermes/data/</code>.</li>
 </ul>
@@ -1524,6 +1573,11 @@ Never commit API keys or <code>hermes/data/.env</code> from either path.</p>
 <li><a href="../nemotron-agentic-stack/">nemotron-agentic-stack.md</a></li>
 <li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/hermes/README.md">hermes/README.md</a></li>
 </ul>
+<!--
+  Project-wide glossary abbreviations (Material tooltips).
+  Auto-appended to every page via pymdownx.snippets in mkdocs.yml.
+  Keep definitions short (tooltip-sized). Longer prose lives in docs/glossary.md.
+-->
 
 
 
@@ -1600,7 +1654,7 @@ Never commit API keys or <code>hermes/data/.env</code> from either path.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "search.suggest", "search.highlight", "content.code.copy", "content.tabs.link", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>

@@ -45,12 +45,14 @@
         
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
-        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Open Sans";--md-code-font:"Roboto Mono"}</style>
       
     
     
       <link rel="stylesheet" href="../assets/stylesheets/command-vars.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
     
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -96,6 +98,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+        
+      </div>
+    
     
       
 
@@ -134,9 +140,19 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_0">
     
-      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -144,9 +160,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to system preference" type="radio" name="__palette" id="__palette_2">
     
-      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -177,6 +193,11 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard="" data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+          </a>
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
@@ -1270,7 +1291,7 @@
 <p><strong>What's on this page</strong></p>
 <ul>
 <li>Coder, Kasm, and the custom Spark Lab Dashboard (Headlamp + Grafana + Next.js portal)</li>
-<li>NodePort access, Ansible quick start, and resource/safety notes</li>
+<li>NodePort access, <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> quick start, and resource/safety notes</li>
 <li>Dashboard auth, SQLite persistence, Docker build, and K8s Secret setup</li>
 </ul>
 <p><strong>What this enables</strong></p>
@@ -1287,30 +1308,30 @@
 <li><strong>Kasm</strong>: Additional flexibility for containerized or desktop sessions streamed to browser.</li>
 <li><strong>Dashboard stack</strong>:</li>
 <li><strong>Headlamp</strong> (CNCF): full modern K8s web UI.</li>
-<li><strong>Grafana</strong> (+ Prometheus/DCGM via GPU Operator): metrics, GPU util graphs, node health, inference pods.</li>
+<li><strong>Grafana</strong> (+ Prometheus/DCGM via <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr>): metrics, GPU util graphs, node health, inference pods.</li>
 <li><strong>Custom Spark Lab Portal</strong>: Self-hosted Next.js 16+ app (refactored; legacy static nginx removed 2026) featuring:</li>
 <li><strong>Tasks</strong> (default): Docker containers, Ollama models/services, with real stop/delete actions.</li>
 <li><strong>Storage</strong>: interactive treemap size viz, largest files, move/delete, duplicate finder scoped to safe paths.</li>
 <li><strong>Machine State</strong>: packages, running services, NVIDIA/OS identity.
   Plus links to Grafana/Headlamp and legacy inference controls.</li>
 </ul>
-<p>All use explicit resource requests/limits. Dev management components use Deployments (restartPolicy handled by controller). Inference remains strict Jobs.</p>
+<p>All use explicit resource requests/limits. Dev management components use Deployments (<abbr title="Kubernetes Job pod restart behavior (lab heavy jobs use OnFailure or Never).">restartPolicy</abbr> handled by controller). Inference remains strict Jobs.</p>
 <h2 id="prerequisites-exposure">Prerequisites &amp; Exposure<a class="headerlink" href="#prerequisites-exposure" title="Permanent link">¶</a></h2>
 <ul>
-<li>Cluster bootstrapped + GPU Operator installed.</li>
+<li>Cluster bootstrapped + <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> installed.</li>
 <li>Helm available (playbook installs if needed).</li>
 <li><strong>Remote access</strong>: </li>
 <li>Primary: NodePorts (default 32080 Coder, 32081 Kasm, 32082 custom dashboard, 32083 Grafana, 32084 Headlamp).</li>
 <li>From control machine: <code>ssh -L 32080:localhost:32080 user@spark0-ip</code> or open firewall for trusted nets.</li>
 <li>Recommended for "super easy": VPN (Tailscale etc.) + NodePort or ClusterIP.</li>
-<li><strong>SSO (recommended):</strong> Traefik v3 + Authelia on <code>https://*.lab.local:32443</code> — see <a href="../sso/">SSO guide</a>. K3s bundled Traefik stays disabled; standalone Helm Traefik is used instead.</li>
+<li><strong>SSO (recommended):</strong> <abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr> v3 + <abbr title="Open-source authentication and authorization server used for lab SSO.">Authelia</abbr> on <code>https://*.lab.local:32443</code> — see <a href="../sso/">SSO guide</a>. <abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr> bundled <abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr> stays disabled; standalone Helm <abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr> is used instead.</li>
 <li><strong>Legacy direct NodePorts:</strong> <code>:32080</code>–<code>:32084</code> still work as SSO bypass when <code>SSO_BYPASS_NODEPORTS=1</code>.</li>
 </ul>
 <p><strong>Important safety</strong>: Always <code>manage.sh stop</code> before reboot. Dev components have limits to avoid impacting inference capacity.</p>
 <p>See <code>ansible/inventory/group_vars/all.yml</code> for reference defaults (versions, ports, resources). Authoritative deploy values are in the Helm values files and <code>k8s/dev/dashboard/deployment.yaml</code>.</p>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">¶</a></h2>
 <ol>
-<li>From workstation with Ansible + cluster access:</li>
+<li>From workstation with <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> + cluster access:</li>
 </ol>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ansible-playbook<span class="w"> </span>-i<span class="w"> </span>inventory/hosts.ini<span class="w"> </span>playbooks/install-dev-workspaces.yml
 </span></code></pre></div>
@@ -1332,8 +1353,8 @@
 <li>Headlamp: :32084</li>
 </ol>
 <p>Inside Coder workspace template (see below): you get a full dev env with this repo, bazel, kubectl (via mounted kubeconfig or in-cluster SA), and can run <code>./scripts/manage.sh start-test</code> etc from inside the cluster.</p>
-<h2 id="ansible-helm-details">Ansible / Helm Details<a class="headerlink" href="#ansible-helm-details" title="Permanent link">¶</a></h2>
-<p>Playbook <code>install-dev-workspaces.yml</code> follows the GPU Operator pattern:</p>
+<h2 id="ansible-helm-details"><abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> / Helm Details<a class="headerlink" href="#ansible-helm-details" title="Permanent link">¶</a></h2>
+<p>Playbook <code>install-dev-workspaces.yml</code> follows the <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> pattern:</p>
 <ul>
 <li>Ensure helm.</li>
 <li>Create namespaces (coder, kasm, monitoring).</li>
@@ -1342,9 +1363,9 @@
 </ul>
 <p>Values examples committed under <code>ansible/files/</code> or <code>k8s/dev/</code> (copy/edit before run for production DB etc.).</p>
 <p>In-cluster Postgres used for Coder POC (Bitnami); production use external managed Postgres and update secret.</p>
-<p>Grafana can consume GPU metrics if DCGM exporter enabled by GPU Operator (default in recent).</p>
-<h2 id="hermes-dev-assistant-coder-kasm">Hermes dev assistant (Coder + Kasm)<a class="headerlink" href="#hermes-dev-assistant-coder-kasm" title="Permanent link">¶</a></h2>
-<p>Coder and Kasm workspaces ship a <strong>coding-focused</strong> Hermes Agent (<code>workspace-dev</code> profile), separate from the persistent host operator (<code>hermes-lab</code> on the Spark node).</p>
+<p>Grafana can consume GPU metrics if DCGM exporter enabled by <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> (default in recent).</p>
+<h2 id="hermes-dev-assistant-coder-kasm"><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> dev assistant (Coder + Kasm)<a class="headerlink" href="#hermes-dev-assistant-coder-kasm" title="Permanent link">¶</a></h2>
+<p>Coder and Kasm workspaces ship a <strong>coding-focused</strong> <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> Agent (<code>workspace-dev</code> profile), separate from the persistent host operator (<code>hermes-lab</code> on the Spark node).</p>
 <table>
 <thead>
 <tr>
@@ -1370,7 +1391,7 @@
 <td>In-cluster <code>*.ai-inference.svc.cluster.local</code></td>
 </tr>
 <tr>
-<td>MCP</td>
+<td><abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr></td>
 <td>NodePorts on host</td>
 <td>In-cluster <code>*.agent-tools.svc.cluster.local</code></td>
 </tr>
@@ -1381,18 +1402,18 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Prerequisites</strong> (same as host Hermes, but no host Docker agent required):</p>
+<p><strong>Prerequisites</strong> (same as host <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr>, but no host Docker agent required):</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>nemotron-stack<span class="w"> </span>start<span class="w"> </span>nemotron-agentic-spark-1<span class="w"> </span>--confirm<span class="w"> </span>yes
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>mcp-stack<span class="w"> </span>start<span class="w"> </span>mcp-agent-toolkit<span class="w"> </span>--confirm<span class="w"> </span>yes
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>workspace-hermes<span class="w"> </span>verify
 </span></code></pre></div>
 <p>Profile distribution: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/main/hermes/profiles/workspace-dev"><code>hermes/profiles/workspace-dev/</code></a>.</p>
-<h2 id="coder-template-hermes-sidecar">Coder template (Hermes sidecar)<a class="headerlink" href="#coder-template-hermes-sidecar" title="Permanent link">¶</a></h2>
+<h2 id="coder-template-hermes-sidecar">Coder template (<abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> sidecar)<a class="headerlink" href="#coder-template-hermes-sidecar" title="Permanent link">¶</a></h2>
 <p>Committed template: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/main/k8s/dev/templates/coder-spark-lab"><code>k8s/dev/templates/coder-spark-lab/</code></a>.</p>
 <p>Each workspace pod runs two containers sharing a network namespace:</p>
 <ul>
 <li><strong>dev</strong> — <code>spark-lab-coder-workspace</code> image (bazelisk, kubectl, helm, ansible)</li>
-<li><strong>hermes</strong> — <code>nousresearch/hermes-agent:latest</code> gateway sidecar with per-workspace PVC</li>
+<li><strong>hermes</strong> — <code>nousresearch/hermes-agent:latest</code> gateway sidecar with per-workspace <abbr title="PersistentVolumeClaim — Kubernetes request for durable storage.">PVC</abbr></li>
 </ul>
 <p><strong>Build workspace image</strong> (from repo root):</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>spark-lab-coder-workspace:latest<span class="w"> </span>-f<span class="w"> </span>k8s/dev/images/coder-workspace/Dockerfile<span class="w"> </span>.
@@ -1404,9 +1425,9 @@
 </span></code></pre></div>
 <p>Inside a running workspace:</p>
 <ul>
-<li>Hermes dashboard: <strong>Coder app</strong> “Hermes Dev Assistant” or <code>http://127.0.0.1:9119</code></li>
+<li><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> dashboard: <strong>Coder app</strong> “<abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> Dev Assistant” or <code>http://127.0.0.1:9119</code></li>
 <li>Gateway API: <code>http://127.0.0.1:8642/v1</code> (Bearer token in workspace Secret)</li>
-<li>MCP client config seeded to <code>~/.cursor/mcp.json</code> and <code>~/.vscode/mcp.json</code></li>
+<li><abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> client config seeded to <code>~/.cursor/mcp.json</code> and <code>~/.vscode/mcp.json</code></li>
 </ul>
 <p>Workspaces land in namespace <code>coder-workspaces</code> (see <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/k8s/base/namespaces-dev.yaml"><code>k8s/base/namespaces-dev.yaml</code></a>).</p>
 <h2 id="kasm-desktop-image">Kasm desktop image<a class="headerlink" href="#kasm-desktop-image" title="Permanent link">¶</a></h2>
@@ -1419,7 +1440,7 @@
 <li>Docker Image: <code>spark-lab-kasm-desktop:1.19.0</code></li>
 <li>Use an explicit tag (Kasm does not assume <code>latest</code>)</li>
 </ul>
-<p>The image starts Hermes <code>workspace-dev</code> in the background on session launch. Desktop shortcuts open the dashboard (<code>:9119</code>) and Hermes CLI.</p>
+<p>The image starts <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> <code>workspace-dev</code> in the background on session launch. Desktop shortcuts open the dashboard (<code>:9119</code>) and <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> CLI.</p>
 <h2 id="dashboard-details-nextjs-16">Dashboard Details (Next.js 16)<a class="headerlink" href="#dashboard-details-nextjs-16" title="Permanent link">¶</a></h2>
 <p>The custom portal is a self-hosted <strong>Next.js 16</strong> application (<code>dashboard/</code>) with <strong>better-auth</strong> session protection and <strong>Drizzle + SQLite</strong> persistence for utility run history and preferences.</p>
 <h3 id="build-and-deploy">Build and deploy<a class="headerlink" href="#build-and-deploy" title="Permanent link">¶</a></h3>
@@ -1471,7 +1492,7 @@
 <p>The deployment mounts an <code>emptyDir</code> at <code>/data</code> with:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>DATABASE_URL=file:/data/lab-dashboard.db
 </span></code></pre></div>
-<p>For durable history across pod restarts, replace <code>emptyDir</code> with a small PVC in production.</p>
+<p>For durable history across pod restarts, replace <code>emptyDir</code> with a small <abbr title="PersistentVolumeClaim — Kubernetes request for durable storage.">PVC</abbr> in production.</p>
 <h3 id="core-features">Core features<a class="headerlink" href="#core-features" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>Tasks</strong> — Docker containers and Ollama models/services (stop/delete with confirmations)</li>
@@ -1525,7 +1546,7 @@
 <h2 id="safety-resources">Safety &amp; Resources<a class="headerlink" href="#safety-resources" title="Permanent link">¶</a></h2>
 <ul>
 <li>All components declare requests + limits (see group_vars and values).</li>
-<li>Inference unchanged: Jobs, OnFailure + backoff 1, 0.82 util, NCCL highspeed only in relevant workloads, no Always.</li>
+<li>Inference unchanged: Jobs, OnFailure + backoff 1, 0.82 util, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> highspeed only in relevant workloads, no Always.</li>
 <li>Dev tools are intentionally lighter and restart-tolerant.</li>
 <li><code>manage.sh</code> new paths have preflight cluster checks; heavy prompts untouched.</li>
 <li>After changes always validate: <code>bazelisk test //...</code></li>
@@ -1537,13 +1558,18 @@
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
 <ul>
 <li>Coder workspaces stuck "connecting": ensure CODER_ACCESS_URL points to reachable (NodePort or DNS).</li>
-<li>Metrics empty: check GPU Operator installed + DCGM; <code>kubectl get pods -n gpu-operator</code>.</li>
+<li>Metrics empty: check <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> installed + DCGM; <code>kubectl get pods -n gpu-operator</code>.</li>
 <li>Port conflict: override nodeports in values or inventory.</li>
 <li>Logs: <code>kubectl logs -n coder deploy/coder</code> etc.</li>
 </ul>
 <h2 id="next">Next<a class="headerlink" href="#next" title="Permanent link">¶</a></h2>
 <p>See getting-started.md for base cluster. Use this to develop the lab itself inside Coder workspaces running on the DGX Spark hardware.</p>
 <p>Contributions: keep resources explicit, update tests/BATS, run full bazel validation.</p>
+<!--
+  Project-wide glossary abbreviations (Material tooltips).
+  Auto-appended to every page via pymdownx.snippets in mkdocs.yml.
+  Keep definitions short (tooltip-sized). Longer prose lives in docs/glossary.md.
+-->
 
 
 
@@ -1620,7 +1646,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "search.suggest", "search.highlight", "content.code.copy", "content.tabs.link", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>

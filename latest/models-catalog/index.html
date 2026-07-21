@@ -45,12 +45,14 @@
         
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
-        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Open Sans";--md-code-font:"Roboto Mono"}</style>
       
     
     
       <link rel="stylesheet" href="../assets/stylesheets/command-vars.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
     
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -96,6 +98,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+        
+      </div>
+    
     
       
 
@@ -134,9 +140,19 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_0">
     
-      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -144,9 +160,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to system preference" type="radio" name="__palette" id="__palette_2">
     
-      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -177,6 +193,11 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard="" data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+          </a>
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
@@ -1046,6 +1067,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1405,7 +1454,7 @@
 <h1 id="models-resource-catalog">Models &amp; Resource Catalog<a class="headerlink" href="#models-resource-catalog" title="Permanent link">¶</a></h1>
 <p><strong>What's on this page</strong></p>
 <ul>
-<li>Quick comparison table of models (GPUs, memory, purpose, safety notes, NCCL needs)</li>
+<li>Quick comparison table of models (GPUs, memory, purpose, safety notes, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> needs)</li>
 <li>Detailed profiles for kimi-test, kimi, ray, nemotron, glm, etc.</li>
 <li>Resource estimator usage and how <code>estimate</code> works</li>
 <li>Guidance on adding your own models</li>
@@ -1426,12 +1475,12 @@
 <table>
 <thead>
 <tr>
-<th>Model / Job</th>
+<th>Model / <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr></th>
 <th>GPUs</th>
 <th>Memory (req)</th>
 <th>Purpose</th>
 <th>Safety Notes</th>
-<th>NCCL / Multi-node</th>
+<th><abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> / Multi-node</th>
 </tr>
 </thead>
 <tbody>
@@ -1575,7 +1624,7 @@
 <td>comfy-base</td>
 <td>1</td>
 <td>60Gi</td>
-<td>ComfyUI visual base (Spark patches)</td>
+<td><abbr title="Node-based UI for diffusion / visual generative AI workflows.">ComfyUI</abbr> visual base (Spark patches)</td>
 <td>Manual; exclusive visual</td>
 <td>1-node</td>
 </tr>
@@ -1621,12 +1670,12 @@
 </tr>
 </tbody>
 </table>
-<p>See <a href="../visual-generative-ai/">Visual Generative AI on DGX Spark</a> for ComfyUI details.</p>
-<p><strong>Image + NCCL + hostNetwork unification/consistency</strong> (across kimi, kimi-test, nemotron-3-ultra):</p>
+<p>See <a href="../visual-generative-ai/">Visual Generative AI on DGX Spark</a> for <abbr title="Node-based UI for diffusion / visual generative AI workflows.">ComfyUI</abbr> details.</p>
+<p><strong>Image + <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> + hostNetwork unification/consistency</strong> (across kimi, kimi-test, nemotron-3-ultra):</p>
 <ul>
 <li>vLLM image unified to v0.8.5 (MoE/FP8/aarch64 support) for kimi/nemotron</li>
 <li>glm-5.2 uses custom <code>lab/llama-cpp-gb10:rpc</code> (GB10 sm_121 + RPC); build on-node</li>
-<li>Minor NCCL alignment (SOCKET_NTHREADS etc added to shorter; "kept in sync with kimi-test baseline")</li>
+<li>Minor <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> alignment (SOCKET_NTHREADS etc added to shorter; "kept in sync with kimi-test baseline")</li>
 <li>hostNetwork: true kept on heavy ray workloads (nemotron/glm); omitted (w/ comments) on kimi/kimi-test. Full decision + per-job comments in the k8s yamls.</li>
 </ul>
 <p>All heavy jobs use:</p>
@@ -1645,12 +1694,12 @@
 </span></code></pre></div>
 <ul>
 <li>Lightweight tensor-parallel</li>
-<li>Good for verifying the full stack (K3s, GPU Operator, high-speed, storage mounts)</li>
+<li>Good for verifying the full stack (<abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr>, <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr>, high-speed, storage mounts)</li>
 <li>Uses unified v0.8.5 image (see unification note above)</li>
 </ul>
 <h3 id="kimi-full-heavy">kimi (full heavy)<a class="headerlink" href="#kimi-full-heavy" title="Permanent link">¶</a></h3>
 <p><strong>Only after successful kimi-test runs.</strong></p>
-<p>See <code>k8s/workloads/kimi/kimi-job.yaml</code> and its README for exact NCCL and resource settings (unified image/NCCL/hostNetwork notes).</p>
+<p>See <code>k8s/workloads/kimi/kimi-job.yaml</code> and its README for exact <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> and resource settings (unified image/<abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr>/hostNetwork notes).</p>
 <h3 id="nemotron-agentic-stack-recommended">Nemotron agentic stack (recommended)<a class="headerlink" href="#nemotron-agentic-stack-recommended" title="Permanent link">¶</a></h3>
 <p>See <a href="../nemotron-agentic-stack/">nemotron-agentic-stack.md</a> for one-click presets on 1–4 Spark nodes.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>nemotron-stack<span class="w"> </span>start<span class="w"> </span>nemotron-agentic-spark-1<span class="w"> </span>--confirm<span class="w"> </span>yes
@@ -1716,14 +1765,14 @@
 <p>See also the auto-generated Shell Reference in the site navigation.</p>
 <p>Basic pattern:
 1. Copy <code>kimi-test/</code> as a starting point.
-2. Adjust resources, image, env (MODEL, quantization, NCCL).
+2. Adjust resources, image, env (MODEL, quantization, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr>).
 3. Add entry to <code>scripts/lib/models.sh</code> lookup functions.
 4. Add a <code>start-xxx</code> wrapper in <code>models.sh</code> with appropriate warnings.
 5. Add BATS coverage.
 6. Document in this catalog.</p>
 <p>Always keep <code>restartPolicy: OnFailure</code> + low backoff for anything &gt; ~4 GPUs.</p>
 <h2 id="configuration-sources">Configuration sources<a class="headerlink" href="#configuration-sources" title="Permanent link">¶</a></h2>
-<p><code>ansible/inventory/group_vars/all.yml</code> holds <strong>reference defaults</strong> (<code>llm_*</code>, NCCL templates, dev-tool versions) for Ansible roles and documentation. <strong>Authoritative</strong> values for a running workload are always the committed manifests under <code>k8s/workloads/</code> and the profiles in <code>scripts/lib/models.sh</code> (used by <code>estimate</code> / <code>start-*</code>). Treat <code>group_vars</code> as a starting point — not the sole source of truth for deployed Jobs.</p>
+<p><code>ansible/inventory/group_vars/all.yml</code> holds <strong>reference defaults</strong> (<code>llm_*</code>, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> templates, dev-tool versions) for <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> roles and documentation. <strong>Authoritative</strong> values for a running workload are always the committed manifests under <code>k8s/workloads/</code> and the profiles in <code>scripts/lib/models.sh</code> (used by <code>estimate</code> / <code>start-*</code>). Treat <code>group_vars</code> as a starting point — not the sole source of truth for deployed Jobs.</p>
 <h2 id="resource-estimator-usage">Resource Estimator Usage<a class="headerlink" href="#resource-estimator-usage" title="Permanent link">¶</a></h2>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>./scripts/manage.sh<span class="w"> </span>estimate<span class="w"> </span>kimi
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>./scripts/manage.sh<span class="w"> </span>estimate<span class="w"> </span>nemotron-3-ultra
@@ -1741,6 +1790,11 @@
 <li>Workload yamls under <code>k8s/workloads/</code></li>
 <li><code>scripts/manage.sh doctor</code></li>
 </ul>
+<!--
+  Project-wide glossary abbreviations (Material tooltips).
+  Auto-appended to every page via pymdownx.snippets in mkdocs.yml.
+  Keep definitions short (tooltip-sized). Longer prose lives in docs/glossary.md.
+-->
 
 
 
@@ -1817,7 +1871,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "search.suggest", "search.highlight", "content.code.copy", "content.tabs.link", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>

@@ -10,7 +10,7 @@
         <link rel="canonical" href="https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/dev-environment/">
       
       
-        <link rel="prev" href="../monitoring-observability/">
+        <link rel="prev" href="../glossary/">
       
       
         <link rel="next" href="../BUILDING_WITH_BAZEL/">
@@ -45,12 +45,14 @@
         
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
-        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Open Sans";--md-code-font:"Roboto Mono"}</style>
       
     
     
       <link rel="stylesheet" href="../assets/stylesheets/command-vars.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
     
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -96,6 +98,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+        
+      </div>
+    
     
       
 
@@ -134,9 +140,19 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_0">
     
-      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -144,9 +160,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to system preference" type="radio" name="__palette" id="__palette_2">
     
-      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -177,6 +193,11 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard="" data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+          </a>
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
@@ -694,6 +715,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#ide-settings-workspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IDE settings (workspace)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1039,6 +1071,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#ide-settings-workspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IDE settings (workspace)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1175,7 +1218,7 @@
 <div class="admonition note">
 <p class="admonition-title">Software contribution vs cluster ops</p>
 <p>This page is for <strong>writing and testing code</strong> in this repository.<br>
-Bringing up K3s on DGX Spark nodes is covered in <a href="../getting-started/">Getting Started</a>.</p>
+Bringing up <abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr> on DGX Spark nodes is covered in <a href="../getting-started/">Getting Started</a>.</p>
 </div>
 <h2 id="branching-model">Branching model<a class="headerlink" href="#branching-model" title="Permanent link">¶</a></h2>
 <ul>
@@ -1269,7 +1312,7 @@ Bringing up K3s on DGX Spark nodes is covered in <a href="../getting-started/">G
 <tbody>
 <tr>
 <td>Build / test</td>
-<td>Bazelisk (Bazel from <code>.bazelversion</code>), buildifier</td>
+<td><abbr title="Version-aware wrapper that runs the Bazel version pinned in .bazelversion.">Bazelisk</abbr> (<abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> from <code>.bazelversion</code>), buildifier</td>
 </tr>
 <tr>
 <td>Shell</td>
@@ -1277,7 +1320,7 @@ Bringing up K3s on DGX Spark nodes is covered in <a href="../getting-started/">G
 </tr>
 <tr>
 <td>Python</td>
-<td>3.11, ruff, mypy, pytest, MkDocs deps</td>
+<td>3.11, ruff, mypy, pytest, <abbr title="Static site generator used for this documentation.">MkDocs</abbr> deps</td>
 </tr>
 <tr>
 <td>Node</td>
@@ -1288,7 +1331,7 @@ Bringing up K3s on DGX Spark nodes is covered in <a href="../getting-started/">G
 <td>kubectl (pinned), helm, kubeconform</td>
 </tr>
 <tr>
-<td>Ansible</td>
+<td><abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr></td>
 <td>ansible, ansible-lint</td>
 </tr>
 <tr>
@@ -1297,24 +1340,26 @@ Bringing up K3s on DGX Spark nodes is covered in <a href="../getting-started/">G
 </tr>
 <tr>
 <td>Agent CLIs</td>
-<td><a href="https://github.com/xai-org/grok-build">Grok Build</a> (<code>grok</code>), <a href="https://github.com/NousResearch/hermes-agent">Hermes Agent</a> (<code>hermes</code>) via post-create</td>
+<td><a href="https://github.com/xai-org/grok-build">Grok Build</a> (<code>grok</code>), <a href="https://github.com/NousResearch/hermes-agent"><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> Agent</a> (<code>hermes</code>) via post-create</td>
 </tr>
 </tbody>
 </table>
 <h3 id="agent-clis-and-secrets">Agent CLIs and secrets<a class="headerlink" href="#agent-clis-and-secrets" title="Permanent link">¶</a></h3>
 <p>Post-create runs <code>.devcontainer/install-agent-clis.sh</code> (skip with
-<code>DEVCONTAINER_SKIP_AGENT_CLIS=1</code>). Installers <strong>never</strong> write API keys.</p>
+<code>DEVCONTAINER_SKIP_AGENT_CLIS=1</code>). Installers put CLIs on PATH only — they
+<strong>never</strong> write API keys and <strong>never</strong> run interactive setup wizards during create.
+Configure when you actually need the tools:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>grok<span class="w"> </span>login<span class="w">          </span><span class="c1"># interactive auth → volume ~/.grok (not git)</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>hermes<span class="w"> </span>setup<span class="w">        </span><span class="c1"># interactive provider/model → volume ~/.hermes (not git)</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>hermes<span class="w"> </span>setup<span class="w">        </span><span class="c1"># only when you use Hermes → volume ~/.hermes (not git)</span>
 </span></code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Never commit agent credentials</p>
-<p>Do not put <code>GROK_DEPLOYMENT_KEY</code>, OpenRouter/OpenAI/etc. keys, or Hermes
+<p>Do not put <code>GROK_DEPLOYMENT_KEY</code>, OpenRouter/OpenAI/etc. keys, or <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr>
 auth files in the repo, in <code>devcontainer.json</code> env blocks, or in screenshots
 of create logs. Auth lives only on Docker volumes or your host home dir.
 See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/SECURITY.md">SECURITY.md</a>.</p>
 </div>
-<p>Hermes <strong>on the Spark host</strong> (Docker gateway stacks) is documented separately in
+<p><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> <strong>on the Spark host</strong> (Docker gateway stacks) is documented separately in
 <a href="../hermes-agent/">hermes-agent.md</a>.</p>
 <p>Lifecycle (optimized):</p>
 <ol>
@@ -1323,7 +1368,11 @@ See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/SECURIT
 <li><strong>postCreateCommand</strong> — full post-create + doctor<br>
    Full <code>//:test</code> is <strong>not</strong> a create gate (optional <code>DEVCONTAINER_SMOKE=1</code>).</li>
 </ol>
-<p>Named volumes cache Bazel disk/repo, npm, pip, and Playwright across rebuilds.</p>
+<p>Named volumes cache <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> disk/repo, npm, pip, Playwright, and agent homes
+(<code>~/.grok</code>, <code>~/.hermes</code>) across rebuilds.</p>
+<p>Feature pins for Dev Container Features live in
+<a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/.devcontainer/devcontainer-lock.json"><code>.devcontainer/devcontainer-lock.json</code></a>
+(<strong>commit this file</strong> — same role as other lockfiles).</p>
 <h3 id="day-to-day-commands">Day-to-day commands<a class="headerlink" href="#day-to-day-commands" title="Permanent link">¶</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:fix<span class="w">                         </span><span class="c1"># formatters</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:validate<span class="w">                    </span><span class="c1"># git-aware checks</span>
@@ -1335,6 +1384,53 @@ See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/SECURIT
 </span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//dashboard:hermetic-test<span class="w">      </span><span class="c1"># needs host Docker</span>
 </span></code></pre></div>
 <p>VS Code tasks under <strong>Terminal → Run Task</strong> wrap the same targets.</p>
+<h3 id="ide-settings-workspace">IDE settings (workspace)<a class="headerlink" href="#ide-settings-workspace" title="Permanent link">¶</a></h3>
+<p><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/.vscode/settings.json"><code>.vscode/settings.json</code></a>
+is tuned for this toolchain:</p>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Extension / tool</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Types</strong></td>
+<td>Mypy (<code>mypy.ini</code>, <code>strict</code>)</td>
+<td>Single type checker; daemon + workspace scope</td>
+</tr>
+<tr>
+<td><strong>Completions</strong></td>
+<td>Pylance</td>
+<td><code>typeCheckingMode: off</code> (avoid double diagnostics)</td>
+</tr>
+<tr>
+<td><strong>Python format/lint</strong></td>
+<td>Ruff (<code>ruff.toml</code>, includes <strong>ANN</strong>)</td>
+<td>Format + fix + organize imports on save</td>
+</tr>
+<tr>
+<td><strong>Shell</strong></td>
+<td>shfmt + shellcheck</td>
+<td>2-space indent; severity warning</td>
+</tr>
+<tr>
+<td><strong>Dashboard</strong></td>
+<td>Prettier + ESLint + Vitest</td>
+<td>Workspace TypeScript SDK under <code>dashboard/</code></td>
+</tr>
+<tr>
+<td><strong>Git</strong></td>
+<td>pull/sync rebase</td>
+<td>Prefer <strong>rebase merge</strong> on protected branches</td>
+</tr>
+</tbody>
+</table>
+<p>Container-only interpreter paths (<code>python.defaultInterpreterPath</code>, mypy
+interpreter) live in <code>.devcontainer/devcontainer.json</code> so host macOS/Windows
+checkouts are not forced onto Linux paths.</p>
 <h2 id="without-a-container-host-tools">Without a container (host tools)<a class="headerlink" href="#without-a-container-host-tools" title="Permanent link">¶</a></h2>
 <p>Prefer the container for parity. If you must work on the host:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>./scripts/utilities/install-dev-tools.sh<span class="w"> </span>status
@@ -1343,8 +1439,8 @@ See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/SECURIT
 <p>Linux CI-style lint install (amd64 <strong>and</strong> arm64):</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>bash<span class="w"> </span>scripts/ci/install-lint-tools.sh
 </span></code></pre></div>
-<p>Then install <strong>Node 22+</strong>, run <code>cd dashboard &amp;&amp; npm ci</code>, and <code>docs/setup-docs.sh</code> for MkDocs.</p>
-<p>On <strong>Windows</strong>, use WSL2 Ubuntu and either the devcontainer or the Linux host path above—not native PowerShell for Bazel/lint.</p>
+<p>Then install <strong>Node 22+</strong>, run <code>cd dashboard &amp;&amp; npm ci</code>, and <code>docs/setup-docs.sh</code> for <abbr title="Static site generator used for this documentation.">MkDocs</abbr>.</p>
+<p>On <strong>Windows</strong>, use WSL2 Ubuntu and either the devcontainer or the Linux host path above—not native PowerShell for <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>/lint.</p>
 <h2 id="architecture-notes">Architecture notes<a class="headerlink" href="#architecture-notes" title="Permanent link">¶</a></h2>
 <pre class="mermaid"><code>flowchart LR
   subgraph hosts [Contributor hosts]
@@ -1401,22 +1497,55 @@ See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/SECURIT
 <td>Linux container only; macOS host skips coverage (validate still OK)</td>
 </tr>
 <tr>
-<td>Stale Bazel cache</td>
+<td>Stale <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> cache</td>
 <td><code>docker volume rm dgx-lab-bazel-disk dgx-lab-bazel-repo</code> then rebuild</td>
 </tr>
 <tr>
 <td>Node version mismatch</td>
 <td>Container and CI use <strong>22</strong>; set host Node 22 if not using the container</td>
 </tr>
+<tr>
+<td><code>mkdir … ~/.grok/…: Permission denied</code></td>
+<td>Named volume <code>dgx-lab-grok-home</code> is root-owned. In-container: <code>sudo chown -R "$(id -u):$(id -g)" ~/.grok ~/.hermes</code> then <code>bash .devcontainer/install-agent-clis.sh</code>. Or on host: <code>docker volume rm dgx-lab-grok-home dgx-lab-hermes-home</code> and rebuild.</td>
+</tr>
+<tr>
+<td><code>grok: command not found</code></td>
+<td>Agent CLI install is optional/non-blocking; re-run <code>bash .devcontainer/install-agent-clis.sh</code> after homes are writable, then <code>grok login</code>.</td>
+</tr>
+<tr>
+<td>Feature lockfile drift</td>
+<td>Commit <code>.devcontainer/devcontainer-lock.json</code>; regenerate via Dev Containers rebuild / CLI when changing features.</td>
+</tr>
+<tr>
+<td>Mypy / Pylance <code>ENOENT</code> on <code>.venv-docs/bin/python</code></td>
+<td>Host macOS/Windows venv bind-mounted into Linux. Fix: <code>rm -rf .venv-docs &amp;&amp; bash docs/setup-docs.sh</code> (post-create also recreates unusable venvs). IDE uses system Python 3.11 by default.</td>
+</tr>
+<tr>
+<td><code>docs/manage-docs.sh status</code> says venv unusable</td>
+<td>Same host venv issue; run <code>docs/setup-docs.sh</code>.</td>
+</tr>
+<tr>
+<td><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> “tools disabled” / missing API keys at create</td>
+<td>Expected — create installs the CLI with <code>--skip-setup --non-interactive</code>. Run <code>hermes setup</code> only when you want <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr>.</td>
+</tr>
+<tr>
+<td><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> extension “query failed” right after open</td>
+<td>First download of <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> binary; post-create prewarms <code>bazelisk version</code>. Retry or wait for prewarm.</td>
+</tr>
 </tbody>
 </table>
 <h2 id="related-docs">Related docs<a class="headerlink" href="#related-docs" title="Permanent link">¶</a></h2>
 <ul>
 <li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md">Contributing hub</a></li>
-<li><a href="../BUILDING_WITH_BAZEL/">Building with Bazel</a></li>
+<li><a href="../BUILDING_WITH_BAZEL/">Building with <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr></a></li>
 <li><a href="../project-conventions/">Project conventions</a></li>
 <li><a href="../dev-workspaces/">Dev Workspaces (on-cluster Coder/Kasm)</a> — different from this laptop/container env</li>
 </ul>
+<!--
+  Project-wide glossary abbreviations (Material tooltips).
+  Auto-appended to every page via pymdownx.snippets in mkdocs.yml.
+  Keep definitions short (tooltip-sized). Longer prose lives in docs/glossary.md.
+-->
 
 
 
@@ -1493,7 +1622,7 @@ See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/SECURIT
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "search.suggest", "search.highlight", "content.code.copy", "content.tabs.link", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>

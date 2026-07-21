@@ -45,12 +45,14 @@
         
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
-        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Open Sans";--md-code-font:"Roboto Mono"}</style>
       
     
     
       <link rel="stylesheet" href="../assets/stylesheets/command-vars.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
     
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -96,6 +98,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+        
+      </div>
+    
     
       
 
@@ -134,9 +140,19 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_0">
     
-      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -144,9 +160,9 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to system preference" type="radio" name="__palette" id="__palette_2">
     
-      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden="">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
       </label>
     
@@ -177,6 +193,11 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard="" data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+          </a>
         
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
@@ -701,6 +722,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#multi-version-public-docs-latest-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-version public docs (latest + development)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#why-this-design" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1057,6 +1089,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#multi-version-public-docs-latest-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-version public docs (latest + development)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#why-this-design" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1234,16 +1277,16 @@
   
 
 
-<h1 id="building-and-testing-with-bazel">Building and Testing with Bazel<a class="headerlink" href="#building-and-testing-with-bazel" title="Permanent link">¶</a></h1>
+<h1 id="building-and-testing-with-bazel">Building and Testing with <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr><a class="headerlink" href="#building-and-testing-with-bazel" title="Permanent link">¶</a></h1>
 <p><strong>What's on this page</strong></p>
 <ul>
-<li>Why Bazel is the primary build/test/launcher system for the lab</li>
-<li>List of what Bazel is used for (tests, lint, docs, wrappers)</li>
+<li>Why <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> is the primary build/test/launcher system for the lab</li>
+<li>List of what <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> is used for (tests, lint, docs, wrappers)</li>
 <li>Prerequisites and installation</li>
 <li>Common commands and specific targets</li>
 <li>Documentation generation details</li>
 <li>Validation discipline and CI setup</li>
-<li>How to use Bazel day-to-day and inside the dev container</li>
+<li>How to use <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> day-to-day and inside the dev container</li>
 </ul>
 <p><strong>What this enables</strong></p>
 <ul>
@@ -1255,8 +1298,8 @@
 <p>The traditional Makefile and direct <code>ansible-playbook</code> / <code>./scripts/manage.sh</code> invocations remain available for compatibility and for people who have not installed bazelisk.</p>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">¶</a></h2>
 <ul>
-<li>Bazelisk (strongly recommended)</li>
-<li>Or a recent Bazel 8.x+</li>
+<li><abbr title="Version-aware wrapper that runs the Bazel version pinned in .bazelversion.">Bazelisk</abbr> (strongly recommended)</li>
+<li>Or a recent <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> 8.x+</li>
 </ul>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># macOS</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>brew<span class="w"> </span>install<span class="w"> </span>bazelisk
@@ -1315,7 +1358,7 @@
 </p><div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//docs:docs
 </span></code></pre></div><p></p>
 <p>The output is at <code>docs/generated/shell/reference.md</code> and appears in the site under <strong>Reference &gt; Code-Generated Reference</strong>.</p>
-<p>Because <code>//docs:docs</code> and <code>//docs:serve</code> list the script sources as data dependencies (via <code>//scripts:doc_sources</code>), Bazel only re-runs generation when comments actually change.</p>
+<p>Because <code>//docs:docs</code> and <code>//docs:serve</code> list the script sources as data dependencies (via <code>//scripts:doc_sources</code>), <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> only re-runs generation when comments actually change.</p>
 <h3 id="dashboard-api-reference">Dashboard API reference<a class="headerlink" href="#dashboard-api-reference" title="Permanent link">¶</a></h3>
 <p>Produced by TypeDoc from JSDoc in the Next.js/TypeScript code:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bazel<span class="w"> </span>run<span class="w"> </span>//dashboard:docs<span class="w">     </span><span class="c1"># after npm ci in dashboard/</span>
@@ -1324,16 +1367,16 @@
 <h3 id="visual-regression-tests-for-the-rendered-docs-site-goldens-approval">Visual regression tests for the rendered docs site (goldens + approval)<a class="headerlink" href="#visual-regression-tests-for-the-rendered-docs-site-goldens-approval" title="Permanent link">¶</a></h3>
 <p>Docs render tests are split for speed:</p>
 <ul>
-<li><code>//docs:test_mkdocs_build</code> — mkdocs strict build + HTML/source checks (local fail-fast; <strong>not</strong> in <code>//:test-fast</code> — needs MkDocs installed)</li>
+<li><code>//docs:test_mkdocs_build</code> — mkdocs strict build + HTML/source checks (local fail-fast; <strong>not</strong> in <code>//:test-fast</code> — needs <abbr title="Static site generator used for this documentation.">MkDocs</abbr> installed)</li>
 <li><code>//docs:test_mkdocs_visual</code> — Playwright screenshots vs goldens only</li>
-<li><code>//docs:test_mkdocs_render</code> — combined (one MkDocs build + visual); <strong>CI docs job</strong> and <code>bazel test //:test</code></li>
+<li><code>//docs:test_mkdocs_render</code> — combined (one <abbr title="Static site generator used for this documentation.">MkDocs</abbr> build + visual); <strong>CI docs job</strong> and <code>bazel test //:test</code></li>
 </ul>
 <p>CI runs build + visual as separate steps in <strong>docs-and-render</strong>; <code>//:test-fast</code> covers the fast build path without Playwright.</p>
 <ul>
 <li>mkdocs build --strict (to temp)</li>
 <li>Start an in-process static HTTP server over the output (CSS/JS assets served)</li>
 <li>Playwright (chromium, headless) loads many key pages (index + getting-started + architecture + models-catalog + troubleshooting + reboot-safety + dgx-spark-notes + monitoring-observability + dev-workspaces + gitea-ci-setup, ...)</li>
-<li>Fixed viewport + strong waits: domcontentloaded + networkidle + Material CSS elements (<code>.md-header</code>, <code>.md-content</code>) + custom command-vars / cluster panel + Mermaid SVG + fonts.ready + settle. CSS is always applied in the captured image; JS is waited for where it affects rendering (Mermaid, panels).</li>
+<li>Fixed viewport + strong waits: domcontentloaded + networkidle + <abbr title="Material for MkDocs theme powering search, tabs, and tooltips on this site.">Material</abbr> CSS elements (<code>.md-header</code>, <code>.md-content</code>) + custom command-vars / cluster panel + Mermaid SVG + fonts.ready + settle. CSS is always applied in the captured image; JS is waited for where it affects rendering (Mermaid, panels).</li>
 <li><code>page.screenshot(full_page=True, animations="disabled")</code> compared byte-for-byte to committed goldens in <code>docs/tests/visual/goldens/</code>.</li>
 <li>Actual/current screenshots are <strong>always generated</strong> (written to test outputs/actuals dir) whenever the test runs.</li>
 </ul>
@@ -1348,6 +1391,38 @@
 </ul>
 <p>The test gracefully skips the browser portion if playwright or browsers are missing (source + HTML checks still run). Full enforcement requires the browsers (installed automatically by the test runner on first use, or via <code>python -m playwright install chromium</code>).</p>
 <p>See also the top of <code>docs/test_mkdocs_render.py</code> and <code>test_mkdocs_render.sh</code>.</p>
+<h3 id="multi-version-public-docs-latest-development">Multi-version public docs (latest + development)<a class="headerlink" href="#multi-version-public-docs-latest-development" title="Permanent link">¶</a></h3>
+<p>GitHub Pages is published with <strong><a href="https://github.com/jimporter/mike">mike</a></strong> so both long-lived branches have a docs site:</p>
+<table>
+<thead>
+<tr>
+<th>Alias</th>
+<th>Branch</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>latest</code> (default)</td>
+<td><code>main</code></td>
+<td><code>…/latest/</code> (and site root default)</td>
+</tr>
+<tr>
+<td><code>development</code></td>
+<td><code>development</code></td>
+<td><code>…/development/</code></td>
+</tr>
+</tbody>
+</table>
+<p>Workflow: <code>.github/workflows/deploy-docs.yml</code> runs <strong>only on push</strong> to <code>main</code>/<code>master</code>/<code>development</code> (docs paths) or <code>workflow_dispatch</code> — not on <code>pull_request</code>. Merging a PR into those branches is what publishes. After <code>//docs:docs</code> generates content, <code>mike deploy --push</code> updates the version alias on the <code>gh-pages</code> branch. PR-time docs validation is CI (<code>docs-and-render</code>), not this workflow.</p>
+<p><strong>Repo setting:</strong> GitHub Pages source should be the <strong><code>gh-pages</code> branch</strong> (not “GitHub Actions” artifact-only) once mike has published. Development builds set <code>DGX_DOCS_VERSION=development</code> so hooks:</p>
+<ul>
+<li>inject a non-production banner</li>
+<li>stamp <abbr title="Material for MkDocs theme powering search, tabs, and tooltips on this site.">Material</abbr> <strong>Edit this page</strong> to <code>edit/development/docs/</code> (latest → <code>edit/main/docs/</code>)</li>
+<li>rewrite this-repo GitHub <code>blob</code>/<code>tree</code> source links to the same long-lived ref</li>
+</ul>
+<p>Optional local override: <code>DGX_DOCS_GIT_REF=development</code> (or <code>main</code>). Feature-branch names are not auto-mapped (unpublished edit links would 404).</p>
+<p>Local single-version builds (<code>bazelisk run //docs:serve</code>) do not need mike; the version selector simply has no alternate aliases offline. Default git ref for links is <code>main</code> unless the env vars above are set.</p>
 <h3 id="why-this-design">Why this design?<a class="headerlink" href="#why-this-design" title="Permanent link">¶</a></h3>
 <ul>
 <li>Comments that describe behavior live right next to the code that implements it.</li>
@@ -1369,7 +1444,7 @@
 <table>
 <thead>
 <tr>
-<th>Job</th>
+<th><abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr></th>
 <th>When</th>
 <th>What</th>
 </tr>
@@ -1393,16 +1468,16 @@
 <tr>
 <td><strong>docs-and-render</strong></td>
 <td>docs/**, shell doc sources, or CI graph</td>
-<td><strong>Single</strong> <code>//docs:test_mkdocs_render</code> (one MkDocs build)</td>
+<td><strong>Single</strong> <code>//docs:test_mkdocs_render</code> (one <abbr title="Static site generator used for this documentation.">MkDocs</abbr> build)</td>
 </tr>
 <tr>
 <td><strong>validate-gate</strong></td>
 <td>always</td>
-<td>Pure bash <code>scripts/ci_check_only.sh</code> (no Bazel cold start)</td>
+<td>Pure bash <code>scripts/ci_check_only.sh</code> (no <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> cold start)</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Path filter notes:</strong> <code>scripts/**</code> no longer always runs docs — only <code>scripts/manage.sh</code>, <code>scripts/lib/**</code>, and <code>scripts/utilities/**</code> (shell doc sources). Editing only <code>.github/workflows/*</code> runs bazel-core (and gate), not hermetic/docs. Shared setup: <code>.github/actions/setup-bazel</code> (pinned Bazelisk + disk/repo + lint-tool caches). See <code>.github/workflows/ci.yml</code>, <code>.gitea/workflows/ci.yml</code>, and <code>.bazelrc</code> (<code>--config=ci</code>).</p>
+<p><strong>Path filter notes:</strong> <code>scripts/**</code> no longer always runs docs — only <code>scripts/manage.sh</code>, <code>scripts/lib/**</code>, and <code>scripts/utilities/**</code> (shell doc sources). Editing only <code>.github/workflows/*</code> runs bazel-core (and gate), not hermetic/docs. Shared setup: <code>.github/actions/setup-bazel</code> (pinned <abbr title="Version-aware wrapper that runs the Bazel version pinned in .bazelversion.">Bazelisk</abbr> + disk/repo + lint-tool caches). See <code>.github/workflows/ci.yml</code>, <code>.gitea/workflows/ci.yml</code>, and <code>.bazelrc</code> (<code>--config=ci</code>).</p>
 <p>Use queries heavily:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>bazelisk<span class="w"> </span>query<span class="w"> </span><span class="s1">'deps(//tests:bats_manage_test)'</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>bazelisk<span class="w"> </span>query<span class="w"> </span><span class="s1">'kind(".*_test", //...)'</span>
@@ -1413,31 +1488,31 @@
 <p>Use <code>--config=ci</code> on CI runners (higher <code>--jobs</code>, <code>--remote_download_minimal</code>).</p>
 <p>The classic make-based paths remain for compatibility/legacy.</p>
 <p>For Gitea: see <a href="../gitea-ci-setup/">gitea-ci-setup.md</a> and <code>.gitea/workflows/ci.yml</code> (self-hosted runners + persistent cache volumes recommended).</p>
-<p>Bazel jobs restore disk/repo cache via <code>.github/actions/setup-bazel</code> (keyed on <code>MODULE.bazel.lock</code> + <code>.bazelversion</code>).</p>
+<p><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> jobs restore disk/repo cache via <code>.github/actions/setup-bazel</code> (keyed on <code>MODULE.bazel.lock</code> + <code>.bazelversion</code>).</p>
 <h2 id="security-notes">Security Notes<a class="headerlink" href="#security-notes" title="Permanent link">¶</a></h2>
 <ul>
 <li>Never commit real <code>ansible/inventory/hosts.ini</code> (it is gitignored).</li>
 <li>Kubeconfig, tokens, and SSH material are excluded.</li>
 <li>The BATS tests mock external commands (including kubectl) so they never touch real clusters or credentials.</li>
-<li>Bazel runfiles + explicit data dependencies make exactly what is needed visible (no accidental leakage of host files).</li>
+<li><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> runfiles + explicit data dependencies make exactly what is needed visible (no accidental leakage of host files).</li>
 <li><code>MODULE.bazel.lock</code> is committed (standard for reproducible Bzlmod) and contains only public registry metadata.</li>
 </ul>
 <p>See the root <code>.gitignore</code> and <code>.bazelignore</code> for the full exclusion list.</p>
-<h2 id="current-bazel-coverage">Current Bazel Coverage<a class="headerlink" href="#current-bazel-coverage" title="Permanent link">¶</a></h2>
-<p>The following are modeled with first-class Bazel targets:</p>
+<h2 id="current-bazel-coverage">Current <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> Coverage<a class="headerlink" href="#current-bazel-coverage" title="Permanent link">¶</a></h2>
+<p>The following are modeled with first-class <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> targets:</p>
 <ul>
 <li><code>scripts/manage.sh</code> as <code>sh_binary</code> (<code>//:manage</code>)</li>
 <li>Full hermetic BATS suite (vendored bats-core)</li>
 <li>Kubernetes manifests and overlays as <code>filegroup</code> data</li>
 <li>Documentation site (<code>//docs:serve</code>, <code>//docs:docs</code>, etc.)</li>
 <li>Includes <code>test_generate_shell_docs</code> + <code>test_mkdocs_render</code> (full build + HTML/mermaid/asset validation + <strong>real browser screenshots + goldens</strong> of the rendered site; visual diffs fail the test and require explicit approval via <code>UPDATE_SNAPSHOTS=1 bazel run //docs:visual-update</code> + PR review).</li>
-<li>Ansible validation + convenient playbook launchers (<code>//ansible:*</code>)</li>
+<li><abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> validation + convenient playbook launchers (<code>//ansible:*</code>)</li>
 <li>Dashboard dev / build / test wrappers (<code>//dashboard:*</code>)</li>
 <li>Comprehensive root aliases and test suites</li>
 </ul>
-<p>Runtime operations against real hardware (full Ansible playbooks with real inventories, heavy cluster workloads) intentionally remain outside pure Bazel "build" semantics and are launched via the sh_binary wrappers or classic commands.</p>
-<h2 id="using-bazel-for-daily-work">Using Bazel for Daily Work<a class="headerlink" href="#using-bazel-for-daily-work" title="Permanent link">¶</a></h2>
-<p>Bazel is now the established primary system. The Makefile and direct commands remain available purely for compatibility and convenience.</p>
+<p>Runtime operations against real hardware (full <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> playbooks with real inventories, heavy cluster workloads) intentionally remain outside pure <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> "build" semantics and are launched via the sh_binary wrappers or classic commands.</p>
+<h2 id="using-bazel-for-daily-work">Using <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> for Daily Work<a class="headerlink" href="#using-bazel-for-daily-work" title="Permanent link">¶</a></h2>
+<p><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> is now the established primary system. The Makefile and direct commands remain available purely for compatibility and convenience.</p>
 <h2 id="development-container">Development Container<a class="headerlink" href="#development-container" title="Permanent link">¶</a></h2>
 <p>First-class multi-arch contributor environment (<code>.devcontainer/</code>): <strong>linux/amd64 + linux/arm64</strong>.</p>
 <table>
@@ -1486,8 +1561,13 @@
 <p>After changing comments in <code>scripts/</code> or JSDoc in <code>dashboard/</code>:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//docs:docs
 </span></code></pre></div>
-<p>Generated content lands in <code>docs/generated/</code> and is part of the MkDocs site (Reference).</p>
+<p>Generated content lands in <code>docs/generated/</code> and is part of the <abbr title="Static site generator used for this documentation.">MkDocs</abbr> site (Reference).</p>
 <p>See <code>AGENTS.md</code> for AI coding assistant workflow.</p>
+<!--
+  Project-wide glossary abbreviations (Material tooltips).
+  Auto-appended to every page via pymdownx.snippets in mkdocs.yml.
+  Keep definitions short (tooltip-sized). Longer prose lives in docs/glossary.md.
+-->
 
 
 
@@ -1564,7 +1644,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "search.suggest", "search.highlight", "content.code.copy", "content.tabs.link", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
