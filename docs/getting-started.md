@@ -10,13 +10,14 @@ description: Complete Bazel-first guide to bootstrap a safe K3s + GPU Operator c
 <div class="cluster-config admonition info" data-vars="SPARK0_IP,NAMESPACE,DASHBOARD_PORT">
   <p><strong>Live cluster variables</strong> (edits propagate to all examples + copies on this page)</p>
   <div>
-    <label>SPARK0_IP: <input data-var="SPARK0_IP" value="192.168.1.10" placeholder="spark0-ip"></label>
+    <!-- Defaults must match the primary profile button (1-node / localhost). -->
+    <label>SPARK0_IP: <input data-var="SPARK0_IP" value="localhost" placeholder="spark0-ip"></label>
     <label>NAMESPACE: <input data-var="NAMESPACE" value="ai-inference"></label>
     <label>PORT example: <input data-var="DASHBOARD_PORT" value="32082"></label>
   </div>
   <div>
-    <button data-profile="1node" class="md-button md-button--primary">1-node / localhost profile</button>
-    <button data-profile="2node" class="md-button">2-node typical profile</button>
+    <button type="button" data-profile="1node" class="md-button md-button--primary">1-node / localhost profile</button>
+    <button type="button" data-profile="2node" class="md-button">2-node typical profile</button>
     <small>(live updates + copy buttons respect current values)</small>
   </div>
 </div>

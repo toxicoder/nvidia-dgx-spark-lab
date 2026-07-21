@@ -303,7 +303,7 @@ def dump_yaml_literal(doc: Any) -> str:
     class _LiteralDumper(yaml.SafeDumper):
         pass
 
-    _Dumper.add_representer(str, _str_presenter)
+    _LiteralDumper.add_representer(str, _str_presenter)
     return yaml.dump(
         doc,
         Dumper=_LiteralDumper,

@@ -51,7 +51,7 @@ EOF
 
 cmd_catalog() {
   local json_flag="${1:-}"
-  get_openwebui_catalog_json | if [[ "$json_flag" == "--json" ]]; then cat; else jq '.'; fi
+  get_openwebui_catalog_json | if [[ $json_flag == "--json" ]]; then cat; else jq '.'; fi
 }
 
 # @function cmd_status
@@ -60,7 +60,7 @@ cmd_catalog() {
 
 cmd_status() {
   local json_flag="${1:-}"
-  get_openwebui_status_json | if [[ "$json_flag" == "--json" ]]; then cat; else jq '.'; fi
+  get_openwebui_status_json | if [[ $json_flag == "--json" ]]; then cat; else jq '.'; fi
 }
 
 # @function cmd_start
@@ -73,8 +73,14 @@ cmd_start() {
   shift || true
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --confirm) confirm="${2:-}"; shift 2 ;;
-      *) err "Unknown arg: $1"; exit 1 ;;
+      --confirm)
+        confirm="${2:-}"
+        shift 2
+        ;;
+      *)
+        err "Unknown arg: $1"
+        exit 1
+        ;;
     esac
   done
   export LAB_NON_INTERACTIVE=1
@@ -102,7 +108,7 @@ main() {
     status) cmd_status "${1:-}" ;;
     start) cmd_start "$@" ;;
     stop) cmd_stop ;;
-    -h|--help|help) usage ;;
+    -h | --help | help) usage ;;
     *)
       err "Unknown subcommand: $sub"
       usage

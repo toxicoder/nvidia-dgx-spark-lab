@@ -16,7 +16,6 @@ from typing import Sequence
 
 # Import the module under test
 sys.path.insert(0, str(Path(__file__).parent))
-from generate_shell_docs import OUTPUT_FILE, extract_from_file, main
 
 
 class TestExtractFromFile(unittest.TestCase):
@@ -264,9 +263,10 @@ class TestMainIdempotent(unittest.TestCase):
         Uses a single temp output path for both runs so the second invocation
         actually sees existing content (unlike two separate TemporaryDirectory calls).
         """
-        import generate_shell_docs as mod
-        from unittest.mock import patch
         from io import StringIO
+        from unittest.mock import patch
+
+        import generate_shell_docs as mod
 
         with tempfile.TemporaryDirectory() as td:
             out = Path(td) / "reference.md"

@@ -11,8 +11,8 @@
 # Returns absolute path to resource-policy.json (stdlib parse target; YAML is human source).
 resource_policy_path() {
   local root="${REPO_ROOT:-}"
-  if [[ -z "$root" ]]; then
-    if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
+  if [[ -z $root ]]; then
+    if [[ -n ${BASH_SOURCE[0]:-} ]]; then
       root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
     else
       root="${PWD}"
@@ -30,7 +30,7 @@ _resource_python() {
 # @function _kubectl_nodes_json
 # Returns simplified per-node allocatable JSON array.
 _kubectl_nodes_json() {
-  if [[ -n "${LAB_MOCK_NODES_JSON:-}" ]]; then
+  if [[ -n ${LAB_MOCK_NODES_JSON:-} ]]; then
     echo "$LAB_MOCK_NODES_JSON"
     return 0
   fi
@@ -49,7 +49,7 @@ _kubectl_nodes_json() {
 # @function _kubectl_pod_requests_json
 # Sums Running/Pending pod container requests cluster-wide.
 _kubectl_pod_requests_json() {
-  if [[ -n "${LAB_MOCK_PODS_JSON:-}" ]]; then
+  if [[ -n ${LAB_MOCK_PODS_JSON:-} ]]; then
     echo "$LAB_MOCK_PODS_JSON"
     return 0
   fi
@@ -150,7 +150,7 @@ get_cluster_capacity_json() {
 check_capacity() {
   local action="${1:-}"
   local policy_path capacity_json
-  if [[ -z "$action" ]]; then
+  if [[ -z $action ]]; then
     err "Usage: check_capacity <action>   e.g. model:kimi-test, dev:coder"
     return 1
   fi
@@ -174,7 +174,7 @@ _is_job_active() {
   fi
   local active
   active=$(kubectl get job "$job" -n "$ns" -o jsonpath='{.status.active}' 2>/dev/null || echo "0")
-  [[ -n "$active" && "$active" -gt 0 ]]
+  [[ -n $active && $active -gt 0 ]]
 }
 
 # @function suggest_free_resources
@@ -198,13 +198,13 @@ suggest_free_resources() {
 _confirm_interactive() {
   local prompt="$1"
   local expected="${2:-yes}"
-  if [[ "${LAB_NON_INTERACTIVE:-}" == "1" ]]; then
-    [[ "${LAB_CONFIRM_TOKEN:-}" == "$expected" ]]
+  if [[ ${LAB_NON_INTERACTIVE:-} == "1" ]]; then
+    [[ ${LAB_CONFIRM_TOKEN:-} == "$expected" ]]
     return $?
   fi
   local response
   read -r -p "$prompt " response
-  [[ "$response" == "$expected" ]]
+  [[ $response == "$expected" ]]
 }
 
 # @function enforce_capacity
@@ -214,7 +214,7 @@ enforce_capacity() {
   local force="${2:-}"
   local check_json ok verdict
 
-  if [[ "$force" == "--force" ]]; then
+  if [[ $force == "--force" ]]; then
     warn "Capacity check bypassed via --force for action: $action"
     return 0
   fi
@@ -223,7 +223,7 @@ enforce_capacity() {
   ok=$(echo "$check_json" | jq -r '.ok // false' 2>/dev/null)
   verdict=$(echo "$check_json" | jq -r '.verdict // unknown' 2>/dev/null)
 
-  if [[ "$ok" == "true" ]]; then
+  if [[ $ok == "true" ]]; then
     return 0
   fi
 
@@ -234,13 +234,13 @@ enforce_capacity() {
   suggest_free_resources "$action" | jq -r '.[] | "  - \(.label): \(.impact)"' 2>/dev/null || true
   echo
 
-  if [[ "${LAB_NON_INTERACTIVE:-}" == "1" ]]; then
+  if [[ ${LAB_NON_INTERACTIVE:-} == "1" ]]; then
     err "Capacity check failed in non-interactive mode. Free resources or pass --force."
     return 1
   fi
 
   read -r -p "Continue anyway (may cause SSH lag or Pending pods)? [y/N] " cont
-  if [[ ! "$cont" =~ ^[Yy]$ ]]; then
+  if [[ ! $cont =~ ^[Yy]$ ]]; then
     log "Aborted due to insufficient capacity."
     return 1
   fi
@@ -290,8 +290,8 @@ print_resources_status() {
 require_heavy_confirm() {
   local model="$1"
   local msg="${2:-Heavy workload requires confirmation.}"
-  if [[ "${LAB_NON_INTERACTIVE:-}" == "1" ]]; then
-    if [[ "${LAB_CONFIRM_TOKEN:-}" != "yes" ]]; then
+  if [[ ${LAB_NON_INTERACTIVE:-} == "1" ]]; then
+    if [[ ${LAB_CONFIRM_TOKEN:-} != "yes" ]]; then
       err "Heavy model $model requires LAB_CONFIRM_TOKEN=yes in non-interactive mode."
       return 1
     fi

@@ -27,7 +27,7 @@ sso_domain() {
 
 # @function sso_enabled
 sso_enabled() {
-  [[ "${SSO_ENABLED:-1}" == "1" ]]
+  [[ ${SSO_ENABLED:-1} == "1" ]]
 }
 
 # @function ensure_sso_namespaces
@@ -68,7 +68,8 @@ ensure_sso_secrets() {
 
     # Default admin password: changeme-on-first-login (argon2 hash generated at deploy time via authelia cli or preset)
     kubectl create secret generic authelia-secrets -n auth \
-      --from-literal=users_database.yml="$(cat <<EOF
+      --from-literal=users_database.yml="$(
+        cat <<EOF
 users:
   admin:
     displayname: Lab Admin
@@ -78,7 +79,7 @@ users:
       - admins
       - devs
 EOF
-)" \
+      )" \
       --from-literal=storage_encryption_key="${storage_key}" \
       --from-literal=oidc_hmac_secret="${oidc_hmac}" \
       --dry-run=client -o yaml | kubectl apply -f -
@@ -122,9 +123,9 @@ EOF
 _replicate_oidc_client_secrets() {
   for ns in coder monitoring dev; do
     kubectl get namespace "$ns" &>/dev/null || continue
-    kubectl get secret sso-oidc-clients -n auth -o yaml 2>/dev/null \
-      | sed "s/namespace: auth/namespace: ${ns}/" \
-      | kubectl apply -f - 2>/dev/null || true
+    kubectl get secret sso-oidc-clients -n auth -o yaml 2>/dev/null |
+      sed "s/namespace: auth/namespace: ${ns}/" |
+      kubectl apply -f - 2>/dev/null || true
   done
 }
 
@@ -156,7 +157,7 @@ _ensure_authelia_oidc_config() {
   headlamp_redirects=$(_sso_oidc_redirect_uris "headlamp" "/oidc-callback")
   oauth_redirects=$(_sso_oidc_redirect_uris "oauth" "/oauth2/callback")
 
-  cat > "${tmpdir}/oidc_overlay.yml" <<EOF
+  cat >"${tmpdir}/oidc_overlay.yml" <<EOF
 identity_providers:
   oidc:
     hmac_secret: ${oidc_hmac}
@@ -211,7 +212,7 @@ _sso_oidc_redirect_uris() {
   public_d="$(lab_public_domain 2>/dev/null || true)"
   port="$(lab_sso_https_port 2>/dev/null || echo "32443")"
   echo "          - https://${host}.${local_d}:${port}${path}"
-  if [[ -n "$public_d" ]]; then
+  if [[ -n $public_d ]]; then
     echo "          - https://${host}.${public_d}${path}"
   fi
 }
@@ -219,7 +220,7 @@ _sso_oidc_redirect_uris() {
 # @function apply_oauth2_proxy
 apply_oauth2_proxy() {
   local deploy="${REPO_ROOT}/k8s/auth/generated/oauth2-proxy-deployment.yaml"
-  if [[ ! -f "$deploy" ]]; then
+  if [[ ! -f $deploy ]]; then
     type domains_render &>/dev/null && domains_render
   fi
   kubectl apply -f "$deploy"
@@ -272,7 +273,7 @@ ensure_traefik() {
   helm repo update traefik
 
   local values_file="${REPO_ROOT}/ansible/files/traefik-values.yaml"
-  if [[ -f "$values_file" ]]; then
+  if [[ -f $values_file ]]; then
     helm upgrade --install traefik traefik/traefik \
       --namespace "${ns}" \
       --version "${version}" \
@@ -338,7 +339,7 @@ get_sso_status_json() {
   if kubectl get deploy authelia -n auth &>/dev/null; then
     local ready
     ready=$(kubectl get deploy authelia -n auth -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo 0)
-    [[ "${ready:-0}" -ge 1 ]] && authelia_ok=true
+    [[ ${ready:-0} -ge 1 ]] && authelia_ok=true
   fi
   printf '{"enabled":%s,"domain":"%s","traefik":%s,"authelia":%s}\n' \
     "$(sso_enabled && echo true || echo false)" \
@@ -358,13 +359,13 @@ print_sso_access_info() {
   echo
   log "=== SSO Access (Traefik + Authelia) ==="
   echo "  Local domain:  ${local_d}  (add to /etc/hosts pointing at ${host})"
-  if [[ -n "$public_d" ]]; then
+  if [[ -n $public_d ]]; then
     echo "  Public domain: ${public_d}  (DNS → cluster; ACME TLS)"
   fi
   echo "  HTTPS entry: $(lab_service_url dashboard "/" local 2>/dev/null || echo "https://dashboard.${local_d}:${https_port}")"
   for svc in auth coder grafana headlamp chat kasm traefik oauth; do
     echo "  ${svc}: $(lab_service_url "$svc" "/" local 2>/dev/null || echo "https://${svc}.${local_d}:${https_port}")"
-    if [[ -n "$public_d" ]]; then
+    if [[ -n $public_d ]]; then
       echo "         $(lab_service_url "$svc" "/" public 2>/dev/null || echo "https://${svc}.${public_d}")"
     fi
   done
@@ -372,7 +373,7 @@ print_sso_access_info() {
   echo
   echo "  /etc/hosts template:"
   echo "    $(lab_hosts_file_line "${host}" 2>/dev/null || echo "${host} auth.${local_d} dashboard.${local_d}")"
-  if [[ "${bypass_direct_nodeports:-true}" == "true" ]] || [[ "$(_sso_policy_value bypass_direct_nodeports)" == "True" ]]; then
+  if [[ ${bypass_direct_nodeports:-true} == "true" ]] || [[ "$(_sso_policy_value bypass_direct_nodeports)" == "True" ]]; then
     echo
     warn "Legacy direct NodePorts still available (bypass SSO): :32080-:32084"
   fi

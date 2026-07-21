@@ -51,7 +51,7 @@ data:
         )
 
     def test_allows_generator_and_plain_scalars(self) -> None:
-        """configMapGenerator files: and plain scalars are fine."""
+        """ConfigMapGenerator files: and plain scalars are fine."""
         text = """
 data:
   NOTE: "Legacy static dashboard removed."
@@ -80,7 +80,7 @@ class TestMultilineShellArgs(unittest.TestCase):
     """has_multiline_shell_args detects shell-in-Deployment anti-pattern."""
 
     def test_detects_sh_c_with_block_args(self) -> None:
-        """command sh -c plus multi-line args is flagged."""
+        """Command sh -c plus multi-line args is flagged."""
         text = """
           command: ["/bin/sh", "-c"]
           args:

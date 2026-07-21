@@ -8,7 +8,7 @@ LOG_FILE="${HERMES_HOME}/logs/workspace-gateway.log"
 
 mkdir -p "${HERMES_HOME}/logs"
 
-if [[ ! -f "${HERMES_HOME}/config.yaml" && -d "${SEED_DIR}" ]]; then
+if [[ ! -f "${HERMES_HOME}/config.yaml" && -d ${SEED_DIR} ]]; then
   cp -a "${SEED_DIR}/." "${HERMES_HOME}/"
 fi
 

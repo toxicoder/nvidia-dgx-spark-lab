@@ -14,7 +14,7 @@ set -euo pipefail
 # shellcheck source=lib/paths.sh disable=SC1091
 source "$(cd "$(dirname "${0}")" && pwd)/lib/paths.sh"
 SCRIPT_DIR="$(lab_script_dir 0 scripts)"
-if [[ -n "${BUILD_WORKSPACE_DIRECTORY:-}" ]]; then
+if [[ -n ${BUILD_WORKSPACE_DIRECTORY:-} ]]; then
   ROOT="${BUILD_WORKSPACE_DIRECTORY}"
 else
   ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -43,7 +43,7 @@ EOF
   esac
 done
 
-if [[ -z "$MODE" ]]; then
+if [[ -z $MODE ]]; then
   echo "yaml_format.sh: pass --write or --check" >&2
   exit 2
 fi
@@ -65,7 +65,7 @@ resolve_prettier() {
 }
 
 PRETTIER="$(resolve_prettier || true)"
-if [[ -z "$PRETTIER" ]]; then
+if [[ -z $PRETTIER ]]; then
   echo "yaml_format.sh: prettier not found (run: cd dashboard && npm ci)" >&2
   exit 1
 fi
@@ -73,7 +73,7 @@ fi
 cd "$ROOT"
 
 PRETTIER_FLAG="--write"
-if [[ "$MODE" == "--check" ]]; then
+if [[ $MODE == "--check" ]]; then
   PRETTIER_FLAG="--check"
 fi
 
@@ -103,10 +103,12 @@ fi
 echo "yaml_format.sh: ${MODE#--} ${#YAML_FILES[@]} YAML file(s) with prettier"
 
 run_prettier() {
-  # shellcheck disable=SC2086
-  if [[ "$PRETTIER" == *" "* ]]; then
-    eval "$PRETTIER" --config "$ROOT/prettier.config.mjs" --ignore-path "$ROOT/.prettierignore" \
-      "$PRETTIER_FLAG" \"\${@}\"
+  # Prefer a single executable path; fall back to word-split only for
+  # "npx --yes prettier@3" style resolvers (no user input).
+  if [[ $PRETTIER == *" "* ]]; then
+    # shellcheck disable=SC2086 # intentional split of trusted PRETTIER command words
+    $PRETTIER --config "$ROOT/prettier.config.mjs" --ignore-path "$ROOT/.prettierignore" \
+      "$PRETTIER_FLAG" "$@"
   else
     "$PRETTIER" --config "$ROOT/prettier.config.mjs" --ignore-path "$ROOT/.prettierignore" \
       "$PRETTIER_FLAG" "$@"

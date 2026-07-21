@@ -25,7 +25,7 @@ This document is the **canonical reference** for human contributors. Stack-speci
 - [dashboard/AGENTS.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/dashboard/AGENTS.md) — Next.js dashboard details
 - [scripts/README.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/scripts/README.md) — `manage.sh` and utility scripts
 - [tests/README.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/tests/README.md) — test targets and mocks
-- [CONTRIBUTING.md (repo root)](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md) — short contribution hub
+- [CONTRIBUTING.md (repo root)](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md) — contribution hub and full branching / PR / promotion model
 - [CONTRIBUTING.md](CONTRIBUTING.md) — MkDocs prose and formatting rules
 
 AI coding agents should also read [AGENTS.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md) for workflow-specific guidance.
@@ -906,6 +906,19 @@ Default workflow for non-trivial changes:
 | Dashboard | Vitest + Playwright (Docker) | `//dashboard:hermetic-test` |
 | Docs | mkdocs strict + visual goldens | `//docs:test_mkdocs_render` |
 
+### Efficiency (local + CI)
+
+Keep feedback fast without skipping safety:
+
+| Prefer first | Escalate when |
+| --- | --- |
+| Targeted BATS / Vitest / docs unit (`//docs:test_command_vars`) | Broad refactor or merge readiness |
+| Path-aware `bazelisk run //:validate` | Unsure which paths changed → `--all` |
+| `//dashboard:fast-test` | Full hermetic Docker + Playwright (`//dashboard:hermetic-test`) |
+| `//docs:test_mkdocs_build` | Visual goldens (`//docs:test_mkdocs_render`) |
+
+CI path filters (`.github/workflows/ci.yml` / `.gitea/workflows/ci.yml`) intentionally skip expensive jobs when unrelated paths change. New tests must not force Playwright or hermetic Docker into `//:test-fast` without a strong reason. AI agents: see [AGENTS.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md) efficiency + end-of-session reflection sections.
+
 ### BATS hermetic strategy
 
 1. `mktemp -d` per test in `setup()`
@@ -946,6 +959,18 @@ A change is **not complete** until everything it touches is updated and validate
 - [ ] Safety impact documented in PR description
 
 Prefer editing the source of truth (comments, manifests, policy YAML) over duplicating prose elsewhere.
+
+### Branching, commits, and promotion
+
+Full rules live in the root [CONTRIBUTING.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md#branching-commits-prs-and-promotion).
+
+Key invariants that agents must follow:
+
+- All feature and non-urgent fix work starts from and lands on `development`.
+- Promotion to `main` is deliberate and requires a PR + full validation.
+- Commit messages and PR descriptions are written for other developers (clear, imperative, safety-aware).
+- Environments are expressed with Kustomize overlays and config files only — never with long-lived environment branches.
+- After any promotion to `main`, an annotated tag is expected.
 
 ---
 
@@ -1022,7 +1047,7 @@ Management script confirmations and Resource Guard gates must not be bypassed in
 
 ## Related links
 
-- [CONTRIBUTING.md (repo root)](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md) — short contribution hub
+- [CONTRIBUTING.md (repo root)](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md) — contribution hub and full branching / PR / promotion model
 - [CONTRIBUTING.md (docs)](CONTRIBUTING.md) — MkDocs prose rules
 - [AGENTS.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md) — AI agent workflow
 - [BUILDING_WITH_BAZEL.md](BUILDING_WITH_BAZEL.md) — Bazel targets and CI

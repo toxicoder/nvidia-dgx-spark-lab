@@ -36,15 +36,15 @@ secrets_status() {
   fi
 
   local db_path="${1:-}"
-  if [[ -z "$db_path" ]]; then
+  if [[ -z $db_path ]]; then
     if [[ -f "/data/lab-dashboard.db" ]]; then
       db_path="/data/lab-dashboard.db"
-    elif [[ -f "${DEFAULT_DB_PATH}" ]]; then
+    elif [[ -f ${DEFAULT_DB_PATH} ]]; then
       db_path="${DEFAULT_DB_PATH}"
     fi
   fi
 
-  if [[ -n "$db_path" && -f "$db_path" ]] && command -v sqlite3 >/dev/null 2>&1; then
+  if [[ -n $db_path && -f $db_path ]] && command -v sqlite3 >/dev/null 2>&1; then
     local count
     count="$(sqlite3 "$db_path" "SELECT COUNT(*) FROM lab_secrets;" 2>/dev/null || echo "?")"
     echo "Stored secrets (metadata count): ${count}"
@@ -92,15 +92,15 @@ secrets_list() {
     shift || true
   done
 
-  if [[ -z "$db_path" ]]; then
+  if [[ -z $db_path ]]; then
     if [[ -f "/data/lab-dashboard.db" ]]; then
       db_path="/data/lab-dashboard.db"
-    elif [[ -f "${DEFAULT_DB_PATH}" ]]; then
+    elif [[ -f ${DEFAULT_DB_PATH} ]]; then
       db_path="${DEFAULT_DB_PATH}"
     fi
   fi
 
-  if [[ -z "$db_path" || ! -f "$db_path" ]]; then
+  if [[ -z $db_path || ! -f $db_path ]]; then
     err "Database not found. Pass --db-path or run inside dashboard pod."
     return 1
   fi
@@ -131,7 +131,7 @@ secrets_cmd() {
     list)
       secrets_list "$@"
       ;;
-    -h|--help|help)
+    -h | --help | help)
       cat <<EOF
 secrets subcommands:
   status [--db-path PATH]   Master key presence + stored secret count (read-only)

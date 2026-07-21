@@ -39,8 +39,10 @@ sh_binary(
         "getting-started.md",
         "gitea-ci-setup.md",
         "generate_shell_docs.py",
+        "glossary.md",
         "hermes-agent.md",
         "hooks.py",
+        "includes",
         "index.md",
         "mcp-agent-toolkit.md",
         "open-webui.md",
@@ -76,8 +78,10 @@ sh_binary(
         "generated",
         "getting-started.md",
         "gitea-ci-setup.md",
+        "glossary.md",
         "hermes-agent.md",
         "hooks.py",
+        "includes",
         "index.md",
         "mcp-agent-toolkit.md",
         "models-catalog.md",
@@ -139,6 +143,22 @@ sh_test(
     visibility = ["//visibility:public"],
 )
 
+# Interactive cluster-vars panel (seed/merge/profile contract + optional Playwright).
+sh_test(
+    name = "test_command_vars",
+    srcs = ["test_command_vars.sh"],
+    data = [
+        "assets",
+        "getting-started.md",
+        "hooks.py",
+        "requirements.txt",
+        "test_command_vars.py",
+        "test_command_vars.sh",
+        "//:mkdocs.yml",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # Render test data (shared). Includes goldens so the test (and update) can
 # read committed screenshots for visual diff enforcement.
 # Generated nav pages: shell reference + dashboard-api README tree (strict mkdocs).
@@ -161,8 +181,10 @@ _RENDER_TEST_DATA = [
     "generate_shell_docs.py",
     "getting-started.md",
     "gitea-ci-setup.md",
+    "glossary.md",
     "hermes-agent.md",
     "hooks.py",
+    "includes",
     "index.md",
     "manage-docs.sh",
     "mcp-agent-toolkit.md",

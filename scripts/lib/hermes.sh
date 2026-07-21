@@ -11,7 +11,7 @@
 
 _hermes_discover_repo_root() {
   local dir="${REPO_ROOT:-${PWD}}"
-  while [[ -n "$dir" && "$dir" != "/" ]]; do
+  while [[ -n $dir && $dir != "/" ]]; do
     if [[ -f "${dir}/hermes/config/hermes-policy.yaml" ]]; then
       echo "$dir"
       return 0
@@ -21,7 +21,7 @@ _hermes_discover_repo_root() {
   return 1
 }
 
-if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
+if [[ -n ${BASH_SOURCE[0]:-} ]]; then
   _HERMES_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   _HERMES_REPO_ROOT_DEFAULT="$(cd "${_HERMES_LIB_DIR}/../.." && pwd)"
 else
@@ -31,7 +31,7 @@ fi
 
 # @function _hermes_repo_root
 _hermes_repo_root() {
-  if [[ -n "${REPO_ROOT:-}" ]]; then
+  if [[ -n ${REPO_ROOT:-} ]]; then
     echo "${REPO_ROOT}"
   else
     echo "${_HERMES_REPO_ROOT_DEFAULT}"
@@ -114,9 +114,9 @@ hermes_check_prerequisites() {
 hermes_stop_port_forward() {
   local pid_file pid
   pid_file=$(hermes_port_forward_pid_file)
-  if [[ -f "$pid_file" ]]; then
+  if [[ -f $pid_file ]]; then
     pid=$(cat "$pid_file" 2>/dev/null || true)
-    if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+    if [[ -n $pid ]] && kill -0 "$pid" 2>/dev/null; then
       kill "$pid" 2>/dev/null || true
       log "Stopped inference port-forward (pid ${pid})"
     fi
@@ -135,7 +135,7 @@ hermes_start_port_forward() {
 
   read -r svc ns < <(python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/hermes_hermes_start_port_forward.py" "$(hermes_policy_path)" "$stack_id")
 
-  if [[ -z "$svc" ]]; then
+  if [[ -z $svc ]]; then
     err "No inference service configured for stack ${stack_id}"
     return 1
   fi
@@ -207,14 +207,14 @@ sys.exit(0 if '${stack_id}' in p.get('stacks', {}) else 1)
   fi
 
   warn "=== HERMES AGENT: ${stack_id} ==="
-  if [[ "${LAB_NON_INTERACTIVE:-}" != "1" ]]; then
+  if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
     echo
     read -r -p "Start Hermes stack ${stack_id}? [yes/NO] " response
-    if [[ ! "$response" =~ ^[Yy][Ee][Ss]$ ]]; then
+    if [[ ! $response =~ ^[Yy][Ee][Ss]$ ]]; then
       log "Aborted."
       exit 0
     fi
-  elif [[ "${LAB_CONFIRM_TOKEN:-}" != "yes" ]]; then
+  elif [[ ${LAB_CONFIRM_TOKEN:-} != "yes" ]]; then
     require_heavy_confirm "${stack_id}" "Hermes stack deploy requires confirmation." || exit 1
   fi
 

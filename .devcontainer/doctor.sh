@@ -178,7 +178,7 @@ check_optional kcov "shell coverage on Linux"
 check_optional pre-commit "optional git hooks"
 check_optional pytest "docs python coverage"
 check_optional grok "Grok Build CLI (post-create install; then grok login)"
-check_optional hermes "Hermes Agent CLI (post-create install; then hermes setup)"
+check_optional hermes "Hermes Agent CLI (post-create install only; hermes setup when you need it)"
 
 # Soft checks for workspace deps (do not fail create when network skipped)
 if [[ -d "${REPO_ROOT}/dashboard/node_modules" ]]; then
@@ -190,6 +190,21 @@ fi
 
 if [[ -f "${REPO_ROOT}/docs/requirements.txt" ]]; then
   log "  OK  docs/requirements.txt present"
+fi
+
+# Soft check: host-created .venv-docs (macOS/Windows) is often broken in Linux.
+if [[ -d "${REPO_ROOT}/.venv-docs" ]]; then
+  docs_py="${REPO_ROOT}/.venv-docs/bin/python"
+  if [[ -x ${docs_py} ]] && "${docs_py}" -c 'import sys' >/dev/null 2>&1; then
+    log "  OK  docs venv (.venv-docs) usable"
+  else
+    log "  --  docs venv (.venv-docs) present but unusable (host/foreign python?)"
+    log "      fix: rm -rf .venv-docs && bash docs/setup-docs.sh"
+    WARNED=$((WARNED + 1))
+  fi
+else
+  log "  --  docs venv (.venv-docs) missing (run docs/setup-docs.sh or post-create)"
+  WARNED=$((WARNED + 1))
 fi
 
 log ""

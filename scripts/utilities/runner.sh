@@ -14,5 +14,6 @@ set -euo pipefail
 # shellcheck source=../lib/paths.sh disable=SC1091
 source "$(cd "$(dirname "${0}")" && pwd)/../lib/paths.sh"
 SCRIPT_DIR="$(lab_script_dir 1 utilities)"
-UTIL="$1"; shift || true
+UTIL="$1"
+shift || true
 exec "${SCRIPT_DIR}/${UTIL}.sh" "$@"

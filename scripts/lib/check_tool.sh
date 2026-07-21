@@ -18,7 +18,7 @@ check_tool() {
   local tool="$1"
   local install_hint="${2:-pip install or apt install $tool}"
   if ! command -v "$tool" >/dev/null 2>&1; then
-    if [[ "${CI:-}" == "true" || "${REQUIRE_LINT_TOOLS:-}" == "1" ]]; then
+    if [[ ${CI:-} == "true" || ${REQUIRE_LINT_TOOLS:-} == "1" ]]; then
       echo "$tool missing - required in CI/strict mode ($install_hint)" >&2
       exit 1
     fi

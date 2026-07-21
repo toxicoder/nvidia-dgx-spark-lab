@@ -39,7 +39,7 @@ else
   git -C "${COMFY_HOME}" pull --ff-only || warn "git pull failed; continuing with existing tree"
 fi
 
-if [[ ! -d "${VENV}" ]]; then
+if [[ ! -d ${VENV} ]]; then
   log "Creating venv"
   python3 -m venv "${VENV}"
 fi
@@ -106,10 +106,10 @@ for sub in checkpoints diffusion_models text_encoders vae loras clip clip_vision
   host_dir="${MODELS_ROOT}/comfy/${sub}"
   comfy_dir="${COMFY_HOME}/models/${sub}"
   mkdir -p "${host_dir}"
-  if [[ -L "${comfy_dir}" ]] || [[ ! -e "${comfy_dir}" ]]; then
+  if [[ -L ${comfy_dir} ]] || [[ ! -e ${comfy_dir} ]]; then
     rm -rf "${comfy_dir}"
     ln -sfn "${host_dir}" "${comfy_dir}"
-  elif [[ -d "${comfy_dir}" && -z "$(ls -A "${comfy_dir}" 2>/dev/null || true)" ]]; then
+  elif [[ -d ${comfy_dir} && -z "$(ls -A "${comfy_dir}" 2>/dev/null || true)" ]]; then
     rmdir "${comfy_dir}" 2>/dev/null || true
     ln -sfn "${host_dir}" "${comfy_dir}"
   fi

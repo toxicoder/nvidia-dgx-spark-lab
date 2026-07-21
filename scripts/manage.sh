@@ -39,11 +39,11 @@
 set -euo pipefail
 
 # kcov clears BASH_SOURCE in instrumented shells — resolve paths without it.
-if [[ -n "${SCRIPT_LIB_DIR:-}" && -d "${SCRIPT_LIB_DIR}" ]]; then
+if [[ -n ${SCRIPT_LIB_DIR:-} && -d ${SCRIPT_LIB_DIR} ]]; then
   SCRIPT_DIR="$(dirname "${SCRIPT_LIB_DIR}")"
-elif [[ -n "${0:-}" && -f "${0}" ]]; then
+elif [[ -n ${0:-} && -f ${0} ]]; then
   SCRIPT_DIR="$(cd "$(dirname "${0}")" && pwd)"
-elif [[ -n "${REPO_ROOT:-}" ]]; then
+elif [[ -n ${REPO_ROOT:-} ]]; then
   SCRIPT_DIR="${REPO_ROOT}/scripts"
 else
   SCRIPT_DIR="$(cd "$(dirname "${0:-.}")" && pwd)"
@@ -52,11 +52,11 @@ fi
 source "${SCRIPT_DIR}/lib/paths.sh" 2>/dev/null || {
   lab_script_dir() {
     local depth="${1:-1}" fallback="${2:-scripts}"
-    if [[ -n "${BASH_SOURCE[$depth]:-}" ]]; then
+    if [[ -n ${BASH_SOURCE[$depth]:-} ]]; then
       cd "$(dirname "${BASH_SOURCE[$depth]}")" && pwd
-    elif [[ -n "${0:-}" && -f "${0}" ]]; then
+    elif [[ -n ${0:-} && -f ${0} ]]; then
       cd "$(dirname "${0}")" && pwd
-    elif [[ -n "${REPO_ROOT:-}" ]]; then
+    elif [[ -n ${REPO_ROOT:-} ]]; then
       echo "${REPO_ROOT}/${fallback}"
     else
       echo "${PWD}"
@@ -135,7 +135,7 @@ start_default() {
   local free
   free=$(get_approx_free_gpus 2>/dev/null || echo "unknown")
   log "Free GPUs detected (approx): $free"
-  if [[ "$free" != "unknown" && "$free" -lt 2 ]]; then
+  if [[ $free != "unknown" && $free -lt 2 ]]; then
     warn "Low capacity; starting lightest safe workload."
   fi
   start_test
@@ -169,7 +169,10 @@ urls() {
 
 wait_for() {
   local j="${1:-}"
-  if [[ -z "$j" ]]; then err "Usage: manage.sh wait <job>"; exit 1; fi
+  if [[ -z $j ]]; then
+    err "Usage: manage.sh wait <job>"
+    exit 1
+  fi
   wait_for_job "$j"
 }
 
@@ -201,17 +204,17 @@ resources_cmd() {
   local sub="${1:-status}"
   shift || true
   case "$sub" in
-    status|""|capacity)
+    status | "" | capacity)
       print_resources_status
       ;;
     check)
       local action="${1:-}"
       local json_flag="${2:-}"
-      if [[ -z "$action" ]]; then
+      if [[ -z $action ]]; then
         err "Usage: resources check <action> [--json]   e.g. model:kimi-test"
         exit 1
       fi
-      if [[ "$json_flag" == "--json" ]]; then
+      if [[ $json_flag == "--json" ]]; then
         check_capacity "$action"
       else
         check_capacity "$action" | jq '.'
@@ -219,7 +222,7 @@ resources_cmd() {
       ;;
     suggest)
       local action="${1:-}"
-      if [[ -z "$action" ]]; then
+      if [[ -z $action ]]; then
         err "Usage: resources suggest <action>"
         exit 1
       fi
@@ -273,7 +276,7 @@ stop_workloads() {
 cleanup() {
   warn "This will delete ALL resources in namespace ${NAMESPACE} managed by this lab."
   read -r -p "Type 'DELETE' to confirm full cleanup: " confirm
-  if [[ "$confirm" != "DELETE" ]]; then
+  if [[ $confirm != "DELETE" ]]; then
     log "Cleanup aborted."
     exit 0
   fi
@@ -375,7 +378,7 @@ case "${1:-help}" in
     check_cluster_access
     start_test
     ;;
-  start-kimi|start-full)
+  start-kimi | start-full)
     ## start-kimi
     # Start full heavy Kimi production workload (confirmation + high resources required).
     # Only after test + ray validation on sufficient capacity.
@@ -391,21 +394,21 @@ case "${1:-help}" in
     check_cluster_access
     start_ray
     ;;
-  start-nemotron|start-nemotron-3-ultra)
+  start-nemotron | start-nemotron-3-ultra)
     ## start-nemotron-3-ultra
     # Heavy NVFP4 Nemotron model (validate first; 2+ nodes preferred).
     require_kubectl
     check_cluster_access
     start_nemotron
     ;;
-  start-glm|start-glm-5.2)
+  start-glm | start-glm-5.2)
     ## start-glm-5.2
     # Heavy GLM-5.2 1-bit UD-IQ1_M via llama.cpp RPC (validate first; 2 nodes required).
     require_kubectl
     check_cluster_access
     start_glm
     ;;
-  start-qwen3.5-122b-nvfp4|start-qwen-122b)
+  start-qwen3.5-122b-nvfp4 | start-qwen-122b)
     ## start-qwen3.5-122b-nvfp4
     # @command start-qwen3.5-122b-nvfp4
     # @command start-qwen-122b
@@ -414,7 +417,7 @@ case "${1:-help}" in
     check_cluster_access
     start_qwen3_5_122b_nvfp4
     ;;
-  start-qwen3.5-397b-spark2|start-qwen-397b-spark2)
+  start-qwen3.5-397b-spark2 | start-qwen-397b-spark2)
     ## start-qwen3.5-397b-spark2
     # @command start-qwen3.5-397b-spark2
     # @command start-qwen-397b-spark2
@@ -423,7 +426,7 @@ case "${1:-help}" in
     check_cluster_access
     start_qwen3_5_397b_spark2
     ;;
-  start-qwen3.5-397b-nvfp4|start-qwen-397b-nvfp4)
+  start-qwen3.5-397b-nvfp4 | start-qwen-397b-nvfp4)
     ## start-qwen3.5-397b-nvfp4
     # @command start-qwen3.5-397b-nvfp4
     # @command start-qwen-397b-nvfp4
@@ -508,7 +511,7 @@ case "${1:-help}" in
     check_cluster_access
     status_visual
     ;;
-  start-qwen36-27b|start-qwen3.6-27b)
+  start-qwen36-27b | start-qwen3.6-27b)
     ## start-qwen36-27b
     # @command start-qwen36-27b
     # @command start-qwen3.6-27b
@@ -517,7 +520,7 @@ case "${1:-help}" in
     check_cluster_access
     start_qwen36_27b
     ;;
-  start-qwen36-35b-a3b|start-qwen3.6-35b-a3b)
+  start-qwen36-35b-a3b | start-qwen3.6-35b-a3b)
     ## start-qwen36-35b-a3b
     # @command start-qwen36-35b-a3b
     # @command start-qwen3.6-35b-a3b
@@ -526,7 +529,7 @@ case "${1:-help}" in
     check_cluster_access
     start_qwen36_35b_a3b
     ;;
-  start-qwen36-dual|start-qwen3.6-dual)
+  start-qwen36-dual | start-qwen3.6-dual)
     ## start-qwen36-dual
     # @command start-qwen36-dual
     # @command start-qwen3.6-dual
@@ -535,7 +538,7 @@ case "${1:-help}" in
     check_cluster_access
     start_qwen36_dual
     ;;
-  stop-qwen36|stop-qwen3.6)
+  stop-qwen36 | stop-qwen3.6)
     ## stop-qwen36
     # @command stop-qwen36
     # @command stop-qwen3.6
@@ -544,7 +547,7 @@ case "${1:-help}" in
     check_cluster_access
     stop_qwen36
     ;;
-  status-qwen36|status-qwen3.6)
+  status-qwen36 | status-qwen3.6)
     ## status-qwen36
     # @command status-qwen36
     # @command status-qwen3.6
@@ -716,7 +719,7 @@ case "${1:-help}" in
         ;;
     esac
     ;;
-  start-monitoring|start-dashboard)
+  start-monitoring | start-dashboard)
     ## start-monitoring
     # @command start-monitoring
     # @command start-dashboard
@@ -736,7 +739,7 @@ case "${1:-help}" in
     fi
     start_monitoring
     ;;
-  setup|init)
+  setup | init)
     ## setup
     # @command setup
     # @command init
@@ -744,14 +747,14 @@ case "${1:-help}" in
     # See function definition above for details.
     setup
     ;;
-  start-default|start-safe)
+  start-default | start-safe)
     ## start-default
     # @command start-default
     # @command start-safe
     # Auto-selects safe test workload based on free GPUs.
     start_default
     ;;
-  urls|access)
+  urls | access)
     ## urls
     # @command urls
     # @command access
@@ -765,7 +768,7 @@ case "${1:-help}" in
     # Waits for a named job to reach completion.
     wait_for "$@"
     ;;
-  doctor|preflight|check)
+  doctor | preflight | check)
     ## doctor
     # @command doctor
     # @command preflight
@@ -790,7 +793,7 @@ case "${1:-help}" in
     check_cluster_access || true
     doctor
     ;;
-  resources|capacity)
+  resources | capacity)
     ## resources
     # @command resources
     # @command capacity
@@ -809,7 +812,7 @@ case "${1:-help}" in
     check_cluster_access
     resources_cmd "$@"
     ;;
-  estimate|recommend)
+  estimate | recommend)
     ## estimate
     # @command estimate
     # @command recommend
@@ -877,7 +880,7 @@ case "${1:-help}" in
     check_cluster_access
     secrets_cmd "$@"
     ;;
-  help|--help|-h)
+  help | --help | -h)
     cat <<EOF
 nvidia-dgx-spark-lab manage.sh
 
