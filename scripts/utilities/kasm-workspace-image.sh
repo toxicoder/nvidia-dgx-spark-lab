@@ -58,8 +58,14 @@ cmd_build() {
   local tag="${DEFAULT_TAG}"
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --tag) tag="${2:-}"; shift 2 ;;
-      *) err "Unknown arg: $1"; exit 1 ;;
+      --tag)
+        tag="${2:-}"
+        shift 2
+        ;;
+      *)
+        err "Unknown arg: $1"
+        exit 1
+        ;;
     esac
   done
 

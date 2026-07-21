@@ -31,7 +31,7 @@ set -euo pipefail
 
 # When invoked via `bazel run`, the script lives under bazel-bin/; use the
 # workspace env var Bazel sets so nested bazelisk calls run from the repo root.
-if [[ -n "${BUILD_WORKSPACE_DIRECTORY:-}" ]]; then
+if [[ -n ${BUILD_WORKSPACE_DIRECTORY:-} ]]; then
   ROOT="${BUILD_WORKSPACE_DIRECTORY}"
   # shellcheck source=lib/paths.sh disable=SC1091
   source "${ROOT}/scripts/lib/paths.sh"
@@ -51,10 +51,22 @@ UPDATE_GOLDENS=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --all) RUN_ALL=1; shift ;;
-    --ci) RUN_CI=1; shift ;;
-    --check-only) CHECK_ONLY=1; shift ;;
-    --update-goldens) UPDATE_GOLDENS=1; shift ;;
+    --all)
+      RUN_ALL=1
+      shift
+      ;;
+    --ci)
+      RUN_CI=1
+      shift
+      ;;
+    --check-only)
+      CHECK_ONLY=1
+      shift
+      ;;
+    --update-goldens)
+      UPDATE_GOLDENS=1
+      shift
+      ;;
     -h | --help)
       cat <<'EOF'
 Usage: validate.sh [--all] [--ci] [--check-only] [--update-goldens]
@@ -75,7 +87,7 @@ EOF
 done
 
 need_bazel() {
-  if [[ -z "$BAZEL" ]]; then
+  if [[ -z $BAZEL ]]; then
     echo "validate: bazelisk or bazel not found in PATH" >&2
     exit 1
   fi
@@ -85,22 +97,22 @@ need_bazel() {
 
 path_matches_bazel_core() {
   local path="$1"
-  [[ "$path" == scripts/* ]] && return 0
-  [[ "$path" == k8s/* ]] && return 0
-  [[ "$path" == ansible/* ]] && return 0
-  [[ "$path" == tests/* ]] && return 0
-  [[ "$path" == lints/* ]] && return 0
-  [[ "$path" == helm/* ]] && return 0
-  [[ "$path" == mcp/* ]] && return 0
-  [[ "$path" == hermes/* ]] && return 0
-  [[ "$path" == config/* ]] && return 0
+  [[ $path == scripts/* ]] && return 0
+  [[ $path == k8s/* ]] && return 0
+  [[ $path == ansible/* ]] && return 0
+  [[ $path == tests/* ]] && return 0
+  [[ $path == lints/* ]] && return 0
+  [[ $path == helm/* ]] && return 0
+  [[ $path == mcp/* ]] && return 0
+  [[ $path == hermes/* ]] && return 0
+  [[ $path == config/* ]] && return 0
   return 1
 }
 
 path_matches_dashboard() {
   local path="$1"
-  [[ "$path" == dashboard/* ]] && return 0
-  [[ "$path" == scripts/utilities/* ]] && return 0
+  [[ $path == dashboard/* ]] && return 0
+  [[ $path == scripts/utilities/* ]] && return 0
   return 1
 }
 
@@ -108,32 +120,32 @@ path_matches_docs() {
   local path="$1"
   # Do not fire docs/Playwright for arbitrary scripts — only shell doc sources
   # and docs tree. Mirrors .github/workflows/ci.yml docs filter.
-  [[ "$path" == docs/* ]] && return 0
-  [[ "$path" == mkdocs.yml ]] && return 0
-  [[ "$path" == scripts/manage.sh ]] && return 0
-  [[ "$path" == scripts/lib/* ]] && return 0
-  [[ "$path" == scripts/utilities/* ]] && return 0
+  [[ $path == docs/* ]] && return 0
+  [[ $path == mkdocs.yml ]] && return 0
+  [[ $path == scripts/manage.sh ]] && return 0
+  [[ $path == scripts/lib/* ]] && return 0
+  [[ $path == scripts/utilities/* ]] && return 0
   return 1
 }
 
 # Graph / orchestrator changes force all expensive CI slices.
 path_matches_ci_graph() {
   local path="$1"
-  [[ "$path" == BUILD.bazel ]] && return 0
-  [[ "$path" == MODULE.bazel ]] && return 0
-  [[ "$path" == MODULE.bazel.lock ]] && return 0
-  [[ "$path" == .bazelrc ]] && return 0
-  [[ "$path" == .bazelversion ]] && return 0
-  [[ "$path" == fix.sh ]] && return 0
-  [[ "$path" == scripts/validate.sh ]] && return 0
+  [[ $path == BUILD.bazel ]] && return 0
+  [[ $path == MODULE.bazel ]] && return 0
+  [[ $path == MODULE.bazel.lock ]] && return 0
+  [[ $path == .bazelrc ]] && return 0
+  [[ $path == .bazelversion ]] && return 0
+  [[ $path == fix.sh ]] && return 0
+  [[ $path == scripts/validate.sh ]] && return 0
   return 1
 }
 
 # Workflow/action YAML only — does not force hermetic/docs by itself.
 path_matches_ci_workflow() {
   local path="$1"
-  [[ "$path" == .github/* ]] && return 0
-  [[ "$path" == .gitea/* ]] && return 0
+  [[ $path == .github/* ]] && return 0
+  [[ $path == .gitea/* ]] && return 0
   return 1
 }
 
@@ -168,11 +180,15 @@ detect_changed_slices() {
   fi
 
   while IFS= read -r path; do
-    [[ -z "$path" ]] && continue
+    [[ -z $path ]] && continue
     class="$(classify_path "$path" || true)"
-    [[ -z "$class" ]] && continue
+    [[ -z $class ]] && continue
     slices+=("$class")
-  done < <(git diff --name-only "$base" HEAD 2>/dev/null; git diff --name-only --cached; git diff --name-only)
+  done < <(
+    git diff --name-only "$base" HEAD 2>/dev/null
+    git diff --name-only --cached
+    git diff --name-only
+  )
 
   if [[ ${#slices[@]} -eq 0 ]]; then
     return 1
@@ -207,29 +223,29 @@ detect_changed_slices() {
 }
 
 resolve_slices() {
-  if [[ "$RUN_ALL" -eq 1 ]]; then
+  if [[ $RUN_ALL -eq 1 ]]; then
     RUN_BAZEL_CORE=1
     RUN_DOCS=1
     RUN_DASHBOARD=1
     return 0
   fi
 
-  if [[ "$RUN_CI" -eq 1 ]]; then
+  if [[ $RUN_CI -eq 1 ]]; then
     # Accept both RUN_BAZEL_CORE and legacy RUN_BAZEL from workflow env.
     RUN_BAZEL_CORE="${RUN_BAZEL_CORE:-${RUN_BAZEL:-0}}"
     RUN_DOCS="${RUN_DOCS:-0}"
     RUN_DASHBOARD="${RUN_DASHBOARD:-0}"
     # Graph/orchestrator changes force all slices. Workflow-only does not.
-    if [[ "${RUN_CI_GRAPH:-0}" == "1" || "${RUN_CI_GRAPH:-}" == "true" ]]; then
+    if [[ ${RUN_CI_GRAPH:-0} == "1" || ${RUN_CI_GRAPH:-} == "true" ]]; then
       RUN_BAZEL_CORE=1
       RUN_DOCS=1
       RUN_DASHBOARD=1
     fi
     # Legacy RUN_CI_CONFIG=1 meant "everything" — keep that for old callers.
-    if [[ "${RUN_CI_CONFIG:-0}" == "1" || "${RUN_CI_CONFIG:-}" == "true" ]]; then
-      if [[ "${RUN_CI_GRAPH:-0}" == "1" || "${RUN_CI_GRAPH:-}" == "true" ]]; then
+    if [[ ${RUN_CI_CONFIG:-0} == "1" || ${RUN_CI_CONFIG:-} == "true" ]]; then
+      if [[ ${RUN_CI_GRAPH:-0} == "1" || ${RUN_CI_GRAPH:-} == "true" ]]; then
         :
-      elif [[ -z "${RUN_CI_GRAPH:-}" ]]; then
+      elif [[ -z ${RUN_CI_GRAPH:-} ]]; then
         # Old workflows only set RUN_CI_CONFIG — preserve full force.
         RUN_BAZEL_CORE=1
         RUN_DOCS=1
@@ -237,9 +253,9 @@ resolve_slices() {
       fi
     fi
     # Normalize workflow true/false strings to 1/0.
-    [[ "$RUN_BAZEL_CORE" == "true" ]] && RUN_BAZEL_CORE=1
-    [[ "$RUN_DOCS" == "true" ]] && RUN_DOCS=1
-    [[ "$RUN_DASHBOARD" == "true" ]] && RUN_DASHBOARD=1
+    [[ $RUN_BAZEL_CORE == "true" ]] && RUN_BAZEL_CORE=1
+    [[ $RUN_DOCS == "true" ]] && RUN_DOCS=1
+    [[ $RUN_DASHBOARD == "true" ]] && RUN_DASHBOARD=1
     return 0
   fi
 
@@ -259,11 +275,11 @@ ci_check_only_gate() {
     local name="$1"
     local should_run="$2"
     local result="$3"
-    if [[ "$should_run" != "1" && "$should_run" != "true" ]]; then
+    if [[ $should_run != "1" && $should_run != "true" ]]; then
       echo "skip $name (unchanged paths)"
       return 0
     fi
-    if [[ "$result" != "success" ]]; then
+    if [[ $result != "success" ]]; then
       echo "FAIL $name result=$result"
       fail=1
     else
@@ -284,11 +300,11 @@ check_generated_artifacts() {
     echo "validate: docs/generated/shell/reference.md is dirty — run: bazelisk run //docs:docs" >&2
     dirty=1
   fi
-  if [[ "${RUN_DASHBOARD:-0}" == "1" ]] && ! git diff --quiet -- docs/generated/dashboard-api 2>/dev/null; then
+  if [[ ${RUN_DASHBOARD:-0} == "1" ]] && ! git diff --quiet -- docs/generated/dashboard-api 2>/dev/null; then
     echo "validate: docs/generated/dashboard-api is dirty — run: bazelisk run //dashboard:docs" >&2
     dirty=1
   fi
-  if [[ "$dirty" -ne 0 ]]; then
+  if [[ $dirty -ne 0 ]]; then
     exit 1
   fi
   echo "validate: generated docs artifacts are committed"
@@ -300,7 +316,7 @@ run_core_slice() {
   "$BAZEL" build //... --nobuild
   # test-fast already includes //tests:manifest_coverage — do not re-run it.
   "$BAZEL" test //:test-fast
-  if [[ "$RUN_ALL" -eq 1 ]]; then
+  if [[ $RUN_ALL -eq 1 ]]; then
     # python coverage is in test-fast; re-run is cheap when cached. Keep
     # optional host-tool suites behind --all only.
     if command -v helm >/dev/null 2>&1; then
@@ -325,10 +341,10 @@ run_core_slice() {
 run_docs_slice() {
   need_bazel
   "$BAZEL" run //docs:docs
-  if [[ "$UPDATE_GOLDENS" -eq 1 ]]; then
+  if [[ $UPDATE_GOLDENS -eq 1 ]]; then
     echo "==> validate: docs (visual golden update)"
     UPDATE_SNAPSHOTS=1 "$BAZEL" run //docs:visual-update
-  elif [[ "$RUN_ALL" -eq 1 ]]; then
+  elif [[ $RUN_ALL -eq 1 ]]; then
     echo "==> validate: docs (build + visual regression)"
     "$BAZEL" test //docs:test_mkdocs_render
   else
@@ -338,7 +354,7 @@ run_docs_slice() {
 }
 
 run_dashboard_slice() {
-  if [[ "$RUN_ALL" -eq 1 || "$UPDATE_GOLDENS" -eq 1 ]]; then
+  if [[ $RUN_ALL -eq 1 || $UPDATE_GOLDENS -eq 1 ]]; then
     echo "==> validate: dashboard (hermetic Docker: Vitest + build + Playwright)"
     if ! command -v docker >/dev/null 2>&1; then
       echo "validate: docker not found; install Docker Desktop and retry" >&2
@@ -348,7 +364,7 @@ run_dashboard_slice() {
       echo "validate: docker daemon not reachable; start/restart Docker Desktop and retry" >&2
       exit 1
     fi
-    if [[ "$UPDATE_GOLDENS" -eq 1 ]]; then
+    if [[ $UPDATE_GOLDENS -eq 1 ]]; then
       UPDATE_SNAPSHOTS=1 "$ROOT/dashboard/scripts/run-hermetic-tests.sh"
     else
       "$BAZEL" run //dashboard:hermetic-test
@@ -365,22 +381,22 @@ resolve_slices
 
 echo "validate: slices — bazel-core=${RUN_BAZEL_CORE:-0} docs=${RUN_DOCS:-0} dashboard=${RUN_DASHBOARD:-0}"
 
-if [[ "$RUN_CI" -eq 1 && "$CHECK_ONLY" -eq 1 ]]; then
+if [[ $RUN_CI -eq 1 && $CHECK_ONLY -eq 1 ]]; then
   ci_check_only_gate
 fi
 
 # Core always runs (fast feedback even when only docs/dashboard changed)
 run_core_slice
 
-if [[ "${RUN_DOCS:-0}" == "1" || "${RUN_DOCS}" == "true" ]]; then
+if [[ ${RUN_DOCS:-0} == "1" || ${RUN_DOCS} == "true" ]]; then
   run_docs_slice
 fi
 
-if [[ "${RUN_DASHBOARD:-0}" == "1" || "${RUN_DASHBOARD}" == "true" ]]; then
+if [[ ${RUN_DASHBOARD:-0} == "1" || ${RUN_DASHBOARD} == "true" ]]; then
   run_dashboard_slice
 fi
 
-if [[ "$CHECK_ONLY" -eq 1 ]]; then
+if [[ $CHECK_ONLY -eq 1 ]]; then
   check_generated_artifacts
 fi
 

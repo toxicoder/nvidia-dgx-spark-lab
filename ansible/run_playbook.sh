@@ -19,7 +19,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 PLAYBOOK="${1:-}"
-if [[ -z "$PLAYBOOK" ]]; then
+if [[ -z $PLAYBOOK ]]; then
   echo "Usage: $0 <playbook-name.yml> [extra ansible-playbook args...]"
   echo "Example: bazel run //ansible:bootstrap"
   echo "         bazel run //ansible:bootstrap -- -i inventory/hosts.ini"
@@ -34,15 +34,15 @@ ANSIBLE_CFG="ansible.cfg"
 # We detect -i / --inventory and let the user win if present.
 HAS_INVENTORY=false
 for arg in "$@"; do
-  if [[ "$arg" == "-i" || "$arg" == "--inventory" || "$arg" == --inventory=* ]]; then
+  if [[ $arg == "-i" || $arg == "--inventory" || $arg == --inventory=* ]]; then
     HAS_INVENTORY=true
     break
   fi
 done
 
 INV_ARGS=()
-if [[ "$HAS_INVENTORY" != true ]]; then
-  INV_ARGS=( -i "$INVENTORY_DEFAULT" )
+if [[ $HAS_INVENTORY != true ]]; then
+  INV_ARGS=(-i "$INVENTORY_DEFAULT")
 fi
 
 export ANSIBLE_CONFIG="${ANSIBLE_CONFIG:-$ANSIBLE_CFG}"

@@ -2,9 +2,9 @@
 # Purpose: Run mypy strict type-checking on all git-tracked Python files.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -n "${BUILD_WORKSPACE_DIRECTORY:-}" ]]; then
+if [[ -n ${BUILD_WORKSPACE_DIRECTORY:-} ]]; then
   ROOT="${BUILD_WORKSPACE_DIRECTORY}"
-elif [[ -n "${TEST_SRCDIR:-}" ]]; then
+elif [[ -n ${TEST_SRCDIR:-} ]]; then
   ROOT="${TEST_SRCDIR}/_main"
 else
   ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

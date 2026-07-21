@@ -23,9 +23,9 @@ VISUAL_HARNESS_ENV=(
 )
 
 run_vitest() {
-  if [[ "${UPDATE_SNAPSHOTS:-0}" == "1" ]]; then
+  if [[ ${UPDATE_SNAPSHOTS:-0} == "1" ]]; then
     UPDATE_SNAPSHOTS=1 npm run test:coverage
-  elif [[ "$MODE" == "fast" ]]; then
+  elif [[ $MODE == "fast" ]]; then
     npm test -- --run
   else
     npm run test:coverage
@@ -42,7 +42,7 @@ run_fast_checks() {
   typecheck_status=0
   wait "$lint_pid" || lint_status=$?
   wait "$typecheck_pid" || typecheck_status=$?
-  if [[ "$lint_status" -ne 0 || "$typecheck_status" -ne 0 ]]; then
+  if [[ $lint_status -ne 0 || $typecheck_status -ne 0 ]]; then
     exit 1
   fi
 }
@@ -72,7 +72,7 @@ case "$MODE" in
     for kv in "${VISUAL_HARNESS_ENV[@]}"; do
       export "${kv?}"
     done
-    if [[ "${UPDATE_SNAPSHOTS:-0}" == "1" ]]; then
+    if [[ ${UPDATE_SNAPSHOTS:-0} == "1" ]]; then
       npm run visual:update
     else
       npm run visual
@@ -102,7 +102,7 @@ for kv in "${VISUAL_HARNESS_ENV[@]}"; do
   export "${kv?}"
 done
 
-if [[ "${UPDATE_SNAPSHOTS:-0}" == "1" ]]; then
+if [[ ${UPDATE_SNAPSHOTS:-0} == "1" ]]; then
   npm run visual:update
 else
   npm run visual

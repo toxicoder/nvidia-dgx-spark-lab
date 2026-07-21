@@ -24,33 +24,33 @@ from typing import Any
 
 # Keep in sync with any manual patches. Must be self-contained (no deps).
 _GITHUB_API_PATCH = (
-    '<script>'
-    '(function(){'
-    'try{var orig=window.fetch;'
+    "<script>"
+    "(function(){"
+    "try{var orig=window.fetch;"
     'if(typeof orig==="function"){window.fetch=function(i,init){'
     'var u=(typeof i==="string")?i:(i&&typeof i.url==="string"?i.url:"");'
     'if(u.indexOf("api.github.com/repos/toxicoder/nvidia-dgx-spark-lab")!==-1){'
     'return Promise.resolve(new Response("{}", {status:200,headers:{"Content-Type":"application/json"}}));}'
-    'return orig.apply(this,arguments);'
-    '};}}catch(e){}'
-    'try{var XHR=window.XMLHttpRequest;'
-    'if(XHR&&XHR.prototype){var p=XHR.prototype,open=p.open;'
-    'p.open=function(m,u){'
+    "return orig.apply(this,arguments);"
+    "};}}catch(e){}"
+    "try{var XHR=window.XMLHttpRequest;"
+    "if(XHR&&XHR.prototype){var p=XHR.prototype,open=p.open;"
+    "p.open=function(m,u){"
     'if(typeof u==="string"&&u.indexOf("api.github.com/repos/toxicoder/nvidia-dgx-spark-lab")!==-1){'
-    'var self=this;'
+    "var self=this;"
     'Object.defineProperty(self,"responseText",{get:function(){return"{}"},configurable:!0});'
     'Object.defineProperty(self,"status",{get:function(){return 200},configurable:!0});'
     'Object.defineProperty(self,"readyState",{get:function(){return 4},configurable:!0});'
-    'self.send=function(){setTimeout(function(){'
+    "self.send=function(){setTimeout(function(){"
     'try{if(typeof self.onreadystatechange==="function")self.onreadystatechange.call(self);}catch(_){}'
     'try{if(typeof self.onload==="function")self.onload.call(self);}catch(_){}'
-    '},0);};'
-    'return;'
-    '}'
-    'return open.apply(this,arguments);'
-    '};}}catch(e){}'
-    '})();'
-    '</script>'
+    "},0);};"
+    "return;"
+    "}"
+    "return open.apply(this,arguments);"
+    "};}}catch(e){}"
+    "})();"
+    "</script>"
 )
 
 
@@ -65,6 +65,7 @@ def on_post_page(output: str, **kwargs: Any) -> str:
         HTML with the inline GitHub API patch script injected once after
         the first ``<head>`` opening tag.
     """
+
     def _inject(m: re.Match[str]) -> str:
         """Append the patch script to the matched ``<head>`` opening tag.
 

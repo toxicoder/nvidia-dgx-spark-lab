@@ -49,7 +49,7 @@ EOF
 
 cmd_status() {
   local json_flag="${1:-}"
-  get_workspace_hermes_status_json | if [[ "$json_flag" == "--json" ]]; then cat; else jq '.'; fi
+  get_workspace_hermes_status_json | if [[ $json_flag == "--json" ]]; then cat; else jq '.'; fi
 }
 
 # @function cmd_seed
@@ -58,7 +58,7 @@ cmd_status() {
 
 cmd_seed() {
   local target_dir="${1:-}"
-  if [[ -z "$target_dir" ]]; then
+  if [[ -z $target_dir ]]; then
     err "Target directory required"
     usage
     exit 1
@@ -73,7 +73,7 @@ cmd_seed() {
 
 cmd_render() {
   local target_dir="${1:-}"
-  if [[ -z "$target_dir" ]]; then
+  if [[ -z $target_dir ]]; then
     err "Target directory required"
     usage
     exit 1

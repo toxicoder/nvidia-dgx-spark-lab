@@ -54,6 +54,7 @@ def _load_domains() -> dict[str, Any]:
         url = f"https://{host}:{port}/#observability"
     return {"dashboard_url": url}
 
+
 DS: dict[str, str] = {"type": "prometheus", "uid": "Prometheus"}
 
 
@@ -153,7 +154,13 @@ def panel_row(id_: int, title: str, y: int) -> dict[str, Any]:
     Returns:
         Grafana row panel JSON object.
     """
-    return {"id": id_, "type": "row", "title": title, "gridPos": {"h": 1, "w": 24, "x": 0, "y": y}, "collapsed": False}
+    return {
+        "id": id_,
+        "type": "row",
+        "title": title,
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": y},
+        "collapsed": False,
+    }
 
 
 def base(
@@ -246,18 +253,75 @@ DASHBOARDS: dict[str, dict[str, Any]] = {
         "DGX Spark Lab — Enterprise Overview",
         ["spark-lab", "overview"],
         [
-            panel_stat(1, "Nodes Up", 'count(kube_node_status_condition{condition="Ready",status="true"})', 0, 0),
-            panel_stat(2, "GPUs Allocatable", 'sum(kube_node_status_allocatable{resource="nvidia_com_gpu"}) or vector(0)', 4, 0),
-            panel_stat(3, "GPU Util Avg %", "avg(DCGM_FI_DEV_GPU_UTIL) or vector(0)", 8, 0, unit="percent"),
-            panel_stat(4, "Inference Probes Up", 'sum(probe_success{job=~"blackbox-inference.*"}) or vector(0)', 12, 0),
-            panel_stat(5, "SSO Routes Healthy %", "avg(probe_success{job=~\"blackbox.*\"}) * 100", 16, 0, unit="percent"),
-            panel_stat(6, "Failed Jobs", 'sum(kube_job_status_failed) or vector(0)', 20, 0),
+            panel_stat(
+                1,
+                "Nodes Up",
+                'count(kube_node_status_condition{condition="Ready",status="true"})',
+                0,
+                0,
+            ),
+            panel_stat(
+                2,
+                "GPUs Allocatable",
+                'sum(kube_node_status_allocatable{resource="nvidia_com_gpu"}) or vector(0)',
+                4,
+                0,
+            ),
+            panel_stat(
+                3, "GPU Util Avg %", "avg(DCGM_FI_DEV_GPU_UTIL) or vector(0)", 8, 0, unit="percent"
+            ),
+            panel_stat(
+                4,
+                "Inference Probes Up",
+                'sum(probe_success{job=~"blackbox-inference.*"}) or vector(0)',
+                12,
+                0,
+            ),
+            panel_stat(
+                5,
+                "SSO Routes Healthy %",
+                'avg(probe_success{job=~"blackbox.*"}) * 100',
+                16,
+                0,
+                unit="percent",
+            ),
+            panel_stat(6, "Failed Jobs", "sum(kube_job_status_failed) or vector(0)", 20, 0),
             panel_row(10, "Cluster Health", 4),
-            panel_timeseries(11, "CPU Utilization %", '100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)', 0, 5, 12),
-            panel_timeseries(12, "Memory Used %", "(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100", 12, 5, 12, unit="percent"),
+            panel_timeseries(
+                11,
+                "CPU Utilization %",
+                '100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)',
+                0,
+                5,
+                12,
+            ),
+            panel_timeseries(
+                12,
+                "Memory Used %",
+                "(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100",
+                12,
+                5,
+                12,
+                unit="percent",
+            ),
             panel_row(20, "GPU & Inference", 13),
-            panel_timeseries(21, "GPU Utilization by Node", "avg by (node) (DCGM_FI_DEV_GPU_UTIL)", 0, 14, 12, unit="percent"),
-            panel_timeseries(22, "vLLM Running Requests", 'sum(vllm:num_requests_running) or vector(0)', 12, 14, 12),
+            panel_timeseries(
+                21,
+                "GPU Utilization by Node",
+                "avg by (node) (DCGM_FI_DEV_GPU_UTIL)",
+                0,
+                14,
+                12,
+                unit="percent",
+            ),
+            panel_timeseries(
+                22,
+                "vLLM Running Requests",
+                "sum(vllm:num_requests_running) or vector(0)",
+                12,
+                14,
+                12,
+            ),
         ],
     ),
     "01-dgx-nodes.json": base(
@@ -266,10 +330,42 @@ DASHBOARDS: dict[str, dict[str, Any]] = {
         ["spark-lab", "nodes"],
         [
             panel_row(1, "Per-Node Resources", 0),
-            panel_timeseries(2, "CPU Util %", '100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle",nodename=~"$node"}[5m])) * 100)', 0, 1, 12, unit="percent"),
-            panel_timeseries(3, "Memory Used %", '(1 - node_memory_MemAvailable_bytes{nodename=~"$node"} / node_memory_MemTotal_bytes{nodename=~"$node"}) * 100', 12, 1, 12, unit="percent"),
-            panel_timeseries(4, "Disk Util %", '(1 - node_filesystem_avail_bytes{mountpoint="/",nodename=~"$node"} / node_filesystem_size_bytes{mountpoint="/",nodename=~"$node"}) * 100', 0, 9, 12, unit="percent"),
-            panel_timeseries(5, "Network RX", 'rate(node_network_receive_bytes_total{device!~"lo|veth.*",nodename=~"$node"}[5m])', 12, 9, 12, unit="Bps"),
+            panel_timeseries(
+                2,
+                "CPU Util %",
+                '100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle",nodename=~"$node"}[5m])) * 100)',
+                0,
+                1,
+                12,
+                unit="percent",
+            ),
+            panel_timeseries(
+                3,
+                "Memory Used %",
+                '(1 - node_memory_MemAvailable_bytes{nodename=~"$node"} / node_memory_MemTotal_bytes{nodename=~"$node"}) * 100',
+                12,
+                1,
+                12,
+                unit="percent",
+            ),
+            panel_timeseries(
+                4,
+                "Disk Util %",
+                '(1 - node_filesystem_avail_bytes{mountpoint="/",nodename=~"$node"} / node_filesystem_size_bytes{mountpoint="/",nodename=~"$node"}) * 100',
+                0,
+                9,
+                12,
+                unit="percent",
+            ),
+            panel_timeseries(
+                5,
+                "Network RX",
+                'rate(node_network_receive_bytes_total{device!~"lo|veth.*",nodename=~"$node"}[5m])',
+                12,
+                9,
+                12,
+                unit="Bps",
+            ),
             panel_timeseries(6, "Load Average (1m)", 'node_load1{nodename=~"$node"}', 0, 17, 24),
         ],
     ),
@@ -279,14 +375,27 @@ DASHBOARDS: dict[str, dict[str, Any]] = {
         ["spark-lab", "gpu"],
         [
             panel_stat(1, "Avg GPU Util", "avg(DCGM_FI_DEV_GPU_UTIL)", 0, 0, unit="percent"),
-            panel_stat(2, "Avg GPU Memory %", "avg(DCGM_FI_DEV_FB_USED / (DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE)) * 100", 4, 0, unit="percent"),
+            panel_stat(
+                2,
+                "Avg GPU Memory %",
+                "avg(DCGM_FI_DEV_FB_USED / (DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE)) * 100",
+                4,
+                0,
+                unit="percent",
+            ),
             panel_stat(3, "Total Power (W)", "sum(DCGM_FI_DEV_POWER_USAGE)", 8, 0, unit="watt"),
             panel_stat(4, "Max Temp (C)", "max(DCGM_FI_DEV_GPU_TEMP)", 12, 0, unit="celsius"),
             panel_row(10, "Per-GPU Metrics", 4),
-            panel_timeseries(11, "GPU Utilization", "DCGM_FI_DEV_GPU_UTIL", 0, 5, 12, unit="percent"),
-            panel_timeseries(12, "GPU Memory Used (MiB)", "DCGM_FI_DEV_FB_USED", 12, 5, 12, unit="decmbytes"),
+            panel_timeseries(
+                11, "GPU Utilization", "DCGM_FI_DEV_GPU_UTIL", 0, 5, 12, unit="percent"
+            ),
+            panel_timeseries(
+                12, "GPU Memory Used (MiB)", "DCGM_FI_DEV_FB_USED", 12, 5, 12, unit="decmbytes"
+            ),
             panel_timeseries(13, "GPU Power", "DCGM_FI_DEV_POWER_USAGE", 0, 13, 12, unit="watt"),
-            panel_timeseries(14, "GPU Temperature", "DCGM_FI_DEV_GPU_TEMP", 12, 13, 12, unit="celsius"),
+            panel_timeseries(
+                14, "GPU Temperature", "DCGM_FI_DEV_GPU_TEMP", 12, 13, 12, unit="celsius"
+            ),
         ],
         refresh="10s",
     ),
@@ -300,10 +409,31 @@ DASHBOARDS: dict[str, dict[str, Any]] = {
             panel_stat(3, "Failed Pods", 'sum(kube_pod_status_phase{phase="Failed"})', 8, 0),
             panel_stat(4, "Failed Jobs", "sum(kube_job_status_failed) or vector(0)", 12, 0),
             panel_row(10, "Workloads by Namespace", 4),
-            panel_timeseries(11, "Pods by Namespace", "sum by (namespace) (kube_pod_status_phase{phase=\"Running\"})", 0, 5, 12),
+            panel_timeseries(
+                11,
+                "Pods by Namespace",
+                'sum by (namespace) (kube_pod_status_phase{phase="Running"})',
+                0,
+                5,
+                12,
+            ),
             panel_timeseries(12, "Job Failures", "kube_job_status_failed", 12, 5, 12),
-            panel_timeseries(13, "ResourceQuota Used — CPU", 'kube_resourcequota{resource="requests.cpu", type="used"}', 0, 13, 12),
-            panel_timeseries(14, "ResourceQuota Used — Memory", 'kube_resourcequota{resource="requests.memory", type="used"}', 12, 13, 12),
+            panel_timeseries(
+                13,
+                "ResourceQuota Used — CPU",
+                'kube_resourcequota{resource="requests.cpu", type="used"}',
+                0,
+                13,
+                12,
+            ),
+            panel_timeseries(
+                14,
+                "ResourceQuota Used — Memory",
+                'kube_resourcequota{resource="requests.memory", type="used"}',
+                12,
+                13,
+                12,
+            ),
         ],
     ),
     "04-inference.json": base(
@@ -311,14 +441,40 @@ DASHBOARDS: dict[str, dict[str, Any]] = {
         "DGX Spark — Inference Workloads",
         ["spark-lab", "inference"],
         [
-            panel_stat(1, "Running Inference Pods", 'count(kube_pod_status_phase{namespace="ai-inference",phase="Running"})', 0, 0),
-            panel_stat(2, "vLLM Requests Running", 'sum(vllm:num_requests_running) or vector(0)', 4, 0),
-            panel_stat(3, "GPU Cache Usage %", 'avg(vllm:gpu_cache_usage_perc) * 100 or vector(0)', 8, 0, unit="percent"),
-            panel_stat(4, "Inference Probes Up", 'sum(probe_success{job=~"blackbox-inference.*"})', 12, 0),
+            panel_stat(
+                1,
+                "Running Inference Pods",
+                'count(kube_pod_status_phase{namespace="ai-inference",phase="Running"})',
+                0,
+                0,
+            ),
+            panel_stat(
+                2, "vLLM Requests Running", "sum(vllm:num_requests_running) or vector(0)", 4, 0
+            ),
+            panel_stat(
+                3,
+                "GPU Cache Usage %",
+                "avg(vllm:gpu_cache_usage_perc) * 100 or vector(0)",
+                8,
+                0,
+                unit="percent",
+            ),
+            panel_stat(
+                4, "Inference Probes Up", 'sum(probe_success{job=~"blackbox-inference.*"})', 12, 0
+            ),
             panel_row(10, "Throughput & Health", 4),
             panel_timeseries(11, "vLLM Running Requests", "vllm:num_requests_running", 0, 5, 12),
-            panel_timeseries(12, "vLLM GPU Cache %", "vllm:gpu_cache_usage_perc * 100", 12, 5, 12, unit="percent"),
-            panel_timeseries(13, "Inference Probe Success", 'probe_success{job=~"blackbox-inference.*"}', 0, 13, 24),
+            panel_timeseries(
+                12, "vLLM GPU Cache %", "vllm:gpu_cache_usage_perc * 100", 12, 5, 12, unit="percent"
+            ),
+            panel_timeseries(
+                13,
+                "Inference Probe Success",
+                'probe_success{job=~"blackbox-inference.*"}',
+                0,
+                13,
+                24,
+            ),
         ],
         refresh="10s",
     ),
@@ -330,11 +486,26 @@ DASHBOARDS: dict[str, dict[str, Any]] = {
             panel_stat(1, "Traefik Up", 'up{job="traefik"}', 0, 0),
             panel_stat(2, "Prometheus Targets Up", "sum(up)", 4, 0),
             panel_stat(3, "Probe Success Rate", "avg(probe_success) * 100", 8, 0, unit="percent"),
-            panel_stat(4, "cert-manager Up", 'up{job=~"blackbox-cluster.*",instance=~".*cert-manager.*"} or vector(0)', 12, 0),
+            panel_stat(
+                4,
+                "cert-manager Up",
+                'up{job=~"blackbox-cluster.*",instance=~".*cert-manager.*"} or vector(0)',
+                12,
+                0,
+            ),
             panel_row(10, "Ingress & Probes", 4),
-            panel_timeseries(11, "Traefik Request Rate", "sum(rate(traefik_entrypoint_requests_total[5m]))", 0, 5, 12),
+            panel_timeseries(
+                11,
+                "Traefik Request Rate",
+                "sum(rate(traefik_entrypoint_requests_total[5m]))",
+                0,
+                5,
+                12,
+            ),
             panel_timeseries(12, "HTTP Probe Success", "probe_success", 12, 5, 12),
-            panel_timeseries(13, "Probe Duration (s)", "probe_duration_seconds", 0, 13, 24, unit="s"),
+            panel_timeseries(
+                13, "Probe Duration (s)", "probe_duration_seconds", 0, 13, 24, unit="s"
+            ),
         ],
     ),
     "06-dev-agent-stack.json": base(
@@ -342,14 +513,43 @@ DASHBOARDS: dict[str, dict[str, Any]] = {
         "DGX Spark — Dev & Agent Stack",
         ["spark-lab", "dev", "agent"],
         [
-            panel_stat(1, "Coder Pods Running", 'sum(kube_pod_status_phase{namespace="coder",phase="Running"})', 0, 0),
-            panel_stat(2, "Kasm Pods Running", 'sum(kube_pod_status_phase{namespace="kasm",phase="Running"})', 4, 0),
-            panel_stat(3, "Open WebUI Running", 'sum(kube_pod_status_phase{namespace="dev",pod=~".*open-webui.*",phase="Running"})', 8, 0),
+            panel_stat(
+                1,
+                "Coder Pods Running",
+                'sum(kube_pod_status_phase{namespace="coder",phase="Running"})',
+                0,
+                0,
+            ),
+            panel_stat(
+                2,
+                "Kasm Pods Running",
+                'sum(kube_pod_status_phase{namespace="kasm",phase="Running"})',
+                4,
+                0,
+            ),
+            panel_stat(
+                3,
+                "Open WebUI Running",
+                'sum(kube_pod_status_phase{namespace="dev",pod=~".*open-webui.*",phase="Running"})',
+                8,
+                0,
+            ),
             panel_stat(4, "MCP Probes Up", 'sum(probe_success{job=~"blackbox-mcp.*"})', 12, 0),
             panel_row(10, "Agent Services", 4),
-            panel_timeseries(11, "Hermes Host Probes", 'probe_success{job=~"blackbox-host.*"}', 0, 5, 12),
-            panel_timeseries(12, "MCP NodePort Probes", 'probe_success{job=~"blackbox-mcp.*"}', 12, 5, 12),
-            panel_timeseries(13, "agent-tools Pod Count", 'sum by (pod) (kube_pod_status_phase{namespace="agent-tools",phase="Running"})', 0, 13, 24),
+            panel_timeseries(
+                11, "Hermes Host Probes", 'probe_success{job=~"blackbox-host.*"}', 0, 5, 12
+            ),
+            panel_timeseries(
+                12, "MCP NodePort Probes", 'probe_success{job=~"blackbox-mcp.*"}', 12, 5, 12
+            ),
+            panel_timeseries(
+                13,
+                "agent-tools Pod Count",
+                'sum by (pod) (kube_pod_status_phase{namespace="agent-tools",phase="Running"})',
+                0,
+                13,
+                24,
+            ),
         ],
     ),
     "07-storage-network.json": base(
@@ -358,12 +558,40 @@ DASHBOARDS: dict[str, dict[str, Any]] = {
         ["spark-lab", "storage", "network"],
         [
             panel_row(1, "Storage", 0),
-            panel_timeseries(2, "Disk Used % (root)", '(1 - node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100', 0, 1, 12, unit="percent"),
-            panel_timeseries(3, "Disk I/O Read", 'rate(node_disk_read_bytes_total[5m])', 12, 1, 12, unit="Bps"),
-            panel_timeseries(4, "Disk I/O Write", 'rate(node_disk_written_bytes_total[5m])', 0, 9, 12, unit="Bps"),
+            panel_timeseries(
+                2,
+                "Disk Used % (root)",
+                '(1 - node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100',
+                0,
+                1,
+                12,
+                unit="percent",
+            ),
+            panel_timeseries(
+                3, "Disk I/O Read", "rate(node_disk_read_bytes_total[5m])", 12, 1, 12, unit="Bps"
+            ),
+            panel_timeseries(
+                4, "Disk I/O Write", "rate(node_disk_written_bytes_total[5m])", 0, 9, 12, unit="Bps"
+            ),
             panel_row(10, "High-Speed Network (400G)", 17),
-            panel_timeseries(11, "HS RX (enp1s0*)", 'rate(node_network_receive_bytes_total{device=~"enp1s0.*"}[5m])', 0, 18, 12, unit="Bps"),
-            panel_timeseries(12, "HS TX (enp1s0*)", 'rate(node_network_transmit_bytes_total{device=~"enp1s0.*"}[5m])', 12, 18, 12, unit="Bps"),
+            panel_timeseries(
+                11,
+                "HS RX (enp1s0*)",
+                'rate(node_network_receive_bytes_total{device=~"enp1s0.*"}[5m])',
+                0,
+                18,
+                12,
+                unit="Bps",
+            ),
+            panel_timeseries(
+                12,
+                "HS TX (enp1s0*)",
+                'rate(node_network_transmit_bytes_total{device=~"enp1s0.*"}[5m])',
+                12,
+                18,
+                12,
+                unit="Bps",
+            ),
         ],
     ),
 }

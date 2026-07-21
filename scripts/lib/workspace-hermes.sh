@@ -19,7 +19,7 @@ workspace_hermes_stack_id() {
 workspace_hermes_seed_data_dir() {
   local target_dir="${1:-}"
   local profile_dir root
-  if [[ -z "$target_dir" ]]; then
+  if [[ -z $target_dir ]]; then
     err "workspace_hermes_seed_data_dir: target directory required"
     return 1
   fi
@@ -36,9 +36,9 @@ workspace_hermes_seed_data_dir() {
   if [[ ! -f "${target_dir}/.env" ]]; then
     cp "${root}/hermes/config/env.example" "${target_dir}/.env"
     sed -i.bak 's/^HERMES_DASHBOARD_BASIC_AUTH_USERNAME=.*/HERMES_DASHBOARD_BASIC_AUTH_USERNAME=coder/' \
-      "${target_dir}/.env" 2>/dev/null || \
+      "${target_dir}/.env" 2>/dev/null ||
       sed -i '' 's/^HERMES_DASHBOARD_BASIC_AUTH_USERNAME=.*/HERMES_DASHBOARD_BASIC_AUTH_USERNAME=coder/' \
-      "${target_dir}/.env"
+        "${target_dir}/.env"
     rm -f "${target_dir}/.env.bak"
   fi
 
@@ -51,7 +51,7 @@ workspace_hermes_seed_data_dir() {
 # @function workspace_hermes_render_config
 workspace_hermes_render_config() {
   local target_dir="${1:-}"
-  if [[ -z "$target_dir" ]]; then
+  if [[ -z $target_dir ]]; then
     err "workspace_hermes_render_config: target directory required"
     return 1
   fi

@@ -2,7 +2,7 @@
 # Run BATS under kcov (sequential shards) and enforce 100% line coverage on scripts/**/*.sh.
 set -euo pipefail
 
-if [[ -n "${TEST_SRCDIR:-}" && -d "${TEST_SRCDIR}/_main" ]]; then
+if [[ -n ${TEST_SRCDIR:-} && -d "${TEST_SRCDIR}/_main" ]]; then
   ROOT="${TEST_SRCDIR}/_main"
 else
   ROOT="${BUILD_WORKSPACE_DIRECTORY:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
@@ -36,7 +36,7 @@ _kcov_probe() {
   return 1
 }
 # Bazel sh_test always sets TEST_SRCDIR on Linux CI/devcontainer; skip brittle /usr/bin/true probe.
-if [[ -z "${TEST_SRCDIR:-}" ]] && ! _kcov_probe; then
+if [[ -z ${TEST_SRCDIR:-} ]] && ! _kcov_probe; then
   echo "shell_coverage: kcov installed but not functional on this host (use Linux devcontainer)" >&2
   exit 1
 fi
@@ -89,12 +89,12 @@ for shard in "${SHARDS[@]}"; do
   fi
 done
 
-if [[ "$shard_failed" -ne 0 ]]; then
+if [[ $shard_failed -ne 0 ]]; then
   echo "shell_coverage: one or more kcov shards failed" >&2
   exit 1
 fi
 
-python3 - <<'PY' "$OUT" "$ROOT"
+python3 - "$OUT" "$ROOT" <<'PY'
 """Merge kcov shard coverage and enforce 100% line coverage on scripts/**/*.sh."""
 from __future__ import annotations
 
