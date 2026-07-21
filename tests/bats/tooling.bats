@@ -136,3 +136,33 @@ _ci_action_pins() {
   [[ -f $setup_bazel ]]
   grep -qE 'actions/cache@v[56]([^0-9]|$)' "$setup_bazel"
 }
+
+@test "Deploy Documentation workflow publishes only after merge (not on PR)" {
+  # Public docs go live via mike on push to long-lived branches (PR merge)
+  # or workflow_dispatch. Opening a PR must not deploy-pages or trigger a
+  # pull_request publish path (PR validation is //docs in CI).
+  local deploy="${REPO_ROOT}/.github/workflows/deploy-docs.yml"
+  [[ -f $deploy ]]
+  # No PR trigger for this workflow.
+  if grep -qE '^[[:space:]]*pull_request:' "$deploy"; then
+    echo "deploy-docs.yml must not trigger on pull_request:" >&2
+    grep -nE '^[[:space:]]*pull_request:' "$deploy" >&2 || true
+    return 1
+  fi
+  # No GitHub Actions Pages deploy from this workflow (mike → gh-pages only).
+  if grep -qF 'actions/deploy-pages' "$deploy"; then
+    echo "deploy-docs.yml must not use actions/deploy-pages:" >&2
+    grep -nF 'actions/deploy-pages' "$deploy" >&2 || true
+    return 1
+  fi
+  if grep -qF 'upload-pages-artifact' "$deploy"; then
+    echo "deploy-docs.yml must not upload Pages artifacts for PR preview:" >&2
+    grep -nF 'upload-pages-artifact' "$deploy" >&2 || true
+    return 1
+  fi
+  # Positive controls: merge/push + manual republish + mike publish.
+  grep -qE '^[[:space:]]*push:' "$deploy"
+  grep -qF 'workflow_dispatch' "$deploy"
+  grep -qE 'branches:[[:space:]]*\[.*development' "$deploy"
+  grep -qF 'mike deploy' "$deploy"
+}

@@ -270,7 +270,7 @@ Full documentation is published at [https://toxicoder.github.io/nvidia-dgx-spark
 
 The site includes navigation tabs/sections, breadcrumbs (`navigation.path`), instant loading, Mermaid, admonitions, etc.
 
-CI deploys docs via `.github/workflows/deploy-docs.yml` on changes to `docs/**` or `mkdocs.yml`.
+CI deploys docs via `.github/workflows/deploy-docs.yml` **after merge** (push to `main` / `development` with changes under `docs/**` or `mkdocs.yml`), or via manual `workflow_dispatch` — not when a PR is opened. PR docs checks run in the main CI suite (`docs-and-render`).
 
 See `docs/CONTRIBUTING.md` (if present) or `AGENTS.md` for contribution guidelines.
 
