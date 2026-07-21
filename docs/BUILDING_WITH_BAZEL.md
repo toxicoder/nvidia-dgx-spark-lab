@@ -155,9 +155,15 @@ GitHub Pages is published with **[mike](https://github.com/jimporter/mike)** so 
 
 Workflow: `.github/workflows/deploy-docs.yml` runs on push to `main`/`master`/`development` (docs paths). After `//docs:docs` generates content, `mike deploy --push` updates the version alias on the `gh-pages` branch.
 
-**Repo setting:** GitHub Pages source should be the **`gh-pages` branch** (not “GitHub Actions” artifact-only) once mike has published. Development builds set `DGX_DOCS_VERSION=development` so hooks inject a non-production banner.
+**Repo setting:** GitHub Pages source should be the **`gh-pages` branch** (not “GitHub Actions” artifact-only) once mike has published. Development builds set `DGX_DOCS_VERSION=development` so hooks:
 
-Local single-version builds (`bazelisk run //docs:serve`) do not need mike; the version selector simply has no alternate aliases offline.
+- inject a non-production banner
+- stamp Material **Edit this page** to `edit/development/docs/` (latest → `edit/main/docs/`)
+- rewrite this-repo GitHub `blob`/`tree` source links to the same long-lived ref
+
+Optional local override: `DGX_DOCS_GIT_REF=development` (or `main`). Feature-branch names are not auto-mapped (unpublished edit links would 404).
+
+Local single-version builds (`bazelisk run //docs:serve`) do not need mike; the version selector simply has no alternate aliases offline. Default git ref for links is `main` unless the env vars above are set.
 
 ### Why this design?
 

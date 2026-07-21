@@ -153,7 +153,7 @@ The devcontainer image already includes these CLIs; on the host, install them or
 
 ## Editing This Site
 
-Click "Edit this page" on the live site (powered by `edit_uri` in `mkdocs.yml`).
+Click **Edit this page** on the live site. Hooks stamp `edit_uri` from the published alias (`main` for **latest**, `development` for **development**), so the link opens the matching long-lived branch. In-page GitHub `blob`/`tree` source links are rewritten the same way at build time (see `docs/hooks.py`).
 
 ## Questions?
 

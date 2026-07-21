@@ -917,7 +917,7 @@ Keep feedback fast without skipping safety:
 | `//dashboard:fast-test` | Full hermetic Docker + Playwright (`//dashboard:hermetic-test`) |
 | `//docs:test_mkdocs_build` | Visual goldens (`//docs:test_mkdocs_render`) |
 
-CI path filters (`.github/workflows/ci.yml` / `.gitea/workflows/ci.yml`) intentionally skip expensive jobs when unrelated paths change. New tests must not force Playwright or hermetic Docker into `//:test-fast` without a strong reason. AI agents: see [AGENTS.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/AGENTS.md) efficiency + end-of-session reflection sections.
+CI path filters (`.github/workflows/ci.yml` / `.gitea/workflows/ci.yml`) intentionally skip expensive jobs when unrelated paths change. New tests must not force Playwright or hermetic Docker into `//:test-fast` without a strong reason. AI agents: see [AGENTS.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md) efficiency + end-of-session reflection sections.
 
 ### BATS hermetic strategy
 
