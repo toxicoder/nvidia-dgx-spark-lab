@@ -1,10 +1,13 @@
 site_name: "nvidia-dgx-spark-lab"
 site_url: "https://toxicoder.github.io/nvidia-dgx-spark-lab"
 repo_url: "https://github.com/toxicoder/nvidia-dgx-spark-lab"
+# Default edit target; docs/hooks.py on_config stamps this from DGX_DOCS_VERSION
+# (development → edit/development/docs/, else edit/main/docs/).
 edit_uri: "edit/main/docs/"
 
 # Multi-version (latest = main, development = development branch) via mike.
 # Local single-version builds ignore missing versions.json.
+# Branch-aware edit_uri + GitHub source links: docs/hooks.py + DGX_DOCS_VERSION.
 
 theme:
   name: material
