@@ -117,6 +117,7 @@ One or two sentences that explain *what* changed and *why*.
 - [ ] New or changed behavior has tests
 - [ ] Structured comments / docs updated if public API or commands changed
 - [ ] Safety callout completed above
+- [ ] (Agents) Session reflection done — least-privilege process notes only; see AGENTS.md
 ```
 
 Keep the tone professional and direct. Write as a developer talking to other developers.

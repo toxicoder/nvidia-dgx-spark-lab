@@ -2,6 +2,8 @@
 
 Follow [docs/project-conventions.md](../docs/project-conventions.md) (especially [§ Dashboard](../docs/project-conventions.md#10-dashboard-nextjs) and [§ Documentation coverage (mandatory)](../docs/project-conventions.md#documentation-coverage-mandatory)) plus this stack-specific guidance.
 
+Also follow root [AGENTS.md](../AGENTS.md) for **test efficiency** (prefer `//dashboard:fast-test` before hermetic Docker) and **end-of-session reflection** under least privilege.
+
 **Documentation:** JSDoc on every exported function/class/component in `actions/`, `lib/services/`, panels, and app routes; explicit return types on exports. Regenerate API docs with `bazelisk run //dashboard:docs`.
 
 **Stack**:
