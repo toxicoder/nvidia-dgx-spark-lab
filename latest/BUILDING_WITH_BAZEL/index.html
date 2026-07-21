@@ -1,0 +1,1578 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head><script>(function(){try{var orig=window.fetch;if(typeof orig==="function"){window.fetch=function(i,init){var u=(typeof i==="string")?i:(i&&typeof i.url==="string"?i.url:"");if(u.indexOf("api.github.com/repos/toxicoder/nvidia-dgx-spark-lab")!==-1){return Promise.resolve(new Response("{}", {status:200,headers:{"Content-Type":"application/json"}}));}return orig.apply(this,arguments);};}}catch(e){}try{var XHR=window.XMLHttpRequest;if(XHR&&XHR.prototype){var p=XHR.prototype,open=p.open;p.open=function(m,u){if(typeof u==="string"&&u.indexOf("api.github.com/repos/toxicoder/nvidia-dgx-spark-lab")!==-1){var self=this;Object.defineProperty(self,"responseText",{get:function(){return"{}"},configurable:!0});Object.defineProperty(self,"status",{get:function(){return 200},configurable:!0});Object.defineProperty(self,"readyState",{get:function(){return 4},configurable:!0});self.send=function(){setTimeout(function(){try{if(typeof self.onreadystatechange==="function")self.onreadystatechange.call(self);}catch(_){}try{if(typeof self.onload==="function")self.onload.call(self);}catch(_){}},0);};return;}return open.apply(this,arguments);};}}catch(e){}})();</script>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Bazel-first build, test, lint, and documentation workflow for the DGX Spark lab — targets, validation discipline, and dev container setup.">
+      
+      
+      
+        <link rel="canonical" href="https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/BUILDING_WITH_BAZEL/">
+      
+      
+        <link rel="prev" href="../dev-environment/">
+      
+      
+        <link rel="next" href="../gitea-ci-setup/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Building and Testing with Bazel - nvidia-dgx-spark-lab</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/command-vars.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#building-and-testing-with-bazel" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="nvidia-dgx-spark-lab" class="md-header__button md-logo" aria-label="nvidia-dgx-spark-lab" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            nvidia-dgx-spark-lab
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Building and Testing with Bazel
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required="">
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix="">
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../getting-started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../dgx-spark-notes/" class="md-tabs__link">
+          
+  
+  
+  Concepts &amp; Notes
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../dev-environment/" class="md-tabs__link">
+          
+  
+  
+  How-to Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../project-conventions/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="nvidia-dgx-spark-lab" class="md-nav__button md-logo" aria-label="nvidia-dgx-spark-lab" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    nvidia-dgx-spark-lab
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix="">
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../dgx-spark-notes/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts &amp; Notes
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked="">
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How-to Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How-to Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev-environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bazel Documentation
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bazel Documentation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-generation-efficiency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation Generation &amp; Efficiency
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Documentation Generation &amp; Efficiency">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#shell-commands-helpers-the-main-auto-generated-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shell Commands &amp; Helpers (the main auto-generated reference)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dashboard-api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dashboard API reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visual-regression-tests-for-the-rendered-docs-site-goldens-approval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visual regression tests for the rendered docs site (goldens + approval)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-this-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this design?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-discipline-used-during-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation Discipline (used during development)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-bazel-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Bazel Coverage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-bazel-for-daily-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using Bazel for Daily Work
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Development Container
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development Container">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-the-dev-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the Dev Container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-driven-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code-Driven Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gitea-ci-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gitea CI Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev-workspaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dev Workspaces &amp; Dashboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../project-conventions/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-generation-efficiency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation Generation &amp; Efficiency
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Documentation Generation &amp; Efficiency">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#shell-commands-helpers-the-main-auto-generated-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shell Commands &amp; Helpers (the main auto-generated reference)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dashboard-api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dashboard API reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visual-regression-tests-for-the-rendered-docs-site-goldens-approval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visual regression tests for the rendered docs site (goldens + approval)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-this-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this design?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-discipline-used-during-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation Discipline (used during development)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-bazel-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Bazel Coverage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-bazel-for-daily-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using Bazel for Daily Work
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Development Container
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development Container">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-the-dev-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the Dev Container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-driven-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code-Driven Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation">
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href=".." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../dev-environment/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    How-to Guides
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="building-and-testing-with-bazel">Building and Testing with Bazel<a class="headerlink" href="#building-and-testing-with-bazel" title="Permanent link">¶</a></h1>
+<p><strong>What's on this page</strong></p>
+<ul>
+<li>Why Bazel is the primary build/test/launcher system for the lab</li>
+<li>List of what Bazel is used for (tests, lint, docs, wrappers)</li>
+<li>Prerequisites and installation</li>
+<li>Common commands and specific targets</li>
+<li>Documentation generation details</li>
+<li>Validation discipline and CI setup</li>
+<li>How to use Bazel day-to-day and inside the dev container</li>
+</ul>
+<p><strong>What this enables</strong></p>
+<ul>
+<li>Reproducible, hermetic builds and tests even on different developer machines</li>
+<li>Single command entry points (e.g. <code>bazelisk run //docs:docs</code>, <code>bazelisk run //:manage -- doctor</code>)</li>
+<li>Easy onboarding via the <code>.devcontainer</code></li>
+<li>Confidence that changes don't break the automation or docs pipeline</li>
+</ul>
+<p>The traditional Makefile and direct <code>ansible-playbook</code> / <code>./scripts/manage.sh</code> invocations remain available for compatibility and for people who have not installed bazelisk.</p>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">¶</a></h2>
+<ul>
+<li>Bazelisk (strongly recommended)</li>
+<li>Or a recent Bazel 8.x+</li>
+</ul>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># macOS</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>brew<span class="w"> </span>install<span class="w"> </span>bazelisk
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Linux (example)</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># amd64:</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>curl<span class="w"> </span>-L<span class="w"> </span>https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64<span class="w"> </span>-o<span class="w"> </span>/usr/local/bin/bazelisk
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># arm64 (Apple Silicon):</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># curl -L https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-arm64 -o /usr/local/bin/bazelisk</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>chmod<span class="w"> </span>+x<span class="w"> </span>/usr/local/bin/bazelisk
+</span></code></pre></div>
+<p>The <code>.bazelversion</code> pins the version.</p>
+<h2 id="common-commands">Common Commands<a class="headerlink" href="#common-commands" title="Permanent link">¶</a></h2>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Primary day-to-day commands</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:validate<span class="w">           </span><span class="c1"># git-aware: core + docs/dashboard when paths change</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:validate<span class="w"> </span>--<span class="w"> </span>--all<span class="w"> </span><span class="c1"># full suite (docs Playwright + dashboard Docker)</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//:test<span class="w">              </span><span class="c1"># Bazel test_suite (test-fast + docs render)</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//:test-fast<span class="w">         </span><span class="c1"># CI core (excludes slow docs Playwright)</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//:lint<span class="w"> </span>--test_tag_filters<span class="o">=</span>manual
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>status
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//docs:serve
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//ansible:bootstrap
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="c1"># Specific targets</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//docs:docs<span class="w">          </span><span class="c1"># strict production build of the docs site</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//dashboard:dev
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//ansible:verify<span class="w"> </span>--<span class="w"> </span>-i<span class="w"> </span>inventory/hosts.ini
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="c1"># Build / test everything declared</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//...
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>bazelisk<span class="w"> </span>build<span class="w"> </span>//...
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="c1"># Queries (very useful)</span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>bazelisk<span class="w"> </span>query<span class="w"> </span><span class="s1">'kind(".*_test", //...)'</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>bazelisk<span class="w"> </span>query<span class="w"> </span><span class="s1">'deps(//tests:bats_manage_test)'</span>
+</span></code></pre></div>
+<h2 id="documentation-generation-efficiency">Documentation Generation &amp; Efficiency<a class="headerlink" href="#documentation-generation-efficiency" title="Permanent link">¶</a></h2>
+<p>Documentation for commands, helpers, and internal APIs is generated from source so it <strong>never goes stale</strong>.</p>
+<h3 id="shell-commands-helpers-the-main-auto-generated-reference">Shell Commands &amp; Helpers (the main auto-generated reference)<a class="headerlink" href="#shell-commands-helpers-the-main-auto-generated-reference" title="Permanent link">¶</a></h3>
+<p><code>docs/generate_shell_docs.py</code> is a tiny stdlib-only extractor that turns specially formatted comments in the shell scripts into a beautiful, human-readable reference page.</p>
+<p>Markers (documented extensively in getting-started.md and CONTRIBUTING.md):</p>
+<ul>
+<li><code># ## Title</code> + rich body</li>
+<li><code># @command name</code> + description + Usage + Safety + Examples (with <code>{{PLACEHOLDER}}</code>)</li>
+<li><code># ### Subsection</code></li>
+</ul>
+<p>The generator now produces:</p>
+<ul>
+<li>Proper fenced code blocks using the <code>bash</code> language</li>
+<li><code>!!! warning</code> / <code>!!! note</code> admonitions</li>
+<li>Clean separation between intentional docs and implementation comments</li>
+<li>Source attribution</li>
+</ul>
+<p>It is deliberately strict about what it includes so the output is pleasant to read.</p>
+<p>Run it with:
+</p><div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//docs:docs
+</span></code></pre></div><p></p>
+<p>The output is at <code>docs/generated/shell/reference.md</code> and appears in the site under <strong>Reference &gt; Code-Generated Reference</strong>.</p>
+<p>Because <code>//docs:docs</code> and <code>//docs:serve</code> list the script sources as data dependencies (via <code>//scripts:doc_sources</code>), Bazel only re-runs generation when comments actually change.</p>
+<h3 id="dashboard-api-reference">Dashboard API reference<a class="headerlink" href="#dashboard-api-reference" title="Permanent link">¶</a></h3>
+<p>Produced by TypeDoc from JSDoc in the Next.js/TypeScript code:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bazel<span class="w"> </span>run<span class="w"> </span>//dashboard:docs<span class="w">     </span><span class="c1"># after npm ci in dashboard/</span>
+</span></code></pre></div>
+<p>See <code>dashboard/typedoc.json</code> and the package.json <code>docs:generate</code> script.</p>
+<h3 id="visual-regression-tests-for-the-rendered-docs-site-goldens-approval">Visual regression tests for the rendered docs site (goldens + approval)<a class="headerlink" href="#visual-regression-tests-for-the-rendered-docs-site-goldens-approval" title="Permanent link">¶</a></h3>
+<p>Docs render tests are split for speed:</p>
+<ul>
+<li><code>//docs:test_mkdocs_build</code> — mkdocs strict build + HTML/source checks (local fail-fast; <strong>not</strong> in <code>//:test-fast</code> — needs MkDocs installed)</li>
+<li><code>//docs:test_mkdocs_visual</code> — Playwright screenshots vs goldens only</li>
+<li><code>//docs:test_mkdocs_render</code> — combined (one MkDocs build + visual); <strong>CI docs job</strong> and <code>bazel test //:test</code></li>
+</ul>
+<p>CI runs build + visual as separate steps in <strong>docs-and-render</strong>; <code>//:test-fast</code> covers the fast build path without Playwright.</p>
+<ul>
+<li>mkdocs build --strict (to temp)</li>
+<li>Start an in-process static HTTP server over the output (CSS/JS assets served)</li>
+<li>Playwright (chromium, headless) loads many key pages (index + getting-started + architecture + models-catalog + troubleshooting + reboot-safety + dgx-spark-notes + monitoring-observability + dev-workspaces + gitea-ci-setup, ...)</li>
+<li>Fixed viewport + strong waits: domcontentloaded + networkidle + Material CSS elements (<code>.md-header</code>, <code>.md-content</code>) + custom command-vars / cluster panel + Mermaid SVG + fonts.ready + settle. CSS is always applied in the captured image; JS is waited for where it affects rendering (Mermaid, panels).</li>
+<li><code>page.screenshot(full_page=True, animations="disabled")</code> compared byte-for-byte to committed goldens in <code>docs/tests/visual/goldens/</code>.</li>
+<li>Actual/current screenshots are <strong>always generated</strong> (written to test outputs/actuals dir) whenever the test runs.</li>
+</ul>
+<p>This ensures that <strong>rendering the dgx spark lab site (with CSS + JS) and taking screenshots (goldens + actuals) is part of the main test suite</strong>.</p>
+<ul>
+<li>Any change to Markdown, templates, JS, CSS, or generated content that affects the final pixels will cause the test to fail with a message guiding approval.</li>
+<li>To accept an intentional change (e.g. new section, style tweak, new generated reference text):
+  <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">UPDATE_SNAPSHOTS</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>bazel<span class="w"> </span>run<span class="w"> </span>//docs:visual-update
+</span></code></pre></div>
+  This reruns the build + browser captures and writes the new .png baselines into your source tree.</li>
+<li>Commit the updated goldens and open a PR. The visual diff is part of review (humans must approve pixel changes just like code).</li>
+</ul>
+<p>The test gracefully skips the browser portion if playwright or browsers are missing (source + HTML checks still run). Full enforcement requires the browsers (installed automatically by the test runner on first use, or via <code>python -m playwright install chromium</code>).</p>
+<p>See also the top of <code>docs/test_mkdocs_render.py</code> and <code>test_mkdocs_render.sh</code>.</p>
+<h3 id="why-this-design">Why this design?<a class="headerlink" href="#why-this-design" title="Permanent link">¶</a></h3>
+<ul>
+<li>Comments that describe behavior live right next to the code that implements it.</li>
+<li>One change in a script comment → reference, examples on the site, and live panel examples all update together.</li>
+<li>Over-documenting in the scripts is explicitly encouraged (see user request and AGENTS guidance).</li>
+</ul>
+<p>See the very long "Documentation from Code (Auto-Generated &amp; Always Up-to-Date)" section in getting-started.md for the full picture, Mermaid diagram, and contribution instructions.</p>
+<p>The previous short paragraph has been replaced by this more complete description.</p>
+<h2 id="validation-discipline-used-during-development">Validation Discipline (used during development)<a class="headerlink" href="#validation-discipline-used-during-development" title="Permanent link">¶</a></h2>
+<p>After any change, use the unified orchestrator:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:validate<span class="w">                    </span><span class="c1"># default: git-aware slices</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:validate<span class="w"> </span>--<span class="w"> </span>--all<span class="w">           </span><span class="c1"># full suite before merge</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:validate<span class="w"> </span>--<span class="w"> </span>--update-goldens<span class="w">  </span><span class="c1"># regenerate visual baselines (review + commit)</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:fix<span class="w">                         </span><span class="c1"># formatters + auto-fix linters (trusted tools)</span>
+</span></code></pre></div>
+<p><code>//:validate</code> always runs core checks (<code>build //... --nobuild</code>, <code>//:test-fast</code>, <code>//:lint</code>, key builds). When docs-relevant paths change (<code>docs/**</code>, shell doc sources under <code>scripts/manage.sh</code> / <code>lib</code> / <code>utilities</code>) it also runs <code>//docs:docs</code> + <code>//docs:test_mkdocs_build</code> (fast). Use <code>--all</code> for <code>//docs:test_mkdocs_render</code> (visual) and <code>//dashboard:hermetic-test</code> (Docker + Playwright). Default dashboard slice uses <code>//dashboard:fast-test</code> (host Vitest + lint + typecheck).</p>
+<p><code>//:fix</code> uses only well-trusted software (buildifier, shfmt, ruff, prettier) and is the recommended one-command way to programmatically clean the tree.</p>
+<p>CI uses path-filtered parallel jobs (optimized for wall time):</p>
+<table>
+<thead>
+<tr>
+<th>Job</th>
+<th>When</th>
+<th>What</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>bazel-core</strong></td>
+<td>scripts/k8s/… or CI graph/workflow</td>
+<td><code>//:test-fast</code> + <code>//:lint</code> + key builds</td>
+</tr>
+<tr>
+<td><strong>dashboard-unit</strong></td>
+<td>dashboard/** or CI graph</td>
+<td>Host Vitest + lint + tsc</td>
+</tr>
+<tr>
+<td><strong>dashboard-hermetic</strong></td>
+<td>after unit success</td>
+<td>Docker build + Playwright (<code>DASHBOARD_TEST_MODE=visual</code> skips re-Vitest)</td>
+</tr>
+<tr>
+<td><strong>docs-and-render</strong></td>
+<td>docs/**, shell doc sources, or CI graph</td>
+<td><strong>Single</strong> <code>//docs:test_mkdocs_render</code> (one MkDocs build)</td>
+</tr>
+<tr>
+<td><strong>validate-gate</strong></td>
+<td>always</td>
+<td>Pure bash <code>scripts/ci_check_only.sh</code> (no Bazel cold start)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Path filter notes:</strong> <code>scripts/**</code> no longer always runs docs — only <code>scripts/manage.sh</code>, <code>scripts/lib/**</code>, and <code>scripts/utilities/**</code> (shell doc sources). Editing only <code>.github/workflows/*</code> runs bazel-core (and gate), not hermetic/docs. Shared setup: <code>.github/actions/setup-bazel</code> (pinned Bazelisk + disk/repo + lint-tool caches). See <code>.github/workflows/ci.yml</code>, <code>.gitea/workflows/ci.yml</code>, and <code>.bazelrc</code> (<code>--config=ci</code>).</p>
+<p>Use queries heavily:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>bazelisk<span class="w"> </span>query<span class="w"> </span><span class="s1">'deps(//tests:bats_manage_test)'</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>bazelisk<span class="w"> </span>query<span class="w"> </span><span class="s1">'kind(".*_test", //...)'</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>bazelisk<span class="w"> </span>query<span class="w"> </span><span class="s1">'rdeps(//scripts:manage, //k8s/...)'</span>
+</span></code></pre></div>
+<h2 id="ci">CI<a class="headerlink" href="#ci" title="Permanent link">¶</a></h2>
+<p>See <code>.github/workflows/ci.yml</code> (path-filtered jobs + <code>validate-gate</code>). <strong>bazel-core</strong> is authoritative for hermetic core tests; docs Playwright runs only in <strong>docs-and-render</strong> (not duplicated in bazel-core).</p>
+<p>Use <code>--config=ci</code> on CI runners (higher <code>--jobs</code>, <code>--remote_download_minimal</code>).</p>
+<p>The classic make-based paths remain for compatibility/legacy.</p>
+<p>For Gitea: see <a href="../gitea-ci-setup/">gitea-ci-setup.md</a> and <code>.gitea/workflows/ci.yml</code> (self-hosted runners + persistent cache volumes recommended).</p>
+<p>Bazel jobs restore disk/repo cache via <code>.github/actions/setup-bazel</code> (keyed on <code>MODULE.bazel.lock</code> + <code>.bazelversion</code>).</p>
+<h2 id="security-notes">Security Notes<a class="headerlink" href="#security-notes" title="Permanent link">¶</a></h2>
+<ul>
+<li>Never commit real <code>ansible/inventory/hosts.ini</code> (it is gitignored).</li>
+<li>Kubeconfig, tokens, and SSH material are excluded.</li>
+<li>The BATS tests mock external commands (including kubectl) so they never touch real clusters or credentials.</li>
+<li>Bazel runfiles + explicit data dependencies make exactly what is needed visible (no accidental leakage of host files).</li>
+<li><code>MODULE.bazel.lock</code> is committed (standard for reproducible Bzlmod) and contains only public registry metadata.</li>
+</ul>
+<p>See the root <code>.gitignore</code> and <code>.bazelignore</code> for the full exclusion list.</p>
+<h2 id="current-bazel-coverage">Current Bazel Coverage<a class="headerlink" href="#current-bazel-coverage" title="Permanent link">¶</a></h2>
+<p>The following are modeled with first-class Bazel targets:</p>
+<ul>
+<li><code>scripts/manage.sh</code> as <code>sh_binary</code> (<code>//:manage</code>)</li>
+<li>Full hermetic BATS suite (vendored bats-core)</li>
+<li>Kubernetes manifests and overlays as <code>filegroup</code> data</li>
+<li>Documentation site (<code>//docs:serve</code>, <code>//docs:docs</code>, etc.)</li>
+<li>Includes <code>test_generate_shell_docs</code> + <code>test_mkdocs_render</code> (full build + HTML/mermaid/asset validation + <strong>real browser screenshots + goldens</strong> of the rendered site; visual diffs fail the test and require explicit approval via <code>UPDATE_SNAPSHOTS=1 bazel run //docs:visual-update</code> + PR review).</li>
+<li>Ansible validation + convenient playbook launchers (<code>//ansible:*</code>)</li>
+<li>Dashboard dev / build / test wrappers (<code>//dashboard:*</code>)</li>
+<li>Comprehensive root aliases and test suites</li>
+</ul>
+<p>Runtime operations against real hardware (full Ansible playbooks with real inventories, heavy cluster workloads) intentionally remain outside pure Bazel "build" semantics and are launched via the sh_binary wrappers or classic commands.</p>
+<h2 id="using-bazel-for-daily-work">Using Bazel for Daily Work<a class="headerlink" href="#using-bazel-for-daily-work" title="Permanent link">¶</a></h2>
+<p>Bazel is now the established primary system. The Makefile and direct commands remain available purely for compatibility and convenience.</p>
+<h2 id="development-container">Development Container<a class="headerlink" href="#development-container" title="Permanent link">¶</a></h2>
+<p>First-class multi-arch contributor environment (<code>.devcontainer/</code>): <strong>linux/amd64 + linux/arm64</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Host</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>macOS Apple Silicon / Intel</td>
+<td>Docker Desktop</td>
+</tr>
+<tr>
+<td>Windows x86_64</td>
+<td>Docker Desktop + WSL2</td>
+</tr>
+<tr>
+<td>Linux amd64/arm64</td>
+<td>Docker Engine / Podman</td>
+</tr>
+<tr>
+<td>NVIDIA DGX Spark (Grace arm64)</td>
+<td>Docker/Podman on-box</td>
+</tr>
+</tbody>
+</table>
+<p>Pinned tools (see <code>.devcontainer/tool-versions.env</code>, shared with CI): bazelisk, buildifier, shfmt, shellcheck, kubeconform, kubectl, helm, ansible, ruff, mypy, Node <strong>22</strong>, Python <strong>3.11</strong>, prettier, bats, kcov.</p>
+<p>Full onboarding: <strong><a href="../dev-environment/">dev-environment.md</a></strong>.</p>
+<h3 id="using-the-dev-container">Using the Dev Container<a class="headerlink" href="#using-the-dev-container" title="Permanent link">¶</a></h3>
+<ol>
+<li>Open the repo in VS Code or Cursor (Docker running).</li>
+<li>Command Palette → <strong>Dev Containers: Reopen in Container</strong>.</li>
+<li>After <code>post-create</code> + doctor:</li>
+</ol>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>bash<span class="w"> </span>.devcontainer/doctor.sh
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:fix
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:validate
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//:test-fast<span class="w"> </span>--config<span class="o">=</span>ci
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//:lint<span class="w"> </span>--test_tag_filters<span class="o">=</span>manual
+</span></code></pre></div>
+<p>Docker for hermetic dashboard tests uses <strong>docker-outside-of-docker</strong> (host engine). Create does <strong>not</strong> gate on the full suite; use <code>//:validate</code> before PRs.</p>
+<h3 id="code-driven-documentation">Code-Driven Documentation<a class="headerlink" href="#code-driven-documentation" title="Permanent link">¶</a></h3>
+<p>Reference material for commands, helpers, and dashboard internals is generated from source comments (<code>docs/generate_shell_docs.py</code> + TypeDoc in <code>dashboard/</code>).</p>
+<p>After changing comments in <code>scripts/</code> or JSDoc in <code>dashboard/</code>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//docs:docs
+</span></code></pre></div>
+<p>Generated content lands in <code>docs/generated/</code> and is part of the MkDocs site (Reference).</p>
+<p>See <code>AGENTS.md</code> for AI coding assistant workflow.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden="">
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "search.suggest", "search.highlight", "content.code.copy", "content.tabs.link", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../assets/javascripts/command-vars.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

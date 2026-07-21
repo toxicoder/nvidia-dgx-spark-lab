@@ -1,0 +1,1742 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head><script>(function(){try{var orig=window.fetch;if(typeof orig==="function"){window.fetch=function(i,init){var u=(typeof i==="string")?i:(i&&typeof i.url==="string"?i.url:"");if(u.indexOf("api.github.com/repos/toxicoder/nvidia-dgx-spark-lab")!==-1){return Promise.resolve(new Response("{}", {status:200,headers:{"Content-Type":"application/json"}}));}return orig.apply(this,arguments);};}}catch(e){}try{var XHR=window.XMLHttpRequest;if(XHR&&XHR.prototype){var p=XHR.prototype,open=p.open;p.open=function(m,u){if(typeof u==="string"&&u.indexOf("api.github.com/repos/toxicoder/nvidia-dgx-spark-lab")!==-1){var self=this;Object.defineProperty(self,"responseText",{get:function(){return"{}"},configurable:!0});Object.defineProperty(self,"status",{get:function(){return 200},configurable:!0});Object.defineProperty(self,"readyState",{get:function(){return 4},configurable:!0});self.send=function(){setTimeout(function(){try{if(typeof self.onreadystatechange==="function")self.onreadystatechange.call(self);}catch(_){}try{if(typeof self.onload==="function")self.onload.call(self);}catch(_){}},0);};return;}return open.apply(this,arguments);};}}catch(e){}})();</script>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Complete Bazel-first guide to bootstrap a safe K3s + GPU Operator cluster on 1-4 DGX Spark nodes and run inference workloads.">
+      
+      
+      
+        <link rel="canonical" href="https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/">
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../dgx-spark-notes/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Getting Started - nvidia-dgx-spark-lab</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/command-vars.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#getting-started" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="nvidia-dgx-spark-lab" class="md-header__button md-logo" aria-label="nvidia-dgx-spark-lab" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            nvidia-dgx-spark-lab
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Getting Started
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required="">
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix="">
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../dgx-spark-notes/" class="md-tabs__link">
+          
+  
+  
+  Concepts &amp; Notes
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../dev-environment/" class="md-tabs__link">
+          
+  
+  
+  How-to Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../project-conventions/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="nvidia-dgx-spark-lab" class="md-nav__button md-logo" aria-label="nvidia-dgx-spark-lab" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    nvidia-dgx-spark-lab
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix="">
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-prepare-inventory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Prepare Inventory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 1: Prepare Inventory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#detailed-inventory-editing-1-node-vs-multi-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detailed Inventory Editing (1-node vs multi-node)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-bootstrap-k3s-cluster-hyper-detailed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Bootstrap K3s Cluster (Hyper-Detailed)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2: Bootstrap K3s Cluster (Hyper-Detailed)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-the-playbook-actually-does-step-by-step-inside" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the playbook actually does (step-by-step inside)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-install-nvidia-gpu-operator-hyper-detailed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Install NVIDIA GPU Operator (Hyper-Detailed)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 3: Install NVIDIA GPU Operator (Hyper-Detailed)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-happens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What happens
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-use-the-management-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Use the Management Script
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#high-speed-network-setup-multi-node-with-qsfp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        High-speed Network Setup (multi-node with QSFP)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automation-convenience-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automation &amp; Convenience (recommended)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deploying-a-workload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deploying a Workload
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deploying a Workload">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lighter-test-mode-recommended-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lighter test mode (recommended first)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-production-mode-kimi-etc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full production mode (Kimi etc.)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verifying-multi-node-high-speed-networking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verifying Multi-Node / High-Speed Networking
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cleaning-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cleaning Up
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#before-rebooting-hyper-detailed-safety-procedure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before Rebooting (Hyper-Detailed Safety Procedure)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-the-test-suite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running the Test Suite
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-from-code-auto-generated-always-up-to-date" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation from Code (Auto-Generated &amp; Always Up-to-Date)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps-after-core-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps (after core setup)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-the-test-suite-bazel-primary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running the Test Suite (Bazel primary)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../dgx-spark-notes/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts &amp; Notes
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../dev-environment/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How-to Guides
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../project-conventions/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-prepare-inventory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Prepare Inventory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 1: Prepare Inventory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#detailed-inventory-editing-1-node-vs-multi-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detailed Inventory Editing (1-node vs multi-node)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-bootstrap-k3s-cluster-hyper-detailed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Bootstrap K3s Cluster (Hyper-Detailed)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2: Bootstrap K3s Cluster (Hyper-Detailed)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-the-playbook-actually-does-step-by-step-inside" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the playbook actually does (step-by-step inside)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-install-nvidia-gpu-operator-hyper-detailed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Install NVIDIA GPU Operator (Hyper-Detailed)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 3: Install NVIDIA GPU Operator (Hyper-Detailed)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-happens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What happens
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-use-the-management-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Use the Management Script
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#high-speed-network-setup-multi-node-with-qsfp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        High-speed Network Setup (multi-node with QSFP)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automation-convenience-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automation &amp; Convenience (recommended)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deploying-a-workload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deploying a Workload
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deploying a Workload">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lighter-test-mode-recommended-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lighter test mode (recommended first)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-production-mode-kimi-etc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full production mode (Kimi etc.)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verifying-multi-node-high-speed-networking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verifying Multi-Node / High-Speed Networking
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cleaning-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cleaning Up
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#before-rebooting-hyper-detailed-safety-procedure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before Rebooting (Hyper-Detailed Safety Procedure)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-the-test-suite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running the Test Suite
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-from-code-auto-generated-always-up-to-date" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation from Code (Auto-Generated &amp; Always Up-to-Date)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps-after-core-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps (after core setup)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-the-test-suite-bazel-primary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running the Test Suite (Bazel primary)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">¶</a></h1>
+<blockquote>
+<p><strong>Interactive docs</strong>: Use the cluster variables panel below. Edit the values — every code example on this page (and many others) will update instantly and the Copy buttons will use the live values.</p>
+</blockquote>
+<div class="cluster-config admonition info" data-vars="SPARK0_IP,NAMESPACE,DASHBOARD_PORT">
+  <p><strong>Live cluster variables</strong> (edits propagate to all examples + copies on this page)</p>
+  <div>
+    <label>SPARK0_IP: <input data-var="SPARK0_IP" value="192.168.1.10" placeholder="spark0-ip"></label>
+    <label>NAMESPACE: <input data-var="NAMESPACE" value="ai-inference"></label>
+    <label>PORT example: <input data-var="DASHBOARD_PORT" value="32082"></label>
+  </div>
+  <div>
+    <button data-profile="1node" class="md-button md-button--primary">1-node / localhost profile</button>
+    <button data-profile="2node" class="md-button">2-node typical profile</button>
+    <small>(live updates + copy buttons respect current values)</small>
+  </div>
+</div>
+
+<p><strong>What's on this page</strong></p>
+<ul>
+<li>Prerequisites (nodes, SSH, workstation tools)</li>
+<li>Detailed inventory setup (1-node / 2-node / 4-node tabs)</li>
+<li>Step-by-step bootstrap of K3s + GPU Operator (Bazel-first + classic)</li>
+<li>High-speed network configuration for multi-node</li>
+<li>Management script usage, workload deployment, verification, and cleanup</li>
+<li>Reboot safety procedures</li>
+<li>How the auto-generated reference and live variables panel work</li>
+</ul>
+<p><strong>What this enables</strong></p>
+<ul>
+<li>Safely bringing up a full lab environment (single or multi-node) with all safety constraints active</li>
+<li>Following a repeatable, verified path that includes pre-flight checks at every major step</li>
+<li>Using the live cluster variables panel so all examples and copy buttons use your actual IPs/ports</li>
+<li>Understanding the automation (manage.sh, generated reference) that makes day-to-day operation practical</li>
+</ul>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">¶</a></h2>
+<ul>
+<li>1-4 DGX Spark nodes (e.g. spark0 as control-plane; optional spark1+ workers) with:</li>
+<li>Ubuntu 22.04 or 24.04 (recommended)</li>
+<li>NVIDIA GPUs visible (<code>nvidia-smi</code>)</li>
+<li>Dual QSFP112 400G cables connected between the nodes</li>
+<li>SSH key access from your control machine to both nodes</li>
+<li>
+<p>Sudo privileges</p>
+</li>
+<li>
+<p>On your workstation:</p>
+</li>
+<li>Ansible &gt;= 2.14</li>
+<li>kubectl (will be installed/configured by Ansible)</li>
+<li>helm</li>
+</ul>
+<h2 id="step-1-prepare-inventory">Step 1: Prepare Inventory<a class="headerlink" href="#step-1-prepare-inventory" title="Permanent link">¶</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Bazel-first + Safety</p>
+<p>All examples below lead with Bazel where applicable.<br>
+<strong>Never</strong> proceed without a working inventory and verified connectivity.<br>
+Heavy workloads can make SSH unresponsive — always have out-of-band console access ready.</p>
+</div>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Preferred (Bazel)</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//ansible:playbook<span class="w"> </span>--<span class="w"> </span>inventory/hosts.ini.example<span class="w"> </span>bootstrap-cluster.yml<span class="w">   </span><span class="c1"># (or use the dedicated target)</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Classic</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nb">cd</span><span class="w"> </span>ansible/inventory
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>cp<span class="w"> </span>hosts.ini.example<span class="w"> </span>hosts.ini
+</span></code></pre></div>
+<h3 id="detailed-inventory-editing-1-node-vs-multi-node">Detailed Inventory Editing (1-node vs multi-node)<a class="headerlink" href="#detailed-inventory-editing-1-node-vs-multi-node" title="Permanent link">¶</a></h3>
+<p>Use tabs for clarity:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio"><input id="__tabbed_1_2" name="__tabbed_1" type="radio"><input id="__tabbed_1_3" name="__tabbed_1" type="radio"><div class="tabbed-labels"><label for="__tabbed_1_1">1-node (simplest, recommended for first-time)</label><label for="__tabbed_1_2">2-node (balanced, most common)</label><label for="__tabbed_1_3">4-node (full scale)</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="language-ini highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">[spark0]</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="na">spark0 ansible_host</span><span class="o">=</span><span class="s">192.168.1.10 ansible_user=ubuntu</span>
+</span></code></pre></div>
+<p>Only one control-plane + worker. High-speed interconnect is ignored.</p>
+</div>
+<div class="tabbed-block">
+<div class="language-ini highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">[spark0]</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="na">spark0 ansible_host</span><span class="o">=</span><span class="s">192.168.1.10 ansible_user=ubuntu</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">[spark1]</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="na">spark1 ansible_host</span><span class="o">=</span><span class="s">192.168.1.11 ansible_user=ubuntu</span>
+</span></code></pre></div>
+<p>Dual 400G links between nodes for NCCL.</p>
+</div>
+<div class="tabbed-block">
+<p>Add spark2 and spark3 similarly. Ensure all high-speed cables are connected.</p>
+</div>
+</div>
+</div>
+<p><strong>Verification after editing</strong>:
+</p><div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ansible<span class="w"> </span>-i<span class="w"> </span>hosts.ini<span class="w"> </span>all<span class="w"> </span>-m<span class="w"> </span>ping
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># Expected: all hosts should return pong (or success)</span>
+</span></code></pre></div><p></p>
+<p>If ping fails:</p>
+<ul>
+<li>Check SSH keys (<code>ssh-copy-id</code> or manual).</li>
+<li>Verify no firewall on management network.</li>
+<li>Confirm exact IPs (use <code>ip a</code> on the nodes via console if needed).</li>
+</ul>
+<p>See the auto-generated <a href="../generated/shell/reference/">Shell reference</a> for the <code>setup</code> helper that can guide this interactively.</p>
+<h2 id="step-2-bootstrap-k3s-cluster-hyper-detailed">Step 2: Bootstrap K3s Cluster (Hyper-Detailed)<a class="headerlink" href="#step-2-bootstrap-k3s-cluster-hyper-detailed" title="Permanent link">¶</a></h2>
+<p><strong>Bazel-first preferred</strong> (uses the wrapper that defaults to the example inventory safely):</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//ansible:bootstrap
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1"># or with real inventory</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//ansible:bootstrap<span class="w"> </span>--<span class="w"> </span>-i<span class="w"> </span>inventory/hosts.ini
+</span></code></pre></div>
+<p>Classic direct (for reference):</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">cd</span><span class="w"> </span>ansible
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>ansible-playbook<span class="w"> </span>-i<span class="w"> </span>inventory/hosts.ini<span class="w"> </span>playbooks/bootstrap-cluster.yml
+</span></code></pre></div>
+<h3 id="what-the-playbook-actually-does-step-by-step-inside">What the playbook actually does (step-by-step inside)<a class="headerlink" href="#what-the-playbook-actually-does-step-by-step-inside" title="Permanent link">¶</a></h3>
+<ol>
+<li>Installs prerequisites (containerd, etc.) on all nodes.</li>
+<li>Configures high-speed network (netplan + SSH) on 2+ node setups.</li>
+<li>Installs K3s server on spark0 (control-plane + worker).</li>
+<li>Joins additional nodes as agents (workers).</li>
+<li>Applies labels (e.g., <code>highspeed=true</code> for multi-node).</li>
+<li>Sets up kubeconfig on the control node.</li>
+</ol>
+<p><strong>After the playbook finishes — mandatory verification (run these exactly)</strong>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># On your workstation</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">KUBECONFIG</span><span class="o">=</span>~/.kube/config<span class="w">   </span><span class="c1"># (or path printed by ansible)</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>kubectl<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span>-o<span class="w"> </span>wide
+</span></code></pre></div>
+<p><strong>Expected output (example for 2-node)</strong>:
+</p><div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>NAME     STATUS   ROLES                  AGE   VERSION
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>spark0   Ready    control-plane,master   5m    v1.30.x+k3s1
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>spark1   Ready    worker                 4m    v1.30.x+k3s1
+</span></code></pre></div><p></p>
+<p>Also verify high-speed awareness (if 2+ nodes):
+</p><div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>kubectl<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span>-l<span class="w"> </span><span class="nv">highspeed</span><span class="o">=</span><span class="nb">true</span>
+</span></code></pre></div><p></p>
+<p><strong>If nodes are NotReady or only one appears</strong>:</p>
+<ul>
+<li>Check ansible output for errors on the high-speed netplan step.</li>
+<li>On the node console: <code>journalctl -u k3s</code> (or k3s-agent on workers).</li>
+<li>Re-run the specific play or the full bootstrap.</li>
+</ul>
+<p>See the full generated command reference for <code>setup</code> and related helpers: <a href="../generated/shell/reference/">Shell reference</a>.</p>
+<p><strong>Bazel equivalent for the whole guided flow</strong>:
+</p><div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>setup
+</span></code></pre></div><p></p>
+<p>This prints the recommended sequence and can launch the first safe workload.</p>
+<h2 id="step-3-install-nvidia-gpu-operator-hyper-detailed">Step 3: Install NVIDIA GPU Operator (Hyper-Detailed)<a class="headerlink" href="#step-3-install-nvidia-gpu-operator-hyper-detailed" title="Permanent link">¶</a></h2>
+<p><strong>Bazel-first</strong>:
+</p><div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//ansible:gpu-operator<span class="w"> </span>--<span class="w"> </span>-i<span class="w"> </span>inventory/hosts.ini
+</span></code></pre></div><p></p>
+<p>Classic:
+</p><div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>ansible-playbook<span class="w"> </span>-i<span class="w"> </span>inventory/hosts.ini<span class="w"> </span>playbooks/install-gpu-operator.yml
+</span></code></pre></div><p></p>
+<h3 id="what-happens">What happens<a class="headerlink" href="#what-happens" title="Permanent link">¶</a></h3>
+<ul>
+<li>Deploys the NVIDIA GPU Operator (drivers, device plugin, DCGM exporter for monitoring).</li>
+<li>Creates the <code>gpu-operator</code> namespace and required DaemonSets.</li>
+<li>Enables MIG / time-slicing if configured in inventory/group_vars.</li>
+</ul>
+<p><strong>Watch the rollout (run in a separate terminal)</strong>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>gpu-operator<span class="w"> </span>-w
+</span></code></pre></div>
+<p><strong>Wait until all pods are Running</strong> (can take 5–15+ minutes on first boot while drivers compile/install).</p>
+<p><strong>Verification commands</strong>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Nodes should report GPU capacity</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>kubectl<span class="w"> </span>describe<span class="w"> </span>node<span class="w"> </span>spark0<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-A<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="s2">"nvidia.com/gpu"</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># Or for all nodes</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>kubectl<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span>-o<span class="w"> </span>custom-columns<span class="o">=</span>NAME:.metadata.name,GPU:.status.allocatable.nvidia.com/gpu
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1"># DCGM exporter (for later Grafana)</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>gpu-operator<span class="w"> </span>-l<span class="w"> </span><span class="nv">app</span><span class="o">=</span>nvidia-dcgm-exporter
+</span></code></pre></div>
+<p><strong>Common issues &amp; fixes</strong> (use these as your troubleshooting reference):</p>
+<ul>
+<li>Driver pod CrashLooping → check <code>journalctl -u k3s</code> on the node; ensure the node has enough disk for the driver container image.</li>
+<li>No GPUs visible → run <code>nvidia-smi</code> directly on the node (via console). Re-run the GPU operator playbook.</li>
+<li>See <a href="../troubleshooting/">troubleshooting.md</a> and the generated reference for <code>doctor</code>.</li>
+</ul>
+<p>After this step you should have a functional Kubernetes cluster with visible GPUs.</p>
+<p><strong>Next (Bazel or classic)</strong>:
+</p><div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>doctor
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-test
+</span></code></pre></div><p></p>
+<h2 id="step-4-use-the-management-script">Step 4: Use the Management Script<a class="headerlink" href="#step-4-use-the-management-script" title="Permanent link">¶</a></h2>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nb">cd</span><span class="w"> </span>/path/to/nvidia-dgx-spark-lab
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>./scripts/manage.sh<span class="w"> </span>status
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="c1"># dashboard will be at http://{{SPARK0_IP}}:{{DASHBOARD_PORT}}</span>
+</span></code></pre></div>
+<p>See <code>./scripts/manage.sh help</code> for all options.</p>
+<h2 id="high-speed-network-setup-multi-node-with-qsfp">High-speed Network Setup (multi-node with QSFP)<a class="headerlink" href="#high-speed-network-setup-multi-node-with-qsfp" title="Permanent link">¶</a></h2>
+<p>Included in bootstrap:</p>
+<ul>
+<li>
+<p>Detects with ibdev2netdev</p>
+</li>
+<li>
+<p>Netplan for persistent highspeed IPs</p>
+</li>
+<li>
+<p>Passwordless SSH</p>
+</li>
+<li>
+<p>Validation (ping, SSH, basic test)</p>
+</li>
+<li>
+<p>NCCL scoped to highspeed</p>
+</li>
+</ul>
+<p>For 1 node, skipped.</p>
+<h2 id="automation-convenience-recommended">Automation &amp; Convenience (recommended)<a class="headerlink" href="#automation-convenience-recommended" title="Permanent link">¶</a></h2>
+<p><strong>Early node prep (new strategic option - cloud-init):</strong></p>
+<p>For physical DGX nodes, use cloud-init for early OS/highspeed prep (prereqs, netplan, swapoff, sysctls) before full Ansible. This makes bootstrap faster and more consistent.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Render templates (Bazel or ansible)</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//ansible:playbook<span class="w"> </span>--<span class="w"> </span>--extra-vars<span class="w"> </span><span class="nv">run_cloud_init_prep</span><span class="o">=</span><span class="nb">true</span><span class="w">   </span><span class="c1"># or direct</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="c1"># Then feed rendered/ansible/cloud-init/rendered/user-data-*.yaml as user-data (iDRAC/MAAS) or apply manually + reboot.</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="c1"># Follow with:</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//ansible:bootstrap
+</span></code></pre></div>
+<p>See <code>ansible/playbooks/apply-cloud-init-prep.yml</code> and <code>ansible/cloud-init/</code>.</p>
+<p>Then standard:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>./scripts/manage.sh<span class="w"> </span>setup<span class="w">        </span><span class="c1"># guided + optional full playbooks</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-default
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>urls
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//ansible:full-lab-setup
+</span></code></pre></div>
+<p><strong>Dev stack (Helm):</strong></p>
+<p>Coder, Kasm, monitoring, and the custom lab dashboard are deployed via Helm (idempotent).</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-coder
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-monitoring<span class="w">   </span><span class="c1"># now also uses helm chart for dashboard</span>
+</span></code></pre></div>
+<p>The lab-dashboard has its own chart under <code>helm/lab-dashboard/</code>.</p>
+<p>See dev-workspaces.md and the auto-generated reference for commands.</p>
+<p>See manage.sh help, README, and dev-workspaces.md.</p>
+<h2 id="deploying-a-workload">Deploying a Workload<a class="headerlink" href="#deploying-a-workload" title="Permanent link">¶</a></h2>
+<p>The manage.sh supports selectable models for 1-4 nodes.</p>
+<h3 id="models">Models<a class="headerlink" href="#models" title="Permanent link">¶</a></h3>
+<ul>
+<li>
+<p>start-test : lighter</p>
+</li>
+<li>
+<p>start-kimi : example full</p>
+</li>
+<li>
+<p>start-ray : ray cluster for multi node</p>
+</li>
+<li>
+<p>start-nemotron-3-ultra : Nemotron 3 Ultra (NVFP4, Ray pp=2)</p>
+</li>
+<li>
+<p>start-glm-5.2 : GLM-5.2 (1-bit UD-IQ1_M, llama.cpp RPC, 2-node)</p>
+</li>
+</ul>
+<p>Example:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>./scripts/manage.sh<span class="w"> </span>start-ray
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>./scripts/manage.sh<span class="w"> </span>start-nemotron-3-ultra
+</span></code></pre></div>
+<p>The script includes safety: gpu util check &lt;0.90, confirmation, free gpu check.</p>
+<h3 id="lighter-test-mode-recommended-first">Lighter test mode (recommended first)<a class="headerlink" href="#lighter-test-mode-recommended-first" title="Permanent link">¶</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>./scripts/manage.sh<span class="w"> </span>start-test
+</span></code></pre></div>
+<p>This uses fewer resources and is safer to iterate on.</p>
+<h3 id="full-production-mode-kimi-etc">Full production mode (Kimi etc.)<a class="headerlink" href="#full-production-mode-kimi-etc" title="Permanent link">¶</a></h3>
+<p><strong>Only after you have validated with the test workload:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>./scripts/manage.sh<span class="w"> </span>start-kimi
+</span></code></pre></div>
+<p>The script will prompt for confirmation because this mode is resource-heavy.</p>
+<h2 id="verifying-multi-node-high-speed-networking">Verifying Multi-Node / High-Speed Networking<a class="headerlink" href="#verifying-multi-node-high-speed-networking" title="Permanent link">¶</a></h2>
+<p>After a multi-GPU workload is running:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>kubectl<span class="w"> </span>logs<span class="w"> </span>-l<span class="w"> </span><span class="nv">app</span><span class="o">=</span>kimi-test<span class="w"> </span>-c<span class="w"> </span>inference<span class="w"> </span>--tail<span class="o">=</span><span class="m">100</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>nccl
+</span></code></pre></div>
+<p>Look for lines showing the high-speed interfaces being used.</p>
+<h2 id="cleaning-up">Cleaning Up<a class="headerlink" href="#cleaning-up" title="Permanent link">¶</a></h2>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>./scripts/manage.sh<span class="w"> </span>stop
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>./scripts/manage.sh<span class="w"> </span>cleanup
+</span></code></pre></div>
+<h2 id="before-rebooting-hyper-detailed-safety-procedure">Before Rebooting (Hyper-Detailed Safety Procedure)<a class="headerlink" href="#before-rebooting-hyper-detailed-safety-procedure" title="Permanent link">¶</a></h2>
+<p><strong>Golden rule (repeated for emphasis)</strong>: Never reboot while heavy inference workloads are scheduled. Large models can exhaust host memory and make the node unreachable over SSH.</p>
+<p><strong>Bazel-first full sequence</strong>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># 1. Stop from workstation</span>
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>stop
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="c1"># 2. Verify nothing is left (run on the control plane or via kubectl)</span>
+</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>status
+</span><span id="__span-24-6"><a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>ai-inference
+</span></code></pre></div>
+<p><strong>Classic (identical logic)</strong>:
+</p><div class="language-bash highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>./scripts/manage.sh<span class="w"> </span>stop
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="c1"># on the node if you still have console:</span>
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>kubectl<span class="w"> </span>delete<span class="w"> </span>job<span class="w"> </span>--all<span class="w"> </span>-n<span class="w"> </span>ai-inference<span class="w"> </span>--ignore-not-found
+</span></code></pre></div><p></p>
+<p><strong>Full safe reboot checklist</strong> (do in this exact order):</p>
+<ol>
+<li>Stop all managed workloads (see above).</li>
+<li>Confirm zero inference/ray pods.</li>
+<li>Reboot workers first (spark1+), then control-plane (spark0). Use IPMI/iDRAC/console if SSH is already degraded.</li>
+<li>After nodes come back:</li>
+<li>Re-run any needed ansible playbooks (high-speed config can drift).</li>
+<li><code>bazelisk run //:manage -- doctor</code></li>
+<li><code>bazelisk run //:manage -- start-test</code> (or your last known-good workload).</li>
+</ol>
+<p>See the dedicated <a href="../reboot-safety/">reboot-safety.md</a> for the complete out-of-band + post-reboot playbook sequence and the auto-generated reference for the <code>stop</code> command.</p>
+<p><strong>Why this order?</strong> The management script and manifests are deliberately designed with <code>restartPolicy: OnFailure</code> + low <code>backoffLimit</code> precisely so that nothing comes back automatically after a reboot. This is a core safety property of the lab.</p>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">¶</a></h2>
+<ul>
+<li>Read <a href="../dgx-spark-notes/">dgx-spark-notes.md</a> for important stability guidance</li>
+<li>Review the workload manifests in <code>k8s/workloads/</code></li>
+<li>Adjust resource requests/limits in the manifests before running very large models</li>
+<li>Read <a href="../reboot-safety/">reboot-safety.md</a></li>
+</ul>
+<h2 id="running-the-test-suite">Running the Test Suite<a class="headerlink" href="#running-the-test-suite" title="Permanent link">¶</a></h2>
+<p>Bazel is the primary way:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//:test
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//:lint<span class="w"> </span>--test_tag_filters<span class="o">=</span>manual
+</span></code></pre></div>
+<p>Makefile shims (delegates):</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>make<span class="w"> </span>lint
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>make<span class="w"> </span><span class="nb">test</span>
+</span></code></pre></div>
+<p>See the top-level <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/README.md#development--testing">README.md</a> and the tests/ directory in the repository for full details.
+The tests catch common mistakes (bad YAML, missing limits, accidental Always restart policies) without needing DGX hardware.</p>
+<h2 id="documentation-from-code-auto-generated-always-up-to-date">Documentation from Code (Auto-Generated &amp; Always Up-to-Date)<a class="headerlink" href="#documentation-from-code-auto-generated-always-up-to-date" title="Permanent link">¶</a></h2>
+<p><strong>How the docs stay accurate automatically</strong> (core to this lab's documentation flow):</p>
+<p>A dedicated, stdlib-only generator (<code>docs/generate_shell_docs.py</code>) scans the Bash scripts for <em>structured documentation comments</em>. It produces the human-readable <a href="../generated/shell/reference/">Shell Commands &amp; Helpers reference</a> that lives under <strong>Reference &gt; Code-Generated Reference</strong> in the site nav.</p>
+<p>Supported markers (use these for things that should appear in the reference):</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># ## Section Title</span>
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="c1"># Rich multi-paragraph description.</span>
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="c1"># Can include:</span>
+</span><span id="__span-28-4"><a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="c1">#   - Safety notes</span>
+</span><span id="__span-28-5"><a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="c1">#   - Usage:</span>
+</span><span id="__span-28-6"><a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a><span class="c1">#     ./scripts/manage.sh foo</span>
+</span><span id="__span-28-7"><a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a><span class="c1">#   - Examples with {{SPARK0_IP}} placeholders</span>
+</span><span id="__span-28-8"><a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a><span class="c1">#</span>
+</span><span id="__span-28-9"><a id="__codelineno-28-9" name="__codelineno-28-9" href="#__codelineno-28-9"></a><span class="c1"># ### Subsection</span>
+</span><span id="__span-28-10"><a id="__codelineno-28-10" name="__codelineno-28-10" href="#__codelineno-28-10"></a><span class="c1"># More detail</span>
+</span><span id="__span-28-11"><a id="__codelineno-28-11" name="__codelineno-28-11" href="#__codelineno-28-11"></a>
+</span><span id="__span-28-12"><a id="__codelineno-28-12" name="__codelineno-28-12" href="#__codelineno-28-12"></a><span class="c1"># @command doctor</span>
+</span><span id="__span-28-13"><a id="__codelineno-28-13" name="__codelineno-28-13" href="#__codelineno-28-13"></a><span class="c1"># Description of the doctor command...</span>
+</span></code></pre></div>
+<p>The generator is deliberately strict and pretty-printing:</p>
+<ul>
+<li>Only intentional doc blocks after the markers are extracted.</li>
+<li>"Usage:" sections and shell examples become clean fenced code blocks using the <code>bash</code> language.</li>
+<li>"Safety", "Important", "Warning" blocks become <code>!!! warning</code> admonitions in the rendered docs.</li>
+<li>Internal implementation comments are ignored so the output stays pleasant to read.</li>
+</ul>
+<p>It also preserves <code>{{PLACEHOLDER}}</code> tokens so the live cluster variables panel (at the top of this page and others) can substitute real values into the examples and copy buttons.</p>
+<p><strong>Why we do it this way</strong>:</p>
+<ul>
+<li>Single source of truth — the comments that explain the commands <em>are</em> the commands' documentation.</li>
+<li>Never goes stale as long as you update the comments when you change behavior.</li>
+<li>Powers both the static reference <em>and</em> the interactive live examples via the command-vars.js panel.</li>
+<li>Works for <code>manage.sh</code>, all the helpers in <code>lib/</code>, profiles, etc.</li>
+</ul>
+<p><strong>The full pipeline</strong> (Mermaid):
+</p><pre class="mermaid"><code>flowchart TD
+    A[scripts/manage.sh + lib/*.sh&lt;br/&gt;with # ## and # @command comments] --&gt; B[docs/generate_shell_docs.py]
+    B --&gt; C[docs/generated/shell/reference.md]
+    C --&gt; D[MkDocs site&lt;br/&gt;Reference → Shell Commands &amp; Helpers]
+    E["Live {{PLACEHOLDER}} panel in getting-started etc."] --&gt; D
+    %% Note: Node label is double-quoted for Mermaid 11+ parser compatibility ({{ }} is special)
+    F[bazelisk run //docs:docs] --&gt; B
+    F --&gt; D</code></pre><p></p>
+<p><strong>Triggering regeneration (Bazel-first, always)</strong>:
+</p><div class="language-bash highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="c1"># Preferred (also runs the full strict site build)</span>
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//docs:docs
+</span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>
+</span><span id="__span-29-4"><a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="c1"># During development</span>
+</span><span id="__span-29-5"><a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//docs:serve
+</span></code></pre></div><p></p>
+<p>Classic:
+</p><div class="language-bash highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>./docs/manage-docs.sh<span class="w"> </span>build<span class="w"> </span>--strict
+</span></code></pre></div><p></p>
+<p><strong>Extensive example — what a good doc comment looks like</strong></p>
+<p>In <code>scripts/manage.sh</code>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="w">  </span>doctor<span class="p">|</span>preflight<span class="p">|</span>check<span class="o">)</span>
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="w">    </span><span class="c1">## doctor</span>
+</span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="w">    </span><span class="c1"># Comprehensive pre-flight checks.</span>
+</span><span id="__span-31-4"><a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="w">    </span><span class="c1">#</span>
+</span><span id="__span-31-5"><a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a><span class="w">    </span><span class="c1"># Verifies tools, cluster reachability, free GPU capacity,</span>
+</span><span id="__span-31-6"><a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a><span class="w">    </span><span class="c1"># current workloads, and prints all the useful URLs.</span>
+</span><span id="__span-31-7"><a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a><span class="w">    </span><span class="c1">#</span>
+</span><span id="__span-31-8"><a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a><span class="w">    </span><span class="c1"># Usage:</span>
+</span><span id="__span-31-9"><a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a><span class="w">    </span><span class="c1">#   ./scripts/manage.sh doctor</span>
+</span><span id="__span-31-10"><a id="__codelineno-31-10" name="__codelineno-31-10" href="#__codelineno-31-10"></a><span class="w">    </span><span class="c1">#</span>
+</span><span id="__span-31-11"><a id="__codelineno-31-11" name="__codelineno-31-11" href="#__codelineno-31-11"></a><span class="w">    </span><span class="c1"># Safety:</span>
+</span><span id="__span-31-12"><a id="__codelineno-31-12" name="__codelineno-31-12" href="#__codelineno-31-12"></a><span class="w">    </span><span class="c1">#   Read-only. Run this before every heavy start-* command.</span>
+</span><span id="__span-31-13"><a id="__codelineno-31-13" name="__codelineno-31-13" href="#__codelineno-31-13"></a><span class="w">    </span>...
+</span></code></pre></div>
+<p>After regeneration you get nice headings, a fenced usage block, and (if we added the Safety detection) an admonition.</p>
+<p><strong>How to contribute to / maintain the auto-generated reference</strong></p>
+<ol>
+<li>Find the command or helper you want to document (in <code>manage.sh</code> or <code>lib/*.sh</code>).</li>
+<li>Add or improve a <code># ## ...</code> or <code># @command xxx</code> block with:</li>
+<li>Clear description of what it does</li>
+<li>Safety / confirmation / resource implications</li>
+<li>Exact Usage</li>
+<li>Realistic examples (use <code>{{SPARK0_IP}}</code>, <code>{{DASHBOARD_PORT}}</code> etc. when it makes sense)</li>
+<li>Run <code>bazelisk run //docs:docs</code></li>
+<li>Look at <code>docs/generated/shell/reference.md</code> (or the built site) and the live panel.</li>
+<li>If something looks ugly, improve either the comment or the generator's <code>_format_body</code> logic.</li>
+<li>Commit the source comment changes (the generated file will be updated by the docs build).</li>
+</ol>
+<p>See also the very detailed section in <a href="../CONTRIBUTING/">CONTRIBUTING.md</a> under "Code-Generated Command Reference".</p>
+<p><strong>Dashboard API reference</strong></p>
+<p>The other code-generated reference is the Dashboard API docs (under the same Reference section). It is produced by TypeDoc from JSDoc comments in the Next.js/TypeScript code:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>bazel<span class="w"> </span>run<span class="w"> </span>//dashboard:docs
+</span></code></pre></div>
+<p>After <code>npm ci</code> in the <code>dashboard/</code> directory.</p>
+<p><strong>Related files you should know about</strong>
+- <code>docs/generate_shell_docs.py</code> — the extractor + pretty printer (read the docstring)
+- <code>docs/test_generate_shell_docs.py</code> — ensures we never lose {{PLACEHOLDER}} support
+- <code>docs/manage-docs.sh</code> and <code>docs/setup-docs.sh</code>
+- <code>docs/hooks.py</code> (injects GitHub API 404 suppressor, etc.)
+- The live substitution code in <code>docs/assets/javascripts/command-vars.js</code></p>
+<p>This whole system is one of the things that makes the documentation in this lab stay trustworthy even as the scripts evolve rapidly.</p>
+<p>(The previous short "how the docs stay accurate" text has been replaced by this much more extensive guide.)</p>
+<h2 id="next-steps-after-core-setup">Next Steps (after core setup)<a class="headerlink" href="#next-steps-after-core-setup" title="Permanent link">¶</a></h2>
+<ul>
+<li>Read <a href="../dgx-spark-notes/">dgx-spark-notes.md</a> for important stability guidance</li>
+<li>Review the workload manifests in <code>k8s/workloads/</code> (cross-reference the generated Shell ref for the manage.sh commands that deploy them)</li>
+<li>Adjust resource requests/limits in the manifests before running very large models</li>
+<li>Read <a href="../reboot-safety/">reboot-safety.md</a></li>
+<li>Explore the <a href="../generated/shell/reference/">auto-generated command reference</a> for every option of <code>doctor</code>, <code>estimate</code>, <code>start-*</code>, etc.</li>
+</ul>
+<h2 id="running-the-test-suite-bazel-primary">Running the Test Suite (Bazel primary)<a class="headerlink" href="#running-the-test-suite-bazel-primary" title="Permanent link">¶</a></h2>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//:test
+</span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//:lint<span class="w"> </span>--test_tag_filters<span class="o">=</span>manual
+</span></code></pre></div>
+<p>Makefile shims (delegates, for compatibility):</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>make<span class="w"> </span>lint
+</span><span id="__span-34-2"><a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>make<span class="w"> </span><span class="nb">test</span>
+</span></code></pre></div>
+<p>See the top-level <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/README.md#development--testing">README.md</a> and the tests/ directory for full details. The tests catch common mistakes (bad YAML, missing limits, accidental <code>Always</code> restart policies) without needing DGX hardware.</p>
+<p>The generator itself also has dedicated unit test coverage under <code>bazelisk test //docs:test_generate_shell_docs</code>.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden="">
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "search.suggest", "search.highlight", "content.code.copy", "content.tabs.link", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../assets/javascripts/command-vars.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
