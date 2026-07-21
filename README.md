@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/github/license/toxicoder/nvidia-dgx-spark-lab?style=for-the-badge)](LICENSE)
 [![Bazel](https://img.shields.io/badge/build-Bazel-green?style=for-the-badge&logo=bazel&logoColor=white)](docs/BUILDING_WITH_BAZEL.md)
 
-<img width="1139" height="765" alt="nvidia-dgx-spark-lab-banner-0" src="https://github.com/user-attachments/assets/b317d0c6-5f8c-4544-bb27-7e68c732e400" />
+![nvidia-dgx-spark-lab banner](docs/nvidia-dgx-spark-lab-banner.jpeg)
 
 **Documentation:** [latest](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/) (from `main`) · [development](https://toxicoder.github.io/nvidia-dgx-spark-lab/development/) (from `development`) — MkDocs Material with search, glossary tooltips, and live editable command variables.
 
