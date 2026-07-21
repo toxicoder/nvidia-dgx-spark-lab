@@ -38,14 +38,15 @@ teardown() {
 
 @test "Gitea CI long-lived branches match GitHub CI" {
   # development is the primary integration branch — both CI surfaces must run on it.
+  # Use portable grep (not host ripgrep): GHA ubuntu-latest has no rg by default.
   local gh="${REPO_ROOT}/.github/workflows/ci.yml"
   local gitea="${REPO_ROOT}/.gitea/workflows/ci.yml"
   [[ -f $gh && -f $gitea ]]
-  rg -q 'development' "$gh"
-  rg -q 'development' "$gitea"
+  grep -q 'development' "$gh"
+  grep -q 'development' "$gitea"
   # Pull-request targets should include development on both.
-  rg -A2 'pull_request:' "$gh" | rg -q 'development'
-  rg -A2 'pull_request:' "$gitea" | rg -q 'development'
+  grep -A2 'pull_request:' "$gh" | grep -q 'development'
+  grep -A2 'pull_request:' "$gitea" | grep -q 'development'
 }
 
 # Extract unique "owner/name@vN" (or "owner/name@vN.M") pins from a workflow YAML.
@@ -53,7 +54,7 @@ teardown() {
 _ci_action_pins() {
   local file="$1"
   # Match marketplace-style uses: lines; drop leading whitespace / "- uses:".
-  rg -oN 'uses:[[:space:]]+[^[:space:]#]+' "$file" |
+  grep -oE 'uses:[[:space:]]+[^[:space:]#]+' "$file" |
     sed -E 's/^uses:[[:space:]]+//' |
     grep -E '^[^./][^@]*@v[0-9]+' |
     sed -E 's|@v([0-9]+).*|@v\1|' |
@@ -71,14 +72,14 @@ _ci_action_pins() {
 
   local job
   for job in changes bazel-core dashboard-unit dashboard-hermetic docs-and-render validate-gate; do
-    rg -q "^  ${job}:" "$gh"
-    rg -q "^  ${job}:" "$gitea"
+    grep -qE "^  ${job}:" "$gh"
+    grep -qE "^  ${job}:" "$gitea"
   done
 
   local filter
   for filter in bazel-core dashboard docs ci-graph ci-workflow; do
-    rg -q "^[[:space:]]+${filter}:" "$gh"
-    rg -q "^[[:space:]]+${filter}:" "$gitea"
+    grep -qE "^[[:space:]]+${filter}:" "$gh"
+    grep -qE "^[[:space:]]+${filter}:" "$gitea"
   done
 
   local cmd
@@ -89,12 +90,12 @@ _ci_action_pins() {
     'DASHBOARD_TEST_MODE=full' \
     '//docs:test_mkdocs_render' \
     'scripts/ci_check_only.sh'; do
-    rg -qF "$cmd" "$gh"
-    rg -qF "$cmd" "$gitea"
+    grep -qF "$cmd" "$gh"
+    grep -qF "$cmd" "$gitea"
   done
 
   # Shared setup composite must remain referenced from Gitea (do not fork it).
-  rg -qF './.github/actions/setup-bazel' "$gitea"
+  grep -qF './.github/actions/setup-bazel' "$gitea"
 
   local gh_pins gitea_pins
   gh_pins="$(_ci_action_pins "$gh")"
@@ -122,8 +123,8 @@ _ci_action_pins() {
     "${REPO_ROOT}/.github/workflows/ci.yml" \
     "${REPO_ROOT}/.github/workflows/deploy-docs.yml" \
     "${REPO_ROOT}/.gitea/workflows/ci.yml"; do
-    if [[ -f $f ]] && rg -q 'actions/cache@v4\b' "$f"; then
-      hits+="$(rg -n 'actions/cache@v4\b' "$f")"$'\n'
+    if [[ -f $f ]] && grep -qE 'actions/cache@v4([^0-9]|$)' "$f"; then
+      hits+="$(grep -nE 'actions/cache@v4([^0-9]|$)' "$f")"$'\n'
     fi
   done
   if [[ -n $hits ]]; then
@@ -133,5 +134,5 @@ _ci_action_pins() {
   fi
   # Positive control: setup-bazel must pin a modern cache major.
   [[ -f $setup_bazel ]]
-  rg -q 'actions/cache@v[56]\b' "$setup_bazel"
+  grep -qE 'actions/cache@v[56]([^0-9]|$)' "$setup_bazel"
 }
