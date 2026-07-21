@@ -8,14 +8,84 @@ Subdirectory addenda extend the conventions doc:
 
 - [dashboard/AGENTS.md](dashboard/AGENTS.md) — Next.js dashboard specifics
 
-## Branching model
+## Branching, commits, PRs, and promotion
 
-- **Primary integration branch:** `development` (protected, PR-required).
-- **All feature work** starts from `development` and is merged back via pull request.
-- **Promotion path:** feature → `development` → (optional) `dev` → `main` (always via PR).
-- **Never force-push** `development` or `main`.
+Full human-facing rules: [CONTRIBUTING.md](CONTRIBUTING.md#branching-commits-prs-and-promotion). Agents must follow the invariants below without ambiguity.
+
+### Long-lived branches
+
+| Branch | Role |
+| --- | --- |
+| `development` | Primary integration. All feature and non-urgent fix work lands here first (PR only). |
+| `main` | Production-ready code after deliberate promotion (PR only, normally from `development`). |
+| `dev` | Optional intermediate promotion gate when extra soak/review is needed (PR only). |
+
+- **Never force-push** `development` or `main`. Never commit directly to protected branches.
+- Protected branches require **linear history** — squash or rebase only (no merge commits).
 - Do not open long-lived feature PRs into `main` by default; land on `development` first, then promote.
-- Protected branches require **linear history** — use **squash** or **rebase** merge (not merge commits).
+
+### Branch naming
+
+Create short-lived branches from latest `development` (hotfixes from `main`):
+
+- `feature/<short-description>` — new functionality
+- `fix/<short-description>` — non-urgent bug fixes
+- `hotfix/<short-description>` — urgent production fixes (from `main`)
+- `chore/<short-description>` — tooling, docs, CI, no-behavior refactors
+- `docs/<short-description>` — documentation-only
+
+Use short, kebab-case descriptions (e.g. `feature/resource-guard-headroom-tuning`). Avoid ticket numbers as the only identifier.
+
+### Commit messages
+
+Style: Conventional Commits inspired, readable for other developers:
+
+```
+<type>: <short summary in imperative mood>
+```
+
+**Types:** `feat`, `fix`, `hotfix`, `chore`, `docs`, `refactor`, `test`, `ci`, `build`
+
+- Summary ≤ 72 characters; imperative mood (“add”, “fix”, not “added” / “fixes”).
+- Body explains *why* when non-obvious; wrap at 72–80 characters.
+- Footer for issue links when useful (`Closes #123`). Never put secrets, dumps, or “WIP” in final messages.
+
+### Pull requests
+
+- **Title:** same style as a good commit summary (imperative, concise).
+- **Description must include:** Summary, Changes, Safety impact, Test plan, and the checklist from [CONTRIBUTING.md](CONTRIBUTING.md#pull-request-titles-and-descriptions).
+- Safety impact: explicitly state workload / Resource Guard / NCCL / restartPolicy / manage.sh impact, or “No safety impact.”
+
+### Promotion (`development` → `main`)
+
+1. Tip of `development` is green: `bazelisk run //:validate -- --all`
+2. Open a promotion PR into `main` (or via `dev` if an intermediate gate is desired)
+3. PR notes: validation passed, outstanding safety notes, intended tag
+4. After merge, create an **annotated tag** on the merge commit:
+
+   ```bash
+   git tag -a vX.Y.Z -m "Release vX.Y.Z – short description"
+   git push origin vX.Y.Z
+   ```
+
+5. Prefer tags over the floating tip of `main` for production or reproducible lab deployments.
+
+Never push tags or open promotion PRs from agent automation unless the maintainer explicitly asks.
+
+### Hotfixes
+
+1. Branch `hotfix/<description>` from current `main`
+2. PR → `main` (expedited review OK for critical issues)
+3. Immediately follow up with a PR (or clean cherry-pick) back into `development`
+4. Tag the fix on `main`
+
+### Environments
+
+Deployment environments are **not** long-lived Git branches. Use:
+
+- `k8s/overlays/test`, `k8s/overlays/prod`, `k8s/overlays/single-node`
+- Ansible inventory + group_vars
+- `config/resource-policy.yaml` (and JSON twin) plus related policy files
 
 ## AI agent workflow
 
