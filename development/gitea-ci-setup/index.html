@@ -3,7 +3,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Adapting the lab's Bazel CI (parallel jobs, caches, lint, safety) to Gitea/Forgejo Actions with example workflow and rollout tips.">
+        <meta name="description" content="Adapting the lab's Bazel CI (parallel jobs, caches, lint, safety) to Gitea/Forgejo Actions with rollout tips and parity policy.">
       
       
       
@@ -694,13 +694,41 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-workflow-copy-to-giteaworkflowsciyml" class="md-nav__link">
+  <a href="#shipped-workflow-source-of-truth" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example Workflow (copy to .gitea/workflows/ci.yml)
+        Shipped workflow (source of truth)
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Shipped workflow (source of truth)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parity-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parity policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#intentional-non-parity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Intentional non-parity
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -900,13 +928,41 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-workflow-copy-to-giteaworkflowsciyml" class="md-nav__link">
+  <a href="#shipped-workflow-source-of-truth" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example Workflow (copy to .gitea/workflows/ci.yml)
+        Shipped workflow (source of truth)
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Shipped workflow (source of truth)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parity-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parity policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#intentional-non-parity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Intentional non-parity
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1015,15 +1071,15 @@
 <p><strong>What's on this page</strong></p>
 <ul>
 <li>Gitea/Forgejo Actions setup and compatibility overview</li>
-<li>Full example workflow YAML for <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> test + lint + build</li>
+<li>How this repo mirrors GitHub CI (<code>.gitea/workflows/ci.yml</code>)</li>
+<li>Intentional non-parity (docs deploy, Dependabot)</li>
 <li>Differences from GitHub (runners, caching, secrets)</li>
-<li>Recommended ultra-optimized rollout mirroring GitHub CI parallel structure</li>
-<li>Caching &amp; parallelism tips (<abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> disk/repo, npm, Playwright, docs deploy)</li>
+<li>Caching &amp; parallelism tips for self-hosted runners</li>
 </ul>
 <p><strong>What this enables</strong></p>
 <ul>
 <li>Running the same fast, hermetic <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>-centric CI (core, dashboard, docs, safety) on self-hosted Gitea/Forgejo</li>
-<li>Massive speedups via persistent <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> caches and actions/cache on private instances</li>
+<li>Massive speedups via persistent <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> caches and <code>actions/cache</code> on private instances</li>
 <li>Maintaining CI feature parity and best practices outside GitHub</li>
 </ul>
 <p>Gitea (and Forgejo) support <strong>Actions</strong> (compatible with GitHub Actions syntax via runners like <code>act</code> or native).</p>
@@ -1033,68 +1089,97 @@
 <li>Use a runner (e.g. <code>gitea-act-runner</code> or self-hosted GitHub runner compatible).</li>
 <li>Place workflow files in <code>.gitea/workflows/</code> (or <code>.forgejo/workflows/</code>).</li>
 </ol>
-<p>This repo ships <code>.gitea/workflows/ci.yml</code> as a mirror of the optimized GitHub CI (path filters, <code>//:test-fast</code>, cached dashboard Docker, docs render job).</p>
-<h2 id="example-workflow-copy-to-giteaworkflowsciyml">Example Workflow (copy to .gitea/workflows/ci.yml)<a class="headerlink" href="#example-workflow-copy-to-giteaworkflowsciyml" title="Permanent link">¶</a></h2>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Gitea - Bazel + Lint</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">on</span><span class="p">:</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">push</span><span class="p">:</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">branches</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">main</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">master</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">development</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">dev</span><span class="p p-Indicator">]</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nt">pull_request</span><span class="p">:</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">branches</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">main</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">master</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">development</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">dev</span><span class="p p-Indicator">]</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="nt">jobs</span><span class="p">:</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="nt">bazel-test</span><span class="p">:</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span><span class="w">   </span><span class="c1"># or your runner label</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install Bazelisk</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">          </span><span class="no">curl -L https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64 -o /tmp/bazelisk</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">          </span><span class="no">sudo install /tmp/bazelisk /usr/local/bin/bazelisk</span>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Install lint tools</span>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">          </span><span class="no">sudo apt-get update -qq</span>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">          </span><span class="no">sudo apt-get install -y -qq shellcheck yamllint</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">          </span><span class="no">pip install ansible-lint</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">          </span><span class="no">curl -sL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xz</span>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">          </span><span class="no">sudo mv kubeconform /usr/local/bin/</span>
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Bazel test + lint</span>
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">          </span><span class="no">bazelisk test //:test-fast //:lint --config=ci --test_tag_filters=manual</span>
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>
-</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Bazel build</span>
-</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">          </span><span class="no">bazelisk build //:manage //:all --config=ci</span>
-</span></code></pre></div>
+<h2 id="shipped-workflow-source-of-truth">Shipped workflow (source of truth)<a class="headerlink" href="#shipped-workflow-source-of-truth" title="Permanent link">¶</a></h2>
+<p>This repo ships <strong><code>.gitea/workflows/ci.yml</code></strong> as a mirror of <strong><code>.github/workflows/ci.yml</code></strong>.</p>
+<p>Do <strong>not</strong> replace it with a minimal single-job workflow. The mirror includes:</p>
+<table>
+<thead>
+<tr>
+<th><abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr></th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>changes</code></td>
+<td><code>dorny/paths-filter</code> path groups</td>
+</tr>
+<tr>
+<td><code>bazel-core</code></td>
+<td><code>//:test-fast</code> + <code>//:lint</code> + key builds</td>
+</tr>
+<tr>
+<td><code>dashboard-unit</code></td>
+<td>Host Vitest / lint / typecheck via <code>//dashboard:fast-test</code></td>
+</tr>
+<tr>
+<td><code>dashboard-hermetic</code></td>
+<td>Dockerized production build + Playwright</td>
+</tr>
+<tr>
+<td><code>docs-and-render</code></td>
+<td>Single <abbr title="Static site generator used for this documentation.">MkDocs</abbr> build + visual regression (<code>//docs:test_mkdocs_render</code>)</td>
+</tr>
+<tr>
+<td><code>validate-gate</code></td>
+<td>Path-filter consistency via <code>scripts/ci_check_only.sh</code></td>
+</tr>
+</tbody>
+</table>
+<p>Shared composite setup lives under <strong><code>.github/actions/setup-bazel</code></strong> (Gitea references it; do not fork under <code>.gitea/</code>).</p>
+<h3 id="parity-policy">Parity policy<a class="headerlink" href="#parity-policy" title="Permanent link">¶</a></h3>
+<p>When bumping marketplace action majors or changing job graph / path filters / <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> commands in <code>.github/workflows/ci.yml</code>, update <code>.gitea/workflows/ci.yml</code> in the <strong>same PR</strong>.</p>
+<p>Enforced by <code>tests/bats/tooling.bats</code> (<code>//tests:bats_tooling_test</code>):</p>
+<ul>
+<li>Same job ids and path-filter keys</li>
+<li>Same critical commands (<code>//:test-fast</code>, hermetic modes, docs render, gate script)</li>
+<li>Same marketplace action <strong>major</strong> pins (<code>actions/checkout@vN</code>, etc.)</li>
+</ul>
+<p>Allowed Gitea-only delta: a short header comment that the file is a Forgejo/Gitea mirror.</p>
+<h3 id="intentional-non-parity">Intentional non-parity<a class="headerlink" href="#intentional-non-parity" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>GitHub-only</th>
+<th>Why not mirrored</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.github/workflows/deploy-docs.yml</code></td>
+<td>mike → GitHub Pages (<code>gh-pages</code>). Needs a chosen Gitea Pages / static host + secrets before a Gitea equivalent exists.</td>
+</tr>
+<tr>
+<td><code>.github/dependabot.yml</code></td>
+<td>Dependabot is a GitHub product; use Renovate or manual bumps on Gitea.</td>
+</tr>
+</tbody>
+</table>
+<p>Docker Buildx still uses <code>cache-from/to: type=gha</code> for structural parity with GitHub. On pure <code>gitea-act-runner</code> hosts the GHA cache backend may no-op; prefer a persistent local Docker layer cache or registry cache on the runner if rebuilds stay cold.</p>
 <h2 id="differences-from-github">Differences from GitHub<a class="headerlink" href="#differences-from-github" title="Permanent link">¶</a></h2>
 <ul>
 <li>Runner labels may differ (configure in Gitea).</li>
-<li>Secrets and variables are configured in Gitea UI (same names).</li>
-<li>For self-hosted, ensure docker or the execution environment has the tools.</li>
-<li>Caching: Use the same disk_cache in .bazelrc or Gitea cache actions if available.</li>
-<li>No official "setup-bazelisk" but the curl method works.</li>
+<li>Secrets and variables are configured in Gitea UI (use the same logical names where applicable).</li>
+<li>For self-hosted, ensure docker or the execution environment has the tools <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> and hermetic dashboard tests need.</li>
+<li>Caching: mount persistent volumes for <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> disk/repo caches; use <code>actions/cache</code> for npm/pip/Playwright when supported.</li>
+<li>Docs <strong>publish</strong> stays on GitHub Pages unless you add a separate Gitea deploy workflow.</li>
 </ul>
 <h2 id="recommended-rollout-for-gitea-ultra-optimized">Recommended Rollout for Gitea (Ultra Optimized)<a class="headerlink" href="#recommended-rollout-for-gitea-ultra-optimized" title="Permanent link">¶</a></h2>
 <ul>
-<li>Use <code>.gitea/workflows/ci.yml</code> (mirrors <code>.github/workflows/ci.yml</code>: path-filtered bazel-core, dashboard, docs-and-render).</li>
-<li>Self-hosted runners (gitea-act-runner or compatible): mount persistent volume for <code>~/.cache/bazel-disk</code> and <code>~/.cache/bazel-repo</code> (and node_modules) for massive cache hits across builds (5-10x+ on incremental per research; key on MODULE.bazel.lock etc.).</li>
-<li>Use <code>actions/cache</code> (supported) in workflows for the same keys as GitHub.</li>
+<li>Use the shipped <code>.gitea/workflows/ci.yml</code> (do not regress to a single job).</li>
+<li>Self-hosted runners (<code>gitea-act-runner</code> or compatible): mount persistent volume for <code>~/.cache/bazel-disk</code> and <code>~/.cache/bazel-repo</code> (and node_modules) for large cache hits across builds (key on <code>MODULE.bazel.lock</code> / <code>.bazelversion</code>).</li>
+<li>Use <code>actions/cache</code> for the same keys as GitHub where the runner supports it.</li>
 <li>Runner labels: configure in Gitea admin (e.g. <code>self-hosted</code>, <code>linux</code>); use in <code>runs-on</code>.</li>
-<li>Update .bazelrc --config=ci usage for higher resources on beefy self-hosted.</li>
-<li>Keep Makefile as fallback for local dev without <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>.</li>
+<li>Keep <code>.bazelrc</code> <code>--config=ci</code> for CI-oriented flags; raise resources on beefy self-hosted hardware as needed.</li>
 </ul>
-<p>See also the GitHub CI in <code>.github/workflows/ci.yml</code> (now split for parallelism) and .bazelrc for cache/parallel flags.</p>
+<p>See also <code>.github/workflows/ci.yml</code> and <code>.bazelrc</code> for cache/parallel flags.</p>
 <h2 id="caching-parallelism-tips-for-gitea">Caching &amp; Parallelism Tips for Gitea<a class="headerlink" href="#caching-parallelism-tips-for-gitea" title="Permanent link">¶</a></h2>
 <ul>
-<li><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>: restore disk + repo cache in job steps (see .bazelrc comments).</li>
-<li>Non-hermetic: separate npm cache (setup-node), Python (setup-python cache).</li>
-<li>Parallel: jobs run concurrently; self-hosted can run multiple in parallel (configure runner).</li>
-<li>For visuals/goldens: pre-install Playwright browsers in runner image or cache.</li>
-<li>Deploy docs: prefer <code>bazelisk run //docs:docs</code> for consistency (update workflow if possible).</li>
+<li><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>: restore disk + repo cache in job steps (see <code>.bazelrc</code> and <code>setup-bazel</code>).</li>
+<li>Non-hermetic: separate npm cache (<code>setup-node</code>), Python (<code>setup-python</code> cache).</li>
+<li>Parallel: jobs run concurrently; self-hosted can run multiple in parallel (configure runner capacity).</li>
+<li>For visuals/goldens: pre-install Playwright browsers in the runner image or cache <code>~/.cache/ms-playwright</code>.</li>
+<li>Docs <strong>build</strong> in CI: <code>bazelisk test //docs:test_mkdocs_render --config=ci</code> (same as GitHub). Publish remains GitHub-only today.</li>
 </ul>
 <!--
   Project-wide glossary abbreviations (Material tooltips).
