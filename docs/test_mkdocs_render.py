@@ -58,6 +58,7 @@ HAND_WRITTEN_NAV_PAGES = [
     "models-catalog.md",
     "architecture.md",
     "monitoring-observability.md",
+    "glossary.md",
     "BUILDING_WITH_BAZEL.md",
     "gitea-ci-setup.md",
     "dev-workspaces.md",

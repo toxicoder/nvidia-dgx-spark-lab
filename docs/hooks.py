@@ -12,13 +12,13 @@ instead of 403). We intentionally keep repo_url + edit_uri in mkdocs.yml
 because they enable "Edit this page on GitHub" links and the repository
 icon navigation. The patch only prevents the stats fetch spam.
 
-The injection happens in on_post_page so the <script> literally precedes
-the Material bundle.*.js <script> tag in the emitted HTML (including during
-`mkdocs serve` live reload). This guarantees execution order.
+When ``MIKE_DOCS_VERSION`` or ``DGX_DOCS_VERSION`` is ``development``, also
+inject a small banner so readers know they are on the development docs alias.
 """
 
 from __future__ import annotations
 
+import os
 import re
 from typing import Any
 
@@ -53,9 +53,17 @@ _GITHUB_API_PATCH = (
     "</script>"
 )
 
+_DEV_BANNER = (
+    '<div class="dgx-docs-dev-banner" role="status">'
+    "<strong>Development docs</strong> — this site version tracks the "
+    "<code>development</code> branch and may change without a release tag. "
+    'Prefer <a href="../latest/">latest</a> for production-ready guidance.'
+    "</div>"
+)
+
 
 def on_post_page(output: str, **kwargs: Any) -> str:
-    """Insert the GitHub patch script immediately after the opening <head> tag.
+    """Insert the GitHub patch script and optional development banner.
 
     Args:
         output: Rendered HTML page content from MkDocs.
@@ -63,7 +71,8 @@ def on_post_page(output: str, **kwargs: Any) -> str:
 
     Returns:
         HTML with the inline GitHub API patch script injected once after
-        the first ``<head>`` opening tag.
+        the first ``<head>`` opening tag, plus a development banner when
+        the docs version env vars indicate the development alias.
     """
 
     def _inject(m: re.Match[str]) -> str:
@@ -77,4 +86,29 @@ def on_post_page(output: str, **kwargs: Any) -> str:
         """
         return m.group(1) + _GITHUB_API_PATCH
 
-    return re.sub(r"(<head\b[^>]*>)", _inject, output, count=1, flags=re.IGNORECASE)
+    html = re.sub(r"(<head\b[^>]*>)", _inject, output, count=1, flags=re.IGNORECASE)
+
+    version = (
+        os.environ.get("MIKE_DOCS_VERSION") or os.environ.get("DGX_DOCS_VERSION") or ""
+    ).strip().lower()
+    if version == "development":
+        html2, n = re.subn(
+            r'(<article\b[^>]*class="[^"]*md-content__inner[^"]*"[^>]*>)',
+            r"\1" + _DEV_BANNER,
+            html,
+            count=1,
+            flags=re.IGNORECASE,
+        )
+        if n:
+            return html2
+        html2, n = re.subn(
+            r"(<h1\b[^>]*>)",
+            _DEV_BANNER + r"\1",
+            html,
+            count=1,
+            flags=re.IGNORECASE,
+        )
+        if n:
+            return html2
+
+    return html

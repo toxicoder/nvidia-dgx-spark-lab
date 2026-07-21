@@ -167,6 +167,7 @@ class TestCommandVarsPlaywright(unittest.TestCase):
 
         class _Quiet(http.server.SimpleHTTPRequestHandler):
             def log_message(self, format: str, *args: object) -> None:  # noqa: A003
+                """Suppress request logging noise during Playwright tests."""
                 return
 
         def make_handler(
@@ -174,6 +175,7 @@ class TestCommandVarsPlaywright(unittest.TestCase):
             client_address: tuple[str, int],
             server: socketserver.BaseServer,
         ) -> http.server.SimpleHTTPRequestHandler:
+            """Build a quiet static handler rooted at the MkDocs site directory."""
             return _Quiet(request, client_address, server, directory=site_root)
 
         httpd = socketserver.TCPServer(("127.0.0.1", port), make_handler)
