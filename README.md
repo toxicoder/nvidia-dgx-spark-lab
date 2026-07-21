@@ -1,8 +1,16 @@
 # nvidia-dgx-spark-lab
 
+[![Docs (latest)](https://img.shields.io/badge/docs-latest-indigo?style=for-the-badge&logo=materialformkdocs&logoColor=white)](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/)
+[![Docs (development)](https://img.shields.io/badge/docs-development-blueviolet?style=for-the-badge&logo=materialformkdocs&logoColor=white)](https://toxicoder.github.io/nvidia-dgx-spark-lab/development/)
+[![CI](https://img.shields.io/github/actions/workflow/status/toxicoder/nvidia-dgx-spark-lab/ci.yml?branch=development&style=for-the-badge&logo=github&label=CI%20development)](https://github.com/toxicoder/nvidia-dgx-spark-lab/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/toxicoder/nvidia-dgx-spark-lab?style=for-the-badge)](LICENSE)
+[![Bazel](https://img.shields.io/badge/build-Bazel-green?style=for-the-badge&logo=bazel&logoColor=white)](docs/BUILDING_WITH_BAZEL.md)
+
 <img width="1139" height="765" alt="nvidia-dgx-spark-lab-banner-0" src="https://github.com/user-attachments/assets/b317d0c6-5f8c-4544-bb27-7e68c732e400" />
 
-**Documentation:** [https://toxicoder.github.io/nvidia-dgx-spark-lab](https://toxicoder.github.io/nvidia-dgx-spark-lab) — full MkDocs site with search, navigation, and live editable command variables.
+**Documentation:** [latest](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/) (from `main`) · [development](https://toxicoder.github.io/nvidia-dgx-spark-lab/development/) (from `development`) — MkDocs Material with search, glossary tooltips, and live editable command variables.
+
+**Suggested GitHub topics** (set in repo Settings → General → Topics): `k3s`, `nvidia`, `dgx`, `bazel`, `mkdocs`, `gpu`, `inference`, `ansible`, `kubernetes`.
 
 **What's on this page**
 

@@ -36,6 +36,18 @@ teardown() {
   [ "$status" -eq 0 ]
 }
 
+@test "Gitea CI long-lived branches match GitHub CI" {
+  # development is the primary integration branch — both CI surfaces must run on it.
+  local gh="${REPO_ROOT}/.github/workflows/ci.yml"
+  local gitea="${REPO_ROOT}/.gitea/workflows/ci.yml"
+  [[ -f $gh && -f $gitea ]]
+  rg -q 'development' "$gh"
+  rg -q 'development' "$gitea"
+  # Pull-request targets should include development on both.
+  rg -A2 'pull_request:' "$gh" | rg -q 'development'
+  rg -A2 'pull_request:' "$gitea" | rg -q 'development'
+}
+
 @test "GitHub Actions cache action is Node-24-capable (not cache@v4)" {
   # actions/cache@v4 targets deprecated Node 20 on GitHub runners.
   # Prefer @v5+ (repo standard: @v6) in workflows and composite actions.

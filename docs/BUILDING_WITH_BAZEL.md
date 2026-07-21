@@ -144,6 +144,21 @@ The test gracefully skips the browser portion if playwright or browsers are miss
 
 See also the top of `docs/test_mkdocs_render.py` and `test_mkdocs_render.sh`.
 
+### Multi-version public docs (latest + development)
+
+GitHub Pages is published with **[mike](https://github.com/jimporter/mike)** so both long-lived branches have a docs site:
+
+| Alias | Branch | URL |
+| --- | --- | --- |
+| `latest` (default) | `main` | `…/latest/` (and site root default) |
+| `development` | `development` | `…/development/` |
+
+Workflow: `.github/workflows/deploy-docs.yml` runs on push to `main`/`master`/`development` (docs paths). After `//docs:docs` generates content, `mike deploy --push` updates the version alias on the `gh-pages` branch.
+
+**Repo setting:** GitHub Pages source should be the **`gh-pages` branch** (not “GitHub Actions” artifact-only) once mike has published. Development builds set `DGX_DOCS_VERSION=development` so hooks inject a non-production banner.
+
+Local single-version builds (`bazelisk run //docs:serve`) do not need mike; the version selector simply has no alternate aliases offline.
+
 ### Why this design?
 
 - Comments that describe behavior live right next to the code that implements it.

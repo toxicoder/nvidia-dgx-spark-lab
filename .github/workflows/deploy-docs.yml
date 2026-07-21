@@ -2,19 +2,23 @@ name: Deploy Documentation
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, development]
     paths:
       - "docs/**"
+      - "includes/**"
       - "mkdocs.yml"
       - "docs/requirements.txt"
+      - ".github/workflows/deploy-docs.yml"
   pull_request:
     paths:
       - "docs/**"
+      - "includes/**"
       - "mkdocs.yml"
       - "docs/requirements.txt"
+  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -47,15 +51,45 @@ jobs:
           pip install -r docs/requirements.txt
 
       - name: Build documentation (strict)
+        env:
+          # Stamp development banner when building the development version.
+          DGX_DOCS_VERSION: ${{ github.ref_name == 'development' && 'development' || 'latest' }}
+          MIKE_DOCS_VERSION: ${{ github.ref_name == 'development' && 'development' || 'latest' }}
         run: bazelisk run //docs:docs
 
-      - name: Upload artifact
+      - name: Upload artifact (PR preview / fallback)
+        if: github.event_name == 'pull_request'
         uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
+      # Multi-version publish via mike → gh-pages (latest + development).
+      # Requires contents:write. Preserves other versions already on gh-pages.
+      - name: Configure git identity for mike
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Deploy with mike (versioned)
+        if: github.event_name == 'push'
+        env:
+          DGX_DOCS_VERSION: ${{ github.ref_name == 'development' && 'development' || 'latest' }}
+          MIKE_DOCS_VERSION: ${{ github.ref_name == 'development' && 'development' || 'latest' }}
+        run: |
+          set -euo pipefail
+          # Rebuild into the version alias mike expects (site/ is from //docs:docs).
+          if [[ "${{ github.ref_name }}" == "development" ]]; then
+            mike deploy --push --update-aliases development
+          else
+            # main/master → latest (default alias for the version selector).
+            mike deploy --push --update-aliases latest
+            mike set-default --push latest
+          fi
+
   deploy:
-    if: github.event_name == 'push'
+    # Artifact path used for PR builds only; pushes use mike → gh-pages above.
+    if: github.event_name == 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

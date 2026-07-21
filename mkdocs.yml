@@ -3,8 +3,14 @@ site_url: "https://toxicoder.github.io/nvidia-dgx-spark-lab"
 repo_url: "https://github.com/toxicoder/nvidia-dgx-spark-lab"
 edit_uri: "edit/main/docs/"
 
+# Multi-version (latest = main, development = development branch) via mike.
+# Local single-version builds ignore missing versions.json.
+
 theme:
   name: material
+  font:
+    text: Open Sans
+    code: Roboto Mono
   features:
     - navigation.tabs
     - navigation.sections
@@ -12,24 +18,34 @@ theme:
     - navigation.top
     - navigation.prune
     - navigation.instant
+    - navigation.tracking
     - search.suggest
     - search.highlight
+    - search.share
     - content.code.copy
+    - content.code.annotate
     - content.tabs.link
+    - content.tooltips
     - toc.follow
   palette:
-    - scheme: default
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
       primary: indigo
       accent: indigo
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-    - scheme: slate
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
       primary: indigo
       accent: indigo
       toggle:
         icon: material/brightness-4
-        name: Switch to light mode
+        name: Switch to system preference
   icon:
     repo: fontawesome/brands/github
 
@@ -50,6 +66,7 @@ nav:
       - Resource Guard: resource-guard.md
       - Architecture: architecture.md
       - Monitoring & Observability: monitoring-observability.md
+      - Glossary: glossary.md
   - How-to Guides:
       - Developer Environment: dev-environment.md
       - Bazel Documentation: BUILDING_WITH_BAZEL.md
@@ -62,21 +79,13 @@ nav:
       - Code-Generated Reference:
           - Shell Commands & Helpers: generated/shell/reference.md
           - Dashboard API: generated/dashboard-api/README.md
-      # Note: "Bazel Documentation" is the canonical entry under How-to Guides to avoid
-      # duplicate content in the top-level tabs/sections produced by navigation.tabs.
-      # Cross-root files (AGENTS.md, etc.) are linked from the main README
-      # or available directly in the repo. Add copies/symlinks under docs/ if full integration needed.
 
 plugins:
   - search
-  # - git-revision-date-localized:   # Enable for "Last updated" dates (add to requirements.txt)
-  #     enable_creation_date: true
-  #     type: timeago
   - glightbox
 
 hooks:
-  # Early <script> injection for GitHub API fetch patch (suppresses 404 console noise
-  # for repo stats/releases on private repos while keeping repo_url/edit_uri working).
+  # Early <script> injection for GitHub API fetch patch + optional dev banner.
   - docs/hooks.py
 
 extra_javascript:
@@ -84,33 +93,46 @@ extra_javascript:
 
 extra_css:
   - assets/stylesheets/command-vars.css
+  - assets/stylesheets/extra.css
 
 markdown_extensions:
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
+  - abbr
   - admonition
-  - pymdownx.details
-  - pymdownx.tabbed:
-      alternate_style: true
   - attr_list
   - md_in_html
   - toc:
       permalink: true
+  - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
       pygments_lang_class: true
   - pymdownx.inlinehilite
-  - pymdownx.snippets
+  - pymdownx.snippets:
+      # Paths relative to repo root (mkdocs is always run from the workspace root).
+      base_path:
+        - .
+        - docs
+      auto_append:
+        - docs/includes/abbreviations.md
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
 
 extra:
   social:
     - icon: fontawesome/brands/github
       link: "https://github.com/toxicoder/nvidia-dgx-spark-lab"
-  # version: ...  # can be stamped via Bazel workspace status later
+  version:
+    provider: mike
+    default: latest
+
+watch:
+  - docs/includes
 
 # Strict mode recommended in CI
 exclude_docs: |
@@ -120,5 +142,7 @@ exclude_docs: |
   **/setup-docs.sh
   **/manage-docs.sh
   **/hooks.py
+  includes/**
+  includes/abbreviations.md
 
 # strict: true   # enable via CLI flag instead: mkdocs build --strict
