@@ -1,8 +1,16 @@
 # nvidia-dgx-spark-lab
 
-<img width="1139" height="765" alt="nvidia-dgx-spark-lab-banner-0" src="https://github.com/user-attachments/assets/b317d0c6-5f8c-4544-bb27-7e68c732e400" />
+[![Docs (latest)](https://img.shields.io/badge/docs-latest-indigo?style=for-the-badge&logo=materialformkdocs&logoColor=white)](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/)
+[![Docs (development)](https://img.shields.io/badge/docs-development-blueviolet?style=for-the-badge&logo=materialformkdocs&logoColor=white)](https://toxicoder.github.io/nvidia-dgx-spark-lab/development/)
+[![CI](https://img.shields.io/github/actions/workflow/status/toxicoder/nvidia-dgx-spark-lab/ci.yml?branch=development&style=for-the-badge&logo=github&label=CI%20development)](https://github.com/toxicoder/nvidia-dgx-spark-lab/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/toxicoder/nvidia-dgx-spark-lab?style=for-the-badge)](LICENSE)
+[![Bazel](https://img.shields.io/badge/build-Bazel-green?style=for-the-badge&logo=bazel&logoColor=white)](docs/BUILDING_WITH_BAZEL.md)
 
-**Documentation:** [https://toxicoder.github.io/nvidia-dgx-spark-lab](https://toxicoder.github.io/nvidia-dgx-spark-lab) — full MkDocs site with search, navigation, and live editable command variables.
+![nvidia-dgx-spark-lab banner](docs/nvidia-dgx-spark-lab-banner.jpeg)
+
+**Documentation:** [latest](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/) (from `main`) · [development](https://toxicoder.github.io/nvidia-dgx-spark-lab/development/) (from `development`) — MkDocs Material with search, glossary tooltips, and live editable command variables.
+
+**Suggested GitHub topics** (set in repo Settings → General → Topics): `k3s`, `nvidia`, `dgx`, `bazel`, `mkdocs`, `gpu`, `inference`, `ansible`, `kubernetes`.
 
 **What's on this page**
 
@@ -17,7 +25,7 @@
 
 - Quickly understanding the lab's scope (small 1-4 node DGX Spark clusters for large inference)
 - Seeing the emphasis on stability, explicit resources, and no auto-start of heavy jobs
-- Deciding where to go next ([Getting Started](https://toxicoder.github.io/nvidia-dgx-spark-lab/getting-started/) on the documentation site is the primary entry point)
+- Deciding where to go next ([Getting Started](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/) on the documentation site is the primary entry point)
 
 ## Goals
 
@@ -124,13 +132,13 @@ nvidia-dgx-spark-lab/
    ./scripts/manage.sh stop
    ```
 
-See the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/getting-started/) for the **hyper-detailed, step-by-step** walkthrough (with variants for 1/2/4 nodes, verification after every step, safety callouts, and heavy use of the live interactive panel).
+See the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/) for the **hyper-detailed, step-by-step** walkthrough (with variants for 1/2/4 nodes, verification after every step, safety callouts, and heavy use of the live interactive panel).
 
-The auto-generated command reference (from structured comments in the scripts) is at [Shell Commands & Helpers](https://toxicoder.github.io/nvidia-dgx-spark-lab/generated/shell/reference/) and is integrated throughout the main docs.
+The auto-generated command reference (from structured comments in the scripts) is at [Shell Commands & Helpers](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/generated/shell/reference/) and is integrated throughout the main docs.
 
 For model config defaults (reference only — authoritative values live in workload manifests), see `ansible/inventory/group_vars/all.yml` (`llm_*` vars).
 
-See the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/getting-started/) for full instructions.
+See the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/) for full instructions.
 
 ## Safety First
 
@@ -138,7 +146,7 @@ See the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab
 - No Deployments with `replicas` that auto-restart on large models.
 - The `manage.sh` script includes pre-flight resource checks and confirmation for heavy mode.
 - After reboot, workloads do **not** come back automatically. You must explicitly start them.
-- Always stop workloads before rebooting (see [Reboot Safety](https://toxicoder.github.io/nvidia-dgx-spark-lab/reboot-safety/)).
+- Always stop workloads before rebooting (see [Reboot Safety](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/reboot-safety/)).
 
 ## Modes
 
@@ -179,11 +187,11 @@ For browser-based agent chat with MCP tool orchestration, deploy the backing sta
 ./scripts/manage.sh start-open-webui
 ```
 
-See [Open WebUI](https://toxicoder.github.io/nvidia-dgx-spark-lab/open-webui/) and [Hermes Agent](https://toxicoder.github.io/nvidia-dgx-spark-lab/hermes-agent/).
+See [Open WebUI](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/open-webui/) and [Hermes Agent](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/hermes-agent/).
 
 ## Remote Development: Coder Workspaces + Kasm + Dashboard
 
-See [Dev Workspaces & Dashboard](https://toxicoder.github.io/nvidia-dgx-spark-lab/dev-workspaces/) for:
+See [Dev Workspaces & Dashboard](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/dev-workspaces/) for:
 
 - Setup with Ansible + Helm (Coder, Kasm, Headlamp + Grafana for metrics, custom lab portal).
 - `scripts/manage.sh` commands: `start-coder`, `start-kasm`, `start-monitoring`, `stop-dev` etc.
@@ -236,7 +244,7 @@ Direct tools (still fully supported for day-to-day cluster ops, especially runti
 ./scripts/manage.sh status
 ```
 
-See `docs/BUILDING_WITH_BAZEL.md`, the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/getting-started/), and `docs/CONTRIBUTING.md`.
+See `docs/BUILDING_WITH_BAZEL.md`, the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/), and `docs/CONTRIBUTING.md`.
 
 ### What the tests cover
 - Shell script correctness and safety logic (`scripts/manage.sh`)
@@ -262,7 +270,7 @@ Full documentation is published at [https://toxicoder.github.io/nvidia-dgx-spark
 
 The site includes navigation tabs/sections, breadcrumbs (`navigation.path`), instant loading, Mermaid, admonitions, etc.
 
-CI deploys docs via `.github/workflows/deploy-docs.yml` on changes to `docs/**` or `mkdocs.yml`.
+CI deploys docs via `.github/workflows/deploy-docs.yml` **after merge** (push to `main` / `development` with changes under `docs/**` or `mkdocs.yml`), or via manual `workflow_dispatch` — not when a PR is opened. PR docs checks run in the main CI suite (`docs-and-render`).
 
 See `docs/CONTRIBUTING.md` (if present) or `AGENTS.md` for contribution guidelines.
 
@@ -288,7 +296,7 @@ Never rely on Kubernetes to auto-restart heavy inference pods.
 - Dual 400G links require correct interface naming and NCCL env vars; misconfiguration falls back to slower paths.
 - Watch for thermal/power limits on sustained inference.
 
-See [DGX Spark Notes](https://toxicoder.github.io/nvidia-dgx-spark-lab/dgx-spark-notes/) and [Reboot Safety](https://toxicoder.github.io/nvidia-dgx-spark-lab/reboot-safety/) for more.
+See [DGX Spark Notes](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/dgx-spark-notes/) and [Reboot Safety](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/reboot-safety/) for more.
 
 ## Contributing / Modifying
 
@@ -325,4 +333,4 @@ Your support helps maintain and improve this collection of development tools and
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-This repository contains infrastructure code, Kubernetes manifests, and scripts for a specialized AI lab cluster. It is not intended for production use outside controlled research / lab environments. Always follow the safety guidelines in [Reboot Safety](https://toxicoder.github.io/nvidia-dgx-spark-lab/reboot-safety/) and [AGENTS.md](AGENTS.md).
+This repository contains infrastructure code, Kubernetes manifests, and scripts for a specialized AI lab cluster. It is not intended for production use outside controlled research / lab environments. Always follow the safety guidelines in [Reboot Safety](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/reboot-safety/) and [AGENTS.md](AGENTS.md).

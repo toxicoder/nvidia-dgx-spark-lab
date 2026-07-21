@@ -57,7 +57,19 @@
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
+        // Portable editor settings live in .vscode/settings.json (mypy strict,
+        // ruff ANN, shfmt, rebase git). Only container-absolute paths here.
         "python.defaultInterpreterPath": "/usr/local/python/current/bin/python",
+        "mypy-type-checker.interpreter": [
+          "/usr/local/python/current/bin/python"
+        ],
+        "python.analysis.exclude": [
+          "**/site/**",
+          "**/.venv*/**",
+          "**/node_modules/**",
+          "**/bazel-*/**"
+        ],
+        "bazel.executable": "/usr/local/bin/bazelisk",
         "bazel.buildifierExecutable": "/usr/local/bin/buildifier",
         "remote.localPortHost": "allInterfaces"
       }

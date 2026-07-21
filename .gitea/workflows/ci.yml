@@ -1,13 +1,15 @@
 # Gitea/Forgejo Actions mirror of .github/workflows/ci.yml
 # Requires a compatible runner (gitea-act-runner or act-based).
+# Keep marketplace action majors and job graph in lockstep with GitHub
+# (enforced by tests/bats/tooling.bats).
 
 name: CI - Test Suite
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, development, dev]
   pull_request:
-    branches: [main, master]
+    branches: [main, master, development, dev]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -23,9 +25,9 @@ jobs:
       ci-graph: ${{ steps.filter.outputs.ci-graph }}
       ci-workflow: ${{ steps.filter.outputs.ci-workflow }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           filters: |
@@ -42,12 +44,15 @@ jobs:
             dashboard:
               - 'dashboard/**'
               - 'scripts/utilities/**'
+            # Shell doc sources only — not every scripts/** path (avoids Playwright
+            # for pure validate/CI orchestration edits).
             docs:
               - 'docs/**'
               - 'mkdocs.yml'
               - 'scripts/manage.sh'
               - 'scripts/lib/**'
               - 'scripts/utilities/**'
+            # Graph/orchestrator: force all expensive jobs.
             ci-graph:
               - 'BUILD.bazel'
               - 'MODULE.bazel'
@@ -56,9 +61,10 @@ jobs:
               - '.bazelversion'
               - 'fix.sh'
               - 'scripts/validate.sh'
+            # Workflow/action YAML alone: bazel-core only (setup-bazel / lint install).
             ci-workflow:
-              - '.gitea/**'
               - '.github/**'
+              - '.gitea/**'
 
   bazel-core:
     needs: changes
@@ -68,7 +74,7 @@ jobs:
       needs.changes.outputs.ci-workflow == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-bazel
         with:
@@ -88,9 +94,9 @@ jobs:
       needs.changes.outputs.ci-graph == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           # Match .devcontainer/tool-versions.env NODE_MAJOR and dashboard engines.
           node-version: "22"
@@ -113,13 +119,13 @@ jobs:
       (needs.dashboard-unit.result == 'success' || needs.dashboard-unit.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build hermetic dashboard test image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: dashboard/Dockerfile.test
@@ -128,7 +134,9 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Run hermetic tests (build + visual when unit passed)
+      # Unit already ran Vitest+lint+tsc on the host; hermetic focuses on
+      # production build + Playwright (and coverage when visual mode needs it).
+      - name: Run hermetic tests (build + visual; unit skipped when host unit passed)
         run: |
           if [[ "${{ needs.dashboard-unit.result }}" == "success" ]]; then
             docker run --rm -e DASHBOARD_TEST_MODE=visual lab-dashboard-test:ci
@@ -143,10 +151,10 @@ jobs:
       needs.changes.outputs.ci-graph == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
@@ -157,7 +165,7 @@ jobs:
           install-lint-tools: "false"
 
       - name: Cache pip downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: pip-docs-${{ runner.os }}-${{ hashFiles('docs/requirements.txt') }}
@@ -165,7 +173,7 @@ jobs:
             pip-docs-${{ runner.os }}-
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('docs/requirements.txt') }}
@@ -178,6 +186,7 @@ jobs:
           pip install -r docs/requirements.txt
           python -m playwright install --with-deps chromium
 
+      # Single MkDocs build + HTML checks + Playwright (one setUpClass build).
       - name: Docs build + visual regression (single MkDocs build)
         run: bazelisk test //docs:test_mkdocs_render --config=ci
 
@@ -186,8 +195,9 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
+      # Pure bash gate — no Bazelisk / disk-cache cold start.
       - name: Validate gate (path-filter consistency)
         env:
           BAZEL_CORE_RESULT: ${{ needs.bazel-core.result }}

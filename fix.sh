@@ -33,7 +33,7 @@ if command -v buildifier >/dev/null 2>&1; then
     ! -path './node_modules/*' \
     ! -path './bazel-bin/*' \
     ! -path './bazel-out/*' \
-    -print0 | xargs -0 -r buildifier -mode=fix || true  # keep: fix step (formatter, not real lint/check); tolerate no-op or tool quirks for ops
+    -print0 | xargs -0 -r buildifier -mode=fix || true # keep: fix step (formatter, not real lint/check); tolerate no-op or tool quirks for ops
 else
   echo "   (buildifier not in PATH - skipping)"
 fi
@@ -48,7 +48,7 @@ if command -v shfmt >/dev/null 2>&1; then
     ! -path './node_modules/*' \
     ! -path './bazel-bin/*' \
     ! -path './bazel-out/*' \
-    -print0 | xargs -0 -r shfmt -w -s -i 2 -ci || true  # keep: fix step (formatter, not real lint/check); tolerate no-op or tool quirks for ops
+    -print0 | xargs -0 -r shfmt -w -s -i 2 -ci || true # keep: fix step (formatter, not real lint/check); tolerate no-op or tool quirks for ops
 else
   echo "   (shfmt not in PATH - skipping)"
 fi
@@ -59,14 +59,14 @@ if command -v ruff >/dev/null 2>&1; then
   # Only touch files we control
   for py_dir in docs mcp config/grafana tests; do
     if [ -d "$ROOT/$py_dir" ]; then
-      ruff format "$ROOT/$py_dir" 2>/dev/null || true  # keep: fix step (formatter, not real lint/check); tolerate no-op or tool quirks for ops
-      ruff check --fix "$ROOT/$py_dir" 2>/dev/null || true  # keep: fix step (formatter, not real lint/check); tolerate no-op or tool quirks for ops
+      ruff format "$ROOT/$py_dir" 2>/dev/null || true      # keep: fix step (formatter, not real lint/check); tolerate no-op or tool quirks for ops
+      ruff check --fix "$ROOT/$py_dir" 2>/dev/null || true # keep: fix step (formatter, not real lint/check); tolerate no-op or tool quirks for ops
     fi
   done
   # Also any top-level Python used for build (keep small)
   for f in *.py; do
-    [ -f "$f" ] && ruff format "$f" 2>/dev/null || true  # keep: fix step (formatter, not real lint/check); tolerate no-op or tool quirks for ops
-    [ -f "$f" ] && ruff check --fix "$f" 2>/dev/null || true  # keep: fix step (formatter, not real lint/check); tolerate no-op or tool quirks for ops
+    [ -f "$f" ] && ruff format "$f" 2>/dev/null || true      # keep: fix step (formatter, not real lint/check); tolerate no-op or tool quirks for ops
+    [ -f "$f" ] && ruff check --fix "$f" 2>/dev/null || true # keep: fix step (formatter, not real lint/check); tolerate no-op or tool quirks for ops
   done
 else
   echo "   (ruff not in PATH - skipping)"
@@ -75,14 +75,14 @@ fi
 # 4. YAML (repo-wide: k8s, ansible, helm, CI workflows, mkdocs, etc.)
 if [ -f "$ROOT/scripts/yaml_format.sh" ]; then
   echo "   prettier --write (YAML, repo-wide)"
-  bash "$ROOT/scripts/yaml_format.sh" --write 2>/dev/null || true  # keep: fix step (formatter, not real lint/check); tolerate no-op or tool quirks for ops
+  bash "$ROOT/scripts/yaml_format.sh" --write 2>/dev/null || true # keep: fix step (formatter, not real lint/check); tolerate no-op or tool quirks for ops
 else
   echo "   (scripts/yaml_format.sh missing - skipping YAML format)"
 fi
 
 if command -v yamllint >/dev/null 2>&1; then
   echo "   yamllint (YAML lint)"
-  yamllint -c "$ROOT/.yamllint.yml" "$ROOT" 2>/dev/null || true  # keep: post-format lint in fix; tolerate when tree not fully clean yet
+  yamllint -c "$ROOT/.yamllint.yml" "$ROOT" 2>/dev/null || true # keep: post-format lint in fix; tolerate when tree not fully clean yet
 else
   echo "   (yamllint not in PATH - skipping YAML lint)"
 fi
@@ -91,12 +91,12 @@ fi
 if [ -d dashboard ]; then
   if command -v npx >/dev/null 2>&1; then
     echo "   prettier --write (dashboard)"
-    (cd dashboard && npx prettier --write . --ignore-unknown 2>/dev/null || true)  # keep: fix step (formatter, not real lint/check); tolerate no-op or tool quirks for ops
+    (cd dashboard && npx prettier --write . --ignore-unknown 2>/dev/null || true) # keep: fix step (formatter, not real lint/check); tolerate no-op or tool quirks for ops
 
     # eslint --fix via Next's lint script (if available)
     if [ -f dashboard/package.json ] && grep -q '"lint"' dashboard/package.json; then
       echo "   npm run lint -- --fix (dashboard)"
-      (cd dashboard && npm run lint -- --fix 2>/dev/null || true)  # keep: fix step (formatter/ auto-fix, not real lint/check); tolerate for ops
+      (cd dashboard && npm run lint -- --fix 2>/dev/null || true) # keep: fix step (formatter/ auto-fix, not real lint/check); tolerate for ops
     fi
   else
     echo "   (npx not in PATH - skipping prettier/eslint for dashboard)"

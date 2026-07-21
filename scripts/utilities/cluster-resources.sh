@@ -45,7 +45,7 @@ EOF
 
 cmd_status() {
   local json_flag="${1:-}"
-  if [[ "$json_flag" == "--json" ]]; then
+  if [[ $json_flag == "--json" ]]; then
     get_cluster_capacity_json
   else
     print_resources_status
@@ -60,12 +60,22 @@ cmd_check() {
   local action="" json_flag=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --action) action="${2:-}"; shift 2 ;;
-      --json) json_flag="--json"; shift ;;
-      *) err "Unknown arg: $1"; usage; exit 1 ;;
+      --action)
+        action="${2:-}"
+        shift 2
+        ;;
+      --json)
+        json_flag="--json"
+        shift
+        ;;
+      *)
+        err "Unknown arg: $1"
+        usage
+        exit 1
+        ;;
     esac
   done
-  if [[ -z "$action" ]]; then
+  if [[ -z $action ]]; then
     err "--action required (e.g. model:kimi-test, dev:coder)"
     exit 1
   fi
@@ -83,12 +93,19 @@ cmd_suggest() {
   local action=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --action) action="${2:-}"; shift 2 ;;
+      --action)
+        action="${2:-}"
+        shift 2
+        ;;
       --json) shift ;;
-      *) err "Unknown arg: $1"; usage; exit 1 ;;
+      *)
+        err "Unknown arg: $1"
+        usage
+        exit 1
+        ;;
     esac
   done
-  if [[ -z "$action" ]]; then
+  if [[ -z $action ]]; then
     err "--action required"
     exit 1
   fi

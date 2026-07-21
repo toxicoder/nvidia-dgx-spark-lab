@@ -144,6 +144,27 @@ The test gracefully skips the browser portion if playwright or browsers are miss
 
 See also the top of `docs/test_mkdocs_render.py` and `test_mkdocs_render.sh`.
 
+### Multi-version public docs (latest + development)
+
+GitHub Pages is published with **[mike](https://github.com/jimporter/mike)** so both long-lived branches have a docs site:
+
+| Alias | Branch | URL |
+| --- | --- | --- |
+| `latest` (default) | `main` | `…/latest/` (and site root default) |
+| `development` | `development` | `…/development/` |
+
+Workflow: `.github/workflows/deploy-docs.yml` runs **only on push** to `main`/`master`/`development` (docs paths) or `workflow_dispatch` — not on `pull_request`. Merging a PR into those branches is what publishes. After `//docs:docs` generates content, `mike deploy --push` updates the version alias on the `gh-pages` branch. PR-time docs validation is CI (`docs-and-render`), not this workflow.
+
+**Repo setting:** GitHub Pages source should be the **`gh-pages` branch** (not “GitHub Actions” artifact-only) once mike has published. Development builds set `DGX_DOCS_VERSION=development` so hooks:
+
+- inject a non-production banner
+- stamp Material **Edit this page** to `edit/development/docs/` (latest → `edit/main/docs/`)
+- rewrite this-repo GitHub `blob`/`tree` source links to the same long-lived ref
+
+Optional local override: `DGX_DOCS_GIT_REF=development` (or `main`). Feature-branch names are not auto-mapped (unpublished edit links would 404).
+
+Local single-version builds (`bazelisk run //docs:serve`) do not need mike; the version selector simply has no alternate aliases offline. Default git ref for links is `main` unless the env vars above are set.
+
 ### Why this design?
 
 - Comments that describe behavior live right next to the code that implements it.

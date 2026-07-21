@@ -181,7 +181,9 @@ async def mcp_proxy(request: Request) -> Response:
         result = await qdrant_fallback(payload)
         content = json.dumps(result)
         cache_client.setex(key, ttl, content)
-        return Response(content=content, media_type="application/json", headers={"X-Cache": "MISS-FALLBACK"})
+        return Response(
+            content=content, media_type="application/json", headers={"X-Cache": "MISS-FALLBACK"}
+        )
 
     upstream = cfg.get("upstream", {}).get("mcp_url", "https://mcp.context7.com/mcp")
     api_key = os.environ.get("CONTEXT7_API_KEY", "")

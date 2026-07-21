@@ -1,29 +1,28 @@
 name: Deploy Documentation
 
+# Publish only after content lands on a long-lived branch (PR merge → push),
+# or via manual workflow_dispatch. Do not run on pull_request: PR docs
+# validation is CI (docs-and-render); public site uses mike → gh-pages.
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, development]
     paths:
       - "docs/**"
+      - "includes/**"
       - "mkdocs.yml"
       - "docs/requirements.txt"
-  pull_request:
-    paths:
-      - "docs/**"
-      - "mkdocs.yml"
-      - "docs/requirements.txt"
+      - ".github/workflows/deploy-docs.yml"
+  workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  build:
+  build-and-publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -47,21 +46,30 @@ jobs:
           pip install -r docs/requirements.txt
 
       - name: Build documentation (strict)
+        env:
+          # Stamp development banner when building the development version.
+          DGX_DOCS_VERSION: ${{ github.ref_name == 'development' && 'development' || 'latest' }}
+          MIKE_DOCS_VERSION: ${{ github.ref_name == 'development' && 'development' || 'latest' }}
         run: bazelisk run //docs:docs
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: site
+      # Multi-version publish via mike → gh-pages (latest + development).
+      # Requires contents:write. Preserves other versions already on gh-pages.
+      - name: Configure git identity for mike
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-  deploy:
-    if: github.event_name == 'push'
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
+      - name: Deploy with mike (versioned)
+        env:
+          DGX_DOCS_VERSION: ${{ github.ref_name == 'development' && 'development' || 'latest' }}
+          MIKE_DOCS_VERSION: ${{ github.ref_name == 'development' && 'development' || 'latest' }}
+        run: |
+          set -euo pipefail
+          # site/ is from //docs:docs. Alias tracks the branch that was pushed/dispatched.
+          if [[ "${{ github.ref_name }}" == "development" ]]; then
+            mike deploy --push --update-aliases development
+          else
+            # main/master → latest (default alias for the version selector).
+            mike deploy --push --update-aliases latest
+            mike set-default --push latest
+          fi

@@ -10,13 +10,168 @@ Thank you for helping improve the lab. This file is a short hub; detailed conven
 2. Read [docs/project-conventions.md](docs/project-conventions.md) for naming, patterns, formatting, safety, and testing across all stacks.
 3. For **cluster / DGX hardware** ops (not required to edit code), see [docs/getting-started.md](docs/getting-started.md).
 
-## Branching model
+## Branching, commits, PRs, and promotion
 
-- **Primary integration branch:** `development` (protected; changes only via pull request).
-- Create feature/work branches **from `development`** and open PRs **back into `development`**.
-- **Promotion path:** feature → `development` → (optional) `dev` → `main` (always via PR).
-- **Never force-push** `development` or `main`.
-- Protected branches enforce **linear history** — merge PRs with **squash** or **rebase** (merge commits are blocked by the ruleset).
+This repository uses a simple, safety-conscious model that keeps the source history clean while giving us a clear integration gate before code reaches production.
+
+### Long-lived branches
+
+| Branch        | Purpose                                      | Who merges into it          | Protection |
+|---------------|----------------------------------------------|-----------------------------|----------|
+| `development` | Primary integration branch. All feature work lands here first. Lab / test overlays are expected to work from this branch. | Pull requests only         | Protected, linear history |
+| `main`        | Production-ready code that has been explicitly promoted.     | Pull requests only (normally from `development`) | Protected, linear history |
+| `dev`         | Optional intermediate promotion gate. Use only when an extra soak or review period is needed. | Pull requests only         | Protected |
+
+Never force-push `development` or `main`.  
+Never commit directly to protected branches.
+
+### Branch naming
+
+Create short-lived branches from the latest `development`:
+
+- `feature/<short-description>` — new functionality
+- `fix/<short-description>` — bug fixes that are not urgent production hotfixes
+- `hotfix/<short-description>` — urgent production fixes (branched from `main`)
+- `chore/<short-description>` — tooling, docs, CI, refactoring with no user-visible behavior change
+- `docs/<short-description>` — documentation-only changes
+
+Examples:
+
+- `feature/resource-guard-headroom-tuning`
+- `fix/nemotron-startup-probe`
+- `hotfix/nccl-interface-mismatch`
+- `chore/update-bazel-deps`
+
+Keep the description short, kebab-case, and meaningful. Avoid ticket numbers as the only identifier.
+
+### Commit messages
+
+Write commit messages for other developers (and future you).
+
+Preferred style (Conventional Commits inspired, but readable):
+
+```
+<type>: <short summary in imperative mood>
+
+[optional body]
+
+[optional footer]
+```
+
+**Types:** `feat`, `fix`, `hotfix`, `chore`, `docs`, `refactor`, `test`, `ci`, `build`
+
+Rules:
+
+- Summary line ≤ 72 characters, imperative mood (“add”, “fix”, “update”, not “added” or “fixes”).
+- Body explains *why* when it is not obvious from the diff. Wrap at 72–80 characters.
+- Reference related issues or PRs in the footer when useful (`Closes #123`, `Related to #456`).
+- Never put secrets, large dumps, or “WIP” in the final commit message.
+
+Good examples:
+
+```
+feat: add capacity headroom check before heavy model start
+
+The previous check only looked at requested GPUs. This adds a
+configurable memory and CPU headroom percentage so the lab stays
+responsive under concurrent workloads.
+
+Closes #87
+```
+
+```
+fix: correct NCCL_SOCKET_IFNAME for dual 400G links on Spark
+
+The interface names were hardcoded to an older netplan layout.
+```
+
+```
+chore: bump dashboard dependencies and regenerate lockfile
+```
+
+### Pull request titles and descriptions
+
+**Title:** Same style as a good commit summary (imperative, concise).
+
+**Description template** (use this structure; agents and humans should both follow it):
+
+```markdown
+## Summary
+One or two sentences that explain *what* changed and *why*.
+
+## Changes
+- Bullet list of the concrete changes
+- Call out any new flags, environment variables, or config keys
+
+## Safety impact
+- Explicitly state whether this touches workloads, resources, restartPolicy, NCCL, Resource Guard, manage.sh, or reboot behavior.
+- If none: “No safety impact.”
+- If yes: describe the impact and how it was validated.
+
+## Test plan
+- Exact commands you ran (or that CI will run)
+- Any manual verification steps
+
+## Checklist
+- [ ] `bazelisk run //:fix` and `bazelisk run //:validate` pass
+- [ ] New or changed behavior has tests
+- [ ] Structured comments / docs updated if public API or commands changed
+- [ ] Safety callout completed above
+- [ ] (Agents) Session reflection done — least-privilege process notes only; see AGENTS.md
+```
+
+Keep the tone professional and direct. Write as a developer talking to other developers.
+
+### Promotion process (development → main)
+
+1. Ensure the tip of `development` is green:
+
+   ```bash
+   bazelisk run //:validate -- --all
+   ```
+
+2. Open a promotion PR from `development` into `main` (or via `dev` if an intermediate gate is desired).
+3. The PR description must include:
+   - Confirmation that full validation passed
+   - Any outstanding safety notes
+   - The intended tag (see below)
+4. After the promotion PR is merged, create an **annotated tag** on the merge commit:
+
+   ```bash
+   git tag -a vX.Y.Z -m "Release vX.Y.Z – short description"
+   git push origin vX.Y.Z
+   ```
+
+5. Prefer referencing tags rather than the floating tip of `main` for any production or reproducible lab deployments.
+
+### Hotfix process
+
+1. Branch `hotfix/<description>` from the current `main`.
+2. Fix the issue, open PR → `main` (expedited review is acceptable for critical problems).
+3. After merge, immediately open a follow-up PR (or clean cherry-pick) back into `development`.
+4. Tag the fix on `main`.
+
+### Environments
+
+Deployment environments are **not** represented by long-lived Git branches.  
+Use the existing mechanisms:
+
+- `k8s/overlays/test`, `k8s/overlays/prod`, `k8s/overlays/single-node`
+- Ansible inventory + group_vars
+- `config/resource-policy.yaml` (and its JSON twin) plus related policy files
+
+This keeps history clean and prevents environment drift.
+
+### Branch protection expectations
+
+Maintainers should keep these GitHub settings enabled on `development` and `main`:
+
+- Require a pull request before merging
+- Require status checks to pass (the CI suite)
+- Require linear history (squash or rebase only)
+- Restrict force pushes
+- Restrict deletions
+- CODEOWNERS recommended for high-risk paths (`k8s/workloads/`, `config/`, `ansible/`, safety-critical scripts)
 
 ## Before you open a PR
 

@@ -32,17 +32,17 @@ guard_active_visual() {
   local names
   names=$(kubectl get deploy -n "${NAMESPACE}" -l workload=visual \
     -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null || true)
-  if [[ -z "${names//[$'\n']/}" ]]; then
+  if [[ -z ${names//[$'\n']/} ]]; then
     return 0
   fi
   local other=""
   while IFS= read -r n; do
-    [[ -z "$n" ]] && continue
-    if [[ "$n" != "$want" ]]; then
+    [[ -z $n ]] && continue
+    if [[ $n != "$want" ]]; then
       other="${other}${n} "
     fi
-  done <<< "$names"
-  if [[ -n "${other// /}" ]]; then
+  done <<<"$names"
+  if [[ -n ${other// /} ]]; then
     err "Another visual workload is active: ${other}"
     err "Stop it first: ./scripts/manage.sh stop-visual  (or stop-comfy-base)"
     return 1
@@ -56,7 +56,7 @@ guard_active_visual() {
 apply_visual_kustomize() {
   local rel="$1"
   local path="${REPO_ROOT}/${rel}"
-  if [[ ! -d "$path" ]]; then
+  if [[ ! -d $path ]]; then
     err "Visual workload path missing: ${rel}"
     exit 1
   fi
@@ -74,7 +74,7 @@ check_visual_unified_memory() {
   local policy_path req_mem alloc_sum
   policy_path=$(resource_policy_path 2>/dev/null || echo "${REPO_ROOT}/config/resource-policy.json")
   req_mem=$(python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/visual_check_visual_unified_memory.py" "$policy_path" "$model" 2>/dev/null || echo "")
-  if [[ -z "$req_mem" ]]; then
+  if [[ -z $req_mem ]]; then
     warn "No policy memory for ${model}; skipping unified-memory preflight"
     return 0
   fi
@@ -102,7 +102,7 @@ for n in data.get("items", []):
             pass
 print(total)
 ' 2>/dev/null || echo 0)
-  if [[ "${alloc_sum}" == "0" || -z "${alloc_sum}" ]]; then
+  if [[ ${alloc_sum} == "0" || -z ${alloc_sum} ]]; then
     warn "Could not read node allocatable memory; continuing (capacity gate still applies)"
     return 0
   fi
@@ -116,7 +116,7 @@ elif m.endswith('Mi'):
 else:
     print(0)
 ")
-  if [[ "${need_bytes}" -gt 0 && "${alloc_sum}" -lt "${need_bytes}" ]]; then
+  if [[ ${need_bytes} -gt 0 && ${alloc_sum} -lt ${need_bytes} ]]; then
     err "Unified-memory preflight failed: need ~${req_mem} but cluster allocatable is lower"
     err "Stop other GPU/memory heavy workloads and retry."
     return 1
@@ -147,7 +147,7 @@ start_visual_workload() {
   local kdir force_flag="${3:-}"
 
   kdir=$(get_visual_kustomize_dir "$model")
-  if [[ -z "$kdir" ]]; then
+  if [[ -z $kdir ]]; then
     err "Unknown visual model: $model"
     exit 1
   fi
@@ -156,10 +156,10 @@ start_visual_workload() {
   warn "ComfyUI on DGX Spark (1 GPU, large unified memory). Exclusive with other visual pods."
   warn "Cold start may take 10–30+ minutes on first PVC install."
 
-  if [[ "${LAB_NON_INTERACTIVE:-}" != "1" ]]; then
+  if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
     echo
     read -r -p "Start visual workload ${label}? [yes/NO] " response
-    if [[ ! "$response" =~ ^[Yy][Ee][Ss]$ ]]; then
+    if [[ ! $response =~ ^[Yy][Ee][Ss]$ ]]; then
       log "Aborted by user."
       exit 0
     fi
@@ -167,7 +167,7 @@ start_visual_workload() {
     require_heavy_confirm "$model" "Visual workload requires confirmation." || exit 1
   fi
 
-  if [[ "$force_flag" != "--force" ]]; then
+  if [[ $force_flag != "--force" ]]; then
     enforce_capacity "model:${model}" || exit 1
   fi
   check_visual_unified_memory "$model" || exit 1
@@ -234,14 +234,14 @@ stop_visual() {
   local names
   names=$(kubectl get deploy -n "${NAMESPACE}" -l workload=visual \
     -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null || true)
-  if [[ -z "${names//[$'\n']/}" ]]; then
+  if [[ -z ${names//[$'\n']/} ]]; then
     log "No visual Deployments found."
     return 0
   fi
   while IFS= read -r n; do
-    [[ -z "$n" ]] && continue
+    [[ -z $n ]] && continue
     kubectl delete deployment "$n" -n "${NAMESPACE}" --ignore-not-found=true --grace-period=30 || true
-  done <<< "$names"
+  done <<<"$names"
   # Common visual services (best-effort).
   kubectl delete svc -n "${NAMESPACE}" -l workload=visual --ignore-not-found=true || true
   log "Visual workloads stopped (PVCs retained)."
@@ -252,6 +252,6 @@ stop_visual() {
 # @command status-visual
 status_visual() {
   log "Visual workloads in namespace ${NAMESPACE}:"
-  kubectl get deploy,pods,svc -n "${NAMESPACE}" -l workload=visual -o wide 2>/dev/null || \
+  kubectl get deploy,pods,svc -n "${NAMESPACE}" -l workload=visual -o wide 2>/dev/null ||
     kubectl get deploy,pods,svc -n "${NAMESPACE}" 2>/dev/null | grep -E 'comfy|flux|ltx|NAME' || true
 }

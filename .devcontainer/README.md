@@ -44,21 +44,41 @@ Full guide: [docs/dev-environment.md](../docs/dev-environment.md).
 | `tool-versions.env` | **SSOT** tool pins (CI + image + doctor) |
 | `Dockerfile` | Pinned CLIs, multi-arch binaries |
 | `devcontainer.json` | Features (Node 22, Python 3.11, docker-outside-of-docker), caches, lifecycle |
+| `devcontainer-lock.json` | **Committed** feature digests (reproducible Feature installs; like a lockfile) |
 | `post-create.sh` | Workspace deps (`npm ci`, docs, Playwright) |
+| `install-agent-clis.sh` | Optional Grok + Hermes CLIs (fixes `~/.grok` / `~/.hermes` volume ownership) |
 | `doctor.sh` | Verify required tools |
+
+### Feature lockfile
+
+`devcontainer-lock.json` pins each Dev Container Feature to a content digest. **Commit it**
+(same idea as `package-lock.json` / `MODULE.bazel.lock`). The Dev Containers CLI / VS Code
+regenerates it on build; update the file when you intentionally change features or versions
+in `devcontainer.json`, then commit the new lock.
 
 ## Agent CLIs (Grok Build + Hermes)
 
-Post-create installs official CLIs (optional if network is blocked):
+Post-create installs official CLIs on PATH only (optional if network is blocked).
+Hermes is installed with `--skip-setup --non-interactive` — no Blank Slate wizard
+during create. Auth/setup runs only when **you** use the tools:
 
-| CLI | Upstream | Auth (never commit) |
+| CLI | Upstream | Auth (never commit; user-initiated) |
 | --- | --- | --- |
 | `grok` | [xai-org/grok-build](https://github.com/xai-org/grok-build) | `grok login` → volume `~/.grok` |
-| `hermes` | [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) | `hermes setup` → volume `~/.hermes` |
+| `hermes` | [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) | `hermes setup` when needed → volume `~/.hermes` |
 
 ```bash
 bash .devcontainer/install-agent-clis.sh   # re-run if needed
 DEVCONTAINER_SKIP_AGENT_CLIS=1 …           # skip during post-create
+```
+
+Named volumes for agent homes are often **root-owned** when first created empty. The
+installer script runs `ensure_agent_homes` (sudo chown when needed). Manual recovery:
+
+```bash
+sudo chown -R "$(id -u):$(id -g)" ~/.grok ~/.hermes
+bash .devcontainer/install-agent-clis.sh
+# host: docker volume rm dgx-lab-grok-home dgx-lab-hermes-home  # then rebuild
 ```
 
 **Privacy:** no API keys or `GROK_DEPLOYMENT_KEY` in image env metadata. Do not

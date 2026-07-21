@@ -21,7 +21,7 @@
 #
 set -euo pipefail
 
-if [[ -n "${BUILD_WORKSPACE_DIRECTORY:-}" ]]; then
+if [[ -n ${BUILD_WORKSPACE_DIRECTORY:-} ]]; then
   ROOT="${BUILD_WORKSPACE_DIRECTORY}"
 else
   ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"

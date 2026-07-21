@@ -102,7 +102,7 @@ hf_download() {
 # @function tier_size_gb
 tier_size_gb() {
   local dir="$1"
-  if [[ ! -d "$dir" ]]; then
+  if [[ ! -d $dir ]]; then
     echo 0
     return
   fi
@@ -113,14 +113,14 @@ tier_size_gb() {
 tiers_to_process() {
   case "$TIER" in
     all)
-      if [[ "${INCLUDE_NUNCHAKU}" == "1" ]]; then
+      if [[ ${INCLUDE_NUNCHAKU} == "1" ]]; then
         echo "fast nunchaku quality"
       else
         echo "fast quality"
       fi
       ;;
     fast)
-      if [[ "${INCLUDE_NUNCHAKU}" == "1" ]]; then
+      if [[ ${INCLUDE_NUNCHAKU} == "1" ]]; then
         echo "fast nunchaku"
       else
         echo "fast"
@@ -137,10 +137,16 @@ parse_args() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --json) JSON_FLAG="--json" ;;
-      --tier) TIER="${2:?}"; shift ;;
+      --tier)
+        TIER="${2:?}"
+        shift
+        ;;
       --no-nunchaku) INCLUDE_NUNCHAKU=0 ;;
       status | run) CMD="$1" ;;
-      *) err "Unknown arg: $1"; exit 1 ;;
+      *)
+        err "Unknown arg: $1"
+        exit 1
+        ;;
     esac
     shift
   done
@@ -152,7 +158,7 @@ cmd_status() {
   local tier repo dir size min ready
   for tier in $(tiers_to_process); do
     repo=$(tier_repo "$tier")
-    if [[ -z "$repo" ]]; then
+    if [[ -z $repo ]]; then
       err "Unknown tier: $tier"
       exit 1
     fi
@@ -165,9 +171,12 @@ cmd_status() {
     fi
     results+=("{\"tier\":\"$tier\",\"repo\":\"$repo\",\"path\":\"$dir\",\"size_gb\":$size,\"min_gb\":$min,\"ready\":$ready}")
   done
-  if [[ "$JSON_FLAG" == "--json" ]]; then
+  if [[ $JSON_FLAG == "--json" ]]; then
     local joined
-    joined=$(IFS=,; echo "${results[*]}")
+    joined=$(
+      IFS=,
+      echo "${results[*]}"
+    )
     printf '{"tiers":[%s],"models_dir":"%s"}\n' "$joined" "$MODELS_DIR"
   else
     for tier in $(tiers_to_process); do
@@ -186,7 +195,7 @@ link_into_comfy() {
   src=$(tier_dir "$tier")
   dest=$(comfy_link_dir "$tier")
   mkdir -p "$dest"
-  if [[ ! -d "$src" ]]; then
+  if [[ ! -d $src ]]; then
     return 0
   fi
   # Symlink top-level safetensors into Comfy folder (idempotent).
@@ -207,7 +216,7 @@ cmd_run() {
   local tier repo
   for tier in $(tiers_to_process); do
     repo=$(tier_repo "$tier")
-    if [[ -z "$repo" ]]; then
+    if [[ -z $repo ]]; then
       err "Unknown tier: $tier"
       exit 1
     fi

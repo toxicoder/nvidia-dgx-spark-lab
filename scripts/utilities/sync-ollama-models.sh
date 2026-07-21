@@ -32,8 +32,8 @@ source "$(cd "$(dirname "${0}")" && pwd)/../lib/paths.sh"
 SCRIPT_DIR="$(lab_script_dir 1 utilities)"
 
 if [[ -f "${SCRIPT_DIR}/../lib/common.sh" ]]; then
-    # shellcheck source=../lib/common.sh
-    source "${SCRIPT_DIR}/../lib/common.sh"
+  # shellcheck source=../lib/common.sh
+  source "${SCRIPT_DIR}/../lib/common.sh"
 fi
 
 : "${log:=echo}"
@@ -45,10 +45,10 @@ fi
 # @param $1  Command name.
 
 check_tool() {
-    if ! command -v "$1" >/dev/null 2>&1; then
-        err "Required tool missing: $1"
-        exit 1
-    fi
+  if ! command -v "$1" >/dev/null 2>&1; then
+    err "Required tool missing: $1"
+    exit 1
+  fi
 }
 
 # Config (override via env or group_vars style)
@@ -68,17 +68,17 @@ RSYNC_OPTS=${RSYNC_OPTS:-"-avz --partial --progress --update"}
 # Fail if REMOTE_HOST peer highspeed IP is unset.
 
 require_remote_host() {
-    if [[ -z "$REMOTE_HOST" ]]; then
-        echo "REMOTE_HOST is required (peer highspeed IP, e.g. 192.168.100.2). Set via env before run/status." >&2
-        exit 1
-    fi
+  if [[ -z $REMOTE_HOST ]]; then
+    echo "REMOTE_HOST is required (peer highspeed IP, e.g. 192.168.100.2). Set via env before run/status." >&2
+    exit 1
+  fi
 }
 
 # @function get_local_size
 # Human-readable size of local Ollama models directory.
 
 get_local_size() {
-    du -sh "$OLLAMA_MODELS_DIR" 2>/dev/null | cut -f1 || echo "0"
+  du -sh "$OLLAMA_MODELS_DIR" 2>/dev/null | cut -f1 || echo "0"
 }
 
 # @function status
@@ -86,18 +86,18 @@ get_local_size() {
 # @param $1  Optional --json flag.
 
 status() {
-    check_tool rsync
-    check_tool ssh
-    require_remote_host
+  check_tool rsync
+  check_tool ssh
+  require_remote_host
 
-    local local_size drift
-    local_size=$(get_local_size)
+  local local_size drift
+  local_size=$(get_local_size)
 
-    # Dry run to see what would change (one direction for simplicity)
-    drift=$(rsync $RSYNC_OPTS --dry-run "$OLLAMA_MODELS_DIR/" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_MODELS_DIR}/" 2>/dev/null | tail -5 || echo "unable to compute drift (check ssh/highspeed)")
+  # Dry run to see what would change (one direction for simplicity)
+  drift=$(rsync $RSYNC_OPTS --dry-run "$OLLAMA_MODELS_DIR/" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_MODELS_DIR}/" 2>/dev/null | tail -5 || echo "unable to compute drift (check ssh/highspeed)")
 
-    if [[ "${1:-}" == "--json" ]]; then
-        cat <<JSON
+  if [[ ${1:-} == "--json" ]]; then
+    cat <<JSON
 {
   "local_size": "${local_size}",
   "remote": "${REMOTE_USER}@${REMOTE_HOST}",
@@ -105,19 +105,19 @@ status() {
   "highspeed_ifs": "${HIGHSPEED_IFS}"
 }
 JSON
-        return
-    fi
+    return
+  fi
 
-    echo "------------------------------------------------"
-    echo "Ollama Models Sync Status (utility pattern, highspeed preferred)"
-    echo "------------------------------------------------"
-    echo "Local models dir size: ${local_size}"
-    echo "Remote: ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_MODELS_DIR}"
-    echo "Highspeed interfaces: ${HIGHSPEED_IFS}"
-    echo "Drift (dry-run one way):"
-    echo "$drift"
-    echo "------------------------------------------------"
-    echo "Tip: set REMOTE_HOST to the peer's highspeed IP (192.168.100.x or .101.x) for full 400G speed."
+  echo "------------------------------------------------"
+  echo "Ollama Models Sync Status (utility pattern, highspeed preferred)"
+  echo "------------------------------------------------"
+  echo "Local models dir size: ${local_size}"
+  echo "Remote: ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_MODELS_DIR}"
+  echo "Highspeed interfaces: ${HIGHSPEED_IFS}"
+  echo "Drift (dry-run one way):"
+  echo "$drift"
+  echo "------------------------------------------------"
+  echo "Tip: set REMOTE_HOST to the peer's highspeed IP (192.168.100.x or .101.x) for full 400G speed."
 }
 
 # @function run
@@ -125,41 +125,41 @@ JSON
 # @param $1  Direction: to-remote, from-remote, or both.
 
 run() {
-    check_tool rsync
-    check_tool ssh
-    require_remote_host
+  check_tool rsync
+  check_tool ssh
+  require_remote_host
 
-    local direction="${1:-both}"
+  local direction="${1:-both}"
 
-    log "Syncing ollama models using highspeed-aware rsync..."
+  log "Syncing ollama models using highspeed-aware rsync..."
 
-    # For highspeed, user should have set REMOTE_HOST to highspeed IP.
-    # We can add -e with bind if needed, but simple for now.
-    case "$direction" in
-        to-remote|push)
-            rsync $RSYNC_OPTS "$OLLAMA_MODELS_DIR/" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_MODELS_DIR}/"
-            ;;
-        from-remote|pull)
-            rsync $RSYNC_OPTS "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_MODELS_DIR}/" "$OLLAMA_MODELS_DIR/"
-            ;;
-        both|*)
-            rsync $RSYNC_OPTS "$OLLAMA_MODELS_DIR/" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_MODELS_DIR}/"
-            rsync $RSYNC_OPTS "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_MODELS_DIR}/" "$OLLAMA_MODELS_DIR/"
-            ;;
-    esac
+  # For highspeed, user should have set REMOTE_HOST to highspeed IP.
+  # We can add -e with bind if needed, but simple for now.
+  case "$direction" in
+    to-remote | push)
+      rsync $RSYNC_OPTS "$OLLAMA_MODELS_DIR/" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_MODELS_DIR}/"
+      ;;
+    from-remote | pull)
+      rsync $RSYNC_OPTS "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_MODELS_DIR}/" "$OLLAMA_MODELS_DIR/"
+      ;;
+    both | *)
+      rsync $RSYNC_OPTS "$OLLAMA_MODELS_DIR/" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_MODELS_DIR}/"
+      rsync $RSYNC_OPTS "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_MODELS_DIR}/" "$OLLAMA_MODELS_DIR/"
+      ;;
+  esac
 
-    log "Sync complete. New local size: $(get_local_size)"
+  log "Sync complete. New local size: $(get_local_size)"
 }
 
 case "${1:-}" in
-    status)
-        status "${2:-}"
-        ;;
-    run)
-        run "${2:-}"
-        ;;
-    *)
-        echo "Usage: $0 {status [--json]|run [to-remote|from-remote|both]}"
-        exit 1
-        ;;
+  status)
+    status "${2:-}"
+    ;;
+  run)
+    run "${2:-}"
+    ;;
+  *)
+    echo "Usage: $0 {status [--json]|run [to-remote|from-remote|both]}"
+    exit 1
+    ;;
 esac

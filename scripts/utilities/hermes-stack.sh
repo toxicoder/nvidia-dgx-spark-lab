@@ -49,7 +49,7 @@ EOF
 
 cmd_catalog() {
   local json_flag="${1:-}"
-  get_hermes_catalog_json | if [[ "$json_flag" == "--json" ]]; then cat; else jq '.'; fi
+  get_hermes_catalog_json | if [[ $json_flag == "--json" ]]; then cat; else jq '.'; fi
 }
 
 # @function cmd_status
@@ -58,7 +58,7 @@ cmd_catalog() {
 
 cmd_status() {
   local json_flag="${1:-}"
-  get_hermes_status_json | if [[ "$json_flag" == "--json" ]]; then cat; else jq '.'; fi
+  get_hermes_status_json | if [[ $json_flag == "--json" ]]; then cat; else jq '.'; fi
 }
 
 # @function cmd_start
@@ -71,11 +71,17 @@ cmd_start() {
   shift || true
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --confirm) confirm="${2:-}"; shift 2 ;;
-      *) err "Unknown arg: $1"; exit 1 ;;
+      --confirm)
+        confirm="${2:-}"
+        shift 2
+        ;;
+      *)
+        err "Unknown arg: $1"
+        exit 1
+        ;;
     esac
   done
-  if [[ -z "$stack_id" ]]; then
+  if [[ -z $stack_id ]]; then
     err "Stack id required"
     usage
     exit 1

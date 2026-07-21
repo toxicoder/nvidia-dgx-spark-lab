@@ -25,7 +25,7 @@ _lab_domains_load() {
 _lab_domains_get() {
   local key="$1"
   _lab_domains_load | while IFS='=' read -r k v; do
-    if [[ "$k" == "$key" ]]; then
+    if [[ $k == "$key" ]]; then
       echo "$v"
       return 0
     fi
@@ -57,7 +57,7 @@ lab_active_domain() {
   primary="$(_lab_domains_get primary)"
   public="$(_lab_domains_get public_domain)"
   local_d="$(_lab_domains_get local_domain)"
-  if [[ "$primary" == "public" && -n "$public" ]]; then
+  if [[ $primary == "public" && -n $public ]]; then
     echo "$public"
   else
     echo "$local_d"
@@ -72,14 +72,17 @@ lab_fqdn() {
   local local_d public_d
   local_d="$(_lab_domains_get local_domain)"
   public_d="$(_lab_domains_get public_domain)"
-  [[ -n "$host" ]] || { echo ""; return 0; }
-  if [[ -z "$profile" ]]; then
+  [[ -n $host ]] || {
+    echo ""
+    return 0
+  }
+  if [[ -z $profile ]]; then
     profile="$(_lab_domains_get primary)"
-    if [[ "$profile" == "public" && -z "$public_d" ]]; then
+    if [[ $profile == "public" && -z $public_d ]]; then
       profile="local"
     fi
   fi
-  if [[ "$profile" == "public" && -n "$public_d" ]]; then
+  if [[ $profile == "public" && -n $public_d ]]; then
     echo "${host}.${public_d}"
   else
     echo "${host}.${local_d}"
@@ -94,7 +97,7 @@ lab_host_match() {
   local_d="$(_lab_domains_get local_domain)"
   public_d="$(_lab_domains_get public_domain)"
   parts+=("Host(\`${host}.${local_d}\`)")
-  if [[ -n "$public_d" ]]; then
+  if [[ -n $public_d ]]; then
     parts+=("Host(\`${host}.${public_d}\`)")
   fi
   local IFS=' || '
@@ -111,10 +114,10 @@ lab_service_url() {
   public_d="$(_lab_domains_get public_domain)"
   fqdn="$(lab_fqdn "$host" "${profile:-local}")"
   port="$(_lab_domains_get https_port)"
-  if [[ -z "$profile" ]]; then
+  if [[ -z $profile ]]; then
     profile="local"
   fi
-  if [[ "$profile" == "public" && -n "$public_d" ]]; then
+  if [[ $profile == "public" && -n $public_d ]]; then
     echo "https://${fqdn}${path}"
   else
     echo "https://${fqdn}:${port}${path}"
@@ -140,9 +143,9 @@ lab_ansible_values_file() {
   local name="$1"
   local gen="${REPO_ROOT}/ansible/files/generated/${name}"
   local base="${REPO_ROOT}/ansible/files/${name}"
-  if [[ -f "$gen" ]]; then
+  if [[ -f $gen ]]; then
     echo "$gen"
-  elif [[ -f "$base" ]]; then
+  elif [[ -f $base ]]; then
     echo "$base"
   fi
 }
@@ -150,7 +153,7 @@ lab_ansible_values_file() {
 # @function domains_render
 domains_render() {
   local script="${REPO_ROOT}/scripts/utilities/render-domains.sh"
-  if [[ ! -f "$script" ]]; then
+  if [[ ! -f $script ]]; then
     err "render-domains.sh not found"
     return 1
   fi
@@ -165,7 +168,7 @@ domains_show() {
   primary="$(lab_primary_domain)"
   email="$(lab_email_domain)"
   https_port="$(lab_sso_https_port)"
-  if [[ -n "${LAB_SSO_DOMAIN:-}" && "${LAB_SSO_DOMAIN}" != "$local_d" ]]; then
+  if [[ -n ${LAB_SSO_DOMAIN:-} && ${LAB_SSO_DOMAIN} != "$local_d" ]]; then
     warn "LAB_SSO_DOMAIN is deprecated — use LAB_LOCAL_DOMAIN or config/lab-domains.yaml"
   fi
   echo "Lab domains (config: $(lab_domains_path))"
@@ -180,7 +183,7 @@ domains_show() {
     local u_local u_public
     u_local="$(lab_service_url "$svc" "/" local)"
     echo "  ${svc}: ${u_local}"
-    if [[ -n "$public_d" ]]; then
+    if [[ -n $public_d ]]; then
       u_public="$(lab_service_url "$svc" "/" public)"
       echo "           ${u_public}"
     fi
@@ -188,7 +191,7 @@ domains_show() {
   echo
   echo "/etc/hosts (local):"
   echo "  $(lab_hosts_file_line '<node-ip>')"
-  if [[ -n "$public_d" ]]; then
+  if [[ -n $public_d ]]; then
     echo
     echo "Public DNS: point *.${public_d} at your cluster ingress IP (ACME HTTP-01 on :$(lab_sso_http_port))"
   fi
@@ -199,12 +202,30 @@ domains_set() {
   local local_d="" public_d="" primary="" email="" acme_email=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --local) local_d="$2"; shift 2 ;;
-      --public) public_d="$2"; shift 2 ;;
-      --primary) primary="$2"; shift 2 ;;
-      --email) email="$2"; shift 2 ;;
-      --acme-email) acme_email="$2"; shift 2 ;;
-      *) err "Unknown domains set option: $1"; return 1 ;;
+      --local)
+        local_d="$2"
+        shift 2
+        ;;
+      --public)
+        public_d="$2"
+        shift 2
+        ;;
+      --primary)
+        primary="$2"
+        shift 2
+        ;;
+      --email)
+        email="$2"
+        shift 2
+        ;;
+      --acme-email)
+        acme_email="$2"
+        shift 2
+        ;;
+      *)
+        err "Unknown domains set option: $1"
+        return 1
+        ;;
     esac
   done
   python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/domains_domains_set.py" "$(lab_domains_path)" "$local_d" "$public_d" "$primary" "$email" "$acme_email"

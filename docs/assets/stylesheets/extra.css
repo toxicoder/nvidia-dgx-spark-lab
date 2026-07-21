@@ -1,0 +1,107 @@
+/*
+ * Global docs polish for nvidia-dgx-spark-lab (Material for MkDocs).
+ * Prefer CSS variables so light/dark palettes stay consistent.
+ */
+
+/* Open Sans is loaded via theme.font; reinforce readable measure + rhythm. */
+.md-typeset {
+  line-height: 1.7;
+  font-size: 0.82rem;
+}
+
+.md-typeset h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.6em;
+}
+
+.md-typeset h2 {
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin-top: 1.75em;
+  padding-bottom: 0.25em;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset h3 {
+  font-weight: 650;
+  margin-top: 1.35em;
+  color: var(--md-default-fg-color);
+}
+
+.md-typeset h4 {
+  font-weight: 600;
+  margin-top: 1.15em;
+  color: var(--md-default-fg-color--light);
+}
+
+/* Clearer section separation for long educational pages */
+.md-typeset hr {
+  margin: 2em 0;
+  border: none;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset .admonition,
+.md-typeset details {
+  font-size: 0.78rem;
+  border-radius: 0.3rem;
+}
+
+.md-typeset table:not([class]) {
+  font-size: 0.76rem;
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--md-default-fg-color--lightest);
+  font-weight: 650;
+}
+
+/* Code blocks: slightly more padding, consistent radius */
+.md-typeset pre > code {
+  padding: 0.9em 1.05em;
+  border-radius: 0.25rem;
+  line-height: 1.55;
+}
+
+.md-typeset code {
+  border-radius: 0.2rem;
+  padding: 0.05em 0.35em;
+}
+
+/* Abbreviation tooltips (glossary) — make dotted terms easier to spot */
+.md-typeset abbr {
+  text-decoration: underline dotted;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 0.15em;
+  cursor: help;
+  border-bottom: none;
+}
+
+/* Header title breathing room */
+.md-header__title {
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+/* TOC: clearer active section */
+.md-nav--secondary .md-nav__link--active {
+  font-weight: 650;
+  color: var(--md-primary-fg-color);
+}
+
+/* Development docs banner (injected when MIKE_DOCS_VERSION=development) */
+.dgx-docs-dev-banner {
+  margin: 0 0 1rem;
+  padding: 0.55rem 0.85rem;
+  border-left: 4px solid var(--md-accent-fg-color, #4051b5);
+  background: var(--md-code-bg-color);
+  border-radius: 0.25rem;
+  font-size: 0.78rem;
+}
+
+.dgx-docs-dev-banner strong {
+  color: var(--md-accent-fg-color, #4051b5);
+}

@@ -17,11 +17,11 @@ check_job() {
   local name="$1"
   local should_run="$2"
   local result="$3"
-  if [[ "$should_run" != "1" && "$should_run" != "true" ]]; then
+  if [[ $should_run != "1" && $should_run != "true" ]]; then
     echo "skip $name (unchanged paths)"
     return 0
   fi
-  if [[ "$result" != "success" ]]; then
+  if [[ $result != "success" ]]; then
     echo "FAIL $name result=$result"
     fail=1
   else

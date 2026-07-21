@@ -29,16 +29,16 @@ _openwebui_load_policy_json() {
 # @function openwebui_control_plane_ip
 # Resolves spark0 InternalIP for Hermes host-network gateway bridge.
 openwebui_control_plane_ip() {
-  if [[ -n "${LAB_SPARK0_IP:-}" ]]; then
+  if [[ -n ${LAB_SPARK0_IP:-} ]]; then
     echo "${LAB_SPARK0_IP}"
     return 0
   fi
   local ip
   ip=$(kubectl get node spark0 -o jsonpath='{.status.addresses[?(@.type=="InternalIP")].address}' 2>/dev/null || true)
-  if [[ -z "$ip" ]]; then
+  if [[ -z $ip ]]; then
     ip=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}' 2>/dev/null || true)
   fi
-  if [[ -z "$ip" ]]; then
+  if [[ -z $ip ]]; then
     err "Could not resolve control-plane InternalIP (set LAB_SPARK0_IP)"
     return 1
   fi
@@ -49,7 +49,7 @@ openwebui_control_plane_ip() {
 openwebui_hermes_api_key() {
   local env_file
   env_file="$(hermes_data_dir 2>/dev/null || echo "${REPO_ROOT}/hermes/data")/.env"
-  if [[ ! -f "$env_file" ]]; then
+  if [[ ! -f $env_file ]]; then
     return 1
   fi
   grep -E '^API_SERVER_KEY=' "$env_file" | head -1 | cut -d= -f2- | tr -d '\r'
@@ -62,7 +62,7 @@ openwebui_ensure_secrets() {
 
   local api_key
   api_key=$(openwebui_hermes_api_key || true)
-  if [[ -z "$api_key" ]]; then
+  if [[ -z $api_key ]]; then
     err "Hermes API_SERVER_KEY not found — run: ./scripts/manage.sh start-hermes"
     return 1
   fi
@@ -117,7 +117,7 @@ print(p.get('container_name', 'hermes'))
 
   local state
   state=$(docker inspect -f '{{.State.Status}}' "$container_name" 2>/dev/null || echo "missing")
-  if [[ "$state" != "running" ]]; then
+  if [[ $state != "running" ]]; then
     err "Hermes container '${container_name}' is not running (state: ${state})"
     err "Start Hermes first: ./scripts/manage.sh start-hermes"
     return 1
@@ -125,7 +125,7 @@ print(p.get('container_name', 'hermes'))
 
   local api_key reachable
   api_key=$(openwebui_hermes_api_key || true)
-  if [[ -z "$api_key" ]]; then
+  if [[ -z $api_key ]]; then
     err "API_SERVER_KEY missing in hermes/data/.env"
     return 1
   fi
@@ -133,7 +133,7 @@ print(p.get('container_name', 'hermes'))
   reachable=$(curl -sf -o /dev/null -w "%{http_code}" \
     -H "Authorization: Bearer ${api_key}" \
     "http://127.0.0.1:8642/v1/models" 2>/dev/null || echo "000")
-  if [[ "$reachable" != "200" ]]; then
+  if [[ $reachable != "200" ]]; then
     err "Hermes gateway not reachable at http://127.0.0.1:8642/v1/models (HTTP ${reachable})"
     return 1
   fi
@@ -185,14 +185,14 @@ start_openwebui_stack() {
   local stack_id="${1:-open-webui-lab}"
 
   warn "=== OPEN WEBUI: ${stack_id} ==="
-  if [[ "${LAB_NON_INTERACTIVE:-}" != "1" ]]; then
+  if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
     echo
     read -r -p "Start Open WebUI stack ${stack_id}? [yes/NO] " response
-    if [[ ! "$response" =~ ^[Yy][Ee][Ss]$ ]]; then
+    if [[ ! $response =~ ^[Yy][Ee][Ss]$ ]]; then
       log "Aborted."
       exit 0
     fi
-  elif [[ "${LAB_CONFIRM_TOKEN:-}" != "yes" ]]; then
+  elif [[ ${LAB_CONFIRM_TOKEN:-} != "yes" ]]; then
     require_heavy_confirm "${stack_id}" "Open WebUI deploy requires confirmation." || exit 1
   fi
 
@@ -221,7 +221,7 @@ start_openwebui_stack() {
 
   local svc_type="NodePort"
   local extra_args=()
-  if [[ -f "$values_file" ]]; then
+  if [[ -f $values_file ]]; then
     extra_args+=(-f "$values_file")
   fi
   if type sso_enabled &>/dev/null && sso_enabled; then
@@ -232,7 +232,7 @@ start_openwebui_stack() {
   extra_args+=(--set "service.type=${svc_type}")
 
   local version_args=()
-  if [[ -n "$chart_version" ]]; then
+  if [[ -n $chart_version ]]; then
     version_args+=(--version "$chart_version")
   fi
 

@@ -102,9 +102,9 @@ sh_test(
     args = ["utilities.bats"],
     data = _BATS_MIN + [
         "bats/utilities.bats",
-        "//scripts:utilities",
-        "//scripts:lib/resources.sh",
         "//scripts:lib/models.sh",
+        "//scripts:lib/resources.sh",
+        "//scripts:utilities",
     ],
 )
 
@@ -183,6 +183,7 @@ sh_test(
         "bats/test_helper.bash",
         "bats/tooling.bats",
         ":bats_tool",
+        "//:ci_workflows",
         "//scripts:lib/paths.sh",
         "//scripts:utilities",
         "//scripts:validate",
@@ -324,11 +325,11 @@ sh_test(
     srcs = ["shell_coverage.sh"],
     data = _BATS_MANAGE_DATA + [
         "bats/check_tool.bats",
+        "bats/comfy_scripts.bats",
         "bats/domains.bats",
         "bats/manage.bats",
         "bats/tooling.bats",
         "bats/utilities.bats",
-        "bats/comfy_scripts.bats",
         "bats/visual.bats",
         "bats_runner.sh",
         "//k8s/auth/generated:generated_auth",

@@ -16,7 +16,7 @@ set -euo pipefail
 # we run from the real source tree (not bazel-bin/ symlinks). This is
 # especially important for tools like Playwright that do filesystem globbing
 # for test discovery.
-if [[ -n "${BUILD_WORKSPACE_DIRECTORY:-}" && -d "${BUILD_WORKSPACE_DIRECTORY}/dashboard" ]]; then
+if [[ -n ${BUILD_WORKSPACE_DIRECTORY:-} && -d "${BUILD_WORKSPACE_DIRECTORY}/dashboard" ]]; then
   cd "${BUILD_WORKSPACE_DIRECTORY}/dashboard"
 else
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -27,13 +27,13 @@ fi
 # sh_test passes the subcommand as $1 (e.g. args = ["test"]), not as $0.
 TARGET_NAME="$(basename "${0:-npm}")"
 SUBCMD="$TARGET_NAME"
-if [[ "$SUBCMD" == "run_npm.sh" || "$SUBCMD" == "npm" ]] && [[ $# -gt 0 ]]; then
+if [[ $SUBCMD == "run_npm.sh" || $SUBCMD == "npm" ]] && [[ $# -gt 0 ]]; then
   SUBCMD="$1"
   shift
 fi
 
 # bazel run //dashboard:build invokes "build build" — drop duplicate subcommand arg.
-if [[ $# -gt 0 && "$1" == "$SUBCMD" ]]; then
+if [[ $# -gt 0 && $1 == "$SUBCMD" ]]; then
   shift
 fi
 
@@ -45,33 +45,33 @@ ensure_deps() {
 }
 
 CMD="npm"
-if [[ "$SUBCMD" == "install" ]]; then
+if [[ $SUBCMD == "install" ]]; then
   exec $CMD ci --legacy-peer-deps "$@"
 fi
 
-if [[ "$SUBCMD" == "dev" ]]; then
+if [[ $SUBCMD == "dev" ]]; then
   exec $CMD run dev "$@"
 fi
 
-if [[ "$SUBCMD" == "build" ]]; then
+if [[ $SUBCMD == "build" ]]; then
   exec $CMD run build "$@"
 fi
 
-if [[ "$SUBCMD" == "test" ]]; then
+if [[ $SUBCMD == "test" ]]; then
   ensure_deps
   exec $CMD run test -- --run "$@"
 fi
 
-if [[ "$SUBCMD" == "test-coverage" || "$SUBCMD" == "coverage" ]]; then
+if [[ $SUBCMD == "test-coverage" || $SUBCMD == "coverage" ]]; then
   ensure_deps
   exec $CMD run test:coverage "$@"
 fi
 
-if [[ "$SUBCMD" == "docs" || "$SUBCMD" == "typedoc" ]]; then
+if [[ $SUBCMD == "docs" || $SUBCMD == "typedoc" ]]; then
   exec $CMD run docs:generate "$@"
 fi
 
-if [[ "$SUBCMD" == "visual" ]]; then
+if [[ $SUBCMD == "visual" ]]; then
   ensure_deps
   # USE_MOCKS so that server components (RSC) render using the mock fixtures.
   # This populates the panels + treemap for meaningful goldens.
