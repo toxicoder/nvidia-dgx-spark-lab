@@ -1,6 +1,6 @@
 ---
 title: Gitea CI Integration Plans
-description: Adapting the lab's Bazel CI (parallel jobs, caches, lint, safety) to Gitea/Forgejo Actions with example workflow and rollout tips.
+description: Adapting the lab's Bazel CI (parallel jobs, caches, lint, safety) to Gitea/Forgejo Actions with rollout tips and parity policy.
 tags: [ci, gitea, forgejo, bazel, github-actions]
 ---
 
@@ -9,15 +9,15 @@ tags: [ci, gitea, forgejo, bazel, github-actions]
 **What's on this page**
 
 - Gitea/Forgejo Actions setup and compatibility overview
-- Full example workflow YAML for Bazel test + lint + build
+- How this repo mirrors GitHub CI (`.gitea/workflows/ci.yml`)
+- Intentional non-parity (docs deploy, Dependabot)
 - Differences from GitHub (runners, caching, secrets)
-- Recommended ultra-optimized rollout mirroring GitHub CI parallel structure
-- Caching & parallelism tips (Bazel disk/repo, npm, Playwright, docs deploy)
+- Caching & parallelism tips for self-hosted runners
 
 **What this enables**
 
 - Running the same fast, hermetic Bazel-centric CI (core, dashboard, docs, safety) on self-hosted Gitea/Forgejo
-- Massive speedups via persistent Bazel caches and actions/cache on private instances
+- Massive speedups via persistent Bazel caches and `actions/cache` on private instances
 - Maintaining CI feature parity and best practices outside GitHub
 
 Gitea (and Forgejo) support **Actions** (compatible with GitHub Actions syntax via runners like `act` or native).
@@ -28,70 +28,66 @@ Gitea (and Forgejo) support **Actions** (compatible with GitHub Actions syntax v
 2. Use a runner (e.g. `gitea-act-runner` or self-hosted GitHub runner compatible).
 3. Place workflow files in `.gitea/workflows/` (or `.forgejo/workflows/`).
 
-This repo ships `.gitea/workflows/ci.yml` as a mirror of the optimized GitHub CI (path filters, `//:test-fast`, cached dashboard Docker, docs render job).
+## Shipped workflow (source of truth)
 
-## Example Workflow (copy to .gitea/workflows/ci.yml)
+This repo ships **`.gitea/workflows/ci.yml`** as a mirror of **`.github/workflows/ci.yml`**.
 
-```yaml
-name: Gitea - Bazel + Lint
+Do **not** replace it with a minimal single-job workflow. The mirror includes:
 
-on:
-  push:
-    branches: [main, master, development, dev]
-  pull_request:
-    branches: [main, master, development, dev]
+| Job | Role |
+| --- | --- |
+| `changes` | `dorny/paths-filter` path groups |
+| `bazel-core` | `//:test-fast` + `//:lint` + key builds |
+| `dashboard-unit` | Host Vitest / lint / typecheck via `//dashboard:fast-test` |
+| `dashboard-hermetic` | Dockerized production build + Playwright |
+| `docs-and-render` | Single MkDocs build + visual regression (`//docs:test_mkdocs_render`) |
+| `validate-gate` | Path-filter consistency via `scripts/ci_check_only.sh` |
 
-jobs:
-  bazel-test:
-    runs-on: ubuntu-latest   # or your runner label
-    steps:
-      - uses: actions/checkout@v4
+Shared composite setup lives under **`.github/actions/setup-bazel`** (Gitea references it; do not fork under `.gitea/`).
 
-      - name: Install Bazelisk
-        run: |
-          curl -L https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64 -o /tmp/bazelisk
-          sudo install /tmp/bazelisk /usr/local/bin/bazelisk
+### Parity policy
 
-      - name: Install lint tools
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq shellcheck yamllint
-          pip install ansible-lint
-          curl -sL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xz
-          sudo mv kubeconform /usr/local/bin/
+When bumping marketplace action majors or changing job graph / path filters / Bazel commands in `.github/workflows/ci.yml`, update `.gitea/workflows/ci.yml` in the **same PR**.
 
-      - name: Bazel test + lint
-        run: |
-          bazelisk test //:test-fast //:lint --config=ci --test_tag_filters=manual
+Enforced by `tests/bats/tooling.bats` (`//tests:bats_tooling_test`):
 
-      - name: Bazel build
-        run: |
-          bazelisk build //:manage //:all --config=ci
-```
+- Same job ids and path-filter keys
+- Same critical commands (`//:test-fast`, hermetic modes, docs render, gate script)
+- Same marketplace action **major** pins (`actions/checkout@vN`, etc.)
+
+Allowed Gitea-only delta: a short header comment that the file is a Forgejo/Gitea mirror.
+
+### Intentional non-parity
+
+| GitHub-only | Why not mirrored |
+| --- | --- |
+| `.github/workflows/deploy-docs.yml` | mike → GitHub Pages (`gh-pages`). Needs a chosen Gitea Pages / static host + secrets before a Gitea equivalent exists. |
+| `.github/dependabot.yml` | Dependabot is a GitHub product; use Renovate or manual bumps on Gitea. |
+
+Docker Buildx still uses `cache-from/to: type=gha` for structural parity with GitHub. On pure `gitea-act-runner` hosts the GHA cache backend may no-op; prefer a persistent local Docker layer cache or registry cache on the runner if rebuilds stay cold.
 
 ## Differences from GitHub
 
 - Runner labels may differ (configure in Gitea).
-- Secrets and variables are configured in Gitea UI (same names).
-- For self-hosted, ensure docker or the execution environment has the tools.
-- Caching: Use the same disk_cache in .bazelrc or Gitea cache actions if available.
-- No official "setup-bazelisk" but the curl method works.
+- Secrets and variables are configured in Gitea UI (use the same logical names where applicable).
+- For self-hosted, ensure docker or the execution environment has the tools Bazel and hermetic dashboard tests need.
+- Caching: mount persistent volumes for Bazel disk/repo caches; use `actions/cache` for npm/pip/Playwright when supported.
+- Docs **publish** stays on GitHub Pages unless you add a separate Gitea deploy workflow.
 
 ## Recommended Rollout for Gitea (Ultra Optimized)
 
-- Use `.gitea/workflows/ci.yml` (mirrors `.github/workflows/ci.yml`: path-filtered bazel-core, dashboard, docs-and-render).
-- Self-hosted runners (gitea-act-runner or compatible): mount persistent volume for `~/.cache/bazel-disk` and `~/.cache/bazel-repo` (and node_modules) for massive cache hits across builds (5-10x+ on incremental per research; key on MODULE.bazel.lock etc.).
-- Use `actions/cache` (supported) in workflows for the same keys as GitHub.
+- Use the shipped `.gitea/workflows/ci.yml` (do not regress to a single job).
+- Self-hosted runners (`gitea-act-runner` or compatible): mount persistent volume for `~/.cache/bazel-disk` and `~/.cache/bazel-repo` (and node_modules) for large cache hits across builds (key on `MODULE.bazel.lock` / `.bazelversion`).
+- Use `actions/cache` for the same keys as GitHub where the runner supports it.
 - Runner labels: configure in Gitea admin (e.g. `self-hosted`, `linux`); use in `runs-on`.
-- Update .bazelrc --config=ci usage for higher resources on beefy self-hosted.
-- Keep Makefile as fallback for local dev without Bazel.
+- Keep `.bazelrc` `--config=ci` for CI-oriented flags; raise resources on beefy self-hosted hardware as needed.
 
-See also the GitHub CI in `.github/workflows/ci.yml` (now split for parallelism) and .bazelrc for cache/parallel flags.
+See also `.github/workflows/ci.yml` and `.bazelrc` for cache/parallel flags.
 
 ## Caching & Parallelism Tips for Gitea
 
-- Bazel: restore disk + repo cache in job steps (see .bazelrc comments).
-- Non-hermetic: separate npm cache (setup-node), Python (setup-python cache).
-- Parallel: jobs run concurrently; self-hosted can run multiple in parallel (configure runner).
-- For visuals/goldens: pre-install Playwright browsers in runner image or cache.
-- Deploy docs: prefer `bazelisk run //docs:docs` for consistency (update workflow if possible).
+- Bazel: restore disk + repo cache in job steps (see `.bazelrc` and `setup-bazel`).
+- Non-hermetic: separate npm cache (`setup-node`), Python (`setup-python` cache).
+- Parallel: jobs run concurrently; self-hosted can run multiple in parallel (configure runner capacity).
+- For visuals/goldens: pre-install Playwright browsers in the runner image or cache `~/.cache/ms-playwright`.
+- Docs **build** in CI: `bazelisk test //docs:test_mkdocs_render --config=ci` (same as GitHub). Publish remains GitHub-only today.
