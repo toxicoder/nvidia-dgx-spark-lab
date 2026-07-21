@@ -123,23 +123,23 @@ start_workload() {
   job=$(get_model_job "$model")
   dep=$(get_model_deployment "$model")
   svc=$(get_model_svc "$model")
-  if [[ -z "$job" && -z "$dep" ]]; then
+  if [[ -z $job && -z $dep ]]; then
     err "Unknown model: $model"
     exit 1
   fi
 
-  if [[ "$force_flag" != "--force" ]]; then
+  if [[ $force_flag != "--force" ]]; then
     enforce_capacity "model:${model}" || exit 1
   fi
 
   log "Starting $model workload..."
   ensure_namespace
-  if [[ -n "$svc" ]]; then
+  if [[ -n $svc ]]; then
     kubectl apply -f "${REPO_ROOT}/${svc}" -n "${NAMESPACE}" || true
   fi
-  if [[ -n "$dep" ]]; then
+  if [[ -n $dep ]]; then
     kubectl apply -f "${REPO_ROOT}/${dep}" -n "${NAMESPACE}"
-  elif [[ -n "$job" ]]; then
+  elif [[ -n $job ]]; then
     kubectl apply -f "${REPO_ROOT}/${job}" -n "${NAMESPACE}"
   fi
   log "$model submitted. Monitor with: kubectl get pods -n ${NAMESPACE} -l app=${model}"
@@ -174,10 +174,10 @@ start_kimi() {
   warn "Make sure you have validated with 'start-test' first."
   warn "Heavy workloads can make SSH unresponsive if limits are exceeded."
 
-  if [[ "${LAB_NON_INTERACTIVE:-}" != "1" ]]; then
+  if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
     echo
     read -r -p "Are you absolutely sure you want to start the FULL kimi workload? [yes/NO] " response
-    if [[ ! "$response" =~ ^[Yy][Ee][Ss]$ ]]; then
+    if [[ ! $response =~ ^[Yy][Ee][Ss]$ ]]; then
       log "Aborted by user."
       exit 0
     fi
@@ -217,10 +217,10 @@ start_nemotron() {
   warn "This requests significant GPUs/memory. Validate with test first."
   warn "Safety: gpu-mem-util 0.82 default. Do not exceed 0.90."
 
-  if [[ "${LAB_NON_INTERACTIVE:-}" != "1" ]]; then
+  if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
     echo
     read -r -p "Start NEMOTRON 3 ULTRA? [yes/NO] " response
-    if [[ ! "$response" =~ ^[Yy][Ee][Ss]$ ]]; then
+    if [[ ! $response =~ ^[Yy][Ee][Ss]$ ]]; then
       log "Aborted."
       exit 0
     fi
@@ -253,10 +253,10 @@ start_glm() {
   warn "Quality trade-off: ~76% top-1 retention vs higher quants. 2 nodes required (spark0 + spark1)."
   warn "Model ~228 GB; first load/repack may take 15-30+ minutes. No Ray dependency."
 
-  if [[ "${LAB_NON_INTERACTIVE:-}" != "1" ]]; then
+  if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
     echo
     read -r -p "Start GLM-5.2? [yes/NO] " response
-    if [[ ! "$response" =~ ^[Yy][Ee][Ss]$ ]]; then
+    if [[ ! $response =~ ^[Yy][Ee][Ss]$ ]]; then
       log "Aborted."
       exit 0
     fi
@@ -270,9 +270,9 @@ start_glm() {
   if ! compgen -G "${shard_dir}/GLM-5.2-UD-IQ1_M-00001-of-*.gguf" >/dev/null; then
     warn "Model shards not found under ${shard_dir}"
     warn "Download first: bazelisk run //scripts:run-utility -- download-glm52-gguf run"
-    if [[ "${LAB_NON_INTERACTIVE:-}" != "1" ]]; then
+    if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
       read -r -p "Continue without local shard check? [y/N] " cont
-      if [[ ! "$cont" =~ ^[Yy]$ ]]; then
+      if [[ ! $cont =~ ^[Yy]$ ]]; then
         log "Aborted — download model shards before starting."
         exit 1
       fi
@@ -280,10 +280,10 @@ start_glm() {
   fi
 
   num_nodes=$(kubectl get nodes --no-headers 2>/dev/null | wc -l | tr -d ' ' || echo 1)
-  if [[ "$num_nodes" -lt 2 && "${LAB_NON_INTERACTIVE:-}" != "1" ]]; then
+  if [[ $num_nodes -lt 2 && ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
     warn "Only ${num_nodes} node(s) detected. GLM-5.2 RPC expects spark0 + spark1."
     read -r -p "Continue on single-node cluster? [y/N] " cont
-    if [[ ! "$cont" =~ ^[Yy]$ ]]; then
+    if [[ ! $cont =~ ^[Yy]$ ]]; then
       log "Aborted — add spark1 worker before starting GLM-5.2 RPC."
       exit 1
     fi
@@ -318,7 +318,7 @@ start_qwen3_5_122b_nvfp4() {
 # the device plugin by itself; dual preflight verifies allocatable GPUs ≥ 2.
 ensure_gpu_time_slicing_config() {
   local path="${REPO_ROOT}/k8s/base/gpu-time-slicing"
-  if [[ ! -d "$path" ]]; then
+  if [[ ! -d $path ]]; then
     err "Missing GPU time-slicing manifests at ${path}"
     return 1
   fi
@@ -330,9 +330,9 @@ ensure_gpu_time_slicing_config() {
 # Fail dual start if node has fewer than 2 allocatable nvidia.com/gpu (needs time-slicing).
 check_logical_gpus_for_dual() {
   local alloc
-  alloc=$(kubectl get nodes -o jsonpath='{range .items[*]}{.status.allocatable.nvidia\.com/gpu}{"\n"}{end}' 2>/dev/null \
-    | awk '{s+=$1} END {print s+0}')
-  if [[ -z "$alloc" || "$alloc" -lt 2 ]]; then
+  alloc=$(kubectl get nodes -o jsonpath='{range .items[*]}{.status.allocatable.nvidia\.com/gpu}{"\n"}{end}' 2>/dev/null |
+    awk '{s+=$1} END {print s+0}')
+  if [[ -z $alloc || $alloc -lt 2 ]]; then
     err "Dual Qwen3.6 needs ≥2 allocatable nvidia.com/gpu (got: ${alloc:-0})."
     err "Enable device-plugin time-slicing (ConfigMap applied; reconfigure GPU Operator devicePlugin.config)."
     err "See k8s/base/gpu-time-slicing/README.md and ansible gpu_operator (gpu_time_slicing_enabled)."
@@ -366,10 +366,10 @@ start_qwen36_dual() {
   warn "Requires 2 logical GPUs (time-slicing) and ~96 Gi combined memory headroom."
   warn "For full 128K–256K context, run exclusive start-qwen36-27b or start-qwen36-35b-a3b instead."
 
-  if [[ "${LAB_NON_INTERACTIVE:-}" != "1" ]]; then
+  if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
     echo
     read -r -p "Start Qwen3.6 dual stack? [yes/NO] " response
-    if [[ ! "$response" =~ ^[Yy][Ee][Ss]$ ]]; then
+    if [[ ! $response =~ ^[Yy][Ee][Ss]$ ]]; then
       log "Aborted."
       exit 0
     fi
@@ -425,10 +425,10 @@ start_qwen3_5_397b_spark2() {
   warn "Uses Intel/Qwen3.5-397B-A17B-int4-AutoRound. Proven ~26-30 tok/s on dual Spark."
   warn "Requires Ray cluster and vLLM cu130-nightly + transformers 5.x patches."
 
-  if [[ "${LAB_NON_INTERACTIVE:-}" != "1" ]]; then
+  if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
     echo
     read -r -p "Start Qwen 397B (2-node)? [yes/NO] " response
-    if [[ ! "$response" =~ ^[Yy][Ee][Ss]$ ]]; then
+    if [[ ! $response =~ ^[Yy][Ee][Ss]$ ]]; then
       log "Aborted."
       exit 0
     fi
@@ -440,10 +440,10 @@ start_qwen3_5_397b_spark2() {
   guard_active_job "qwen3.5-397b-spark2" || exit 1
 
   num_nodes=$(kubectl get nodes --no-headers 2>/dev/null | wc -l | tr -d ' ' || echo 1)
-  if [[ "$num_nodes" -lt 2 && "${LAB_NON_INTERACTIVE:-}" != "1" ]]; then
+  if [[ $num_nodes -lt 2 && ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
     warn "Only ${num_nodes} node(s) detected. Qwen 397B spark2 expects 2 nodes."
     read -r -p "Continue on single-node cluster? [y/N] " cont
-    if [[ ! "$cont" =~ ^[Yy]$ ]]; then
+    if [[ ! $cont =~ ^[Yy]$ ]]; then
       log "Aborted — add spark1 worker or use qwen-agentic-spark-1."
       exit 1
     fi
@@ -463,10 +463,10 @@ start_qwen3_5_397b_nvfp4() {
   warn "=== QWEN 3.5 397B NVFP4 (4-node SGLang, TP=4) ==="
   warn "Uses nvidia/Qwen3.5-397B-A17B-NVFP4 (~250 GB). Requires spark0..spark3."
 
-  if [[ "${LAB_NON_INTERACTIVE:-}" != "1" ]]; then
+  if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
     echo
     read -r -p "Start Qwen 397B NVFP4 (4-node)? [yes/NO] " response
-    if [[ ! "$response" =~ ^[Yy][Ee][Ss]$ ]]; then
+    if [[ ! $response =~ ^[Yy][Ee][Ss]$ ]]; then
       log "Aborted."
       exit 0
     fi
@@ -478,11 +478,11 @@ start_qwen3_5_397b_nvfp4() {
   guard_active_job "qwen3.5-397b-nvfp4" || exit 1
 
   num_nodes=$(kubectl get nodes --no-headers 2>/dev/null | wc -l | tr -d ' ' || echo 1)
-  if [[ "$num_nodes" -lt 4 && "${LAB_NON_INTERACTIVE:-}" != "1" ]]; then
+  if [[ $num_nodes -lt 4 && ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
     warn "Only ${num_nodes} node(s) detected. NVFP4 397B expects 4 nodes."
     warn "For smaller clusters use: qwen-agentic-spark-1 (1 node) or qwen-agentic-spark-2 (2 nodes)."
     read -r -p "Continue anyway? [y/N] " cont
-    if [[ ! "$cont" =~ ^[Yy]$ ]]; then
+    if [[ ! $cont =~ ^[Yy]$ ]]; then
       log "Aborted."
       exit 1
     fi
@@ -531,10 +531,10 @@ sys.exit(0 if '${stack_id}' in p.get('stacks', {}) else 1)
   warn "=== NEMOTRON AGENTIC STACK: ${stack_id} ==="
   warn "Deploys multiple services in order. Stop dev workspaces first if capacity is tight."
 
-  if [[ "${LAB_NON_INTERACTIVE:-}" != "1" ]]; then
+  if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
     echo
     read -r -p "Start stack ${stack_id}? [yes/NO] " response
-    if [[ ! "$response" =~ ^[Yy][Ee][Ss]$ ]]; then
+    if [[ ! $response =~ ^[Yy][Ee][Ss]$ ]]; then
       log "Aborted."
       exit 0
     fi
@@ -547,7 +547,7 @@ sys.exit(0 if '${stack_id}' in p.get('stacks', {}) else 1)
 
   order=$(_stack_startup_order "$stack_id")
   while IFS= read -r model; do
-    [[ -z "$model" ]] && continue
+    [[ -z $model ]] && continue
     log "Stack step: starting ${model}..."
     start_workload "$model" "--force"
     if get_model_job "$model" | grep -q .; then
@@ -555,7 +555,7 @@ sys.exit(0 if '${stack_id}' in p.get('stacks', {}) else 1)
     else
       sleep 5
     fi
-  done <<< "$order"
+  done <<<"$order"
 
   log "Stack ${stack_id} submitted. Endpoints: kubectl get svc -n ${NAMESPACE} | grep nemotron"
 }
@@ -567,12 +567,12 @@ stop_nemotron_stack() {
 
   policy_path=$(resource_policy_path)
 
-  if [[ "$target" == "all" ]]; then
+  if [[ $target == "all" ]]; then
     python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/models_stop_nemotron_stack.py" "$policy_path"
   else
     _stack_startup_order "$target" | tail -r
   fi | while IFS= read -r model; do
-    [[ -z "$model" ]] && continue
+    [[ -z $model ]] && continue
     if get_model_job "$model" | grep -q .; then
       stop_inference_job "$model"
     elif get_model_deployment "$model" | grep -q .; then
@@ -603,9 +603,9 @@ start_nemotron_llm() {
   local model="$1"
   local label="${2:-$model}"
   warn "=== ${label} ==="
-  if [[ "${LAB_NON_INTERACTIVE:-}" != "1" ]]; then
+  if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
     read -r -p "Start ${label}? [yes/NO] " response
-    if [[ ! "$response" =~ ^[Yy][Ee][Ss]$ ]]; then
+    if [[ ! $response =~ ^[Yy][Ee][Ss]$ ]]; then
       log "Aborted."
       exit 0
     fi
@@ -628,7 +628,7 @@ start_model() {
     nemotron-3-nano-30b) start_nemotron_llm "nemotron-3-nano-30b" "Nemotron 3 Nano 30B" ;;
     nemotron-3-nano-omni-30b) start_nemotron_llm "nemotron-3-nano-omni-30b" "Nemotron 3 Nano Omni 30B" ;;
     nemotron-3-super-120b) start_nemotron_llm "nemotron-3-super-120b" "Nemotron 3 Super 120B" ;;
-    nemotron-retriever-embed|nemotron-retriever-rerank|nemotron-parse|nemotron-safety-guard|nemotron-speech-asr|nemotron-speech-tts)
+    nemotron-retriever-embed | nemotron-retriever-rerank | nemotron-parse | nemotron-safety-guard | nemotron-speech-asr | nemotron-speech-tts)
       start_workload "$model"
       ;;
     glm-5.2) start_glm ;;
@@ -637,7 +637,7 @@ start_model() {
     qwen3.5-397b-nvfp4) start_qwen3_5_397b_nvfp4 ;;
     qwen3.6-27b-nvfp4) start_qwen36_27b ;;
     qwen3.6-35b-a3b-nvfp4) start_qwen36_35b_a3b ;;
-    qwen36-dual-spark-1|qwen36-dual) start_qwen36_dual ;;
+    qwen36-dual-spark-1 | qwen36-dual) start_qwen36_dual ;;
     comfy-base)
       if type start_comfy_base &>/dev/null; then
         start_comfy_base
@@ -647,19 +647,34 @@ start_model() {
       fi
       ;;
     flux-fast)
-      if type start_flux_fast &>/dev/null; then start_flux_fast; else err "visual.sh missing"; exit 1; fi
+      if type start_flux_fast &>/dev/null; then start_flux_fast; else
+        err "visual.sh missing"
+        exit 1
+      fi
       ;;
     flux-quality)
-      if type start_flux_quality &>/dev/null; then start_flux_quality; else err "visual.sh missing"; exit 1; fi
+      if type start_flux_quality &>/dev/null; then start_flux_quality; else
+        err "visual.sh missing"
+        exit 1
+      fi
       ;;
     ltx-balanced)
-      if type start_ltx_balanced &>/dev/null; then start_ltx_balanced; else err "visual.sh missing"; exit 1; fi
+      if type start_ltx_balanced &>/dev/null; then start_ltx_balanced; else
+        err "visual.sh missing"
+        exit 1
+      fi
       ;;
     ltx-quality)
-      if type start_ltx_quality &>/dev/null; then start_ltx_quality; else err "visual.sh missing"; exit 1; fi
+      if type start_ltx_quality &>/dev/null; then start_ltx_quality; else
+        err "visual.sh missing"
+        exit 1
+      fi
       ;;
     flux-to-ltx)
-      if type start_flux_to_ltx &>/dev/null; then start_flux_to_ltx; else err "visual.sh missing"; exit 1; fi
+      if type start_flux_to_ltx &>/dev/null; then start_flux_to_ltx; else
+        err "visual.sh missing"
+        exit 1
+      fi
       ;;
     *)
       err "Unknown model for start_model: $model"
@@ -689,13 +704,13 @@ stop_model() {
         stop_visual || true
       fi
       ;;
-    qwen36|qwen3.6|qwen36-dual)
+    qwen36 | qwen3.6 | qwen36-dual)
       stop_qwen36
       ;;
-    kimi-test|kimi|nemotron-3-ultra|nemotron-3-nano-30b|nemotron-3-nano-omni-30b|nemotron-3-super-120b|glm-5.2|glm-5.2-rpc|ray-head|ray-worker|qwen3.5-122b-a10b-nvfp4|qwen3.5-397b-spark2|qwen3.5-397b-nvfp4|qwen3.5-397b-nvfp4-worker-1|qwen3.5-397b-nvfp4-worker-2|qwen3.5-397b-nvfp4-worker-3|qwen3.6-27b-nvfp4|qwen3.6-35b-a3b-nvfp4)
+    kimi-test | kimi | nemotron-3-ultra | nemotron-3-nano-30b | nemotron-3-nano-omni-30b | nemotron-3-super-120b | glm-5.2 | glm-5.2-rpc | ray-head | ray-worker | qwen3.5-122b-a10b-nvfp4 | qwen3.5-397b-spark2 | qwen3.5-397b-nvfp4 | qwen3.5-397b-nvfp4-worker-1 | qwen3.5-397b-nvfp4-worker-2 | qwen3.5-397b-nvfp4-worker-3 | qwen3.6-27b-nvfp4 | qwen3.6-35b-a3b-nvfp4)
       stop_inference_job "$target"
       ;;
-    nemotron-retriever-embed|nemotron-retriever-rerank|nemotron-parse|nemotron-safety-guard|nemotron-speech-asr|nemotron-speech-tts|comfy-base|flux-fast|flux-quality|ltx-balanced|ltx-quality|flux-to-ltx)
+    nemotron-retriever-embed | nemotron-retriever-rerank | nemotron-parse | nemotron-safety-guard | nemotron-speech-asr | nemotron-speech-tts | comfy-base | flux-fast | flux-quality | ltx-balanced | ltx-quality | flux-to-ltx)
       stop_inference_deployment "$target"
       ;;
     visual)

@@ -17,9 +17,9 @@ filegroup(
 sh_test(
     name = "chart_test",
     srcs = ["chart_test.sh"],
+    # chart_test.sh only needs the chart tree + host `helm`; no scripts/lib deps.
     data = [
         ":all_charts",
-        "//scripts:lib/check_tool.sh",
     ],
     tags = ["manual"],
     visibility = ["//visibility:public"],

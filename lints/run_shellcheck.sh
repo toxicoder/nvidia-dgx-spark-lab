@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -n "${BUILD_WORKSPACE_DIRECTORY:-}" ]]; then
+if [[ -n ${BUILD_WORKSPACE_DIRECTORY:-} ]]; then
   ROOT="${BUILD_WORKSPACE_DIRECTORY}"
-elif [[ -n "${TEST_SRCDIR:-}" ]]; then
+elif [[ -n ${TEST_SRCDIR:-} ]]; then
   ROOT="${TEST_SRCDIR}/_main"
 else
   ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -23,5 +23,5 @@ find . -name '*.sh' \
   -not -path './site/*' \
   -not -path './bazel-*/*' \
   -not -path './dashboard/node_modules/*' \
-  -print0 | xargs -0 shellcheck -x --severity=warning  # hardened: removed || echo; real lint step -- shellcheck warnings will now fail (excludes vendored/generated)
+  -print0 | xargs -0 shellcheck -x --severity=warning # hardened: removed || echo; real lint step -- shellcheck warnings will now fail (excludes vendored/generated)
 echo "Shell lint step finished."

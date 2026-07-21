@@ -183,6 +183,7 @@ sh_test(
         "bats/test_helper.bash",
         "bats/tooling.bats",
         ":bats_tool",
+        "//:ci_workflows",
         "//scripts:lib/paths.sh",
         "//scripts:utilities",
         "//scripts:validate",

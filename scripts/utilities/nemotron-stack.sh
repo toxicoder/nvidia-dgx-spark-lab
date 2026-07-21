@@ -53,7 +53,7 @@ EOF
 
 cmd_catalog() {
   local json_flag="${1:-}"
-  get_nemotron_catalog_json | if [[ "$json_flag" == "--json" ]]; then cat; else jq '.'; fi
+  get_nemotron_catalog_json | if [[ $json_flag == "--json" ]]; then cat; else jq '.'; fi
 }
 
 # @function cmd_status
@@ -62,7 +62,7 @@ cmd_catalog() {
 
 cmd_status() {
   local json_flag="${1:-}"
-  get_nemotron_stack_status_json | if [[ "$json_flag" == "--json" ]]; then cat; else jq '.'; fi
+  get_nemotron_stack_status_json | if [[ $json_flag == "--json" ]]; then cat; else jq '.'; fi
 }
 
 # @function cmd_check
@@ -73,12 +73,19 @@ cmd_check() {
   local action=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --action) action="${2:-}"; shift 2 ;;
+      --action)
+        action="${2:-}"
+        shift 2
+        ;;
       --json) shift ;;
-      *) err "Unknown arg: $1"; usage; exit 1 ;;
+      *)
+        err "Unknown arg: $1"
+        usage
+        exit 1
+        ;;
     esac
   done
-  if [[ -z "$action" ]]; then
+  if [[ -z $action ]]; then
     err "--action required (stack:nemotron-agentic-spark-N)"
     exit 1
   fi
@@ -95,11 +102,17 @@ cmd_start() {
   shift || true
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --confirm) confirm="${2:-}"; shift 2 ;;
-      *) err "Unknown arg: $1"; exit 1 ;;
+      --confirm)
+        confirm="${2:-}"
+        shift 2
+        ;;
+      *)
+        err "Unknown arg: $1"
+        exit 1
+        ;;
     esac
   done
-  if [[ -z "$stack_id" ]]; then
+  if [[ -z $stack_id ]]; then
     err "Stack id required"
     usage
     exit 1

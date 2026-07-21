@@ -2,8 +2,8 @@
 # Run unit tests for doc_coverage pure helpers.
 set -euo pipefail
 ROOT="${BUILD_WORKSPACE_DIRECTORY:-}"
-if [[ -z "${ROOT}" ]]; then
-  if [[ -n "${TEST_SRCDIR:-}" ]]; then
+if [[ -z ${ROOT} ]]; then
+  if [[ -n ${TEST_SRCDIR:-} ]]; then
     ROOT="${TEST_SRCDIR}/_main"
   else
     ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

@@ -51,7 +51,7 @@ start_mcp_component() {
   local component="$1"
   local kust
   kust=$(_mcp_component_kustomize "$component")
-  if [[ -z "$kust" ]]; then
+  if [[ -z $kust ]]; then
     err "Unknown MCP component: ${component}"
     return 1
   fi
@@ -64,7 +64,7 @@ stop_mcp_component() {
   local component="$1"
   local kust
   kust=$(_mcp_component_kustomize "$component")
-  if [[ -z "$kust" ]]; then
+  if [[ -z $kust ]]; then
     err "Unknown MCP component: ${component}"
     return 1
   fi
@@ -115,10 +115,10 @@ sys.exit(0 if '${stack_id}' in p.get('stacks', {}) else 1)
   fi
 
   warn "=== MCP AGENT TOOLKIT: ${stack_id} ==="
-  if [[ "${LAB_NON_INTERACTIVE:-}" != "1" ]]; then
+  if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
     echo
     read -r -p "Start MCP stack ${stack_id}? [yes/NO] " response
-    if [[ ! "$response" =~ ^[Yy][Ee][Ss]$ ]]; then
+    if [[ ! $response =~ ^[Yy][Ee][Ss]$ ]]; then
       log "Aborted."
       exit 0
     fi
@@ -133,9 +133,9 @@ except Exception:
     p = {}
 print('true' if p.get('stacks', {}).get('${stack_id}', {}).get('heavy') else 'false')
 ")
-    if [[ "$is_heavy" == "true" ]]; then
+    if [[ $is_heavy == "true" ]]; then
       require_heavy_confirm "${stack_id}" "Heavy MCP stack requires confirmation." || exit 1
-    elif [[ "${LAB_CONFIRM_TOKEN:-}" != "yes" ]]; then
+    elif [[ ${LAB_CONFIRM_TOKEN:-} != "yes" ]]; then
       require_heavy_confirm "${stack_id}" "MCP stack deploy requires confirmation." || exit 1
     fi
   fi
@@ -148,10 +148,10 @@ print('true' if p.get('stacks', {}).get('${stack_id}', {}).get('heavy') else 'fa
 
   order=$(_mcp_stack_startup_order "$stack_id")
   while IFS= read -r component; do
-    [[ -z "$component" ]] && continue
+    [[ -z $component ]] && continue
     start_mcp_component "$component"
     sleep 3
-  done <<< "$order"
+  done <<<"$order"
 
   log "MCP stack ${stack_id} submitted. NodePorts: see mcp/config/mcp-policy.yaml"
   log "kubectl get svc -n $(mcp_namespace) | grep -E 'mcp-|context7'"
@@ -164,12 +164,12 @@ stop_mcp_stack() {
 
   policy_path=$(mcp_policy_path)
 
-  if [[ "$target" == "all" ]]; then
+  if [[ $target == "all" ]]; then
     python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/mcp_stop_mcp_stack.py" "$policy_path"
   else
     _mcp_stack_startup_order "$target" | tail -r
   fi | while IFS= read -r component; do
-    [[ -z "$component" ]] && continue
+    [[ -z $component ]] && continue
     stop_mcp_component "$component" || true
   done
   log "MCP stack stop complete for ${target}"

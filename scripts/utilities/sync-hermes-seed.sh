@@ -20,7 +20,7 @@ ROOT="${BUILD_WORKSPACE_DIRECTORY:-$(cd "$(lab_script_dir 1 utilities)/../.." &&
 SRC="${ROOT}/hermes/profiles/workspace-dev"
 DEST="${ROOT}/k8s/dev/templates/coder-spark-lab/hermes-seed"
 
-if [[ ! -d "$SRC" ]]; then
+if [[ ! -d $SRC ]]; then
   echo "sync-hermes-seed: source profile missing: $SRC" >&2
   exit 1
 fi

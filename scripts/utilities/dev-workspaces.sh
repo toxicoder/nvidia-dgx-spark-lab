@@ -68,7 +68,7 @@ require_workspace_name() {
 
 cmd_status() {
   local json_flag="${1:-}"
-  if [[ "$json_flag" == "--json" ]]; then
+  if [[ $json_flag == "--json" ]]; then
     get_all_workspaces_status
   else
     get_workspace_status coder

@@ -45,7 +45,7 @@ start_coder() {
   fi
   local coder_values
   coder_values="$(lab_ansible_values_file coder-values.yaml 2>/dev/null || true)"
-  if [[ -n "$coder_values" ]]; then
+  if [[ -n $coder_values ]]; then
     helm upgrade --install coder coder-v2/coder \
       --namespace coder \
       --version "${coder_version:-2.34.0}" \
@@ -131,8 +131,8 @@ _workspace_pod_counts() {
   local total ready
   total=$(kubectl get pods -n "$ns" --no-headers 2>/dev/null | grep -vc '^$' || echo 0)
   ready=$(
-    kubectl get pods -n "$ns" --no-headers 2>/dev/null \
-      | awk '$2 ~ /\// && $2 !~ /^0\// { c++ } END { print c + 0 }' || echo 0
+    kubectl get pods -n "$ns" --no-headers 2>/dev/null |
+      awk '$2 ~ /\// && $2 !~ /^0\// { c++ } END { print c + 0 }' || echo 0
   )
   echo "$total $ready"
 }
@@ -170,8 +170,8 @@ get_workspace_status() {
     helm_installed=true
   fi
 
-  if [[ "$helm_installed" == true || "$total" -gt 0 ]]; then
-    if [[ "$total" -gt 0 && "$ready" -eq "$total" ]]; then
+  if [[ $helm_installed == true || $total -gt 0 ]]; then
+    if [[ $total -gt 0 && $ready -eq $total ]]; then
       state="running"
     else
       state="starting"
@@ -181,7 +181,7 @@ get_workspace_status() {
   local url
   url=$(_workspace_url "$svc")
 
-  if [[ "$json_flag" == "--json" ]]; then
+  if [[ $json_flag == "--json" ]]; then
     printf '{"name":"%s","state":"%s","readyPods":%s,"totalPods":%s,"url":"%s","helmInstalled":%s}\n' \
       "$svc" "$state" "$ready" "$total" "$url" "$helm_installed"
   else
