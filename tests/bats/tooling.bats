@@ -48,6 +48,68 @@ teardown() {
   rg -A2 'pull_request:' "$gitea" | rg -q 'development'
 }
 
+# Extract unique "owner/name@vN" (or "owner/name@vN.M") pins from a workflow YAML.
+# Ignores local composite actions (./.github/...).
+_ci_action_pins() {
+  local file="$1"
+  # Match marketplace-style uses: lines; drop leading whitespace / "- uses:".
+  rg -oN 'uses:[[:space:]]+[^[:space:]#]+' "$file" |
+    sed -E 's/^uses:[[:space:]]+//' |
+    grep -E '^[^./][^@]*@v[0-9]+' |
+    sed -E 's|@v([0-9]+).*|@v\1|' |
+    sort -u
+}
+
+@test "Gitea CI mirrors GitHub CI jobs, filters, commands, and action majors" {
+  # Feature parity: .gitea/workflows/ci.yml is the Forgejo/Gitea mirror of
+  # .github/workflows/ci.yml. Job graph, path filters, Bazel commands, and
+  # marketplace action major versions must stay aligned. Intentional
+  # non-parity (deploy-docs, dependabot, Gitea header comment) is out of scope.
+  local gh="${REPO_ROOT}/.github/workflows/ci.yml"
+  local gitea="${REPO_ROOT}/.gitea/workflows/ci.yml"
+  [[ -f $gh && -f $gitea ]]
+
+  local job
+  for job in changes bazel-core dashboard-unit dashboard-hermetic docs-and-render validate-gate; do
+    rg -q "^  ${job}:" "$gh"
+    rg -q "^  ${job}:" "$gitea"
+  done
+
+  local filter
+  for filter in bazel-core dashboard docs ci-graph ci-workflow; do
+    rg -q "^[[:space:]]+${filter}:" "$gh"
+    rg -q "^[[:space:]]+${filter}:" "$gitea"
+  done
+
+  local cmd
+  for cmd in \
+    '//:test-fast //:lint' \
+    '//dashboard:fast-test' \
+    'DASHBOARD_TEST_MODE=visual' \
+    'DASHBOARD_TEST_MODE=full' \
+    '//docs:test_mkdocs_render' \
+    'scripts/ci_check_only.sh'; do
+    rg -qF "$cmd" "$gh"
+    rg -qF "$cmd" "$gitea"
+  done
+
+  # Shared setup composite must remain referenced from Gitea (do not fork it).
+  rg -qF './.github/actions/setup-bazel' "$gitea"
+
+  local gh_pins gitea_pins
+  gh_pins="$(_ci_action_pins "$gh")"
+  gitea_pins="$(_ci_action_pins "$gitea")"
+  if [[ $gh_pins != "$gitea_pins" ]]; then
+    echo "Marketplace action major pins differ (bump both in the same PR):" >&2
+    echo "--- GitHub ---" >&2
+    echo "$gh_pins" >&2
+    echo "--- Gitea ---" >&2
+    echo "$gitea_pins" >&2
+    diff -u <(printf '%s\n' "$gh_pins") <(printf '%s\n' "$gitea_pins") >&2 || true
+    return 1
+  fi
+}
+
 @test "GitHub Actions cache action is Node-24-capable (not cache@v4)" {
   # actions/cache@v4 targets deprecated Node 20 on GitHub runners.
   # Prefer @v5+ (repo standard: @v6) in workflows and composite actions.
