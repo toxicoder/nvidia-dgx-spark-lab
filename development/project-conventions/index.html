@@ -2981,13 +2981,13 @@
 </ul>
 <p>This document is the <strong>canonical reference</strong> for human contributors. Stack-specific addenda extend it:</p>
 <ul>
-<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/dashboard/AGENTS.md">dashboard/AGENTS.md</a> — Next.js dashboard details</li>
-<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/scripts/README.md">scripts/README.md</a> — <code>manage.sh</code> and utility scripts</li>
-<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/tests/README.md">tests/README.md</a> — test targets and mocks</li>
-<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md">CONTRIBUTING.md (repo root)</a> — contribution hub and full branching / PR / promotion model</li>
+<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/dashboard/AGENTS.md">dashboard/AGENTS.md</a> — Next.js dashboard details</li>
+<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/scripts/README.md">scripts/README.md</a> — <code>manage.sh</code> and utility scripts</li>
+<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/tests/README.md">tests/README.md</a> — test targets and mocks</li>
+<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/CONTRIBUTING.md">CONTRIBUTING.md (repo root)</a> — contribution hub and full branching / PR / promotion model</li>
 <li><a href="../CONTRIBUTING/">CONTRIBUTING.md</a> — <abbr title="Static site generator used for this documentation.">MkDocs</abbr> prose and formatting rules</li>
 </ul>
-<p>AI coding agents should also read <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md">AGENTS.md</a> for workflow-specific guidance.</p>
+<p>AI coding agents should also read <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/AGENTS.md">AGENTS.md</a> for workflow-specific guidance.</p>
 <hr>
 <h2 id="1-core-principles">1. Core principles<a class="headerlink" href="#1-core-principles" title="Permanent link">¶</a></h2>
 <p>These principles override convenience. When in doubt, choose stability and explicit control.</p>
@@ -3041,7 +3041,7 @@
 </tr>
 </tbody>
 </table>
-<p>See also <a href="../reboot-safety/">reboot-safety.md</a>, <a href="../resource-guard/">resource-guard.md</a>, and the root <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/README.md">README.md</a>.</p>
+<p>See also <a href="../reboot-safety/">reboot-safety.md</a>, <a href="../resource-guard/">resource-guard.md</a>, and the root <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/README.md">README.md</a>.</p>
 <h3 id="dgx-spark-hardware-reference">DGX Spark hardware (reference)<a class="headerlink" href="#dgx-spark-hardware-reference" title="Permanent link">¶</a></h3>
 <p>Official per-node specs (<a href="https://docs.nvidia.com/dgx/dgx-spark/hardware.html">NVIDIA DGX Spark hardware</a>):</p>
 <table>
@@ -3671,7 +3671,7 @@
 <li>Prefer one logical fact per <code>@test</code>; cover success and failure paths.</li>
 <li>Run: <code>bazelisk test //tests:bats_manage_test</code> (and related shards).</li>
 </ul>
-<p>See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/tests/README.md">tests/README.md</a>.</p>
+<p>See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/tests/README.md">tests/README.md</a>.</p>
 <h3 id="security-and-portability">Security and portability<a class="headerlink" href="#security-and-portability" title="Permanent link">¶</a></h3>
 <ul>
 <li>Never <code>eval</code> untrusted input.</li>
@@ -3985,7 +3985,7 @@
 <li>Resource/backoff/restart policy notes</li>
 <li>Links to related workloads and docs</li>
 </ul>
-<p>Duplicate the <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/main/k8s/workloads/kimi-test">kimi-test</a> pattern for new workloads; scale resources upward only after validation.</p>
+<p>Duplicate the <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/development/k8s/workloads/kimi-test">kimi-test</a> pattern for new workloads; scale resources upward only after validation.</p>
 <h3 id="job-safety-fields-required"><abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr> safety fields (required)<a class="headerlink" href="#job-safety-fields-required" title="Permanent link">¶</a></h3>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nt">spec</span><span class="p">:</span>
 </span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="nt">backoffLimit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">          </span><span class="c1"># low for heavy production jobs</span>
@@ -4122,7 +4122,7 @@
 <p>Human-facing catalog only (display names, HF paths, ports). Do not put capacity math here — use <code>resource-policy.yaml</code>.</p>
 <hr>
 <h2 id="10-dashboard-nextjs">10. Dashboard (Next.js)<a class="headerlink" href="#10-dashboard-nextjs" title="Permanent link">¶</a></h2>
-<p>See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/dashboard/AGENTS.md">dashboard/AGENTS.md</a> for file-level detail. Summary of enforced patterns:</p>
+<p>See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/dashboard/AGENTS.md">dashboard/AGENTS.md</a> for file-level detail. Summary of enforced patterns:</p>
 <h3 id="stack">Stack<a class="headerlink" href="#stack" title="Permanent link">¶</a></h3>
 <ul>
 <li>Next.js 16+ App Router, <code>output: "standalone"</code></li>
@@ -4458,7 +4458,7 @@
 <li><code>teardown</code>: <code>rm -rf "$TEST_TMP_DIR"</code></li>
 </ol>
 <p>A feature without a failing-then-passing test cycle is not complete for behavior changes.</p>
-<p>See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/tests/README.md">tests/README.md</a> for adding new tests.</p>
+<p>See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/tests/README.md">tests/README.md</a> for adding new tests.</p>
 <hr>
 <h2 id="13-change-discipline-and-pr-checklist">13. Change discipline and PR checklist<a class="headerlink" href="#13-change-discipline-and-pr-checklist" title="Permanent link">¶</a></h2>
 <p>A change is <strong>not complete</strong> until everything it touches is updated and validated.</p>
@@ -4486,7 +4486,7 @@
 </ul>
 <p>Prefer editing the source of truth (comments, manifests, policy YAML) over duplicating prose elsewhere.</p>
 <h3 id="branching-commits-and-promotion">Branching, commits, and promotion<a class="headerlink" href="#branching-commits-and-promotion" title="Permanent link">¶</a></h3>
-<p>Full rules live in the root <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md#branching-commits-prs-and-promotion">CONTRIBUTING.md</a>.</p>
+<p>Full rules live in the root <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/CONTRIBUTING.md#branching-commits-prs-and-promotion">CONTRIBUTING.md</a>.</p>
 <p>Key invariants that agents must follow:</p>
 <ul>
 <li>All feature and non-urgent fix work starts from and lands on <code>development</code>.</li>
@@ -4594,9 +4594,9 @@
 <hr>
 <h2 id="related-links">Related links<a class="headerlink" href="#related-links" title="Permanent link">¶</a></h2>
 <ul>
-<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md">CONTRIBUTING.md (repo root)</a> — contribution hub and full branching / PR / promotion model</li>
+<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/CONTRIBUTING.md">CONTRIBUTING.md (repo root)</a> — contribution hub and full branching / PR / promotion model</li>
 <li><a href="../CONTRIBUTING/">CONTRIBUTING.md (docs)</a> — <abbr title="Static site generator used for this documentation.">MkDocs</abbr> prose rules</li>
-<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md">AGENTS.md</a> — AI agent workflow</li>
+<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/AGENTS.md">AGENTS.md</a> — AI agent workflow</li>
 <li><a href="../BUILDING_WITH_BAZEL/">BUILDING_WITH_BAZEL.md</a> — <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> targets and CI</li>
 <li><a href="../resource-guard/">resource-guard.md</a> — capacity policy deep dive</li>
 <li><a href="../reboot-safety/">reboot-safety.md</a> — stop-before-reboot procedures</li>

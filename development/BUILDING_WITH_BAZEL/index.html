@@ -1415,8 +1415,14 @@
 </tbody>
 </table>
 <p>Workflow: <code>.github/workflows/deploy-docs.yml</code> runs <strong>only on push</strong> to <code>main</code>/<code>master</code>/<code>development</code> (docs paths) or <code>workflow_dispatch</code> — not on <code>pull_request</code>. Merging a PR into those branches is what publishes. After <code>//docs:docs</code> generates content, <code>mike deploy --push</code> updates the version alias on the <code>gh-pages</code> branch. PR-time docs validation is CI (<code>docs-and-render</code>), not this workflow.</p>
-<p><strong>Repo setting:</strong> GitHub Pages source should be the <strong><code>gh-pages</code> branch</strong> (not “GitHub Actions” artifact-only) once mike has published. Development builds set <code>DGX_DOCS_VERSION=development</code> so hooks inject a non-production banner.</p>
-<p>Local single-version builds (<code>bazelisk run //docs:serve</code>) do not need mike; the version selector simply has no alternate aliases offline.</p>
+<p><strong>Repo setting:</strong> GitHub Pages source should be the <strong><code>gh-pages</code> branch</strong> (not “GitHub Actions” artifact-only) once mike has published. Development builds set <code>DGX_DOCS_VERSION=development</code> so hooks:</p>
+<ul>
+<li>inject a non-production banner</li>
+<li>stamp <abbr title="Material for MkDocs theme powering search, tabs, and tooltips on this site.">Material</abbr> <strong>Edit this page</strong> to <code>edit/development/docs/</code> (latest → <code>edit/main/docs/</code>)</li>
+<li>rewrite this-repo GitHub <code>blob</code>/<code>tree</code> source links to the same long-lived ref</li>
+</ul>
+<p>Optional local override: <code>DGX_DOCS_GIT_REF=development</code> (or <code>main</code>). Feature-branch names are not auto-mapped (unpublished edit links would 404).</p>
+<p>Local single-version builds (<code>bazelisk run //docs:serve</code>) do not need mike; the version selector simply has no alternate aliases offline. Default git ref for links is <code>main</code> unless the env vars above are set.</p>
 <h3 id="why-this-design">Why this design?<a class="headerlink" href="#why-this-design" title="Permanent link">¶</a></h3>
 <ul>
 <li>Comments that describe behavior live right next to the code that implements it.</li>

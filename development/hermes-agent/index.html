@@ -1494,7 +1494,7 @@ Never commit API keys or <code>hermes/data/.env</code> from either path.</p>
 <li><code>mcp_lab_context7_*</code> — cached documentation</li>
 <li><code>mcp_lab_memory_*</code> — agent memory store</li>
 </ul>
-<p>Configuration is rendered into <code>hermes/data/config.yaml</code> from <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/hermes/config/hermes-policy.yaml"><code>hermes/config/hermes-policy.yaml</code></a>.</p>
+<p>Configuration is rendered into <code>hermes/data/config.yaml</code> from <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/hermes/config/hermes-policy.yaml"><code>hermes/config/hermes-policy.yaml</code></a>.</p>
 <h2 id="verify-connectivity">Verify connectivity<a class="headerlink" href="#verify-connectivity" title="Permanent link">¶</a></h2>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Inference (port-forward)</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://127.0.0.1:8000/v1/models<span class="w"> </span><span class="p">|</span><span class="w"> </span>head
@@ -1543,8 +1543,8 @@ Never commit API keys or <code>hermes/data/.env</code> from either path.</p>
 <h2 id="workspace-dev-agent-coder-kasm">Workspace dev agent (Coder + Kasm)<a class="headerlink" href="#workspace-dev-agent-coder-kasm" title="Permanent link">¶</a></h2>
 <p>The host <code>hermes-lab</code> stack is a <strong>persistent lab operator</strong>. Coder and Kasm workspaces use a separate <strong><code>workspace-dev</code></strong> profile for coding assistance:</p>
 <ul>
-<li><strong>Profile:</strong> <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/main/hermes/profiles/workspace-dev"><code>hermes/profiles/workspace-dev/</code></a> (<abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> <a href="https://hermes-agent.nousresearch.com/docs/user-guide/profile-distributions">profile distribution</a>)</li>
-<li><strong>Stack ID:</strong> <code>hermes-workspace-dev</code> in <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/hermes/config/hermes-policy.yaml"><code>hermes-policy.yaml</code></a></li>
+<li><strong>Profile:</strong> <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/development/hermes/profiles/workspace-dev"><code>hermes/profiles/workspace-dev/</code></a> (<abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> <a href="https://hermes-agent.nousresearch.com/docs/user-guide/profile-distributions">profile distribution</a>)</li>
+<li><strong>Stack ID:</strong> <code>hermes-workspace-dev</code> in <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/hermes/config/hermes-policy.yaml"><code>hermes-policy.yaml</code></a></li>
 <li><strong>Networking:</strong> <code>mcp_url_mode: in_cluster</code> — inference and <abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> via cluster DNS, not host port-forward</li>
 <li><strong>Terminal:</strong> <code>backend: local</code> — commands run in the workspace where you edit code</li>
 <li><strong>Memory:</strong> persistent cross-session memory disabled (unlike a personal assistant)</li>
@@ -1571,7 +1571,7 @@ Never commit API keys or <code>hermes/data/.env</code> from either path.</p>
 <ul>
 <li><a href="../mcp-agent-toolkit/">mcp-agent-toolkit.md</a></li>
 <li><a href="../nemotron-agentic-stack/">nemotron-agentic-stack.md</a></li>
-<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/hermes/README.md">hermes/README.md</a></li>
+<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/hermes/README.md">hermes/README.md</a></li>
 </ul>
 <!--
   Project-wide glossary abbreviations (Material tooltips).

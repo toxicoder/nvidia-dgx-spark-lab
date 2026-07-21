@@ -1407,9 +1407,9 @@
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>mcp-stack<span class="w"> </span>start<span class="w"> </span>mcp-agent-toolkit<span class="w"> </span>--confirm<span class="w"> </span>yes
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>workspace-hermes<span class="w"> </span>verify
 </span></code></pre></div>
-<p>Profile distribution: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/main/hermes/profiles/workspace-dev"><code>hermes/profiles/workspace-dev/</code></a>.</p>
+<p>Profile distribution: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/development/hermes/profiles/workspace-dev"><code>hermes/profiles/workspace-dev/</code></a>.</p>
 <h2 id="coder-template-hermes-sidecar">Coder template (<abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> sidecar)<a class="headerlink" href="#coder-template-hermes-sidecar" title="Permanent link">¶</a></h2>
-<p>Committed template: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/main/k8s/dev/templates/coder-spark-lab"><code>k8s/dev/templates/coder-spark-lab/</code></a>.</p>
+<p>Committed template: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/development/k8s/dev/templates/coder-spark-lab"><code>k8s/dev/templates/coder-spark-lab/</code></a>.</p>
 <p>Each workspace pod runs two containers sharing a network namespace:</p>
 <ul>
 <li><strong>dev</strong> — <code>spark-lab-coder-workspace</code> image (bazelisk, kubectl, helm, ansible)</li>
@@ -1429,7 +1429,7 @@
 <li>Gateway API: <code>http://127.0.0.1:8642/v1</code> (Bearer token in workspace Secret)</li>
 <li><abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> client config seeded to <code>~/.cursor/mcp.json</code> and <code>~/.vscode/mcp.json</code></li>
 </ul>
-<p>Workspaces land in namespace <code>coder-workspaces</code> (see <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/k8s/base/namespaces-dev.yaml"><code>k8s/base/namespaces-dev.yaml</code></a>).</p>
+<p>Workspaces land in namespace <code>coder-workspaces</code> (see <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/k8s/base/namespaces-dev.yaml"><code>k8s/base/namespaces-dev.yaml</code></a>).</p>
 <h2 id="kasm-desktop-image">Kasm desktop image<a class="headerlink" href="#kasm-desktop-image" title="Permanent link">¶</a></h2>
 <p>Build on the Spark node (where the Kasm agent pulls images):</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>./scripts/utilities/kasm-workspace-image.sh<span class="w"> </span>build

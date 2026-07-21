@@ -1385,7 +1385,7 @@
 <p>Add to <code>/etc/hosts</code> on your workstation (replace <code>&lt;node-ip&gt;</code>):</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>&lt;node-ip&gt; auth.lab.local dashboard.lab.local chat.lab.local coder.lab.local grafana.lab.local headlamp.lab.local kasm.lab.local traefik.lab.local oauth.lab.local
 </span></code></pre></div>
-<p>Configure domains (local + public): edit <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/config/lab-domains.yaml"><code>config/lab-domains.yaml</code></a> or:</p>
+<p>Configure domains (local + public): edit <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/config/lab-domains.yaml"><code>config/lab-domains.yaml</code></a> or:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>./scripts/manage.sh<span class="w"> </span>domains<span class="w"> </span><span class="nb">set</span><span class="w"> </span>--local<span class="w"> </span>lab.local<span class="w"> </span>--public<span class="w"> </span>mydomain.com<span class="w"> </span>--acme-email<span class="w"> </span>ops@mydomain.com
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>./scripts/manage.sh<span class="w"> </span>domains<span class="w"> </span>apply
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>./scripts/manage.sh<span class="w"> </span>domains<span class="w"> </span>show
@@ -1443,11 +1443,11 @@
 <p><abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> servers on ports <code>32100</code>–<code>32106</code> are machine-to-machine endpoints. They use <code>mcp-secrets</code> API keys and are not routed through <abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr>. See <a href="../mcp-agent-toolkit/"><abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> Agent Toolkit</a>.</p>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">¶</a></h2>
 <ul>
-<li>Domains: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/config/lab-domains.yaml"><code>config/lab-domains.yaml</code></a> — local/public hostnames, ACME, ports</li>
-<li>Policy: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/config/sso-policy.yaml"><code>config/sso-policy.yaml</code></a> — routes and SSO component versions</li>
-<li><abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr> values: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/ansible/files/traefik-values.yaml"><code>ansible/files/traefik-values.yaml</code></a></li>
-<li>Middlewares: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/main/k8s/traefik/middlewares"><code>k8s/traefik/middlewares/</code></a></li>
-<li>Routes: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/k8s/auth/generated/routes.yaml"><code>k8s/auth/generated/routes.yaml</code></a> (rendered from lab-domains + sso-policy)</li>
+<li>Domains: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/config/lab-domains.yaml"><code>config/lab-domains.yaml</code></a> — local/public hostnames, ACME, ports</li>
+<li>Policy: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/config/sso-policy.yaml"><code>config/sso-policy.yaml</code></a> — routes and SSO component versions</li>
+<li><abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr> values: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/ansible/files/traefik-values.yaml"><code>ansible/files/traefik-values.yaml</code></a></li>
+<li>Middlewares: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/development/k8s/traefik/middlewares"><code>k8s/traefik/middlewares/</code></a></li>
+<li>Routes: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/k8s/auth/generated/routes.yaml"><code>k8s/auth/generated/routes.yaml</code></a> (rendered from lab-domains + sso-policy)</li>
 </ul>
 <h2 id="disable-sso">Disable SSO<a class="headerlink" href="#disable-sso" title="Permanent link">¶</a></h2>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SSO_ENABLED</span><span class="o">=</span><span class="m">0</span>

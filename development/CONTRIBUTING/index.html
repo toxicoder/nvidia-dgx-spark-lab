@@ -1182,7 +1182,7 @@
 <li>Keeping docs as code (never stale)</li>
 <li>Consistent experience across the site and generated refs</li>
 </ul>
-<p>For code, shell, Kubernetes, <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr>, config, and dashboard conventions, see <a href="../project-conventions/">project-conventions.md</a>. The repo-root <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a> is the short contribution hub.</p>
+<p>For code, shell, Kubernetes, <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr>, config, and dashboard conventions, see <a href="../project-conventions/">project-conventions.md</a>. The repo-root <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/CONTRIBUTING.md">CONTRIBUTING.md</a> is the short contribution hub.</p>
 <p>Thank you for helping improve the documentation for nvidia-dgx-spark-lab!</p>
 <p>All changes to documentation must follow the same rigor as code changes.</p>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">¶</a></h2>
@@ -1286,7 +1286,7 @@
 <li>[ ] Spell-checked (run codespell or manual review).</li>
 </ul>
 <h2 id="editing-this-site">Editing This Site<a class="headerlink" href="#editing-this-site" title="Permanent link">¶</a></h2>
-<p>Click "Edit this page" on the live site (powered by <code>edit_uri</code> in <code>mkdocs.yml</code>).</p>
+<p>Click <strong>Edit this page</strong> on the live site. Hooks stamp <code>edit_uri</code> from the published alias (<code>main</code> for <strong>latest</strong>, <code>development</code> for <strong>development</strong>), so the link opens the matching long-lived branch. In-page GitHub <code>blob</code>/<code>tree</code> source links are rewritten the same way at build time (see <code>docs/hooks.py</code>).</p>
 <h2 id="questions">Questions?<a class="headerlink" href="#questions" title="Permanent link">¶</a></h2>
 <p>Open an issue or discuss in the relevant PR. Documentation changes are reviewed with the same care as the rest of the <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>-based project.</p>
 <!--

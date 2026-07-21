@@ -1234,7 +1234,7 @@ Bringing up <abbr title="Lightweight certified Kubernetes distribution used as t
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>git<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </span>development
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/your-change
 </span></code></pre></div>
-<p>See also <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md">CONTRIBUTING.md (repo root)</a> and <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md">AGENTS.md</a>.</p>
+<p>See also <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/CONTRIBUTING.md">CONTRIBUTING.md (repo root)</a> and <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/AGENTS.md">AGENTS.md</a>.</p>
 <h2 id="supported-platforms">Supported platforms<a class="headerlink" href="#supported-platforms" title="Permanent link">¶</a></h2>
 <p>The contributor image is <strong>Linux multi-arch</strong> (<code>linux/amd64</code> + <code>linux/arm64</code>). The same
 <code>.devcontainer/</code> definition runs on:</p>
@@ -1280,7 +1280,7 @@ Bringing up <abbr title="Lightweight certified Kubernetes distribution used as t
 </tbody>
 </table>
 <p><strong>No GPU is required</strong> for unit tests, lint, docs, or dashboard Vitest. GPU nodes matter only when you operate real workloads.</p>
-<p>Tool pins live in <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/.devcontainer/tool-versions.env"><code>.devcontainer/tool-versions.env</code></a> and are shared with CI.</p>
+<p>Tool pins live in <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/.devcontainer/tool-versions.env"><code>.devcontainer/tool-versions.env</code></a> and are shared with CI.</p>
 <h2 id="recommended-dev-container">Recommended: Dev Container<a class="headerlink" href="#recommended-dev-container" title="Permanent link">¶</a></h2>
 <h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">¶</a></h3>
 <ol>
@@ -1357,7 +1357,7 @@ Configure when you actually need the tools:</p>
 <p>Do not put <code>GROK_DEPLOYMENT_KEY</code>, OpenRouter/OpenAI/etc. keys, or <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr>
 auth files in the repo, in <code>devcontainer.json</code> env blocks, or in screenshots
 of create logs. Auth lives only on Docker volumes or your host home dir.
-See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/SECURITY.md">SECURITY.md</a>.</p>
+See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/SECURITY.md">SECURITY.md</a>.</p>
 </div>
 <p><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> <strong>on the Spark host</strong> (Docker gateway stacks) is documented separately in
 <a href="../hermes-agent/">hermes-agent.md</a>.</p>
@@ -1371,7 +1371,7 @@ See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/SECURIT
 <p>Named volumes cache <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> disk/repo, npm, pip, Playwright, and agent homes
 (<code>~/.grok</code>, <code>~/.hermes</code>) across rebuilds.</p>
 <p>Feature pins for Dev Container Features live in
-<a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/.devcontainer/devcontainer-lock.json"><code>.devcontainer/devcontainer-lock.json</code></a>
+<a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/.devcontainer/devcontainer-lock.json"><code>.devcontainer/devcontainer-lock.json</code></a>
 (<strong>commit this file</strong> — same role as other lockfiles).</p>
 <h3 id="day-to-day-commands">Day-to-day commands<a class="headerlink" href="#day-to-day-commands" title="Permanent link">¶</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:fix<span class="w">                         </span><span class="c1"># formatters</span>
@@ -1385,7 +1385,7 @@ See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/SECURIT
 </span></code></pre></div>
 <p>VS Code tasks under <strong>Terminal → Run Task</strong> wrap the same targets.</p>
 <h3 id="ide-settings-workspace">IDE settings (workspace)<a class="headerlink" href="#ide-settings-workspace" title="Permanent link">¶</a></h3>
-<p><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/.vscode/settings.json"><code>.vscode/settings.json</code></a>
+<p><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/.vscode/settings.json"><code>.vscode/settings.json</code></a>
 is tuned for this toolchain:</p>
 <table>
 <thead>
@@ -1536,7 +1536,7 @@ checkouts are not forced onto Linux paths.</p>
 </table>
 <h2 id="related-docs">Related docs<a class="headerlink" href="#related-docs" title="Permanent link">¶</a></h2>
 <ul>
-<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md">Contributing hub</a></li>
+<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/CONTRIBUTING.md">Contributing hub</a></li>
 <li><a href="../BUILDING_WITH_BAZEL/">Building with <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr></a></li>
 <li><a href="../project-conventions/">Project conventions</a></li>
 <li><a href="../dev-workspaces/">Dev Workspaces (on-cluster Coder/Kasm)</a> — different from this laptop/container env</li>
