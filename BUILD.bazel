@@ -86,6 +86,7 @@ alias(
 # docs-and-render job (//docs:test_mkdocs_render) — runners without MkDocs skip
 # that build, so keep it out of test-fast for an honest core gate.
 _TEST_FAST = [
+    "//docs:test_command_vars",
     "//docs:test_generate_shell_docs",
     "//docs:test_python_coverage",
     "//scripts:manage_help_test",

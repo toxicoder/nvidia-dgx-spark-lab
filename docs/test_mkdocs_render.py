@@ -360,9 +360,13 @@ class TestMkDocsRender(unittest.TestCase):
         if (self.site_dir / "getting-started/index.html").exists():
             html = (self.site_dir / "getting-started/index.html").read_text(encoding="utf-8")
             self.assertIn('class="cluster-config', html)
+            # Defaults must match primary profile (1-node / localhost) — see command-vars.
+            self.assertIn('data-var="SPARK0_IP" value="localhost"', html)
+            self.assertIn('data-profile="1node"', html)
         else:
             src = (REPO_ROOT / "docs/getting-started.md").read_text(encoding="utf-8")
             self.assertIn("cluster-config", src)
+            self.assertIn('data-var="SPARK0_IP" value="localhost"', src)
 
     def test_mermaid_blocks_present_and_clean(self) -> None:
         """Mermaid source blocks avoid browser-only syntax errors and appear in HTML."""
