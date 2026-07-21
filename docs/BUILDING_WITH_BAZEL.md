@@ -153,7 +153,7 @@ GitHub Pages is published with **[mike](https://github.com/jimporter/mike)** so 
 | `latest` (default) | `main` | `…/latest/` (and site root default) |
 | `development` | `development` | `…/development/` |
 
-Workflow: `.github/workflows/deploy-docs.yml` runs on push to `main`/`master`/`development` (docs paths). After `//docs:docs` generates content, `mike deploy --push` updates the version alias on the `gh-pages` branch.
+Workflow: `.github/workflows/deploy-docs.yml` runs **only on push** to `main`/`master`/`development` (docs paths) or `workflow_dispatch` — not on `pull_request`. Merging a PR into those branches is what publishes. After `//docs:docs` generates content, `mike deploy --push` updates the version alias on the `gh-pages` branch. PR-time docs validation is CI (`docs-and-render`), not this workflow.
 
 **Repo setting:** GitHub Pages source should be the **`gh-pages` branch** (not “GitHub Actions” artifact-only) once mike has published. Development builds set `DGX_DOCS_VERSION=development` so hooks inject a non-production banner.
 
