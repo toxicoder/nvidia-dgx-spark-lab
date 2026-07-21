@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Render-oriented tests for the MkDocs site.
+"""Render-oriented tests for the MkDocs site.
 
 These tests actually invoke a docs build (the server-side render)
 and inspect the output HTML + source to catch problems that only
@@ -21,6 +20,7 @@ Playwright against the built static site (served locally).
 Run via the accompanying .sh wrapper as a Bazel sh_test, or directly
 after `docs/setup-docs.sh` (which creates the venv with mkdocs + playwright).
 """
+
 from __future__ import annotations
 
 import http.server
@@ -34,7 +34,7 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from playwright.sync_api import Page
@@ -123,10 +123,15 @@ def run_mkdocs_build_strict(site_dir: Path) -> None:
         return
 
     cmd = [
-        sys.executable, "-m", "mkdocs", "build",
+        sys.executable,
+        "-m",
+        "mkdocs",
+        "build",
         "--strict",
-        "--config-file", str(REPO_ROOT / "mkdocs.yml"),
-        "--site-dir", str(site_dir),
+        "--config-file",
+        str(REPO_ROOT / "mkdocs.yml"),
+        "--site-dir",
+        str(site_dir),
     ]
     env = os.environ.copy()
     subprocess.check_call(cmd, cwd=REPO_ROOT, env=env)
@@ -225,9 +230,7 @@ def start_static_server(
         Returns:
             Handler instance serving files from ``site_dir``.
         """
-        return QuietHTTPRequestHandler(
-            request, client_address, server, directory=str(site_dir)
-        )
+        return QuietHTTPRequestHandler(request, client_address, server, directory=str(site_dir))
 
     httpd = socketserver.TCPServer(("", port), make_handler)
     thread = threading.Thread(target=httpd.serve_forever, daemon=True)
@@ -254,8 +257,8 @@ class TestMkDocsRender(unittest.TestCase):
         if reuse and (Path(reuse) / "index.html").exists():
             cls.site_dir = Path(reuse)
         else:
-            cls.site_dir = Path(reuse) if reuse else Path(
-                tempfile.mkdtemp(prefix="mkdocs-render-test-")
+            cls.site_dir = (
+                Path(reuse) if reuse else Path(tempfile.mkdtemp(prefix="mkdocs-render-test-"))
             )
             run_mkdocs_build_strict(cls.site_dir)
 
@@ -267,11 +270,7 @@ class TestMkDocsRender(unittest.TestCase):
         cls.httpd = None
         mode = os.environ.get("MKDOCS_TEST_MODE", "all")
         need_server = mode in ("all", "visual")
-        if (
-            need_server
-            and sync_playwright is not None
-            and (cls.site_dir / "index.html").exists()
-        ):
+        if need_server and sync_playwright is not None and (cls.site_dir / "index.html").exists():
             try:
                 base, thr, httpd = start_static_server(cls.site_dir)
                 cls.server_base = base
@@ -293,7 +292,9 @@ class TestMkDocsRender(unittest.TestCase):
     def test_build_produced_expected_pages(self) -> None:
         """Core nav pages exist as rendered HTML when a full build succeeds."""
         if not (self.site_dir / "index.html").exists():
-            self.skipTest("Full mkdocs build not available in this test env (source checks still executed).")
+            self.skipTest(
+                "Full mkdocs build not available in this test env (source checks still executed)."
+            )
         # Core pages from nav must exist in the rendered site
         expected = [
             "index.html",
@@ -450,7 +451,9 @@ class TestMkDocsRender(unittest.TestCase):
     def test_visual_screenshots_key_pages(self) -> None:
         """Render key pages in real browser and compare screenshots to committed goldens."""
         if self.server_base is None or sync_playwright is None:
-            self.skipTest("Playwright + static server not available; visual goldens skipped (install browsers via setup).")
+            self.skipTest(
+                "Playwright + static server not available; visual goldens skipped (install browsers via setup)."
+            )
 
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)

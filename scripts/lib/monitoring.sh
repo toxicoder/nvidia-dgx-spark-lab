@@ -22,15 +22,15 @@ monitoring_helm_release_names() {
   printf '%s\n' "${MONITORING_HELM_RELEASES[@]}"
 }
 
-: "${REPO_ROOT:=$(if [[ -n "${BASH_SOURCE[0]:-}" ]]; then cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd; else echo "${PWD}"; fi)}"
+: "${REPO_ROOT:=$(if [[ -n ${BASH_SOURCE[0]:-} ]]; then cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd; else echo "${PWD}"; fi)}"
 
 # @function monitoring_repo_root
 monitoring_repo_root() {
-  if [[ -n "${REPO_ROOT:-}" ]]; then
+  if [[ -n ${REPO_ROOT:-} ]]; then
     echo "${REPO_ROOT}"
     return 0
   fi
-  if [[ -n "${BASH_SOURCE[0]:-}" ]]; then echo "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"; else echo "${PWD}"; fi
+  if [[ -n ${BASH_SOURCE[0]:-} ]]; then echo "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"; else echo "${PWD}"; fi
 }
 
 # @function monitoring_probes_path
@@ -45,13 +45,13 @@ monitoring_grafana_dashboards_dir() {
 
 # @function monitoring_spark0_ip
 monitoring_spark0_ip() {
-  if [[ -n "${LAB_SPARK0_IP:-}" ]]; then
+  if [[ -n ${LAB_SPARK0_IP:-} ]]; then
     echo "${LAB_SPARK0_IP}"
     return 0
   fi
   local ip
   ip=$(kubectl get node spark0 -o jsonpath='{.status.addresses[?(@.type=="InternalIP")].address}' 2>/dev/null || true)
-  if [[ -z "$ip" ]]; then
+  if [[ -z $ip ]]; then
     ip=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}' 2>/dev/null || true)
   fi
   echo "${ip:-127.0.0.1}"
@@ -60,9 +60,9 @@ monitoring_spark0_ip() {
 # @function ensure_monitoring_namespaces
 ensure_monitoring_namespaces() {
   require_kubectl
-  kubectl get ns "${MONITORING_NAMESPACE}" >/dev/null 2>&1 || \
+  kubectl get ns "${MONITORING_NAMESPACE}" >/dev/null 2>&1 ||
     kubectl apply -f "${REPO_ROOT}/k8s/base/namespaces-dev.yaml"
-  kubectl get ns dev >/dev/null 2>&1 || \
+  kubectl get ns dev >/dev/null 2>&1 ||
     kubectl apply -f "${REPO_ROOT}/k8s/base/namespaces-dev.yaml"
 }
 
@@ -79,7 +79,7 @@ monitoring_helm_repo_add() {
 monitoring_apply_grafana_dashboards_configmap() {
   local dir
   dir="$(monitoring_grafana_dashboards_dir)"
-  if [[ ! -d "$dir" ]]; then
+  if [[ ! -d $dir ]]; then
     warn "Grafana dashboards dir missing: $dir"
     return 0
   fi
@@ -163,13 +163,13 @@ deploy_prometheus() {
   local runtime_cfg="${REPO_ROOT}/k8s/monitoring/.prometheus-runtime.yml"
   mkdir -p "$(dirname "$runtime_cfg")"
   kubectl get configmap prometheus-scrape-config -n "${MONITORING_NAMESPACE}" \
-    -o jsonpath='{.data.prometheus\.yml}' > "$runtime_cfg" 2>/dev/null || true
-  if [[ ! -s "$runtime_cfg" ]]; then
+    -o jsonpath='{.data.prometheus\.yml}' >"$runtime_cfg" 2>/dev/null || true
+  if [[ ! -s $runtime_cfg ]]; then
     monitoring_generate_prometheus_scrape_config >/dev/null
     kubectl get configmap prometheus-scrape-config -n "${MONITORING_NAMESPACE}" \
-      -o jsonpath='{.data.prometheus\.yml}' > "$runtime_cfg" 2>/dev/null || true
+      -o jsonpath='{.data.prometheus\.yml}' >"$runtime_cfg" 2>/dev/null || true
   fi
-  if [[ -s "$runtime_cfg" ]]; then
+  if [[ -s $runtime_cfg ]]; then
     extra+=(--set-file "serverFiles.prometheus\\.yml=${runtime_cfg}")
   fi
 
@@ -193,11 +193,11 @@ deploy_grafana_monitoring() {
 
   local grafana_values
   grafana_values="$(lab_ansible_values_file grafana-values.yaml 2>/dev/null || true)"
-  if [[ -n "$grafana_values" ]]; then
+  if [[ -n $grafana_values ]]; then
     extra+=(-f "$grafana_values")
   fi
 
-  if [[ "$svc_type" == "NodePort" ]]; then
+  if [[ $svc_type == "NodePort" ]]; then
     extra+=(--set service.type=NodePort --set service.nodePort="${GRAFANA_PORT:-32083}")
   fi
   extra+=(--set adminPassword="${GRAFANA_ADMIN_PASSWORD:-admin}")
@@ -255,7 +255,7 @@ deploy_lab_dashboard_monitoring() {
 
   if [[ -d "${REPO_ROOT}/helm/lab-dashboard" ]]; then
     local dash_svc_args=(--set "service.type=${svc_type}")
-    if [[ "$svc_type" == "NodePort" ]]; then
+    if [[ $svc_type == "NodePort" ]]; then
       dash_svc_args+=(--set "service.nodePort=${DASHBOARD_PORT:-32082}")
     fi
     helm upgrade --install lab-dashboard "${REPO_ROOT}/helm/lab-dashboard" \
@@ -300,9 +300,9 @@ _monitoring_release_ready() {
   total=$(kubectl get pods -n "$ns" -l "app.kubernetes.io/instance=${release}" \
     -o jsonpath='{.items[*].metadata.name}' 2>/dev/null | wc -w | tr -d ' ')
   local state="starting"
-  if [[ "${ready:-0}" -gt 0 && "${ready:-0}" -eq "${total:-0}" && "${total:-0}" -gt 0 ]]; then
+  if [[ ${ready:-0} -gt 0 && ${ready:-0} -eq ${total:-0} && ${total:-0} -gt 0 ]]; then
     state="running"
-  elif [[ "${total:-0}" -eq 0 ]]; then
+  elif [[ ${total:-0} -eq 0 ]]; then
     state="stopped"
   fi
   echo "${ready:-0} ${total:-0} ${state}"
@@ -317,8 +317,10 @@ _monitoring_dcgm_ready() {
   total=$(kubectl get pods -n gpu-operator -l app=nvidia-dcgm-exporter \
     -o jsonpath='{.items[*].metadata.name}' 2>/dev/null | wc -w | tr -d ' ')
   local state="stopped"
-  if [[ "${ready:-0}" -gt 0 ]]; then state="running"
-  elif [[ "${total:-0}" -gt 0 ]]; then state="starting"
+  if [[ ${ready:-0} -gt 0 ]]; then
+    state="running"
+  elif [[ ${total:-0} -gt 0 ]]; then
+    state="starting"
   fi
   echo "${ready:-0} ${total:-0} ${state}"
 }
@@ -341,7 +343,7 @@ verify_scrape_targets() {
   local prom_pod
   prom_pod=$(kubectl get pods -n "${MONITORING_NAMESPACE}" -l "app.kubernetes.io/name=prometheus" \
     -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
-  if [[ -z "$prom_pod" ]]; then
+  if [[ -z $prom_pod ]]; then
     err "Prometheus pod not found in ${MONITORING_NAMESPACE}"
     return 1
   fi

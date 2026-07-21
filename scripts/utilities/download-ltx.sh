@@ -87,7 +87,7 @@ hf_download() {
 # On-disk size of a directory in GB (0 if missing).
 tier_size_gb() {
   local dir="$1"
-  if [[ ! -d "$dir" ]]; then
+  if [[ ! -d $dir ]]; then
     echo 0
     return
   fi
@@ -109,9 +109,15 @@ parse_args() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --json) JSON_FLAG="--json" ;;
-      --tier) TIER="${2:?}"; shift ;;
+      --tier)
+        TIER="${2:?}"
+        shift
+        ;;
       status | run) CMD="$1" ;;
-      *) err "Unknown arg: $1"; exit 1 ;;
+      *)
+        err "Unknown arg: $1"
+        exit 1
+        ;;
     esac
     shift
   done
@@ -125,7 +131,7 @@ link_into_comfy() {
   mkdir -p "${src}/diffusion_models" "${src}/text_encoders" "${src}/vae" "${src}/checkpoints"
   local dir
   dir=$(tier_dir "$tier")
-  [[ -d "$dir" ]] || return 0
+  [[ -d $dir ]] || return 0
   find "$dir" -type f \( -name '*.safetensors' -o -name '*.sft' -o -name '*.gguf' \) 2>/dev/null | while read -r f; do
     local base dest_sub
     base=$(basename "$f")
@@ -147,7 +153,7 @@ cmd_status() {
   local tier repo dir size min ready
   for tier in $(tiers_to_process); do
     repo=$(tier_repo "$tier")
-    if [[ -z "$repo" ]]; then
+    if [[ -z $repo ]]; then
       err "Unknown tier: $tier"
       exit 1
     fi
@@ -160,9 +166,12 @@ cmd_status() {
     fi
     results+=("{\"tier\":\"$tier\",\"repo\":\"$repo\",\"path\":\"$dir\",\"size_gb\":$size,\"min_gb\":$min,\"ready\":$ready}")
   done
-  if [[ "$JSON_FLAG" == "--json" ]]; then
+  if [[ $JSON_FLAG == "--json" ]]; then
     local joined
-    joined=$(IFS=,; echo "${results[*]}")
+    joined=$(
+      IFS=,
+      echo "${results[*]}"
+    )
     printf '{"tiers":[%s],"models_dir":"%s"}\n' "$joined" "$MODELS_DIR"
   else
     for tier in $(tiers_to_process); do

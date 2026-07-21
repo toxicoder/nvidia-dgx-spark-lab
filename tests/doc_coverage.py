@@ -18,9 +18,7 @@ _SHELL_FUNCTION_RE = re.compile(r"^(?:function\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\(
 _SHELL_AT_FUNCTION_RE = re.compile(r"^#\s*@function\s+(\S+)")
 _SHELL_AT_COMMAND_RE = re.compile(r"^#\s*@command\s+(\S+)")
 _MANAGE_CASE_RE = re.compile(r"^  ([a-z0-9][a-z0-9._-]*)(?:\|[^)]+)?\)\s*$")
-_TS_FUNCTION_EXPORT_RE = re.compile(
-    r"^export\s+(?:default\s+)?(?:async\s+)?function\s+(\w+)"
-)
+_TS_FUNCTION_EXPORT_RE = re.compile(r"^export\s+(?:default\s+)?(?:async\s+)?function\s+(\w+)")
 _TS_CLASS_EXPORT_RE = re.compile(r"^export\s+(?:default\s+)?class\s+(\w+)")
 _TS_CONST_EXPORT_RE = re.compile(r"^export\s+const\s+(\w+)")
 _SHELL_FILE_HEADER_RE = re.compile(r"^#\s*##\s+\S", re.MULTILINE)
@@ -47,9 +45,7 @@ _MULTILINE_SH_ARGS_RE = re.compile(
     re.MULTILINE,
 )
 # MkDocs nav entries pointing at markdown under docs/ (not URLs).
-_MKDOCS_NAV_MD_RE = re.compile(
-    r"(?m)^[ \t]*-[ \t]+[^:\n]+:[ \t]+([A-Za-z0-9_./-]+\.md)\s*$"
-)
+_MKDOCS_NAV_MD_RE = re.compile(r"(?m)^[ \t]*-[ \t]+[^:\n]+:[ \t]+([A-Za-z0-9_./-]+\.md)\s*$")
 # Quoted or bare .md paths listed in docs/BUILD.bazel data arrays.
 _BAZEL_MD_STRING_RE = re.compile(r'["\']([A-Za-z0-9_./-]+\.md)["\']')
 _YAML_HEADER_FIELDS = (
@@ -135,9 +131,7 @@ def _check_manage_commands(root: pathlib.Path) -> list[str]:
 
     lines = path.read_text(encoding="utf-8").splitlines()
     marked = {
-        match.group(1)
-        for line in lines
-        if (match := _SHELL_AT_COMMAND_RE.match(line.strip()))
+        match.group(1) for line in lines if (match := _SHELL_AT_COMMAND_RE.match(line.strip()))
     }
 
     in_case = False
@@ -237,9 +231,7 @@ def _check_shell_functions(root: pathlib.Path) -> list[str]:
             continue
         lines = path.read_text(encoding="utf-8").splitlines()
         marked = {
-            match.group(1)
-            for line in lines
-            if (match := _SHELL_AT_FUNCTION_RE.match(line.strip()))
+            match.group(1) for line in lines if (match := _SHELL_AT_FUNCTION_RE.match(line.strip()))
         }
         for idx, line in enumerate(lines):
             stripped = line.strip()
@@ -428,9 +420,7 @@ def _check_mkdocs_pages_in_docs_bazel(root: pathlib.Path) -> list[str]:
         # Generated reference trees are covered by "generated" data entry.
         if page.startswith("generated/"):
             if not has_generated_tree:
-                violations.append(
-                    f"mkdocs nav '{page}': docs/BUILD.bazel missing generated data"
-                )
+                violations.append(f"mkdocs nav '{page}': docs/BUILD.bazel missing generated data")
             continue
         if page not in listed and base not in listed_basenames:
             violations.append(
@@ -572,9 +562,7 @@ def _dashboard_ts_in_scope(rel: str) -> bool:
         return False
     if ".test." in rel or "/__tests__/" in rel or "/tests/visual/" in rel:
         return False
-    return rel.startswith(
-        ("dashboard/lib/", "dashboard/actions/", "dashboard/components/")
-    )
+    return rel.startswith(("dashboard/lib/", "dashboard/actions/", "dashboard/components/"))
 
 
 def _check_dashboard_ts(root: pathlib.Path) -> list[str]:

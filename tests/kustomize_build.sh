@@ -16,7 +16,7 @@ stage_k8s_tree() {
   cp -RL "${TEST_SRCDIR}/_main/k8s/workloads/kimi" "${dest}/k8s/workloads/"
 }
 
-if [[ -n "${TEST_SRCDIR:-}" ]]; then
+if [[ -n ${TEST_SRCDIR:-} ]]; then
   WORK="$(mktemp -d)"
   trap 'rm -rf "${WORK}"' EXIT
   stage_k8s_tree "${WORK}"
@@ -48,7 +48,7 @@ for overlay in "${OVERLAYS[@]}"; do
   dir="k8s/overlays/${overlay}"
   echo "→ kustomize build ${dir}"
   out="$(kustomize_build_dir "${dir}")"
-  if [[ -z "${out}" ]]; then
+  if [[ -z ${out} ]]; then
     echo "ERROR: empty output from kustomize build ${dir}" >&2
     exit 1
   fi

@@ -43,7 +43,7 @@ EOF
 
 cmd_status() {
   local json_flag="${1:-}"
-  get_monitoring_status_json | if [[ "$json_flag" == "--json" ]]; then cat; else python3 -m json.tool; fi
+  get_monitoring_status_json | if [[ $json_flag == "--json" ]]; then cat; else python3 -m json.tool; fi
 }
 
 # @function cmd_verify
@@ -52,7 +52,7 @@ cmd_status() {
 
 cmd_verify() {
   local json_flag="${1:-}"
-  if ! verify_scrape_targets | if [[ "$json_flag" == "--json" ]]; then cat; else python3 -m json.tool; fi; then
+  if ! verify_scrape_targets | if [[ $json_flag == "--json" ]]; then cat; else python3 -m json.tool; fi; then
     exit 1
   fi
 }
@@ -66,8 +66,12 @@ main() {
   case "$sub" in
     status) cmd_status "${1:-}" ;;
     verify) cmd_verify "${1:-}" ;;
-    -h|--help|help) usage ;;
-    *) err "Unknown subcommand: $sub"; usage; exit 1 ;;
+    -h | --help | help) usage ;;
+    *)
+      err "Unknown subcommand: $sub"
+      usage
+      exit 1
+      ;;
   esac
 }
 

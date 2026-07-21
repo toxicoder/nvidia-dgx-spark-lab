@@ -29,7 +29,7 @@ err() { echo -e "${RED}[manage][ERROR]${NC} $*"; }
 # @function require_kubectl
 # Fail fast if kubectl is not in PATH.
 require_kubectl() {
-  if ! command -v kubectl &> /dev/null; then
+  if ! command -v kubectl &>/dev/null; then
     err "kubectl not found in PATH"
     exit 1
   fi
@@ -61,20 +61,20 @@ get_approx_free_gpus() {
     return 0
   fi
   local alloc allocated
-  alloc=$(kubectl get nodes -o json 2>/dev/null | \
+  alloc=$(kubectl get nodes -o json 2>/dev/null |
     jq -r '[.items[] | (.status.allocatable["nvidia.com/gpu"] // "0" | tonumber)] | add // 0' 2>/dev/null) || alloc=""
-  if [[ -z "$alloc" ]]; then
+  if [[ -z $alloc ]]; then
     echo "unknown"
     return 0
   fi
-  allocated=$(kubectl get pods -A -o json 2>/dev/null | \
+  allocated=$(kubectl get pods -A -o json 2>/dev/null |
     jq -r '
       [.items[]
        | select(.status.phase == "Running" or .status.phase == "Pending")
        | (.spec.containers[]?.resources.requests["nvidia.com/gpu"] // empty)
        | tonumber] | add // 0
     ' 2>/dev/null) || allocated=""
-  if [[ -z "$allocated" ]]; then
+  if [[ -z $allocated ]]; then
     echo "unknown"
     return 0
   fi
@@ -110,7 +110,7 @@ print_status() {
 # @function require_helm
 # Fail fast if helm is not in PATH (Coder, Kasm, Grafana installs).
 require_helm() {
-  if ! command -v helm &> /dev/null; then
+  if ! command -v helm &>/dev/null; then
     err "helm not found in PATH (required for Coder/Kasm/Grafana)"
     exit 1
   fi
@@ -157,7 +157,7 @@ print_access_info() {
     if type print_sso_access_info &>/dev/null; then
       print_sso_access_info
     fi
-    if [[ "${SSO_BYPASS_NODEPORTS:-1}" == "1" ]]; then
+    if [[ ${SSO_BYPASS_NODEPORTS:-1} == "1" ]]; then
       echo
       warn "Legacy direct NodePorts (bypass SSO):"
       echo "  Custom Dashboard: http://${base_ip}:${DASHBOARD_PORT:-32082}"
@@ -183,7 +183,7 @@ print_access_info() {
 # @function require_jq
 # Fail fast if jq is missing (required for GPU estimation in doctor/estimate).
 require_jq() {
-  if ! command -v jq &> /dev/null; then
+  if ! command -v jq &>/dev/null; then
     err "jq not found (needed for GPU status etc). Install jq."
     exit 1
   fi
@@ -211,34 +211,34 @@ wait_for_job() {
 get_model_profile() {
   # Returns "gpus mem note" e.g. "2 32Gi lighter safe first step"
   case "$1" in
-    kimi-test)           echo "2 32Gi lighter-test (recommended first validation)" ;;
-    kimi)                echo "8 128Gi full production (confirm + 8+ GPUs)" ;;
-    ray-head)            echo "1 8Gi Ray head (Spark: 1 GPU/node)" ;;
-    ray-worker)          echo "1 8Gi Ray worker (multi-node)" ;;
-    nemotron-3-ultra)    echo "8 128Gi+ NVFP4 tp/pp=2 (legacy 8-GPU profile)" ;;
+    kimi-test) echo "2 32Gi lighter-test (recommended first validation)" ;;
+    kimi) echo "8 128Gi full production (confirm + 8+ GPUs)" ;;
+    ray-head) echo "1 8Gi Ray head (Spark: 1 GPU/node)" ;;
+    ray-worker) echo "1 8Gi Ray worker (multi-node)" ;;
+    nemotron-3-ultra) echo "8 128Gi+ NVFP4 tp/pp=2 (legacy 8-GPU profile)" ;;
     nemotron-3-nano-30b) echo "1 40Gi NVFP4 agent orchestrator (Mamba-MoE)" ;;
     nemotron-3-nano-omni-30b) echo "1 45Gi NVFP4 multimodal orchestrator" ;;
     nemotron-3-super-120b) echo "1 95Gi NVFP4 hard reasoning (gpu-mem 0.65)" ;;
     nemotron-retriever-embed) echo "0 4Gi NIM embed (CPU)" ;;
     nemotron-retriever-rerank) echo "0 6Gi NIM rerank (CPU)" ;;
-    nemotron-parse)      echo "1 8Gi NIM document parse" ;;
+    nemotron-parse) echo "1 8Gi NIM document parse" ;;
     nemotron-safety-guard) echo "0 4Gi NeMo Guard (CPU)" ;;
     nemotron-speech-asr) echo "0 6Gi NIM ASR" ;;
     nemotron-speech-tts) echo "0 6Gi NIM TTS" ;;
-    glm-5.2)             echo "2 110Gi+ 1-bit UD-IQ1_M llama.cpp RPC (2-node dual-400G; no Ray)" ;;
+    glm-5.2) echo "2 110Gi+ 1-bit UD-IQ1_M llama.cpp RPC (2-node dual-400G; no Ray)" ;;
     qwen3.5-122b-a10b-nvfp4) echo "1 95Gi Qwen 122B NVFP4 (1-node 397B substitute)" ;;
     qwen3.5-397b-spark2) echo "2 220Gi Qwen 397B int4-AutoRound (2-node; Ray + vLLM)" ;;
-    qwen3.5-397b-nvfp4)  echo "4 460Gi+ Qwen 397B NVFP4 SGLang (4-node frontier)" ;;
-    qwen3.6-27b-nvfp4)   echo "1 48Gi Qwen3.6 27B NVFP4 dense (exclusive util 0.72; dual 0.38)" ;;
+    qwen3.5-397b-nvfp4) echo "4 460Gi+ Qwen 397B NVFP4 SGLang (4-node frontier)" ;;
+    qwen3.6-27b-nvfp4) echo "1 48Gi Qwen3.6 27B NVFP4 dense (exclusive util 0.72; dual 0.38)" ;;
     qwen3.6-35b-a3b-nvfp4) echo "1 48Gi Qwen3.6 35B-A3B NVFP4-Fast MoE (exclusive util 0.72; dual 0.38)" ;;
-    qwen36-dual-spark-1|qwen36-dual) echo "2 96Gi Qwen3.6 dual 27B+35B (time-sliced; mid ctx)" ;;
-    comfy-base)          echo "1 60Gi ComfyUI base (visual; Spark unified-memory patches)" ;;
-    flux-fast)           echo "1 60Gi FLUX.2 Klein 9B NVFP4+Nunchaku (visual fast)" ;;
-    flux-quality)        echo "1 70Gi FLUX.2 Dev FP8 (visual quality)" ;;
-    ltx-balanced)        echo "1 70Gi LTX-2.3 distilled FP8 (visual video balanced)" ;;
-    ltx-quality)         echo "1 80Gi LTX-2.3 BF16 distilled (visual video quality)" ;;
-    flux-to-ltx)         echo "1 90Gi Flux→LTX T2I→I2V+audio pipeline (both models resident)" ;;
-    *)                   echo "unknown unknown unknown model" ;;
+    qwen36-dual-spark-1 | qwen36-dual) echo "2 96Gi Qwen3.6 dual 27B+35B (time-sliced; mid ctx)" ;;
+    comfy-base) echo "1 60Gi ComfyUI base (visual; Spark unified-memory patches)" ;;
+    flux-fast) echo "1 60Gi FLUX.2 Klein 9B NVFP4+Nunchaku (visual fast)" ;;
+    flux-quality) echo "1 70Gi FLUX.2 Dev FP8 (visual quality)" ;;
+    ltx-balanced) echo "1 70Gi LTX-2.3 distilled FP8 (visual video balanced)" ;;
+    ltx-quality) echo "1 80Gi LTX-2.3 BF16 distilled (visual video quality)" ;;
+    flux-to-ltx) echo "1 90Gi Flux→LTX T2I→I2V+audio pipeline (both models resident)" ;;
+    *) echo "unknown unknown unknown model" ;;
   esac
 }
 
@@ -251,7 +251,7 @@ get_model_profile() {
 # @command recommend
 estimate_resources() {
   local model="${1:-}"
-  if [[ -z "$model" ]]; then
+  if [[ -z $model ]]; then
     err "Usage: estimate <model>   (kimi-test|kimi|ray-head|...)"
     return 1
   fi
@@ -259,7 +259,7 @@ estimate_resources() {
   free=$(get_approx_free_gpus 2>/dev/null || echo "unknown")
   local profile
   profile=$(get_model_profile "$model")
-  read -r want_gpus want_mem note <<< "$profile"
+  read -r want_gpus want_mem note <<<"$profile"
 
   log "=== Resource Estimate for $model ==="
   echo "  Detected free GPUs (best-effort): $free"
@@ -270,15 +270,15 @@ estimate_resources() {
     check_json=$(check_capacity "model:${model}" 2>/dev/null) || true
     ok=$(echo "$check_json" | jq -r '.ok // empty' 2>/dev/null)
     verdict=$(echo "$check_json" | jq -r '.verdict // empty' 2>/dev/null)
-    if [[ "$ok" == "true" ]]; then
+    if [[ $ok == "true" ]]; then
       echo "  Status: LIKELY SAFE to start now (GPU/CPU/memory after headroom)."
-    elif [[ -n "$verdict" ]]; then
+    elif [[ -n $verdict ]]; then
       warn "  Status: MAY BE TIGHT ($verdict)."
       echo "$check_json" | jq -r '.available | "  Available: \(.gpus) GPUs, \(.cpu) CPU, \(.memory) memory"' 2>/dev/null || true
       echo "$check_json" | jq -r '.required | "  Required:  \(.gpus) GPUs, \(.cpu) CPU, \(.memory) memory"' 2>/dev/null || true
     fi
-  elif [[ "$free" != "unknown" && "$want_gpus" != "unknown" ]]; then
-    if [[ "$free" -ge "$want_gpus" ]]; then
+  elif [[ $free != "unknown" && $want_gpus != "unknown" ]]; then
+    if [[ $free -ge $want_gpus ]]; then
       echo "  Status: LIKELY SAFE to start now."
     else
       warn "  Status: MAY BE TIGHT (have ~$free, wants $want_gpus). Validate with lighter model first."

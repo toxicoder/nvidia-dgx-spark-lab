@@ -36,7 +36,7 @@ status() {
   for name in "${IMAGES[@]}"; do
     local df="${REPO_ROOT}/mcp/docker/${name}/Dockerfile"
     local tag="lab-mcp/${name}:local"
-    if [[ ! -f "$df" ]]; then
+    if [[ ! -f $df ]]; then
       echo "MISSING dockerfile ${name}"
       continue
     fi
@@ -53,12 +53,12 @@ status() {
 # Build one or all MCP images from the repository root.
 run() {
   local only="${1:-}"
-  if [[ -n "$only" && "$only" == component=* ]]; then
+  if [[ -n $only && $only == component=* ]]; then
     only="${only#component=}"
   fi
   cd "$REPO_ROOT"
   for name in "${IMAGES[@]}"; do
-    if [[ -n "$only" && "$name" != "$only" ]]; then
+    if [[ -n $only && $name != "$only" ]]; then
       continue
     fi
     local tag="lab-mcp/${name}:local"
@@ -84,11 +84,15 @@ main() {
   case "$cmd" in
     status) status "$@" ;;
     run) run "$@" ;;
-    -h|--help|help) usage ;;
-    *) err "unknown command: $cmd"; usage; exit 1 ;;
+    -h | --help | help) usage ;;
+    *)
+      err "unknown command: $cmd"
+      usage
+      exit 1
+      ;;
   esac
 }
 
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+if [[ ${BASH_SOURCE[0]} == "${0}" ]]; then
   main "$@"
 fi

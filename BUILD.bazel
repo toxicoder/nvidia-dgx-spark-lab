@@ -45,6 +45,19 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+# CI workflow / composite action YAML (hermetic pin checks; no secrets).
+filegroup(
+    name = "ci_workflows",
+    srcs = [
+        ".gitea/workflows/ci.yml",
+        ".github/actions/setup-bazel/action.yml",
+        ".github/dependabot.yml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/deploy-docs.yml",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # Re-export the primary operational binary.
 alias(
     name = "manage",

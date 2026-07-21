@@ -157,7 +157,7 @@ jobs:
           install-lint-tools: "false"
 
       - name: Cache pip downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: pip-docs-${{ runner.os }}-${{ hashFiles('docs/requirements.txt') }}
@@ -165,7 +165,7 @@ jobs:
             pip-docs-${{ runner.os }}-
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('docs/requirements.txt') }}

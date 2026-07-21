@@ -209,11 +209,7 @@ def _check_config(root: pathlib.Path, errors: list[str]) -> None:
     for path in sorted(_CONFIG_EXERCISED):
         if not (root / path).is_file():
             errors.append(f"{path}: missing (expected //tests:safety_invariants)")
-    extra = [
-        p
-        for p in _tracked(root, "config/")
-        if _is_yaml(p) or p.endswith(".json")
-    ]
+    extra = [p for p in _tracked(root, "config/") if _is_yaml(p) or p.endswith(".json")]
     for path in extra:
         if path not in _CONFIG_EXERCISED:
             errors.append(f"{path}: add to safety_invariants or manifest registry")

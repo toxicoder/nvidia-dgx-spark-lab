@@ -14,7 +14,7 @@
 set -euo pipefail
 
 # --- Runfiles resolution (works in Bazel sh_test sandboxes) ---
-if [[ -n "${TEST_SRCDIR:-}" ]]; then
+if [[ -n ${TEST_SRCDIR:-} ]]; then
   RUNFILES="$TEST_SRCDIR"
 else
   # Fallback when run directly (rare)
@@ -41,7 +41,7 @@ find_file() {
     "$RUNFILES/+_repo_rules+bats_core/$name"
   )
   for c in "${candidates[@]}"; do
-    if [[ -e "$c" ]]; then
+    if [[ -e $c ]]; then
       echo "$c"
       return 0
     fi
@@ -61,10 +61,10 @@ BATS_BIN="$(find_file +_repo_rules+bats_core/bin/bats 2>/dev/null || find_file b
 # Prefer something that lives in the main repo root (not inside external bats_core).
 # We look for manage.sh or a distinctive k8s file via _main first.
 REPO_ROOT_MARKER="$(
-  find_file _main/scripts/manage.sh 2>/dev/null || \
-  find_file _main/k8s/workloads/kimi-test/kimi-test-job.yaml 2>/dev/null || \
-  find_file _main/README.md 2>/dev/null || \
-  find_file scripts/manage.sh 2>/dev/null || true
+  find_file _main/scripts/manage.sh 2>/dev/null ||
+    find_file _main/k8s/workloads/kimi-test/kimi-test-job.yaml 2>/dev/null ||
+    find_file _main/README.md 2>/dev/null ||
+    find_file scripts/manage.sh 2>/dev/null || true
 )"
 
 # @function repo_root_from_marker
@@ -91,7 +91,7 @@ repo_root_from_marker() {
   esac
 }
 
-if [[ -n "$REPO_ROOT_MARKER" && -f "$REPO_ROOT_MARKER" ]]; then
+if [[ -n $REPO_ROOT_MARKER && -f $REPO_ROOT_MARKER ]]; then
   REPO_ROOT="$(repo_root_from_marker "$REPO_ROOT_MARKER")"
 else
   # Last resort fallback (tests/ -> repo root)
@@ -112,10 +112,10 @@ echo "[bats_runner] BATS_BIN=$BATS_BIN" >&2
 
 # Locate the bats test directory via test_helper.bash (present in every split target).
 BATS_HELPER="$(
-  find_file _main/tests/bats/test_helper.bash 2>/dev/null || \
-  find_file tests/bats/test_helper.bash 2>/dev/null || true
+  find_file _main/tests/bats/test_helper.bash 2>/dev/null ||
+    find_file tests/bats/test_helper.bash 2>/dev/null || true
 )"
-if [[ -z "$BATS_HELPER" || ! -f "$BATS_HELPER" ]]; then
+if [[ -z $BATS_HELPER || ! -f $BATS_HELPER ]]; then
   echo "ERROR: Could not locate tests/bats/test_helper.bash in runfiles" >&2
   exit 1
 fi
@@ -135,7 +135,7 @@ else
   BATS_TEST_FILES=("$BATS_TEST_DIR"/*.bats)
 fi
 
-if [[ ! -e "${BATS_TEST_FILES[0]}" ]]; then
+if [[ ! -e ${BATS_TEST_FILES[0]} ]]; then
   echo "ERROR: No .bats files found under $BATS_TEST_DIR (args: $*)" >&2
   exit 1
 fi

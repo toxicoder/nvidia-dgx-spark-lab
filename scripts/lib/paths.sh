@@ -15,16 +15,16 @@
 lab_script_dir() {
   local depth="${1:-1}"
   local fallback="${2:-scripts}"
-  if [[ -n "${BASH_SOURCE[$depth]:-}" ]]; then
+  if [[ -n ${BASH_SOURCE[$depth]:-} ]]; then
     cd "$(dirname "${BASH_SOURCE[$depth]}")" && pwd
     return 0
   fi
   # Prefer $0 over REPO_ROOT — kcov clears BASH_SOURCE but keeps argv when executing scripts.
-  if [[ -n "${0:-}" && -f "${0}" ]]; then
+  if [[ -n ${0:-} && -f ${0} ]]; then
     cd "$(dirname "${0}")" && pwd
     return 0
   fi
-  if [[ -n "${REPO_ROOT:-}" ]]; then
+  if [[ -n ${REPO_ROOT:-} ]]; then
     echo "${REPO_ROOT}/${fallback}"
     return 0
   fi
@@ -35,11 +35,11 @@ lab_script_dir() {
 # Resolve repo root from a scripts/lib/*.sh caller when REPO_ROOT is unset.
 # @stdout Absolute repository root.
 lab_repo_root_from_lib() {
-  if [[ -n "${REPO_ROOT:-}" ]]; then
+  if [[ -n ${REPO_ROOT:-} ]]; then
     echo "${REPO_ROOT}"
     return 0
   fi
-  if [[ -n "${BASH_SOURCE[1]:-}" ]]; then
+  if [[ -n ${BASH_SOURCE[1]:-} ]]; then
     cd "$(dirname "${BASH_SOURCE[1]}")/../.." && pwd
     return 0
   fi
@@ -50,7 +50,7 @@ lab_repo_root_from_lib() {
 # Resolve repository root (REPO_ROOT, BASH_SOURCE, or $0 fallback).
 # @stdout Absolute repository root.
 lab_repo_root() {
-  if [[ -n "${REPO_ROOT:-}" ]]; then
+  if [[ -n ${REPO_ROOT:-} ]]; then
     echo "${REPO_ROOT}"
     return 0
   fi
@@ -63,7 +63,7 @@ lab_repo_root() {
 # @stdout Canonical absolute repository root.
 lab_canonical_repo_root() {
   local candidate="${1:-}"
-  if [[ -z "$candidate" ]]; then
+  if [[ -z $candidate ]]; then
     candidate="$(lab_repo_root)"
   fi
   if [[ -f "${candidate}/scripts/manage.sh" ]]; then
