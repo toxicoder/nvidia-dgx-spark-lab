@@ -1,0 +1,4697 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head><script>(function(){try{var orig=window.fetch;if(typeof orig==="function"){window.fetch=function(i,init){var u=(typeof i==="string")?i:(i&&typeof i.url==="string"?i.url:"");if(u.indexOf("api.github.com/repos/toxicoder/nvidia-dgx-spark-lab")!==-1){return Promise.resolve(new Response("{}", {status:200,headers:{"Content-Type":"application/json"}}));}return orig.apply(this,arguments);};}}catch(e){}try{var XHR=window.XMLHttpRequest;if(XHR&&XHR.prototype){var p=XHR.prototype,open=p.open;p.open=function(m,u){if(typeof u==="string"&&u.indexOf("api.github.com/repos/toxicoder/nvidia-dgx-spark-lab")!==-1){var self=this;Object.defineProperty(self,"responseText",{get:function(){return"{}"},configurable:!0});Object.defineProperty(self,"status",{get:function(){return 200},configurable:!0});Object.defineProperty(self,"readyState",{get:function(){return 4},configurable:!0});self.send=function(){setTimeout(function(){try{if(typeof self.onreadystatechange==="function")self.onreadystatechange.call(self);}catch(_){}try{if(typeof self.onload==="function")self.onload.call(self);}catch(_){}},0);};return;}return open.apply(this,arguments);};}}catch(e){}})();</script>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Canonical reference for naming, patterns, formatting, safety, testing, and change discipline across shell, Kubernetes, Ansible, config, dashboard, and documentation.">
+      
+      
+      
+        <link rel="canonical" href="https://toxicoder.github.io/nvidia-dgx-spark-lab/development/project-conventions/">
+      
+      
+        <link rel="prev" href="../troubleshooting/">
+      
+      
+        <link rel="next" href="../CONTRIBUTING/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Project Conventions &amp; Style Guide - nvidia-dgx-spark-lab</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Open Sans";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/command-vars.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#project-conventions-style-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="nvidia-dgx-spark-lab" class="md-header__button md-logo" aria-label="nvidia-dgx-spark-lab" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            nvidia-dgx-spark-lab
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Project Conventions &amp; Style Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to system preference" type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required="">
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard="" data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix="">
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../getting-started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../dgx-spark-notes/" class="md-tabs__link">
+          
+  
+  
+  Concepts &amp; Notes
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../dev-environment/" class="md-tabs__link">
+          
+  
+  
+  How-to Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="nvidia-dgx-spark-lab" class="md-nav__button md-logo" aria-label="nvidia-dgx-spark-lab" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    nvidia-dgx-spark-lab
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix="">
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../dgx-spark-notes/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts &amp; Notes
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../dev-environment/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How-to Guides
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked="">
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Conventions
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Conventions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#1-core-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Core principles
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Core principles">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dgx-spark-hardware-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DGX Spark hardware (reference)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-sources-of-truth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Sources of truth
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-naming-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Naming conventions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Naming conventions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#files-and-directories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Files and directories
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kubernetes-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kubernetes metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shell-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shell functions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ansible-inventory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ansible inventory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#priority-classes-and-quotas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Priority classes and quotas
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-bazel-first-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Bazel-first workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Bazel-first workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#daily-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Daily commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-run-what" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to run what
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#devcontainer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Devcontainer
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-formatting-and-linting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Formatting and linting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Formatting and linting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#formatter-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Formatter settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yaml-linting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YAML linting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pre-commit-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-commit (optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#typescript-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TypeScript (dashboard)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-shell-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Shell scripts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Shell scripts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#philosophy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Philosophy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#baseline-entry-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Baseline (entry scripts)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#canonical-skeleton" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Canonical skeleton
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#formatting-shfmt-is-source-of-truth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Formatting (shfmt is source of truth)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#variables-quoting-naming" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Variables, quoting, naming
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#functions-and-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions and documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-handling-traps-logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error handling, traps, logging
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#managesh-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        manage.sh architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#utility-scripts-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Utility scripts pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unit-testing-bats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unit testing (BATS)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-and-portability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security and portability
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tooling-non-negotiable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tooling (non-negotiable)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resource-guard-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resource Guard integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#professional-script-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Professional script checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#intentional-deviations-from-generic-google-only-guides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Intentional deviations from generic “Google-only” guides
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-kubernetes-and-kustomize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Kubernetes and Kustomize
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Kubernetes and Kustomize">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#directory-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Directory layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layering-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layering model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#helm-vs-raw-yaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Helm vs raw YAML
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visual-comfyui-workloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visual ComfyUI workloads
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#one-primary-language-per-source-file-mandatory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One primary language per source file (mandatory)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configmap-scripts-mandatory-no-inline-bodies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ConfigMap scripts (mandatory — no inline bodies)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workload-readme-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workload README template
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#job-safety-fields-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Job safety fields (required)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bazel-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bazel integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secrets
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-ansible" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Ansible
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Ansible">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#playbook-headers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Playbook headers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#role-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Role pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#roles-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Roles map
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#invocation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Invocation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-config-and-policy-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Config and policy files
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Config and policy files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-pairs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File pairs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resource-policyyaml-top-level-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        resource-policy.yaml top-level keys
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a new model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nemotron-catalogyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        nemotron-catalog.yaml
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-dashboard-nextjs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Dashboard (Next.js)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Dashboard (Next.js)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layering
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#server-action-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Server action pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation-and-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation and security
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ui-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UI rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Documentation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation-coverage-mandatory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation coverage (mandatory)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#page-structure-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page structure (required)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#formatting-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Formatting rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#information-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Information architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#test-driven-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test-driven development
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-stacks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test stacks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#efficiency-local-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Efficiency (local + CI)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bats-hermetic-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BATS hermetic strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-change-discipline-and-pr-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Change discipline and PR checklist
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Change discipline and PR checklist">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#required-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Required steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pr-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PR checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#branching-commits-and-promotion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branching, commits, and promotion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-non-negotiable-safety-invariants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Non-negotiable safety invariants
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference-checklists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick-reference checklists
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick-reference checklists">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-inference-workload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a new inference workload
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-utility-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a utility script
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-dashboard-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a dashboard panel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-docs-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a docs page
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-links" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related links
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTRIBUTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing to Docs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3">
+        
+          
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code-Generated Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Code-Generated Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../generated/shell/reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shell Commands &amp; Helpers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../generated/dashboard-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dashboard API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#1-core-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Core principles
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Core principles">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dgx-spark-hardware-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DGX Spark hardware (reference)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-sources-of-truth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Sources of truth
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-naming-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Naming conventions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Naming conventions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#files-and-directories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Files and directories
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kubernetes-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kubernetes metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shell-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shell functions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ansible-inventory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ansible inventory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#priority-classes-and-quotas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Priority classes and quotas
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-bazel-first-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Bazel-first workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Bazel-first workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#daily-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Daily commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-run-what" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to run what
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#devcontainer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Devcontainer
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-formatting-and-linting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Formatting and linting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Formatting and linting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#formatter-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Formatter settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yaml-linting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YAML linting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pre-commit-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-commit (optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#typescript-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TypeScript (dashboard)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-shell-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Shell scripts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Shell scripts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#philosophy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Philosophy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#baseline-entry-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Baseline (entry scripts)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#canonical-skeleton" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Canonical skeleton
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#formatting-shfmt-is-source-of-truth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Formatting (shfmt is source of truth)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#variables-quoting-naming" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Variables, quoting, naming
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#functions-and-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions and documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-handling-traps-logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error handling, traps, logging
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#managesh-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        manage.sh architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#utility-scripts-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Utility scripts pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unit-testing-bats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unit testing (BATS)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-and-portability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security and portability
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tooling-non-negotiable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tooling (non-negotiable)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resource-guard-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resource Guard integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#professional-script-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Professional script checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#intentional-deviations-from-generic-google-only-guides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Intentional deviations from generic “Google-only” guides
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-kubernetes-and-kustomize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Kubernetes and Kustomize
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Kubernetes and Kustomize">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#directory-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Directory layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layering-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layering model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#helm-vs-raw-yaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Helm vs raw YAML
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visual-comfyui-workloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visual ComfyUI workloads
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#one-primary-language-per-source-file-mandatory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One primary language per source file (mandatory)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configmap-scripts-mandatory-no-inline-bodies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ConfigMap scripts (mandatory — no inline bodies)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workload-readme-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workload README template
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#job-safety-fields-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Job safety fields (required)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bazel-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bazel integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secrets
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-ansible" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Ansible
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Ansible">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#playbook-headers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Playbook headers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#role-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Role pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#roles-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Roles map
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#invocation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Invocation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-config-and-policy-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Config and policy files
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Config and policy files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-pairs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File pairs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resource-policyyaml-top-level-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        resource-policy.yaml top-level keys
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a new model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nemotron-catalogyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        nemotron-catalog.yaml
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-dashboard-nextjs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Dashboard (Next.js)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Dashboard (Next.js)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layering
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#server-action-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Server action pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation-and-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation and security
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ui-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UI rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Documentation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation-coverage-mandatory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation coverage (mandatory)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#page-structure-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page structure (required)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#formatting-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Formatting rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generated-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generated reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#information-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Information architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#test-driven-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test-driven development
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-stacks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test stacks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#efficiency-local-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Efficiency (local + CI)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bats-hermetic-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BATS hermetic strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-change-discipline-and-pr-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Change discipline and PR checklist
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Change discipline and PR checklist">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#required-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Required steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pr-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PR checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#branching-commits-and-promotion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branching, commits, and promotion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-non-negotiable-safety-invariants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Non-negotiable safety invariants
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference-checklists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick-reference checklists
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick-reference checklists">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-inference-workload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a new inference workload
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-utility-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a utility script
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-dashboard-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a dashboard panel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-docs-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a docs page
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-links" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related links
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation">
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href=".." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="./" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Reference
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset"><div class="dgx-docs-dev-banner" role="status"><strong>Development docs</strong> — this site version tracks the <code>development</code> branch and may change without a release tag. Prefer <a href="../latest/">latest</a> for production-ready guidance.</div>
+                
+                  
+
+
+  
+  
+
+
+<h1 id="project-conventions-style-guide">Project Conventions &amp; Style Guide<a class="headerlink" href="#project-conventions-style-guide" title="Permanent link">¶</a></h1>
+<p><strong>What's on this page</strong></p>
+<ul>
+<li>Core principles and sources of truth for the lab</li>
+<li>Cross-stack naming, formatting, and linting rules</li>
+<li>Patterns for shell scripts, Kubernetes, <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr>, config, and the dashboard</li>
+<li>Documentation, testing, change discipline, and enforced safety invariants</li>
+<li>Quick-reference checklists for common tasks</li>
+</ul>
+<p><strong>What this enables</strong></p>
+<ul>
+<li>One place to learn how this repository is structured and why</li>
+<li>Consistent contributions without hunting through scattered READMEs</li>
+<li>Safer changes to workloads, scripts, and manifests by following enforced patterns</li>
+</ul>
+<p>This document is the <strong>canonical reference</strong> for human contributors. Stack-specific addenda extend it:</p>
+<ul>
+<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/dashboard/AGENTS.md">dashboard/AGENTS.md</a> — Next.js dashboard details</li>
+<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/scripts/README.md">scripts/README.md</a> — <code>manage.sh</code> and utility scripts</li>
+<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/tests/README.md">tests/README.md</a> — test targets and mocks</li>
+<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md">CONTRIBUTING.md (repo root)</a> — contribution hub and full branching / PR / promotion model</li>
+<li><a href="../CONTRIBUTING/">CONTRIBUTING.md</a> — <abbr title="Static site generator used for this documentation.">MkDocs</abbr> prose and formatting rules</li>
+</ul>
+<p>AI coding agents should also read <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md">AGENTS.md</a> for workflow-specific guidance.</p>
+<hr>
+<h2 id="1-core-principles">1. Core principles<a class="headerlink" href="#1-core-principles" title="Permanent link">¶</a></h2>
+<p>These principles override convenience. When in doubt, choose stability and explicit control.</p>
+<table>
+<thead>
+<tr>
+<th>Principle</th>
+<th>What it means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Stability first</strong></td>
+<td>SSH, <abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr>, and the dashboard must stay responsive under heavy GPU load.</td>
+</tr>
+<tr>
+<td><strong>Explicit resources</strong></td>
+<td>Every heavy workload has <code>resources.requests</code> and <code>resources.limits</code>.</td>
+</tr>
+<tr>
+<td><strong>No auto-start</strong></td>
+<td>Heavy inference Jobs never start on reboot. Operators start them deliberately.</td>
+</tr>
+<tr>
+<td><strong>Low backoff</strong></td>
+<td>Production inference Jobs use <code>restartPolicy: OnFailure</code> (or <code>Never</code>) with a low <code>backoffLimit</code>.</td>
+</tr>
+<tr>
+<td><strong>High-speed <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr></strong></td>
+<td>Multi-node workloads set <code>NCCL_SOCKET_IFNAME</code> and related vars for dual 400G links.</td>
+</tr>
+<tr>
+<td><strong>Test before production</strong></td>
+<td>Lighter <code>*-test</code> variants validate clusters before heavy <code>kimi</code>-class jobs.</td>
+</tr>
+<tr>
+<td><strong>Defense in depth</strong></td>
+<td>Policy files, runtime checks, Kubernetes guardrails, and static greps all enforce safety.</td>
+</tr>
+<tr>
+<td><strong>Hermetic tests</strong></td>
+<td>Tests run on any clone without real DGX hardware or a live cluster.</td>
+</tr>
+<tr>
+<td><strong>Docs as code</strong></td>
+<td>Command reference and API docs are generated from structured source comments.</td>
+</tr>
+<tr>
+<td><strong><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>-first</strong></td>
+<td>Builds, tests, lint, docs, and launchers go through <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> (<code>bazelisk</code>).</td>
+</tr>
+</tbody>
+</table>
+<p>See also <a href="../reboot-safety/">reboot-safety.md</a>, <a href="../resource-guard/">resource-guard.md</a>, and the root <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/README.md">README.md</a>.</p>
+<h3 id="dgx-spark-hardware-reference">DGX Spark hardware (reference)<a class="headerlink" href="#dgx-spark-hardware-reference" title="Permanent link">¶</a></h3>
+<p>Official per-node specs (<a href="https://docs.nvidia.com/dgx/dgx-spark/hardware.html">NVIDIA DGX Spark hardware</a>):</p>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Per node (GB10)</th>
+<th>2-node lab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPU</td>
+<td>1× Blackwell (GB10)</td>
+<td><strong>2 GPUs</strong> allocatable</td>
+</tr>
+<tr>
+<td>CPU</td>
+<td>20-core Arm</td>
+<td><strong>~28 cores</strong> allocatable after kubelet reserve</td>
+</tr>
+<tr>
+<td>Memory</td>
+<td><strong>128 GB</strong> unified</td>
+<td><strong>~112 Gi</strong> allocatable after kubelet reserve</td>
+</tr>
+<tr>
+<td>Network</td>
+<td>ConnectX-7, dual ~400G</td>
+<td><abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> via <code>enp1s0f0np0,enp1s0f1np1</code></td>
+</tr>
+</tbody>
+</table>
+<p>Kubelet reservations (<abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> <code>k3s_kubelet_reserved_args</code>): <code>system-reserved=cpu=4,memory=64Gi</code> + <code>kube-reserved=cpu=2,memory=8Gi</code> per node. <abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> adds <strong>15% / 64Gi minimum <abbr title="Reserved free capacity Resource Guard keeps free so SSH and control plane stay responsive.">headroom</abbr> per node</strong> (<code>config/resource-policy.yaml</code>).</p>
+<p><strong>Manifest vs hardware:</strong> Some manifests and policy entries model aggregate multi-node GPU counts for larger clusters. On a <strong>2× Spark</strong> lab, only <strong>2 GPUs</strong> are physically allocatable — mocks, capacity checks, and dashboard fixtures should use realistic Spark numbers.</p>
+<hr>
+<h2 id="2-sources-of-truth">2. Sources of truth<a class="headerlink" href="#2-sources-of-truth" title="Permanent link">¶</a></h2>
+<p>Understand which file is authoritative before editing.</p>
+<pre class="mermaid"><code>flowchart LR
+  workloadYaml["k8s/workloads/*/job.yaml"]
+  policyJson["config/resource-policy.json"]
+  policyYaml["config/resource-policy.yaml"]
+  groupVars["ansible/group_vars/all.yml"]
+  manageSh["scripts/manage.sh + lib/*.sh"]
+
+  policyYaml --&gt;|"human edits"| policyJson
+  workloadYaml --&gt;|"deployed resources"| manageSh
+  policyJson --&gt;|"capacity gates"| manageSh
+  groupVars --&gt;|"reference only"| workloadYaml</code></pre>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Authoritative for</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>k8s/workloads/*/*.yaml</code></td>
+<td>Deployed CPU/GPU/memory, restart policy, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> env</td>
+<td>Auditable; preferred for inference</td>
+</tr>
+<tr>
+<td><code>config/resource-policy.json</code></td>
+<td>Model/stack registry, capacity math, tier definitions</td>
+<td>Parsed by scripts and dashboard</td>
+</tr>
+<tr>
+<td><code>config/resource-policy.yaml</code></td>
+<td>Human-readable policy (SoT for JSON twin)</td>
+<td>Edit YAML, keep JSON in sync</td>
+</tr>
+<tr>
+<td><code>ansible/inventory/group_vars/all.yml</code></td>
+<td>Bootstrap defaults, chart versions, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> reference</td>
+<td><strong>Reference only</strong> — not deployed resource limits</td>
+</tr>
+<tr>
+<td><code>config/nemotron-catalog.yaml</code></td>
+<td>Display names, HF paths, agent roles</td>
+<td>Capacity deferred to resource-policy</td>
+</tr>
+<tr>
+<td><code>scripts/manage.sh</code> + <code>lib/*.sh</code></td>
+<td>Runtime behavior, confirmations, apply order</td>
+<td>Structured comments feed generated docs</td>
+</tr>
+<tr>
+<td><code>*.example.yaml</code></td>
+<td>Secret templates</td>
+<td>Never commit real secrets</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Policy twins:</strong> Most policy files have a YAML (human) + JSON (machine) pair. When you change one, update the other and extend <code>tests/safety_invariants.sh</code> if you add models or stacks.</p>
+<hr>
+<h2 id="3-naming-conventions">3. Naming conventions<a class="headerlink" href="#3-naming-conventions" title="Permanent link">¶</a></h2>
+<h3 id="files-and-directories">Files and directories<a class="headerlink" href="#files-and-directories" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Pattern</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Directories</td>
+<td><code>kebab-case</code></td>
+<td><code>kimi-test</code>, <code>nemotron-3-ultra</code>, <code>open-webui</code></td>
+</tr>
+<tr>
+<td>K8s manifests</td>
+<td><code>&lt;workload&gt;-job.yaml</code> or <code>&lt;workload&gt;-deployment.yaml</code></td>
+<td><code>kimi-test-job.yaml</code></td>
+</tr>
+<tr>
+<td>Shell libs</td>
+<td><code>scripts/lib/&lt;domain&gt;.sh</code></td>
+<td><code>models.sh</code>, <code>resources.sh</code>, <code>mcp.sh</code></td>
+</tr>
+<tr>
+<td>Utilities</td>
+<td><code>scripts/utilities/&lt;kebab-name&gt;.sh</code></td>
+<td><code>spark-clock.sh</code>, <code>mcp-stack.sh</code></td>
+</tr>
+<tr>
+<td>BATS tests</td>
+<td><code>tests/bats/&lt;area&gt;.bats</code></td>
+<td><code>manage.bats</code>, <code>utilities.bats</code></td>
+</tr>
+<tr>
+<td>Dashboard panels</td>
+<td><code>components/&lt;Feature&gt;Panel.tsx</code></td>
+<td><code>InferencePanel.tsx</code></td>
+</tr>
+<tr>
+<td>Dashboard clients</td>
+<td><code>*Client.tsx</code> when split from RSC wrapper</td>
+<td><code>MachineStateClient.tsx</code></td>
+</tr>
+<tr>
+<td>Server actions</td>
+<td><code>actions/&lt;domain&gt;-actions.ts</code></td>
+<td><code>host-actions.ts</code></td>
+</tr>
+<tr>
+<td>Services</td>
+<td><code>lib/services/&lt;domain&gt;.ts</code></td>
+<td><code>docker.ts</code>, <code>nemotron-stack.ts</code></td>
+</tr>
+<tr>
+<td>Zod schemas</td>
+<td><code>&lt;Thing&gt;Schema</code> in <code>lib/validation.ts</code></td>
+<td><code>ContainerIdSchema</code></td>
+</tr>
+<tr>
+<td><abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> playbooks</td>
+<td><code>playbooks/&lt;verb&gt;-&lt;noun&gt;.yml</code></td>
+<td><code>bootstrap-cluster.yml</code></td>
+</tr>
+<tr>
+<td>Helm values</td>
+<td><code>ansible/files/&lt;chart&gt;-values.yaml</code></td>
+<td><code>traefik-values.yaml</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="kubernetes-metadata">Kubernetes metadata<a class="headerlink" href="#kubernetes-metadata" title="Permanent link">¶</a></h3>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">metadata</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kimi-test</span><span class="w">          </span><span class="c1"># matches directory / workload id</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ai-inference</span><span class="w">  </span><span class="c1"># inference workloads</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nt">labels</span><span class="p">:</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kimi-test</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nt">workload</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inference</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test</span><span class="w">               </span><span class="c1"># optional</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="nt">runtime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nim</span><span class="w">             </span><span class="c1"># agent deployments</span>
+</span></code></pre></div>
+<p>Base kustomization adds:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">commonLabels</span><span class="p">:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">app.kubernetes.io/part-of</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nvidia-dgx-spark-lab</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">app.kubernetes.io/managed-by</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kustomize</span>
+</span></code></pre></div>
+<h3 id="shell-functions">Shell functions<a class="headerlink" href="#shell-functions" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Visibility</th>
+<th>Pattern</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Public helpers</td>
+<td>verb noun</td>
+<td><code>start_kimi</code>, <code>check_capacity</code>, <code>ensure_namespace</code></td>
+</tr>
+<tr>
+<td>Private helpers</td>
+<td><code>_prefix</code></td>
+<td><code>_hermes_load_policy_json</code></td>
+</tr>
+<tr>
+<td>Utility subcommands</td>
+<td><code>cmd_*</code> or plain <code>status</code>/<code>run</code></td>
+<td><code>cmd_status</code>, <code>cmd_start</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="ansible-inventory"><abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> inventory<a class="headerlink" href="#ansible-inventory" title="Permanent link">¶</a></h3>
+<ul>
+<li>Hosts: <code>spark0</code>, <code>spark1</code>, …</li>
+<li>Groups: <code>k3s_server</code>, <code>k3s_agent</code>, <code>k3s_cluster</code></li>
+</ul>
+<h3 id="priority-classes-and-quotas">Priority classes and quotas<a class="headerlink" href="#priority-classes-and-quotas" title="Permanent link">¶</a></h3>
+<ul>
+<li>Priority classes: <code>lab-critical</code>, <code>lab-management</code>, <code>lab-optional</code>, <code>lab-inference</code></li>
+<li>Quotas: <code>lab-&lt;tier&gt;-quota</code> (e.g. <code>lab-inference-quota</code>)</li>
+</ul>
+<hr>
+<h2 id="4-bazel-first-workflow">4. <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>-first workflow<a class="headerlink" href="#4-bazel-first-workflow" title="Permanent link">¶</a></h2>
+<p><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> is the <strong>only official</strong> build system. The <code>Makefile</code> is a thin compatibility shim.</p>
+<h3 id="daily-commands">Daily commands<a class="headerlink" href="#daily-commands" title="Permanent link">¶</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:validate<span class="w">                    </span><span class="c1"># git-aware: core + docs/dashboard slices</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:validate<span class="w"> </span>--<span class="w"> </span>--all<span class="w">           </span><span class="c1"># full suite before merge</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:fix<span class="w">                         </span><span class="c1"># formatters + auto-fix linters</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//:test-fast<span class="w">                  </span><span class="c1"># CI core (safety + BATS + docs render)</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>status<span class="w">           </span><span class="c1"># lab operations</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//docs:docs<span class="w">                    </span><span class="c1"># strict docs build</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//docs:serve<span class="w">                   </span><span class="c1"># live preview</span>
+</span></code></pre></div>
+<h3 id="when-to-run-what">When to run what<a class="headerlink" href="#when-to-run-what" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>After editing</th>
+<th>Run</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Any source change (before PR)</td>
+<td><code>bazelisk run //:validate</code></td>
+</tr>
+<tr>
+<td><code>BUILD.bazel</code> or <code>.bzl</code></td>
+<td><code>bazelisk run //:fix</code></td>
+</tr>
+<tr>
+<td>Shell structured comments</td>
+<td><code>bazelisk run //docs:docs</code></td>
+</tr>
+<tr>
+<td>Dashboard JSDoc</td>
+<td><code>bazelisk run //dashboard:docs</code></td>
+</tr>
+<tr>
+<td>UI / visual changes</td>
+<td><code>bazelisk run //dashboard:hermetic-test</code></td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="../BUILDING_WITH_BAZEL/">BUILDING_WITH_BAZEL.md</a> for targets, devcontainer setup, and CI details.</p>
+<h3 id="devcontainer">Devcontainer<a class="headerlink" href="#devcontainer" title="Permanent link">¶</a></h3>
+<p>The multi-arch <code>.devcontainer/</code> image (linux/amd64 + arm64) includes bazelisk, buildifier, shfmt, ruff, mypy, ansible, kubectl, helm, kubeconform, shellcheck, bats, yamllint, Node.js 22, Python 3.11, and Playwright. Versions are pinned in <code>.devcontainer/tool-versions.env</code> (shared with CI). Works on Apple Silicon, Windows (Docker Desktop), Linux, and DGX Spark. See <a href="../dev-environment/">dev-environment.md</a>.</p>
+<hr>
+<h2 id="5-formatting-and-linting">5. Formatting and linting<a class="headerlink" href="#5-formatting-and-linting" title="Permanent link">¶</a></h2>
+<p>Run <code>bazelisk run //:fix</code> after sets of changes. Pure linters (shellcheck, kubeconform) have no safe auto-fix — run via <code>bazelisk test //:lint --test_tag_filters=manual</code>.</p>
+<h3 id="formatter-settings">Formatter settings<a class="headerlink" href="#formatter-settings" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Scope</th>
+<th>Settings</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>buildifier</strong></td>
+<td><code>BUILD*</code>, <code>*.bzl</code></td>
+<td><code>-mode=fix</code></td>
+</tr>
+<tr>
+<td><strong>shfmt</strong></td>
+<td><code>*.sh</code></td>
+<td><code>-w -s -i 2 -ci</code> (2-space indent, simplify, indent case); check via <code>//lints:shfmt</code></td>
+</tr>
+<tr>
+<td><strong>ruff</strong></td>
+<td><code>docs/*.py</code>, root <code>*.py</code></td>
+<td>format + <code>check --fix</code></td>
+</tr>
+<tr>
+<td><strong>mypy</strong></td>
+<td>all tracked <code>*.py</code></td>
+<td><code>strict = true</code> per <code>mypy.ini</code>; <code>//lints:mypy</code> (manual)</td>
+</tr>
+<tr>
+<td><strong>prettier</strong></td>
+<td>dashboard TS/TSX/MD/JSON; repo YAML via <code>scripts/yaml_format.sh</code></td>
+<td>2-space, 120 cols, double quotes (<code>prettier.config.mjs</code>)</td>
+</tr>
+<tr>
+<td><strong>eslint</strong></td>
+<td>dashboard</td>
+<td><code>no-explicit-any: error</code>; Next core-web-vitals</td>
+</tr>
+</tbody>
+</table>
+<h3 id="yaml-linting">YAML linting<a class="headerlink" href="#yaml-linting" title="Permanent link">¶</a></h3>
+<p><code>.yamllint.yml</code>: 2-space indent, 120-char line length (warning), <code>document-start: disable</code>. Helm templates and Jinja (<code>.j2</code>) are excluded.</p>
+<h3 id="pre-commit-optional">Pre-commit (optional)<a class="headerlink" href="#pre-commit-optional" title="Permanent link">¶</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pip<span class="w"> </span>install<span class="w"> </span>--user<span class="w"> </span>pre-commit
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>pre-commit<span class="w"> </span>install
+</span></code></pre></div>
+<p>Hooks mirror <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> lint tools: buildifier check, shfmt, shellcheck, prettier YAML, yamllint. See <code>.pre-commit-config.yaml</code>.</p>
+<h3 id="typescript-dashboard">TypeScript (dashboard)<a class="headerlink" href="#typescript-dashboard" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>strict: true</code>, <code>noImplicitAny</code>, <code>strictNullChecks</code></li>
+<li>Path alias: <code>@/*</code> → dashboard root</li>
+<li>No explicit <code>any</code> (ESLint error)</li>
+</ul>
+<hr>
+<h2 id="6-shell-scripts">6. Shell scripts<a class="headerlink" href="#6-shell-scripts" title="Permanent link">¶</a></h2>
+<p>This section is the lab’s <strong>adapted professional Bash style guide</strong>. It synthesizes Google’s Shell Style Guide, ShellCheck, shfmt, and bats-core practice, tailored to <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>, kcov, and the generated shell reference.</p>
+<h3 id="philosophy">Philosophy<a class="headerlink" href="#philosophy" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Principle</th>
+<th>Lab practice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Readability first</strong></td>
+<td>Prefer clarity over clever one-liners</td>
+</tr>
+<tr>
+<td><strong>Small, focused functions</strong></td>
+<td>One responsibility; extract aggressively</td>
+</tr>
+<tr>
+<td><strong>Fail fast and loudly</strong></td>
+<td><code>set -euo pipefail</code> on entry scripts; never continue in a broken state</td>
+</tr>
+<tr>
+<td><strong>Explicit over implicit</strong></td>
+<td>Quote expansions; name locals; document public APIs</td>
+</tr>
+<tr>
+<td><strong>Testable by design</strong></td>
+<td>Libs are sourceable; entry scripts use thin <code>main</code> + source guards</td>
+</tr>
+<tr>
+<td><strong>ShellCheck is mandatory</strong></td>
+<td>Warnings are defects until fixed or justified with a comment</td>
+</tr>
+<tr>
+<td><strong>Consistency</strong></td>
+<td>shfmt + this section beat personal taste</td>
+</tr>
+</tbody>
+</table>
+<p><strong>When to use Bash:</strong> orchestration, thin wrappers, cluster ops (<code>manage.sh</code>, utilities). Prefer Python (or another language) when a <em>new</em> piece needs complex data structures, non-trivial algorithms, or would be hard to unit-test in shell.</p>
+<p><strong>Lab exception (scale):</strong> modular domain libraries under <code>scripts/lib/</code> may exceed ~100 lines because they are the operational surface. That is intentional—do not grow a single file with spaghetti; split domains instead. Do <strong>not</strong> rewrite <code>manage.sh</code> to Python without an explicit project decision.</p>
+<h3 id="baseline-entry-scripts">Baseline (entry scripts)<a class="headerlink" href="#baseline-entry-scripts" title="Permanent link">¶</a></h3>
+<p>Every <strong>executable</strong> entry script starts with:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="ch">#!/usr/bin/env bash</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1">#</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># ## short-name — one-line purpose</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1">#</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># Longer description, assumptions, usage, safety notes.</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="nb">set</span><span class="w"> </span>-euo<span class="w"> </span>pipefail
+</span></code></pre></div>
+<ul>
+<li>Prefer <code>#!/usr/bin/env bash</code> (portability) over Google’s <code>#!/bin/bash</code>.</li>
+<li>Optional: <code>set -Eeuo pipefail</code> when you install an <code>ERR</code> trap that must inherit into functions.</li>
+<li>Optional: <code>IFS=$'\n\t'</code> only when the script benefits; do not change IFS globally in libs without care.</li>
+<li><strong>Libraries</strong> (<code>scripts/lib/*.sh</code>) are <em>sourced</em> and intentionally omit <code>set -euo</code>—they inherit the caller’s options.</li>
+</ul>
+<p>Resolve paths with project helpers (kcov-safe), not only raw <code>BASH_SOURCE</code>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># shellcheck source=lib/paths.sh disable=SC1091</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nb">source</span><span class="w"> </span><span class="s2">"</span><span class="k">$(</span><span class="nb">cd</span><span class="w"> </span><span class="s2">"</span><span class="k">$(</span>dirname<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">0</span><span class="si">}</span><span class="s2">"</span><span class="k">)</span><span class="s2">"</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">pwd</span><span class="k">)</span><span class="s2">/lib/paths.sh"</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nv">SCRIPT_DIR</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>lab_script_dir<span class="w"> </span><span class="m">1</span><span class="w"> </span>scripts<span class="k">)</span><span class="s2">"</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="nv">REPO_ROOT</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>lab_repo_root<span class="k">)</span><span class="s2">"</span>
+</span></code></pre></div>
+<p>Source <code>lib/common.sh</code> for <code>log</code>, <code>warn</code>, <code>err</code>, <code>die</code>, and shared helpers. Utilities may redefine logging with a utility-specific prefix (e.g. <code>[spark-clock]</code>), still on <strong>stderr</strong>.</p>
+<h3 id="canonical-skeleton">Canonical skeleton<a class="headerlink" href="#canonical-skeleton" title="Permanent link">¶</a></h3>
+<p><strong>Entry script</strong> (utility or standalone tool):</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="ch">#!/usr/bin/env bash</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1">#</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1"># ## tool-name</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1">#</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1"># Purpose and usage.</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="c1">#</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># @command tool-name</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="nb">set</span><span class="w"> </span>-euo<span class="w"> </span>pipefail
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="c1"># shellcheck source=../lib/paths.sh disable=SC1091</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="nb">source</span><span class="w"> </span><span class="s2">"</span><span class="k">$(</span><span class="nb">cd</span><span class="w"> </span><span class="s2">"</span><span class="k">$(</span>dirname<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">0</span><span class="si">}</span><span class="s2">"</span><span class="k">)</span><span class="s2">"</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">pwd</span><span class="k">)</span><span class="s2">/../lib/paths.sh"</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="nv">SCRIPT_DIR</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>lab_script_dir<span class="w"> </span><span class="m">1</span><span class="w"> </span>utilities<span class="k">)</span><span class="s2">"</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="nv">REPO_ROOT</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span><span class="nb">cd</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">SCRIPT_DIR</span><span class="si">}</span><span class="s2">/../.."</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">pwd</span><span class="k">)</span><span class="s2">"</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="c1"># shellcheck source=../lib/common.sh</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="nb">source</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">REPO_ROOT</span><span class="si">}</span><span class="s2">/scripts/lib/common.sh"</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="c1"># @function cmd_status</span>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="c1"># ...</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>cmd_status<span class="o">()</span><span class="w"> </span><span class="o">{</span><span class="w"> </span>...<span class="w"> </span><span class="o">}</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>
+</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="c1"># @function main</span>
+</span><span id="__span-6-23"><a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="c1"># Thin CLI dispatch.</span>
+</span><span id="__span-6-24"><a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>main<span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</span><span id="__span-6-25"><a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">sub</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">1</span><span class="k">:-</span><span class="nv">status</span><span class="si">}</span><span class="s2">"</span>
+</span><span id="__span-6-26"><a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="w">  </span>...
+</span><span id="__span-6-27"><a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="o">}</span>
+</span><span id="__span-6-28"><a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a>
+</span><span id="__span-6-29"><a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="c1"># Source guard: allows tests/libs to source without executing.</span>
+</span><span id="__span-6-30"><a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a><span class="c1"># kcov may clear BASH_SOURCE; empty BASH_SOURCE still runs main when executed.</span>
+</span><span id="__span-6-31"><a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">BASH_SOURCE</span><span class="p">[0]</span><span class="k">:-</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">BASH_SOURCE</span><span class="p">[0]</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">0</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+</span><span id="__span-6-32"><a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a><span class="w">  </span>main<span class="w"> </span><span class="s2">"</span><span class="nv">$@</span><span class="s2">"</span>
+</span><span id="__span-6-33"><a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a><span class="k">fi</span>
+</span></code></pre></div>
+<p><strong>Library</strong> (<code>scripts/lib/*.sh</code>): <code># ##</code> header, <code># @function</code> on every function, no top-level <code>main "$@"</code>, minimal side effects beyond defaults / soft path setup.</p>
+<h3 id="formatting-shfmt-is-source-of-truth">Formatting (shfmt is source of truth)<a class="headerlink" href="#formatting-shfmt-is-source-of-truth" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Indent</td>
+<td>2 spaces, no tabs (except <code>&lt;&lt;-</code> heredocs)</td>
+</tr>
+<tr>
+<td>shfmt</td>
+<td><code>shfmt -w -s -i 2 -ci</code> (<code>//:fix</code>) / check: <code>//lints:shfmt</code></td>
+</tr>
+<tr>
+<td>Conditionals</td>
+<td><code>[[ … ]]</code> preferred over <code>[</code> / <code>test</code></td>
+</tr>
+<tr>
+<td>Command sub</td>
+<td><code>$(…)</code> not backticks</td>
+</tr>
+<tr>
+<td>Arithmetic</td>
+<td><code>(( … ))</code> / <code>$(( … ))</code></td>
+</tr>
+<tr>
+<td>Lists</td>
+<td>Arrays + <code>"${arr[@]}"</code> over space-joined strings</td>
+</tr>
+<tr>
+<td>Blank lines</td>
+<td>Separate logical sections; never more than one consecutive blank</td>
+</tr>
+</tbody>
+</table>
+<p>Soft line length: prefer ≤ 100–120 characters; break long pipelines with <code>|</code> at the start of the next line.</p>
+<h3 id="variables-quoting-naming">Variables, quoting, naming<a class="headerlink" href="#variables-quoting-naming" title="Permanent link">¶</a></h3>
+<p><strong>Quoting (non-negotiable):</strong> always double-quote expansions (<code>"${var}"</code>, <code>"${array[@]}"</code>, <code>"$(cmd)"</code>). Use <code>"$@"</code> (not <code>$*</code>) when forwarding arguments.</p>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Pattern</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Locals / script vars</td>
+<td><code>lower_snake_case</code></td>
+<td><code>job_name</code>, <code>json_flag</code></td>
+</tr>
+<tr>
+<td>Env / constants</td>
+<td><code>UPPER_SNAKE_CASE</code></td>
+<td><code>REPO_ROOT</code>, <code>NAMESPACE</code></td>
+</tr>
+<tr>
+<td>Public functions</td>
+<td>verb_noun</td>
+<td><code>start_kimi</code>, <code>check_capacity</code></td>
+</tr>
+<tr>
+<td>Private helpers</td>
+<td><code>_prefix</code></td>
+<td><code>_hermes_load_policy_json</code></td>
+</tr>
+<tr>
+<td>Utility subcommands</td>
+<td><code>cmd_*</code> or <code>status</code>/<code>run</code></td>
+<td><code>cmd_start</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Declare every function variable with <code>local</code>.</li>
+<li>Assign positionals to named locals immediately.</li>
+<li>Prefer <code>local result; result="$(cmd)" || return 1</code> over <code>local result="$(cmd)"</code> when the exit status of <code>cmd</code> matters.</li>
+</ul>
+<h3 id="functions-and-documentation">Functions and documentation<a class="headerlink" href="#functions-and-documentation" title="Permanent link">¶</a></h3>
+<ul>
+<li>One responsibility per function; keep them short when practical.</li>
+<li>Prefer pure-ish helpers (args in, stdout + status out); minimize global mutation.</li>
+<li><strong>Structured comments</strong> power the generated reference—use project markers, not Google <code>#####</code> banners:</li>
+</ul>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># ## Section Title</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="c1"># Multi-line description with safety notes and examples.</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1">#</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Usage:</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="c1">#   bazelisk run //:manage -- start-test</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="c1">#</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="c1"># Safety:</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="c1">#   Requires typing yes for heavy models.</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="c1"># @command start-test</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="c1"># Short description of the command.</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="c1"># @function start_workload</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="c1"># Description of the helper function.</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="c1"># @param $1  Model or job id.</span>
+</span></code></pre></div>
+<p>Over-document public APIs. Enforced by <code>//tests:doc_coverage</code> for gated paths.</p>
+<h3 id="error-handling-traps-logging">Error handling, traps, logging<a class="headerlink" href="#error-handling-traps-logging" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>require_kubectl</code>, <code>require_helm</code>, <code>require_jq</code></td>
+<td><code>err</code> + <code>exit 1</code></td>
+</tr>
+<tr>
+<td><code>die "msg"</code></td>
+<td><code>err</code> + <code>exit 1</code> (preferred for one-liners: <code>cmd \|\| die "…"</code>)</td>
+</tr>
+<tr>
+<td>Read-only probes</td>
+<td><code>\|\| true</code> tolerance</td>
+</tr>
+<tr>
+<td>Unknown subcommand</td>
+<td><code>err</code> + usage hint + <code>exit 1</code></td>
+</tr>
+<tr>
+<td>Destructive ops (<code>cleanup</code>)</td>
+<td>Require typing <code>DELETE</code></td>
+</tr>
+<tr>
+<td>Heavy starts</td>
+<td>Interactive <code>yes</code> or <code>LAB_NON_INTERACTIVE=1</code> + <code>LAB_CONFIRM_TOKEN=yes</code></td>
+</tr>
+<tr>
+<td>Temps / locks</td>
+<td><code>mktemp</code> + <code>trap cleanup EXIT</code> (idempotent cleanup)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Logging:</strong> all diagnostics go to <strong>stderr</strong>; machine-readable or primary data goes to <strong>stdout</strong> so pipelines and <code>--json</code> stay clean.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>log<span class="o">()</span><span class="w">  </span><span class="o">{</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>-e<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">GREEN</span><span class="si">}</span><span class="s2">[manage]</span><span class="si">${</span><span class="nv">NC</span><span class="si">}</span><span class="s2"> </span><span class="nv">$*</span><span class="s2">"</span><span class="w"> </span>&gt;<span class="p">&amp;</span><span class="m">2</span><span class="p">;</span><span class="w"> </span><span class="o">}</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>warn<span class="o">()</span><span class="w"> </span><span class="o">{</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>-e<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">YELLOW</span><span class="si">}</span><span class="s2">[manage][WARN]</span><span class="si">${</span><span class="nv">NC</span><span class="si">}</span><span class="s2"> </span><span class="nv">$*</span><span class="s2">"</span><span class="w"> </span>&gt;<span class="p">&amp;</span><span class="m">2</span><span class="p">;</span><span class="w"> </span><span class="o">}</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>err<span class="o">()</span><span class="w">  </span><span class="o">{</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span>-e<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">RED</span><span class="si">}</span><span class="s2">[manage][ERROR]</span><span class="si">${</span><span class="nv">NC</span><span class="si">}</span><span class="s2"> </span><span class="nv">$*</span><span class="s2">"</span><span class="w"> </span>&gt;<span class="p">&amp;</span><span class="m">2</span><span class="p">;</span><span class="w"> </span><span class="o">}</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>die<span class="o">()</span><span class="w">  </span><span class="o">{</span><span class="w"> </span>err<span class="w"> </span><span class="s2">"</span><span class="nv">$@</span><span class="s2">"</span><span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span><span class="p">;</span><span class="w"> </span><span class="o">}</span>
+</span></code></pre></div>
+<p>Never leave <code>set -x</code> enabled in committed code.</p>
+<h3 id="managesh-architecture"><code>manage.sh</code> architecture<a class="headerlink" href="#managesh-architecture" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Thin dispatcher:</strong> large <code>case</code> on <code>$1</code> delegates to <code>lib/*.sh</code> functions</li>
+<li><strong>Preflight:</strong> <code>require_kubectl</code> + <code>check_cluster_access</code> on mutating commands</li>
+<li><strong>Kubeconfig:</strong> auto-sets <code>KUBECONFIG</code> if <code>${REPO_ROOT}/kubeconfig/config</code> exists</li>
+<li><strong>Default:</strong> <code>help</code> when no args</li>
+</ul>
+<p>Libs loaded in fixed order: <code>common.sh</code>, <code>check_tool.sh</code>, <code>domains.sh</code>, <code>resources.sh</code>, <code>models.sh</code>, and domain modules (<code>mcp.sh</code>, <code>hermes.sh</code>, <code>dev.sh</code>, etc.).</p>
+<h3 id="utility-scripts-pattern">Utility scripts pattern<a class="headerlink" href="#utility-scripts-pattern" title="Permanent link">¶</a></h3>
+<p>Utilities in <code>scripts/utilities/</code> must implement:</p>
+<table>
+<thead>
+<tr>
+<th>Subcommand</th>
+<th>Contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>status [--json]</code></td>
+<td>Read-only; exit 0 when healthy/done</td>
+</tr>
+<tr>
+<td><code>run</code></td>
+<td>Idempotent — no-op if already correct</td>
+</tr>
+</tbody>
+</table>
+<p>Additional rules:</p>
+<ul>
+<li>Source <code>lib/common.sh</code> (or redefine log/warn/err to stderr with a utility prefix)</li>
+<li>Structured comments (<code># ##</code> / <code># @command</code> / <code># @function</code>)</li>
+<li>Thin <code>main</code> + <strong>BASH_SOURCE source guard</strong> (enforced by <code>//tests:doc_coverage</code>)</li>
+<li><strong>Never touch inference workloads</strong> (except dedicated stack utilities that go through <abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr>)</li>
+<li>Discoverable via <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> <code>//scripts:run-utility</code>, dashboard Utilities panel, and docs generator</li>
+</ul>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>spark-clock<span class="w"> </span>status
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>spark-clock<span class="w"> </span>run
+</span></code></pre></div>
+<h3 id="unit-testing-bats">Unit testing (BATS)<a class="headerlink" href="#unit-testing-bats" title="Permanent link">¶</a></h3>
+<ul>
+<li>Framework: <strong>bats-core</strong> (vendored hermetically under <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>).</li>
+<li>Tests live in <code>tests/bats/</code>; shared setup in <code>tests/bats/test_helper.bash</code>.</li>
+<li>Mock external tools via <code>PATH</code> + temp binaries; use <code>LAB_MOCK_*</code> for capacity math.</li>
+<li>Prefer one logical fact per <code>@test</code>; cover success and failure paths.</li>
+<li>Run: <code>bazelisk test //tests:bats_manage_test</code> (and related shards).</li>
+</ul>
+<p>See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/tests/README.md">tests/README.md</a>.</p>
+<h3 id="security-and-portability">Security and portability<a class="headerlink" href="#security-and-portability" title="Permanent link">¶</a></h3>
+<ul>
+<li>Never <code>eval</code> untrusted input.</li>
+<li>Quote expansions; prefer parameter expansion over unnecessary external processes.</li>
+<li><code>mktemp</code> + traps for temporary files.</li>
+<li>No SUID/SGID shell scripts.</li>
+<li>Assume Bash for tooling; keep <strong>macOS <code>/bin/bash</code> 3.2</strong> patterns where shared libs may run on developer Macs (<code>models.sh</code> avoids bash 4 associative arrays).</li>
+<li>Prefer long options in non-interactive scripts when readability matters.</li>
+</ul>
+<h3 id="tooling-non-negotiable">Tooling (non-negotiable)<a class="headerlink" href="#tooling-non-negotiable" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Role</th>
+<th>Target</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ShellCheck</strong></td>
+<td>Lint; severity warning fails</td>
+<td><code>//lints:shell</code></td>
+</tr>
+<tr>
+<td><strong>shfmt</strong></td>
+<td>Format (<code>//:fix</code>) + check</td>
+<td><code>//lints:shfmt</code></td>
+</tr>
+<tr>
+<td><strong>BATS</strong></td>
+<td>Behavior tests</td>
+<td><code>//tests:bats*</code></td>
+</tr>
+<tr>
+<td><strong>doc_coverage</strong></td>
+<td>Headers, <code>@function</code>, strict mode, main guards</td>
+<td><code>//tests:doc_coverage</code></td>
+</tr>
+<tr>
+<td><strong>pre-commit</strong></td>
+<td>Optional local mirror of ShellCheck + shfmt</td>
+<td><code>.pre-commit-config.yaml</code></td>
+</tr>
+</tbody>
+</table>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//lints:shell<span class="w"> </span>//lints:shfmt<span class="w"> </span>--test_tag_filters<span class="o">=</span>manual
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:fix<span class="w">    </span><span class="c1"># includes shfmt -w</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:validate<span class="w">  </span><span class="c1"># core includes //:lint (manual tags)</span>
+</span></code></pre></div>
+<h3 id="resource-guard-integration"><abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> integration<a class="headerlink" href="#resource-guard-integration" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>check_capacity</code>, <code>enforce_capacity</code>, <code>require_heavy_confirm</code> in <code>lib/resources.sh</code></li>
+<li>Policy from <code>config/resource-policy.json</code></li>
+<li>Hermetic test env: <code>LAB_MOCK_NODES_JSON</code>, <code>LAB_MOCK_PODS_JSON</code></li>
+<li><code>guard_active_job</code> refuses start when job already active</li>
+</ul>
+<h3 id="professional-script-checklist">Professional script checklist<a class="headerlink" href="#professional-script-checklist" title="Permanent link">¶</a></h3>
+<ul>
+<li>[ ] Shebang + <code>set -euo pipefail</code> on <strong>entry</strong> scripts</li>
+<li>[ ] File-level <code># ##</code> header</li>
+<li>[ ] <code># @function</code> / <code># @command</code> where doc_coverage gates apply</li>
+<li>[ ] Locals + quoted expansions; <code>"$@"</code> for forwarding</li>
+<li>[ ] Thin <code>main</code> + BASH_SOURCE source guard (utilities with <code>main()</code>)</li>
+<li>[ ] Diagnostics on stderr (<code>log</code>/<code>warn</code>/<code>err</code>/<code>die</code>); data on stdout</li>
+<li>[ ] Cleanup trap for temps/locks</li>
+<li>[ ] ShellCheck clean (<code>//lints:shell</code>)</li>
+<li>[ ] shfmt clean (<code>//lints:shfmt</code>)</li>
+<li>[ ] BATS for non-trivial behavior</li>
+<li>[ ] No ConfigMap language embeds (scripts/JSON/YAML); no multi-line shell in mcp manifests; no untrusted <code>eval</code></li>
+<li>[ ] Prefer Python when shell complexity budget is exhausted</li>
+</ul>
+<h3 id="intentional-deviations-from-generic-google-only-guides">Intentional deviations from generic “Google-only” guides<a class="headerlink" href="#intentional-deviations-from-generic-google-only-guides" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>This lab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shebang</td>
+<td><code>env bash</code> not <code>/bin/bash</code></td>
+</tr>
+<tr>
+<td>Function docs</td>
+<td><code># @function</code> / <code># @param</code> for the docs generator</td>
+</tr>
+<tr>
+<td>Path resolution</td>
+<td><code>paths.sh</code> / <code>$0</code> fallbacks for kcov</td>
+</tr>
+<tr>
+<td>Script length</td>
+<td>Modular multi-file shell OK for ops surface</td>
+</tr>
+<tr>
+<td>Libs + strict mode</td>
+<td>Libs inherit caller <code>set -euo</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="7-kubernetes-and-kustomize">7. Kubernetes and Kustomize<a class="headerlink" href="#7-kubernetes-and-kustomize" title="Permanent link">¶</a></h2>
+<h3 id="directory-layout">Directory layout<a class="headerlink" href="#directory-layout" title="Permanent link">¶</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>k8s/
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>├── base/                    # Namespaces, Resource Guard, common labels
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>├── overlays/{prod,test,single-node}/
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>├── workloads/&lt;name&gt;/        # Atomic unit per model/service
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>├── auth/, cert-manager/, traefik/
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>└── dev/                     # Dashboard, open-webui, Coder templates
+</span></code></pre></div>
+<h3 id="layering-model">Layering model<a class="headerlink" href="#layering-model" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong><code>k8s/base/</code></strong> — shared namespaces, PriorityClass, ResourceQuota, LimitRange, PDB</li>
+<li><strong><code>k8s/workloads/&lt;name&gt;/</code></strong> — job/deployment + service + <code>kustomization.yaml</code> + <code>README.md</code> + <code>BUILD.bazel</code></li>
+<li><strong><code>k8s/overlays/&lt;env&gt;/</code></strong> — references workloads, applies strategic-merge patches</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Overlay</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>test</code></td>
+<td>Lighter resources (<code>patches/test-resources.yaml</code>)</td>
+</tr>
+<tr>
+<td><code>single-node</code></td>
+<td>TP=1, 1 GPU (<code>patches/single-node-tensor-parallel.yaml</code>)</td>
+</tr>
+<tr>
+<td><code>prod</code></td>
+<td>Production workload references (values in base YAML)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="helm-vs-raw-yaml">Helm vs raw YAML<a class="headerlink" href="#helm-vs-raw-yaml" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Mechanism</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>lab-dashboard, Coder, Kasm, Grafana, <abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr>, <abbr title="Open-source authentication and authorization server used for lab SSO.">Authelia</abbr></td>
+<td>Helm (values in <code>ansible/files/</code>)</td>
+<td>Operational tooling; versioned upgrades</td>
+</tr>
+<tr>
+<td>kimi, nemotron, ray, qwen, glm</td>
+<td>Raw YAML + <abbr title="Kubernetes native configuration management (overlays, patches, generators).">kustomize</abbr></td>
+<td>Auditable resources, restart policy, backoff</td>
+</tr>
+<tr>
+<td>comfy-base, flux-<em>, ltx-</em>, flux-to-ltx</td>
+<td>Raw YAML + <abbr title="Kubernetes native configuration management (overlays, patches, generators).">kustomize</abbr> overlays</td>
+<td>Long-lived Deployments; shared <abbr title="PersistentVolumeClaim — Kubernetes request for durable storage.">PVC</abbr> + <abbr title="Volume that mounts a file or directory from the host node filesystem.">hostPath</abbr> models</td>
+</tr>
+</tbody>
+</table>
+<h3 id="visual-comfyui-workloads">Visual <abbr title="Node-based UI for diffusion / visual generative AI workflows.">ComfyUI</abbr> workloads<a class="headerlink" href="#visual-comfyui-workloads" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Convention</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Base runtime</td>
+<td><code>k8s/workloads/comfy-base/</code></td>
+</tr>
+<tr>
+<td>Overlays</td>
+<td><code>k8s/workloads/comfy-visual/&lt;family&gt;/&lt;mode&gt;/</code></td>
+</tr>
+<tr>
+<td>Labels</td>
+<td><code>workload: visual</code>, <code>runtime: comfyui</code>, <code>family: flux\|ltx\|…</code></td>
+</tr>
+<tr>
+<td>Policy</td>
+<td><code>kind: deployment</code>, <code>heavy: true</code>, GPU 1</td>
+</tr>
+<tr>
+<td>Lifecycle</td>
+<td><code>scripts/lib/visual.sh</code> + <code>manage.sh</code> visual commands</td>
+</tr>
+<tr>
+<td>Downloads</td>
+<td><code>scripts/utilities/download-flux.sh</code>, <code>download-ltx.sh</code> (<code>status</code>/<code>run</code>)</td>
+</tr>
+<tr>
+<td>Exclusivity</td>
+<td>One visual <abbr title="Kubernetes workload that keeps a desired replica set running continuously.">Deployment</abbr> at a time; <code>stop-visual</code> clears all</td>
+</tr>
+<tr>
+<td>Docs</td>
+<td><a href="../visual-generative-ai/">visual-generative-ai.md</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="one-primary-language-per-source-file-mandatory">One primary language per source file (mandatory)<a class="headerlink" href="#one-primary-language-per-source-file-mandatory" title="Permanent link">¶</a></h3>
+<p><strong>Never</strong> mix languages in a single source file when a native file would work. In particular, do <strong>not</strong> embed secondary languages in Kubernetes YAML:</p>
+<table>
+<thead>
+<tr>
+<th>Anti-pattern</th>
+<th>Prefer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ConfigMap <code>data:</code> with <code>foo.sh: \|</code> / <code>bar.py: \|</code></td>
+<td>Real script + <code>configMapGenerator</code> <code>files:</code></td>
+</tr>
+<tr>
+<td>ConfigMap <code>lab-*.json: \|</code> workflow / config JSON</td>
+<td>Real <code>.json</code> + <code>configMapGenerator</code> <code>files:</code></td>
+</tr>
+<tr>
+<td>ConfigMap <code>settings.yml: \|</code> or nested YAML fragments</td>
+<td>Real <code>.yml</code> / fragment file + generator</td>
+</tr>
+<tr>
+<td>ConfigMap <code>DOC_SOURCES_JSON: \|</code> env blobs</td>
+<td>Real <code>.json</code> keyed as <code>DOC_SOURCES_JSON=path.json</code></td>
+</tr>
+<tr>
+<td><abbr title="Kubernetes workload that keeps a desired replica set running continuously.">Deployment</abbr> <code>command: ["/bin/sh","-c"]</code> + multi-line <code>args: \|</code></td>
+<td>Real <code>entrypoint.sh</code> mounted at <code>/scripts</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Required pattern</strong> (same as <code>mcp/k8s/workloads/*</code> and <code>k8s/workloads/comfy-base/</code>):</p>
+<ol>
+<li>Put the content in a real file next to the kustomization (e.g. <code>scripts/install-comfy.sh</code>, <code>workflows/lab-flux-fast.json</code>, <code>settings.yml</code>, <code>entrypoint.sh</code>).</li>
+<li>Reference it from <code>kustomization.yaml</code> via <code>configMapGenerator</code> + <code>files:</code>.</li>
+<li>Set <code>disableNameSuffixHash: true</code> when Deployments pin a fixed ConfigMap name.</li>
+<li>Keep full YAML headers on the kustomization; document shell with <code># ##</code> / <code># @function</code> like any other script.</li>
+</ol>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nt">configMapGenerator</span><span class="p">:</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">comfy-base-scripts</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="nt">files</span><span class="p">:</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">install-comfy.sh=scripts/install-comfy.sh</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">run-comfy.sh=scripts/run-comfy.sh</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">    </span><span class="nt">options</span><span class="p">:</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">      </span><span class="nt">disableNameSuffixHash</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flux-fast-workflow</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">    </span><span class="nt">files</span><span class="p">:</span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lab-flux-fast.json=workflows/lab-flux-fast.json</span>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">    </span><span class="nt">options</span><span class="p">:</span>
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">      </span><span class="nt">disableNameSuffixHash</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span></code></pre></div>
+<p>Enforced by <code>//tests:doc_coverage</code> (<code>no inline ConfigMap language embeds</code>, <code>no multi-line shell in mcp manifests</code>).</p>
+<p><strong>Intentional exceptions</strong> (not polyglot source — dual representation or platform-native):</p>
+<table>
+<thead>
+<tr>
+<th>Exception</th>
+<th>Why allowed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kustomize JSON Patch files (<code>patches/*.json</code>) next to YAML</td>
+<td>Separate file, correct format for strategic/JSON merge patches</td>
+</tr>
+<tr>
+<td>Policy YAML + JSON twins (<code>resource-policy.yaml</code> / <code>.json</code>)</td>
+<td>Human vs machine SoT pair</td>
+</tr>
+<tr>
+<td>Short inference <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr> <code>sh -c</code> one-liners for <code>$(ENV)</code> expansion</td>
+<td>Kubernetes does not expand env in plain <code>args</code></td>
+</tr>
+<tr>
+<td><abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> <code>shell:</code> / <abbr title="Early OS bootstrap configuration applied on first boot (network, packages, users).">cloud-init</abbr> / Jinja2 templates</td>
+<td>Platform-native embedding</td>
+</tr>
+<tr>
+<td><code>*.example.yaml</code> Secret templates with nested YAML keys</td>
+<td>Operator copy-paste examples</td>
+</tr>
+<tr>
+<td>Generated ConfigMaps (scrape/authelia)</td>
+<td>Generators write pure sibling YAML (<code>prometheus.yml</code>, <code>configuration.yml</code>) plus readable literal-block ConfigMaps — do not hand-edit outputs</td>
+</tr>
+<tr>
+<td>Tiny one-line <code>python3 -c</code> JSON field picks in shell</td>
+<td>Acceptable when a full module would be noise; multi-line Python belongs in <code>scripts/lib/py/</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="configmap-scripts-mandatory-no-inline-bodies">ConfigMap scripts (mandatory — no inline bodies)<a class="headerlink" href="#configmap-scripts-mandatory-no-inline-bodies" title="Permanent link">¶</a></h3>
+<p>Scripts are the historical special case of the rule above: never embed shell or Python in ConfigMap <code>data:</code> multi-line blocks.</p>
+<h3 id="workload-readme-template">Workload README template<a class="headerlink" href="#workload-readme-template" title="Permanent link">¶</a></h3>
+<p>Every workload directory includes a <code>README.md</code> with:</p>
+<ul>
+<li><strong>What's on this page</strong> / <strong>What this enables</strong> sections</li>
+<li>Purpose, safety features, usage via <code>manage.sh</code></li>
+<li>Resource/backoff/restart policy notes</li>
+<li>Links to related workloads and docs</li>
+</ul>
+<p>Duplicate the <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/main/k8s/workloads/kimi-test">kimi-test</a> pattern for new workloads; scale resources upward only after validation.</p>
+<h3 id="job-safety-fields-required"><abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr> safety fields (required)<a class="headerlink" href="#job-safety-fields-required" title="Permanent link">¶</a></h3>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nt">spec</span><span class="p">:</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="nt">backoffLimit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">          </span><span class="c1"># low for heavy production jobs</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">  </span><span class="nt">template</span><span class="p">:</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">      </span><span class="nt">restartPolicy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OnFailure</span><span class="w">   </span><span class="c1"># never Always for heavy inference</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">resources</span><span class="p">:</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">            </span><span class="nt">requests</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="w">            </span><span class="nt">limits</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span>
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">          </span><span class="nt">env</span><span class="p">:</span>
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NCCL_SOCKET_IFNAME</span>
+</span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="w">              </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">enp1s0f0np0,enp1s0f1np1</span>
+</span></code></pre></div>
+<p>Production <code>kimi</code> also requires <code>securityContext</code>, <code>readinessProbe</code>, and <code>livenessProbe</code>.</p>
+<h3 id="bazel-integration"><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> integration<a class="headerlink" href="#bazel-integration" title="Permanent link">¶</a></h3>
+<p>Each workload/overlay has <code>BUILD.bazel</code> with <code>filegroup</code> targets and scoped <code>visibility</code> to <code>//k8s</code>, <code>//tests</code>, <code>//scripts</code>, <code>//lints</code>. <code>tests/kustomize_build.sh</code> smoke-tests overlays.</p>
+<h3 id="secrets">Secrets<a class="headerlink" href="#secrets" title="Permanent link">¶</a></h3>
+<ul>
+<li>Commit only <code>*.example.yaml</code> templates</li>
+<li>Real secrets via dashboard vault or <code>manage.sh secrets</code> at runtime</li>
+</ul>
+<hr>
+<h2 id="8-ansible">8. <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr><a class="headerlink" href="#8-ansible" title="Permanent link">¶</a></h2>
+<h3 id="structure">Structure<a class="headerlink" href="#structure" title="Permanent link">¶</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>ansible/
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>├── playbooks/           # Orchestration entry points
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>├── roles/&lt;role&gt;/tasks/main.yml
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>├── files/*-values.yaml  # Committed Helm values for third-party charts
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>└── inventory/group_vars/all.yml
+</span></code></pre></div>
+<h3 id="playbook-headers">Playbook headers<a class="headerlink" href="#playbook-headers" title="Permanent link">¶</a></h3>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nn">---</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="c1"># ## playbook-name.yml</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="c1">#</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="c1"># Description, usage, safety notes.</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="c1">#</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="c1"># @playbook playbook-name</span>
+</span></code></pre></div>
+<p>Meta playbook <code>full-lab-setup.yml</code> chains via <code>import_playbook:</code> with <code>when:</code> guards. <strong>Heavy inference is never auto-started.</strong></p>
+<h3 id="role-pattern">Role pattern<a class="headerlink" href="#role-pattern" title="Permanent link">¶</a></h3>
+<ul>
+<li>Single <code>tasks/main.yml</code> per role</li>
+<li>Header comment with <code>@role &lt;name&gt;</code></li>
+<li>Idempotent tasks: <code>creates:</code> or <code>changed_when:</code> logic</li>
+<li>Helm: <code>helm repo add ... || true</code> + <code>helm upgrade --install ... --wait</code></li>
+</ul>
+<h3 id="roles-map">Roles map<a class="headerlink" href="#roles-map" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>k3s_common</code></td>
+<td>OS prep, swap, sysctls</td>
+</tr>
+<tr>
+<td><code>gpu_operator</code></td>
+<td>NVIDIA <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> Helm</td>
+</tr>
+<tr>
+<td><code>highspeed_network</code></td>
+<td>netplan + dual 400G</td>
+</tr>
+<tr>
+<td><code>coder</code>, <code>kasm</code>, <code>monitoring</code>, <code>traefik</code>, <code>sso</code></td>
+<td>Helm stacks</td>
+</tr>
+<tr>
+<td><code>labels</code></td>
+<td>Node labels for scheduling</td>
+</tr>
+</tbody>
+</table>
+<h3 id="invocation">Invocation<a class="headerlink" href="#invocation" title="Permanent link">¶</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//ansible:bootstrap<span class="w"> </span>--<span class="w"> </span>-i<span class="w"> </span>inventory/hosts.ini
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//ansible:validate
+</span></code></pre></div>
+<p>Classic <code>ansible-playbook</code> remains supported. See playbooks for direct usage.</p>
+<hr>
+<h2 id="9-config-and-policy-files">9. Config and policy files<a class="headerlink" href="#9-config-and-policy-files" title="Permanent link">¶</a></h2>
+<h3 id="file-pairs">File pairs<a class="headerlink" href="#file-pairs" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>YAML (human SoT)</th>
+<th>JSON (machine)</th>
+<th>Consumed by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>resource-policy.yaml</code></td>
+<td><code>resource-policy.json</code></td>
+<td><code>lib/resources.sh</code>, dashboard, safety tests</td>
+</tr>
+<tr>
+<td><code>open-webui-policy.yaml</code></td>
+<td><code>open-webui-policy.json</code></td>
+<td><code>lib/open-webui.sh</code></td>
+</tr>
+<tr>
+<td><code>lab-domains.yaml</code></td>
+<td><code>lab-domains.json</code></td>
+<td><code>lib/domains.sh</code>, render-domains, SSO/TLS manifests</td>
+</tr>
+<tr>
+<td><code>sso-policy.yaml</code></td>
+<td>—</td>
+<td><code>lib/sso.sh</code>, <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> SSO role (routes; domains in lab-domains)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="resource-policyyaml-top-level-keys"><code>resource-policy.yaml</code> top-level keys<a class="headerlink" href="#resource-policyyaml-top-level-keys" title="Permanent link">¶</a></h3>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nt">headroom</span><span class="p">:</span><span class="w">     </span><span class="c1"># cpu_percent, memory_percent, per-node minimums</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="nt">tiers</span><span class="p">:</span><span class="w">        </span><span class="c1"># critical | management | optional_dev</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="nt">inference</span><span class="p">:</span><span class="w">    </span><span class="c1"># namespace, priority_class</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="nt">models</span><span class="p">:</span><span class="w">       </span><span class="c1"># gpus, memory, cpu, heavy, job_name per model</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="nt">stacks</span><span class="p">:</span><span class="w">       </span><span class="c1"># nemotron-agentic, open-webui-lab, hermes presets</span>
+</span></code></pre></div>
+<h3 id="adding-a-new-model">Adding a new model<a class="headerlink" href="#adding-a-new-model" title="Permanent link">¶</a></h3>
+<ol>
+<li>Create <code>k8s/workloads/&lt;model&gt;/</code> with job, service, kustomization, README, BUILD.bazel</li>
+<li>Add entry to <code>config/resource-policy.yaml</code> and <code>.json</code></li>
+<li>Add <code>start-&lt;model&gt;</code> to <code>manage.sh</code> / <code>lib/models.sh</code></li>
+<li>Register model name in <code>tests/safety_invariants.sh</code> registry loop</li>
+<li>Add BATS coverage for start/stop if behavior is non-trivial</li>
+</ol>
+<h3 id="nemotron-catalogyaml"><code>nemotron-catalog.yaml</code><a class="headerlink" href="#nemotron-catalogyaml" title="Permanent link">¶</a></h3>
+<p>Human-facing catalog only (display names, HF paths, ports). Do not put capacity math here — use <code>resource-policy.yaml</code>.</p>
+<hr>
+<h2 id="10-dashboard-nextjs">10. Dashboard (Next.js)<a class="headerlink" href="#10-dashboard-nextjs" title="Permanent link">¶</a></h2>
+<p>See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/dashboard/AGENTS.md">dashboard/AGENTS.md</a> for file-level detail. Summary of enforced patterns:</p>
+<h3 id="stack">Stack<a class="headerlink" href="#stack" title="Permanent link">¶</a></h3>
+<ul>
+<li>Next.js 16+ App Router, <code>output: "standalone"</code></li>
+<li>shadcn/ui + Radix (Dialog, Sheet, Select) + Sonner toasts</li>
+<li>MD3 design tokens in <code>globals.css</code></li>
+<li>Drizzle + SQLite + better-auth</li>
+</ul>
+<h3 id="layering">Layering<a class="headerlink" href="#layering" title="Permanent link">¶</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>Request → middleware (cookie/proxy/bypass)
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>       → app/(dashboard)/layout (requireSession)
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>       → page.tsx (Promise.all reads via lib/host)
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>       → Panels (RSC or client + initial* props)
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>       → actions/* (requireSession + Zod)
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>       → lib/services/* (withMock in tests)
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>       → revalidatePath + toast
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>app/(dashboard)/page.tsx</code></td>
+<td>Thin RSC composer — single <code>Promise.all</code> data load</td>
+</tr>
+<tr>
+<td><code>components/*Panel.tsx</code></td>
+<td>Feature UI; <code>*Client.tsx</code> when interactivity needed</td>
+</tr>
+<tr>
+<td><code>actions/*-actions.ts</code></td>
+<td>Server mutations; <code>"use server"</code></td>
+</tr>
+<tr>
+<td><code>lib/services/*</code></td>
+<td>Host I/O; <code>withMock(mock, real)</code> for hermetic tests</td>
+</tr>
+<tr>
+<td><code>lib/validation.ts</code></td>
+<td>Central Zod schemas</td>
+</tr>
+<tr>
+<td><code>lib/types/index.ts</code></td>
+<td>Domain interfaces and string-literal unions</td>
+</tr>
+</tbody>
+</table>
+<h3 id="server-action-pattern">Server action pattern<a class="headerlink" href="#server-action-pattern" title="Permanent link">¶</a></h3>
+<ol>
+<li><code>"use server"</code> at top</li>
+<li><code>await requireSession()</code> (or <code>requireSessionUser()</code> for audit)</li>
+<li><code>Schema.parse(...)</code> on all inputs</li>
+<li>Delegate to <code>lib/host</code> or repositories</li>
+<li><code>revalidatePath("/")</code> after mutations</li>
+</ol>
+<h3 id="validation-and-security">Validation and security<a class="headerlink" href="#validation-and-security" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Path safety:</strong> <code>PathSchema</code> + <code>lib/path-security.ts</code> (<code>LAB_WHITELIST_BASES</code>)</li>
+<li><strong>Allow-lists:</strong> <code>ALLOWED_UTILITIES</code> Set + <code>UtilityNameSchema</code></li>
+<li><strong>Destructive confirms:</strong> literal schemas (<code>HeavyConfirmSchema = z.literal("yes")</code>, <code>DeleteSecretSchema</code> with <code>"DELETE"</code>)</li>
+<li><strong>Auth:</strong> middleware + layout + per-action <code>requireSession</code>; <code>AUTH_BYPASS</code>/<code>USE_MOCKS</code> forbidden in production</li>
+</ul>
+<h3 id="ui-rules">UI rules<a class="headerlink" href="#ui-rules" title="Permanent link">¶</a></h3>
+<ul>
+<li>Add shadcn components via CLI — do not hand-roll modals</li>
+<li>Overlays: Radix Dialog/Sheet only; toasts via Sonner</li>
+<li>Styling: <code>cn()</code> from <code>lib/utils.ts</code> (clsx + tailwind-merge)</li>
+<li>Test hooks: <code>data-testid</code> on panels and key rows</li>
+<li>Props: <code>initial*</code> prefix for server-hydrated data</li>
+</ul>
+<h3 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Canonical:</strong> <code>bazelisk run //dashboard:hermetic-test</code> (Docker: Vitest + ESLint + typecheck + build + Playwright)</li>
+<li><strong>Local:</strong> <code>bazelisk run //dashboard:test</code> (Vitest with <code>USE_MOCKS=1</code>)</li>
+<li><strong>Coverage:</strong> 100% thresholds on actions, app, components, lib</li>
+<li><strong>Visual goldens:</strong> <code>/dev/ui</code> and <code>/dev/panels</code> fixture routes (not production shell)</li>
+</ul>
+<hr>
+<h2 id="11-documentation">11. Documentation<a class="headerlink" href="#11-documentation" title="Permanent link">¶</a></h2>
+<h3 id="documentation-coverage-mandatory">Documentation coverage (mandatory)<a class="headerlink" href="#documentation-coverage-mandatory" title="Permanent link">¶</a></h3>
+<p>Every tracked source file must have stack-appropriate documentation. This is enforced by review, generators, and coverage gates — not optional polish.</p>
+<table>
+<thead>
+<tr>
+<th>Stack</th>
+<th>Required documentation</th>
+<th>Typing</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Shell</strong> (<code>.sh</code>)</td>
+<td>File-level <code># ##</code> block; <code># @command</code> on every <code>manage.sh</code> dispatch target and utility entrypoints; <code># @function</code> on <strong>every</strong> function in <code>scripts/lib/</code>, <code>scripts/utilities/</code>, and workload scripts under <code>k8s/workloads/</code> / <code>mcp/</code></td>
+<td>N/A (bash)</td>
+</tr>
+<tr>
+<td><strong>Python</strong> (<code>.py</code>)</td>
+<td>Module docstring; docstring on every <code>def</code> / <code>class</code> with Args, Returns, Raises</td>
+<td><code>from __future__ import annotations</code>; full param/return types</td>
+</tr>
+<tr>
+<td><strong>TypeScript</strong> (<code>.ts</code> / <code>.tsx</code>)</td>
+<td>File-level module comment for services/actions; JSDoc on every exported function/class/component with <code>@param</code>, <code>@returns</code>, <code>@throws</code></td>
+<td><code>strict: true</code>; explicit return types on exports</td>
+</tr>
+<tr>
+<td><strong>YAML/YML</strong> (K8s, <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr>, Helm, config)</td>
+<td>Top-of-file <code>#</code> header: Purpose, Source of truth, Regenerate (or <code>n/a</code>), Safety</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><strong>BUILD.bazel</strong></td>
+<td>Package-purpose <code>"""Package purpose: ..."""</code> docstring at top</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><strong>Markdown</strong> (<code>docs/</code>)</td>
+<td>YAML frontmatter + "What's on this page" / "What this enables" (see below); <strong>every</strong> page listed in <code>mkdocs.yml</code> <code>nav</code> must also be in <code>docs/BUILD.bazel</code> data (<code>//docs:serve</code>, <code>//docs:docs</code>, <code>_RENDER_TEST_DATA</code>)</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><strong>ConfigMap language content</strong></td>
+<td>Real files + <code>configMapGenerator</code> <code>files:</code> only — never multi-line embeds of scripts, JSON, nested YAML, or <code>*_JSON</code> blobs</td>
+<td>N/A</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<ul>
+<li><code>*/generated/*</code> — auto-header from render scripts; do not hand-edit</li>
+<li><code>components/ui/**</code> — shadcn generated; skip JSDoc</li>
+<li><code>lib/mocks/**</code>, <code>lib/types/**</code> — test fixtures and type-only modules</li>
+<li>Embedded Python heredocs in shell — document via the enclosing <code># @function</code>, not inline docstrings</li>
+<li><code>k8s/dev/images/**</code> Docker entrypoints — outside the workload shell <code># ##</code> / <code>@function</code> gate</li>
+</ul>
+<p><strong>Coverage gates (fail <code>//:validate</code> / <code>//:test-fast</code>):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Gate</th>
+<th>Enforces</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>//tests:doc_coverage</code></td>
+<td><code>@command</code> / <code>@function</code> / YAML headers / no inline ConfigMap language embeds / no multi-line shell in mcp manifests / mkdocs↔<abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> page lists / BUILD package purpose / dashboard JSDoc</td>
+</tr>
+<tr>
+<td><code>//tests:doc_coverage_unit</code></td>
+<td>Unit tests for the pure helpers behind those rules</td>
+</tr>
+<tr>
+<td><code>//lints:shell</code> (manual lint suite)</td>
+<td>ShellCheck on real <code>.sh</code> files (warnings fail; another reason not to embed scripts in YAML)</td>
+</tr>
+<tr>
+<td><code>//lints:shfmt</code> (manual lint suite)</td>
+<td>Format drift check (<code>shfmt -d -s -i 2 -ci</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Regenerate after API comment changes:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//docs:docs<span class="w">          </span><span class="c1"># shell reference</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//dashboard:docs<span class="w">     </span><span class="c1"># dashboard API</span>
+</span></code></pre></div>
+<p>Hand-written docs live in <code>docs/</code> and are built with <abbr title="Static site generator used for this documentation.">MkDocs</abbr> <abbr title="Material for MkDocs theme powering search, tabs, and tooltips on this site.">Material</abbr>. <strong>Full prose rules</strong> are in <a href="../CONTRIBUTING/">CONTRIBUTING.md</a>. Summary:</p>
+<h3 id="page-structure-required">Page structure (required)<a class="headerlink" href="#page-structure-required" title="Permanent link">¶</a></h3>
+<p>Every <code>.md</code> page needs YAML frontmatter (<code>title</code>, <code>description</code>, <code>tags</code>) and two scannable sections after the title:</p>
+<div class="language-markdown highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="gs">**What's on this page**</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="k">-</span><span class="w"> </span>Bullets describing sections, diagrams, tables
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="gs">**What this enables**</span>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="k">-</span><span class="w"> </span>Bullets on reader benefit
+</span></code></pre></div>
+<h3 id="formatting-rules">Formatting rules<a class="headerlink" href="#formatting-rules" title="Permanent link">¶</a></h3>
+<ul>
+<li>Headings start at <code>##</code> inside pages (title from frontmatter)</li>
+<li><strong>All code fences must specify a language</strong> (<code>bash</code>, <code>yaml</code>, <code>text</code>, <code>mermaid</code>, etc.)</li>
+<li>Blank line before list items that follow prose ending in <code>:</code></li>
+<li>Mermaid: quote node labels with <code>{{...}}</code>; prefer <code>flowchart TD</code></li>
+<li>Use admonitions (<code>!!! warning</code>, <code>!!! info</code>) and tabs for alternatives</li>
+<li><strong>Links to repo-root files</strong> (outside <code>docs/</code>): use full GitHub URLs — <abbr title="Static site generator used for this documentation.">MkDocs</abbr> <code>--strict</code> rejects <code>../</code> paths to non-doc files</li>
+</ul>
+<h3 id="generated-reference">Generated reference<a class="headerlink" href="#generated-reference" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Generator</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shell <code># ##</code> / <code># @command</code> comments</td>
+<td><code>docs/generate_shell_docs.py</code></td>
+<td><code>docs/generated/shell/reference.md</code></td>
+</tr>
+<tr>
+<td>Dashboard JSDoc</td>
+<td>TypeDoc</td>
+<td><code>docs/generated/dashboard-api/</code></td>
+</tr>
+</tbody>
+</table>
+<p>After changing structured comments: <code>bazelisk run //docs:docs</code>. Commit source comments; generated files are derived.</p>
+<p>Preserve <code>{{PLACEHOLDER}}</code> tokens for the interactive command-vars panel on getting-started.</p>
+<h3 id="information-architecture">Information architecture<a class="headerlink" href="#information-architecture" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Home / Getting Started</strong> — new users</li>
+<li><strong>Concepts &amp; Notes</strong> — safety, resources, architecture</li>
+<li><strong>How-to Guides</strong> — task-oriented (<abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>, Gitea, dev workspaces)</li>
+<li><strong>Reference</strong> — generated refs, contributing, conventions</li>
+</ul>
+<hr>
+<h2 id="12-testing">12. Testing<a class="headerlink" href="#12-testing" title="Permanent link">¶</a></h2>
+<p>Tests must be <strong>fast, deterministic, and hermetic</strong>.</p>
+<h3 id="test-driven-development">Test-driven development<a class="headerlink" href="#test-driven-development" title="Permanent link">¶</a></h3>
+<p>Default workflow for non-trivial changes:</p>
+<ol>
+<li><strong>Red</strong> — write or extend a failing test; confirm it fails for the right reason</li>
+<li><strong>Green</strong> — minimum production change to pass</li>
+<li><strong>Refactor</strong> — clean up while keeping tests green</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Write tests in</th>
+<th>Run during TDD</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shell / <code>manage.sh</code></td>
+<td><code>tests/bats/</code></td>
+<td><code>bazelisk test //tests:bats_manage_test</code></td>
+</tr>
+<tr>
+<td>Dashboard</td>
+<td><code>dashboard/**/__tests__/</code></td>
+<td><code>bazelisk run //dashboard:test</code></td>
+</tr>
+<tr>
+<td>Docs generator</td>
+<td><code>docs/test_*.py</code></td>
+<td><code>bazelisk test //docs:test_generate_shell_docs</code></td>
+</tr>
+<tr>
+<td>K8s / safety</td>
+<td><code>tests/safety_invariants.sh</code></td>
+<td><code>bazelisk test //:test-fast</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="test-stacks">Test stacks<a class="headerlink" href="#test-stacks" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Tools</th>
+<th>Key targets</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shell</td>
+<td>BATS + shellcheck + shfmt</td>
+<td><code>//tests:bats_manage_test</code>, <code>//tests:bats_utilities_test</code>, <code>//lints:shell</code>, <code>//lints:shfmt</code></td>
+</tr>
+<tr>
+<td>Kubernetes</td>
+<td>yamllint + kubeconform + safety greps</td>
+<td><code>//lints:k8s</code>, <code>//tests:safety_invariants</code></td>
+</tr>
+<tr>
+<td><abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr></td>
+<td>ansible-lint + syntax</td>
+<td><code>//ansible:validate</code></td>
+</tr>
+<tr>
+<td>Dashboard</td>
+<td>Vitest + Playwright (Docker)</td>
+<td><code>//dashboard:hermetic-test</code></td>
+</tr>
+<tr>
+<td>Docs</td>
+<td>mkdocs strict + visual goldens</td>
+<td><code>//docs:test_mkdocs_render</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="efficiency-local-ci">Efficiency (local + CI)<a class="headerlink" href="#efficiency-local-ci" title="Permanent link">¶</a></h3>
+<p>Keep feedback fast without skipping safety:</p>
+<table>
+<thead>
+<tr>
+<th>Prefer first</th>
+<th>Escalate when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Targeted BATS / Vitest / docs unit (<code>//docs:test_command_vars</code>)</td>
+<td>Broad refactor or merge readiness</td>
+</tr>
+<tr>
+<td>Path-aware <code>bazelisk run //:validate</code></td>
+<td>Unsure which paths changed → <code>--all</code></td>
+</tr>
+<tr>
+<td><code>//dashboard:fast-test</code></td>
+<td>Full hermetic Docker + Playwright (<code>//dashboard:hermetic-test</code>)</td>
+</tr>
+<tr>
+<td><code>//docs:test_mkdocs_build</code></td>
+<td>Visual goldens (<code>//docs:test_mkdocs_render</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>CI path filters (<code>.github/workflows/ci.yml</code> / <code>.gitea/workflows/ci.yml</code>) intentionally skip expensive jobs when unrelated paths change. New tests must not force Playwright or hermetic Docker into <code>//:test-fast</code> without a strong reason. AI agents: see <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/AGENTS.md">AGENTS.md</a> efficiency + end-of-session reflection sections.</p>
+<h3 id="bats-hermetic-strategy">BATS hermetic strategy<a class="headerlink" href="#bats-hermetic-strategy" title="Permanent link">¶</a></h3>
+<ol>
+<li><code>mktemp -d</code> per test in <code>setup()</code></li>
+<li>Copy scripts to temp dir; mock <code>PATH</code> (fake <code>kubectl</code>, <code>helm</code>, etc.)</li>
+<li>Set <code>REPO_ROOT</code>, <code>KUBECONFIG</code>, <code>LAB_MOCK_*</code></li>
+<li><code>teardown</code>: <code>rm -rf "$TEST_TMP_DIR"</code></li>
+</ol>
+<p>A feature without a failing-then-passing test cycle is not complete for behavior changes.</p>
+<p>See <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/tests/README.md">tests/README.md</a> for adding new tests.</p>
+<hr>
+<h2 id="13-change-discipline-and-pr-checklist">13. Change discipline and PR checklist<a class="headerlink" href="#13-change-discipline-and-pr-checklist" title="Permanent link">¶</a></h2>
+<p>A change is <strong>not complete</strong> until everything it touches is updated and validated.</p>
+<h3 id="required-steps">Required steps<a class="headerlink" href="#required-steps" title="Permanent link">¶</a></h3>
+<ol>
+<li>Write or update <strong>failing tests</strong> (TDD red) for behavior changes</li>
+<li>Implement <strong>minimum production change</strong> (TDD green)</li>
+<li>Refactor while keeping tests green</li>
+<li>Update <strong>structured comments</strong> (<code># @command</code>, JSDoc) for generated reference</li>
+<li>Update <code>BUILD.bazel</code> / visibility / data deps if targets change</li>
+<li>Update affected prose: workload READMEs, <code>docs/*.md</code>, root <code>README.md</code> as needed</li>
+<li>Regenerate docs when shell or dashboard API comments changed</li>
+<li>Run <code>bazelisk run //:fix</code> then <code>bazelisk run //:validate</code></li>
+<li><strong>Call out safety impact</strong> for workload, manifest, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr>, restart policy, or resource changes</li>
+</ol>
+<h3 id="pr-checklist">PR checklist<a class="headerlink" href="#pr-checklist" title="Permanent link">¶</a></h3>
+<ul>
+<li>[ ] <code>bazelisk run //:validate</code> passes (or <code>--all</code> before merge)</li>
+<li>[ ] <code>bazelisk run //:fix</code> applied</li>
+<li>[ ] Tests added/updated for behavior changes</li>
+<li>[ ] New models registered in <code>resource-policy.json</code> + <code>safety_invariants.sh</code></li>
+<li>[ ] Structured comments updated for new/changed commands</li>
+<li>[ ] <code>bazelisk run //docs:docs</code> passes if docs/comments changed</li>
+<li>[ ] Safety impact documented in PR description</li>
+</ul>
+<p>Prefer editing the source of truth (comments, manifests, policy YAML) over duplicating prose elsewhere.</p>
+<h3 id="branching-commits-and-promotion">Branching, commits, and promotion<a class="headerlink" href="#branching-commits-and-promotion" title="Permanent link">¶</a></h3>
+<p>Full rules live in the root <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md#branching-commits-prs-and-promotion">CONTRIBUTING.md</a>.</p>
+<p>Key invariants that agents must follow:</p>
+<ul>
+<li>All feature and non-urgent fix work starts from and lands on <code>development</code>.</li>
+<li>Promotion to <code>main</code> is deliberate and requires a PR + full validation.</li>
+<li>Commit messages and PR descriptions are written for other developers (clear, imperative, safety-aware).</li>
+<li>Environments are expressed with Kustomize overlays and config files only — never with long-lived environment branches.</li>
+<li>After any promotion to <code>main</code>, an annotated tag is expected.</li>
+</ul>
+<hr>
+<h2 id="14-non-negotiable-safety-invariants">14. Non-negotiable safety invariants<a class="headerlink" href="#14-non-negotiable-safety-invariants" title="Permanent link">¶</a></h2>
+<p>Enforced by <code>tests/safety_invariants.sh</code> (in <code>//:test-fast</code>) and BATS. <strong>Do not weaken these without explicit review.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Expected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>restartPolicy</code> on inference Jobs</td>
+<td><code>OnFailure</code> or <code>Never</code> — <strong>never <code>Always</code></strong></td>
+</tr>
+<tr>
+<td><code>backoffLimit</code> on heavy jobs</td>
+<td>Present; <code>kimi</code> uses <code>1</code></td>
+</tr>
+<tr>
+<td><code>NCCL_SOCKET_IFNAME</code></td>
+<td>On kimi, nemotron, glm jobs</td>
+</tr>
+<tr>
+<td><code>resources:</code></td>
+<td>On all listed inference jobs and agentic Deployments</td>
+</tr>
+<tr>
+<td>Ray workloads</td>
+<td><code>nvidia.com/gpu</code> in resources</td>
+</tr>
+<tr>
+<td><code>kimi</code> production</td>
+<td><code>securityContext</code>, <code>readinessProbe</code>, <code>livenessProbe</code></td>
+</tr>
+<tr>
+<td><abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> manifests</td>
+<td><code>lab-management</code> PriorityClass, <code>lab-inference-quota</code></td>
+</tr>
+<tr>
+<td>Policy registry</td>
+<td>Every registered model exists in <code>resource-policy.json</code> <code>models</code></td>
+</tr>
+<tr>
+<td><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> / <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr></td>
+<td>Policy files, ansible values, stack registration</td>
+</tr>
+</tbody>
+</table>
+<p>Run locally:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//tests:safety_invariants
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>bazelisk<span class="w"> </span><span class="nb">test</span><span class="w"> </span>//tests:bats_manage_test
+</span></code></pre></div>
+<p>Management script confirmations and <abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> gates must not be bypassed in production code paths.</p>
+<hr>
+<h2 id="quick-reference-checklists">Quick-reference checklists<a class="headerlink" href="#quick-reference-checklists" title="Permanent link">¶</a></h2>
+<h3 id="adding-a-new-inference-workload">Adding a new inference workload<a class="headerlink" href="#adding-a-new-inference-workload" title="Permanent link">¶</a></h3>
+<ol>
+<li>Copy <code>k8s/workloads/kimi-test/</code> structure (job, service, kustomization, README, BUILD.bazel)</li>
+<li>Set conservative <code>resources.requests</code>/<code>limits</code>, <code>restartPolicy: OnFailure</code>, low <code>backoffLimit</code></li>
+<li>Add <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> env vars for multi-node workloads</li>
+<li>Register in <code>config/resource-policy.yaml</code> + <code>.json</code></li>
+<li>Add <code>get_model_job</code> mapping and <code>start-&lt;name&gt;</code> in <code>lib/models.sh</code> / <code>manage.sh</code></li>
+<li>Add model to <code>tests/safety_invariants.sh</code> registry</li>
+<li>Add BATS test with mocked <code>kubectl</code> if start logic is non-trivial</li>
+<li>Write workload README with safety notes</li>
+</ol>
+<h3 id="adding-a-utility-script">Adding a utility script<a class="headerlink" href="#adding-a-utility-script" title="Permanent link">¶</a></h3>
+<ol>
+<li>Create <code>scripts/utilities/&lt;name&gt;.sh</code> with <code>#!/usr/bin/env bash</code> + <code>set -euo pipefail</code></li>
+<li>Implement <code>status [--json]</code> and idempotent <code>run</code></li>
+<li>Source <code>lib/common.sh</code> (diagnostics on stderr); add structured <code># ##</code> / <code># @command</code> / <code># @function</code> comments</li>
+<li>Thin <code>main</code> + BASH_SOURCE source guard (see §6 skeleton)</li>
+<li>Do not touch inference workloads</li>
+<li>Add BATS coverage in <code>tests/bats/utilities.bats</code></li>
+<li>Verify discovery: <code>bazelisk run //scripts:run-utility -- &lt;name&gt; status</code></li>
+<li><code>bazelisk test //lints:shell //lints:shfmt --test_tag_filters=manual</code></li>
+</ol>
+<h3 id="adding-a-dashboard-panel">Adding a dashboard panel<a class="headerlink" href="#adding-a-dashboard-panel" title="Permanent link">¶</a></h3>
+<ol>
+<li>Create <code>components/&lt;Feature&gt;Panel.tsx</code> (RSC or client as appropriate)</li>
+<li>Add data fetch to <code>page.tsx</code> <code>Promise.all</code> or fetch inside RSC panel</li>
+<li>Add Zod schemas in <code>lib/validation.ts</code> for any mutations</li>
+<li>Add server actions in <code>actions/</code> with <code>requireSession()</code> + <code>revalidatePath</code></li>
+<li>Add service in <code>lib/services/</code> with <code>withMock()</code> for tests</li>
+<li>Add Vitest tests (100% coverage on new lib/actions code)</li>
+<li>Add <code>data-testid</code> hooks; update visual fixtures if UI changes</li>
+<li>Run <code>bazelisk run //dashboard:hermetic-test</code> before merge</li>
+</ol>
+<h3 id="adding-a-docs-page">Adding a docs page<a class="headerlink" href="#adding-a-docs-page" title="Permanent link">¶</a></h3>
+<ol>
+<li>Create <code>docs/&lt;name&gt;.md</code> with frontmatter and required overview sections</li>
+<li>Add to <code>mkdocs.yml</code> nav under the right section</li>
+<li>Use language-tagged fences; blank line before lists</li>
+<li>Run <code>bazelisk test //docs:test_mkdocs_render</code></li>
+</ol>
+<hr>
+<h2 id="related-links">Related links<a class="headerlink" href="#related-links" title="Permanent link">¶</a></h2>
+<ul>
+<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md">CONTRIBUTING.md (repo root)</a> — contribution hub and full branching / PR / promotion model</li>
+<li><a href="../CONTRIBUTING/">CONTRIBUTING.md (docs)</a> — <abbr title="Static site generator used for this documentation.">MkDocs</abbr> prose rules</li>
+<li><a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md">AGENTS.md</a> — AI agent workflow</li>
+<li><a href="../BUILDING_WITH_BAZEL/">BUILDING_WITH_BAZEL.md</a> — <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> targets and CI</li>
+<li><a href="../resource-guard/">resource-guard.md</a> — capacity policy deep dive</li>
+<li><a href="../reboot-safety/">reboot-safety.md</a> — stop-before-reboot procedures</li>
+<li><a href="../generated/shell/reference/">generated shell reference</a> — auto-generated commands</li>
+</ul>
+<!--
+  Project-wide glossary abbreviations (Material tooltips).
+  Auto-appended to every page via pymdownx.snippets in mkdocs.yml.
+  Keep definitions short (tooltip-sized). Longer prose lives in docs/glossary.md.
+-->
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden="">
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../assets/javascripts/command-vars.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

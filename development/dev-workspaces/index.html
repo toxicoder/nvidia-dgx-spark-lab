@@ -1,0 +1,1660 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head><script>(function(){try{var orig=window.fetch;if(typeof orig==="function"){window.fetch=function(i,init){var u=(typeof i==="string")?i:(i&&typeof i.url==="string"?i.url:"");if(u.indexOf("api.github.com/repos/toxicoder/nvidia-dgx-spark-lab")!==-1){return Promise.resolve(new Response("{}", {status:200,headers:{"Content-Type":"application/json"}}));}return orig.apply(this,arguments);};}}catch(e){}try{var XHR=window.XMLHttpRequest;if(XHR&&XHR.prototype){var p=XHR.prototype,open=p.open;p.open=function(m,u){if(typeof u==="string"&&u.indexOf("api.github.com/repos/toxicoder/nvidia-dgx-spark-lab")!==-1){var self=this;Object.defineProperty(self,"responseText",{get:function(){return"{}"},configurable:!0});Object.defineProperty(self,"status",{get:function(){return 200},configurable:!0});Object.defineProperty(self,"readyState",{get:function(){return 4},configurable:!0});self.send=function(){setTimeout(function(){try{if(typeof self.onreadystatechange==="function")self.onreadystatechange.call(self);}catch(_){}try{if(typeof self.onload==="function")self.onload.call(self);}catch(_){}},0);};return;}return open.apply(this,arguments);};}}catch(e){}})();</script>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Coder, Kasm, and the custom Spark Lab Dashboard — NodePort access, Ansible setup, auth, SQLite persistence, and safety notes for dev tooling on-cluster.">
+      
+      
+      
+        <link rel="canonical" href="https://toxicoder.github.io/nvidia-dgx-spark-lab/development/dev-workspaces/">
+      
+      
+        <link rel="prev" href="../gitea-ci-setup/">
+      
+      
+        <link rel="next" href="../troubleshooting/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Remote Developer Workspaces &amp; Dashboard - nvidia-dgx-spark-lab</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Open Sans";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/command-vars.css">
+    
+      <link rel="stylesheet" href="../assets/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#remote-developer-workspaces-dashboard" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="nvidia-dgx-spark-lab" class="md-header__button md-logo" aria-label="nvidia-dgx-spark-lab" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            nvidia-dgx-spark-lab
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Remote Developer Workspaces &amp; Dashboard
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to system preference" type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required="">
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard="" data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"></path></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix="">
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../getting-started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../dgx-spark-notes/" class="md-tabs__link">
+          
+  
+  
+  Concepts &amp; Notes
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../dev-environment/" class="md-tabs__link">
+          
+  
+  
+  How-to Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../project-conventions/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="nvidia-dgx-spark-lab" class="md-nav__button md-logo" aria-label="nvidia-dgx-spark-lab" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    nvidia-dgx-spark-lab
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix="">
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../dgx-spark-notes/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts &amp; Notes
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked="">
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How-to Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How-to Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev-environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../BUILDING_WITH_BAZEL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bazel Documentation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gitea-ci-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gitea CI Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dev Workspaces &amp; Dashboard
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dev Workspaces &amp; Dashboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites-exposure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites &amp; Exposure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ansible-helm-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ansible / Helm Details
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hermes-dev-assistant-coder-kasm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hermes dev assistant (Coder + Kasm)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#coder-template-hermes-sidecar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coder template (Hermes sidecar)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kasm-desktop-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kasm desktop image
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dashboard-details-nextjs-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dashboard Details (Next.js 16)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dashboard Details (Next.js 16)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#build-and-deploy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build and deploy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sqlite-volume" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SQLite volume
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#core-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dashboard-workspaces-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dashboard Workspaces panel
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#safety-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Safety &amp; Resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#updating-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updating / Versions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../project-conventions/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites-exposure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites &amp; Exposure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ansible-helm-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ansible / Helm Details
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hermes-dev-assistant-coder-kasm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hermes dev assistant (Coder + Kasm)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#coder-template-hermes-sidecar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coder template (Hermes sidecar)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kasm-desktop-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kasm desktop image
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dashboard-details-nextjs-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dashboard Details (Next.js 16)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dashboard Details (Next.js 16)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#build-and-deploy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build and deploy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sqlite-volume" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SQLite volume
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#core-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dashboard-workspaces-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dashboard Workspaces panel
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#safety-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Safety &amp; Resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#updating-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updating / Versions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation">
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href=".." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../dev-environment/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    How-to Guides
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset"><div class="dgx-docs-dev-banner" role="status"><strong>Development docs</strong> — this site version tracks the <code>development</code> branch and may change without a release tag. Prefer <a href="../latest/">latest</a> for production-ready guidance.</div>
+                
+                  
+
+
+  
+  
+
+
+<h1 id="remote-developer-workspaces-dashboard">Remote Developer Workspaces &amp; Dashboard<a class="headerlink" href="#remote-developer-workspaces-dashboard" title="Permanent link">¶</a></h1>
+<p><strong>What's on this page</strong></p>
+<ul>
+<li>Coder, Kasm, and the custom Spark Lab Dashboard (Headlamp + Grafana + Next.js portal)</li>
+<li>NodePort access, <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> quick start, and resource/safety notes</li>
+<li>Dashboard auth, SQLite persistence, Docker build, and K8s Secret setup</li>
+</ul>
+<p><strong>What this enables</strong></p>
+<ul>
+<li>Remote browser access to dev workspaces and cluster management without local heavy setup</li>
+<li>A self-hosted lab portal with Tasks, Storage treemap, Machine State, and Utilities</li>
+<li>Documented login and persistence configuration for production-like dashboard deploys</li>
+</ul>
+<p>This lab now supports running <strong>Coder</strong> (self-hosted VS Code + workspaces), <strong>Kasm Workspaces</strong> (browser desktops/apps), and a custom <strong>improved DGX Lab Dashboard</strong> (Headlamp + Grafana + lab portal) directly on the DGX Spark cluster.</p>
+<p>Goal: remotely connect via browser and have everything needed to work on the lab or other projects, without local heavy setup.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Coder</strong>: Hosted VS Code IDE. Provisions workspaces as K8s pods (templates define image, resources, mounts). Clone this repo inside a workspace, run bazel/make, use local cluster tools.</li>
+<li><strong>Kasm</strong>: Additional flexibility for containerized or desktop sessions streamed to browser.</li>
+<li><strong>Dashboard stack</strong>:</li>
+<li><strong>Headlamp</strong> (CNCF): full modern K8s web UI.</li>
+<li><strong>Grafana</strong> (+ Prometheus/DCGM via <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr>): metrics, GPU util graphs, node health, inference pods.</li>
+<li><strong>Custom Spark Lab Portal</strong>: Self-hosted Next.js 16+ app (refactored; legacy static nginx removed 2026) featuring:</li>
+<li><strong>Tasks</strong> (default): Docker containers, Ollama models/services, with real stop/delete actions.</li>
+<li><strong>Storage</strong>: interactive treemap size viz, largest files, move/delete, duplicate finder scoped to safe paths.</li>
+<li><strong>Machine State</strong>: packages, running services, NVIDIA/OS identity.
+  Plus links to Grafana/Headlamp and legacy inference controls.</li>
+</ul>
+<p>All use explicit resource requests/limits. Dev management components use Deployments (<abbr title="Kubernetes Job pod restart behavior (lab heavy jobs use OnFailure or Never).">restartPolicy</abbr> handled by controller). Inference remains strict Jobs.</p>
+<h2 id="prerequisites-exposure">Prerequisites &amp; Exposure<a class="headerlink" href="#prerequisites-exposure" title="Permanent link">¶</a></h2>
+<ul>
+<li>Cluster bootstrapped + <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> installed.</li>
+<li>Helm available (playbook installs if needed).</li>
+<li><strong>Remote access</strong>: </li>
+<li>Primary: NodePorts (default 32080 Coder, 32081 Kasm, 32082 custom dashboard, 32083 Grafana, 32084 Headlamp).</li>
+<li>From control machine: <code>ssh -L 32080:localhost:32080 user@spark0-ip</code> or open firewall for trusted nets.</li>
+<li>Recommended for "super easy": VPN (Tailscale etc.) + NodePort or ClusterIP.</li>
+<li><strong>SSO (recommended):</strong> <abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr> v3 + <abbr title="Open-source authentication and authorization server used for lab SSO.">Authelia</abbr> on <code>https://*.lab.local:32443</code> — see <a href="../sso/">SSO guide</a>. <abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr> bundled <abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr> stays disabled; standalone Helm <abbr title="Cloud-native reverse proxy / ingress used with Authelia for SSO routes.">Traefik</abbr> is used instead.</li>
+<li><strong>Legacy direct NodePorts:</strong> <code>:32080</code>–<code>:32084</code> still work as SSO bypass when <code>SSO_BYPASS_NODEPORTS=1</code>.</li>
+</ul>
+<p><strong>Important safety</strong>: Always <code>manage.sh stop</code> before reboot. Dev components have limits to avoid impacting inference capacity.</p>
+<p>See <code>ansible/inventory/group_vars/all.yml</code> for reference defaults (versions, ports, resources). Authoritative deploy values are in the Helm values files and <code>k8s/dev/dashboard/deployment.yaml</code>.</p>
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">¶</a></h2>
+<ol>
+<li>From workstation with <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> + cluster access:</li>
+</ol>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ansible-playbook<span class="w"> </span>-i<span class="w"> </span>inventory/hosts.ini<span class="w"> </span>playbooks/install-dev-workspaces.yml
+</span></code></pre></div>
+<ol>
+<li>Use manage script (after KUBECONFIG set):</li>
+</ol>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>./scripts/manage.sh<span class="w"> </span>start-coder
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>./scripts/manage.sh<span class="w"> </span>start-kasm
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>./scripts/manage.sh<span class="w"> </span>start-monitoring<span class="w">   </span><span class="c1"># grafana + headlamp + custom portal</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>./scripts/manage.sh<span class="w"> </span>status
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>./scripts/manage.sh<span class="w"> </span>stop-dev
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>./scripts/manage.sh<span class="w"> </span><span class="nb">help</span>
+</span></code></pre></div>
+<ol>
+<li>Access:</li>
+<li>Coder: http://<node-ip>:32080 (first run creates admin; set ACCESS_URL in values if needed for workspace agent comms).</node-ip></li>
+<li>Custom dashboard + links: http://<node-ip>:32082</node-ip></li>
+<li>Grafana: :32083 (default admin/admin or per values)</li>
+<li>Headlamp: :32084</li>
+</ol>
+<p>Inside Coder workspace template (see below): you get a full dev env with this repo, bazel, kubectl (via mounted kubeconfig or in-cluster SA), and can run <code>./scripts/manage.sh start-test</code> etc from inside the cluster.</p>
+<h2 id="ansible-helm-details"><abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> / Helm Details<a class="headerlink" href="#ansible-helm-details" title="Permanent link">¶</a></h2>
+<p>Playbook <code>install-dev-workspaces.yml</code> follows the <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> pattern:</p>
+<ul>
+<li>Ensure helm.</li>
+<li>Create namespaces (coder, kasm, monitoring).</li>
+<li>helm repo add + upgrade --install with values.</li>
+<li>Waits and verification.</li>
+</ul>
+<p>Values examples committed under <code>ansible/files/</code> or <code>k8s/dev/</code> (copy/edit before run for production DB etc.).</p>
+<p>In-cluster Postgres used for Coder POC (Bitnami); production use external managed Postgres and update secret.</p>
+<p>Grafana can consume GPU metrics if DCGM exporter enabled by <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> (default in recent).</p>
+<h2 id="hermes-dev-assistant-coder-kasm"><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> dev assistant (Coder + Kasm)<a class="headerlink" href="#hermes-dev-assistant-coder-kasm" title="Permanent link">¶</a></h2>
+<p>Coder and Kasm workspaces ship a <strong>coding-focused</strong> <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> Agent (<code>workspace-dev</code> profile), separate from the persistent host operator (<code>hermes-lab</code> on the Spark node).</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Host <code>hermes-lab</code></th>
+<th>Workspace <code>workspace-dev</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Purpose</td>
+<td>Lab operator / cluster management</td>
+<td>Repo edits, bazel, in-workspace coding</td>
+</tr>
+<tr>
+<td>Where</td>
+<td>Docker on Spark host</td>
+<td>Coder pod sidecar or Kasm desktop image</td>
+</tr>
+<tr>
+<td>Inference</td>
+<td><code>kubectl port-forward</code> → localhost</td>
+<td>In-cluster <code>*.ai-inference.svc.cluster.local</code></td>
+</tr>
+<tr>
+<td><abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr></td>
+<td>NodePorts on host</td>
+<td>In-cluster <code>*.agent-tools.svc.cluster.local</code></td>
+</tr>
+<tr>
+<td>Dashboard</td>
+<td><code>http://&lt;node-ip&gt;:9119</code></td>
+<td><code>http://127.0.0.1:9119</code> inside the workspace</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Prerequisites</strong> (same as host <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr>, but no host Docker agent required):</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>nemotron-stack<span class="w"> </span>start<span class="w"> </span>nemotron-agentic-spark-1<span class="w"> </span>--confirm<span class="w"> </span>yes
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>mcp-stack<span class="w"> </span>start<span class="w"> </span>mcp-agent-toolkit<span class="w"> </span>--confirm<span class="w"> </span>yes
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>workspace-hermes<span class="w"> </span>verify
+</span></code></pre></div>
+<p>Profile distribution: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/main/hermes/profiles/workspace-dev"><code>hermes/profiles/workspace-dev/</code></a>.</p>
+<h2 id="coder-template-hermes-sidecar">Coder template (<abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> sidecar)<a class="headerlink" href="#coder-template-hermes-sidecar" title="Permanent link">¶</a></h2>
+<p>Committed template: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/main/k8s/dev/templates/coder-spark-lab"><code>k8s/dev/templates/coder-spark-lab/</code></a>.</p>
+<p>Each workspace pod runs two containers sharing a network namespace:</p>
+<ul>
+<li><strong>dev</strong> — <code>spark-lab-coder-workspace</code> image (bazelisk, kubectl, helm, ansible)</li>
+<li><strong>hermes</strong> — <code>nousresearch/hermes-agent:latest</code> gateway sidecar with per-workspace <abbr title="PersistentVolumeClaim — Kubernetes request for durable storage.">PVC</abbr></li>
+</ul>
+<p><strong>Build workspace image</strong> (from repo root):</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>spark-lab-coder-workspace:latest<span class="w"> </span>-f<span class="w"> </span>k8s/dev/images/coder-workspace/Dockerfile<span class="w"> </span>.
+</span></code></pre></div>
+<p><strong>Register template in Coder:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">cd</span><span class="w"> </span>k8s/dev/templates/coder-spark-lab
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>coder<span class="w"> </span>templates<span class="w"> </span>create<span class="w"> </span>spark-lab-dev
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># or: coder templates push spark-lab-dev</span>
+</span></code></pre></div>
+<p>Inside a running workspace:</p>
+<ul>
+<li><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> dashboard: <strong>Coder app</strong> “<abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> Dev Assistant” or <code>http://127.0.0.1:9119</code></li>
+<li>Gateway API: <code>http://127.0.0.1:8642/v1</code> (Bearer token in workspace Secret)</li>
+<li><abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> client config seeded to <code>~/.cursor/mcp.json</code> and <code>~/.vscode/mcp.json</code></li>
+</ul>
+<p>Workspaces land in namespace <code>coder-workspaces</code> (see <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/k8s/base/namespaces-dev.yaml"><code>k8s/base/namespaces-dev.yaml</code></a>).</p>
+<h2 id="kasm-desktop-image">Kasm desktop image<a class="headerlink" href="#kasm-desktop-image" title="Permanent link">¶</a></h2>
+<p>Build on the Spark node (where the Kasm agent pulls images):</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>./scripts/utilities/kasm-workspace-image.sh<span class="w"> </span>build
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="c1"># Image tag: spark-lab-kasm-desktop:1.19.0</span>
+</span></code></pre></div>
+<p>Register in <strong>Kasm Admin → Workspaces → Add Workspace</strong>:</p>
+<ul>
+<li>Docker Image: <code>spark-lab-kasm-desktop:1.19.0</code></li>
+<li>Use an explicit tag (Kasm does not assume <code>latest</code>)</li>
+</ul>
+<p>The image starts <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> <code>workspace-dev</code> in the background on session launch. Desktop shortcuts open the dashboard (<code>:9119</code>) and <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> CLI.</p>
+<h2 id="dashboard-details-nextjs-16">Dashboard Details (Next.js 16)<a class="headerlink" href="#dashboard-details-nextjs-16" title="Permanent link">¶</a></h2>
+<p>The custom portal is a self-hosted <strong>Next.js 16</strong> application (<code>dashboard/</code>) with <strong>better-auth</strong> session protection and <strong>Drizzle + SQLite</strong> persistence for utility run history and preferences.</p>
+<h3 id="build-and-deploy">Build and deploy<a class="headerlink" href="#build-and-deploy" title="Permanent link">¶</a></h3>
+<p>Build from the <strong>repository root</strong> (the image bundles <code>scripts/utilities/</code> for the Utilities panel):</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>lab-dashboard:local<span class="w"> </span>-f<span class="w"> </span>dashboard/Dockerfile<span class="w"> </span>.
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>k8s/dev/dashboard/
+</span></code></pre></div>
+<p>Or use local compose:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>dashboard/docker-compose.yml<span class="w"> </span>up<span class="w"> </span>--build
+</span></code></pre></div>
+<p>The container entrypoint applies Drizzle migrations to <code>DATABASE_URL</code> before starting the server.</p>
+<h3 id="authentication">Authentication<a class="headerlink" href="#authentication" title="Permanent link">¶</a></h3>
+<ol>
+<li>Create the auth Secret (do not commit real passwords):</li>
+</ol>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>kubectl<span class="w"> </span>create<span class="w"> </span>secret<span class="w"> </span>generic<span class="w"> </span>lab-dashboard-auth<span class="w"> </span>-n<span class="w"> </span>dev<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span>--from-literal<span class="o">=</span><span class="nv">secret</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-base64<span class="w"> </span><span class="m">32</span><span class="k">)</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span>--from-literal<span class="o">=</span>admin-email<span class="o">=</span><span class="s1">'admin@lab.local'</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span>--from-literal<span class="o">=</span>admin-password<span class="o">=</span><span class="s1">'change-me-on-first-login'</span>
+</span></code></pre></div>
+<p>See <code>k8s/dev/dashboard/auth-secret.yaml.example</code> for the template.</p>
+<ol>
+<li>Create the secrets vault master key (separate from auth; loss is unrecoverable):</li>
+</ol>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>./scripts/manage.sh<span class="w"> </span>secrets<span class="w"> </span>ensure-key
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="c1"># or: kubectl create secret generic lab-dashboard-secrets -n dev \</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1">#       --from-literal=master-key="$(openssl rand -base64 32)"</span>
+</span></code></pre></div>
+<p>See <code>k8s/dev/dashboard/secrets-master.yaml.example</code>. Manage API keys and tokens in the dashboard <strong>Secrets Vault</strong> panel (<code>#secrets</code>); values are AES-256-GCM encrypted in SQLite and can sync to Kubernetes Secrets in <code>dev</code> or <code>ai-inference</code>.</p>
+<ol>
+<li>
+<p>Set browser-reachable URLs in <code>k8s/dev/dashboard/deployment.yaml</code>:</p>
+</li>
+<li>
+<p><code>BETTER_AUTH_URL</code> — e.g. <code>http://&lt;node-ip&gt;:32082</code></p>
+</li>
+<li>
+<p><code>NEXT_PUBLIC_BETTER_AUTH_URL</code> — same value for client-side login</p>
+</li>
+<li>
+<p>On first boot with an empty database, the dashboard seeds the admin user from <code>LAB_DASHBOARD_ADMIN_EMAIL</code> / <code>LAB_DASHBOARD_ADMIN_PASSWORD</code> (from the Secret).</p>
+</li>
+<li>
+<p>Open <code>http://&lt;node-ip&gt;:32082/login</code> and sign in.</p>
+</li>
+</ol>
+<p><strong>Test bypass</strong> (Vitest / Playwright only): <code>AUTH_BYPASS=1</code> or <code>USE_MOCKS=1</code>.</p>
+<h3 id="sqlite-volume">SQLite volume<a class="headerlink" href="#sqlite-volume" title="Permanent link">¶</a></h3>
+<p>The deployment mounts an <code>emptyDir</code> at <code>/data</code> with:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>DATABASE_URL=file:/data/lab-dashboard.db
+</span></code></pre></div>
+<p>For durable history across pod restarts, replace <code>emptyDir</code> with a small <abbr title="PersistentVolumeClaim — Kubernetes request for durable storage.">PVC</abbr> in production.</p>
+<h3 id="core-features">Core features<a class="headerlink" href="#core-features" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Tasks</strong> — Docker containers and Ollama models/services (stop/delete with confirmations)</li>
+<li><strong>Storage</strong> — interactive treemap, drill-down, duplicate finder (scoped to <code>LAB_WHITELIST_BASES</code>)</li>
+<li><strong>Workspaces</strong> — Coder and Kasm toggles with embedded iframes when running (see below)</li>
+<li><strong>Machine State</strong> — packages, services, NVIDIA/OS identity</li>
+<li><strong>Utilities</strong> — allow-listed <code>scripts/utilities/*.sh</code> with run history in SQLite</li>
+</ul>
+<p>Headlamp and Grafana provide deeper cluster views (edit resources, explore pods, historical graphs).</p>
+<h3 id="dashboard-workspaces-panel">Dashboard Workspaces panel<a class="headerlink" href="#dashboard-workspaces-panel" title="Permanent link">¶</a></h3>
+<p>The <strong>Workspaces</strong> sidebar section (<code>#workspaces</code>) embeds Coder and Kasm in-tab when running, with per-service Helm start/stop toggles so you can reclaim ~2 CPU / 4Gi per stack under tight capacity.</p>
+<p><strong>Behavior:</strong></p>
+<ul>
+<li><strong>Coder | Kasm tabs</strong> — one nav item, two workspace views</li>
+<li><strong>Switch toggle</strong> — start (<code>helm upgrade --install</code>) or stop (<code>helm uninstall</code>) individually; stop asks for confirmation</li>
+<li><strong>Iframe embed</strong> — loads NodePort URL when <code>running</code>; falls back to <strong>Open in new tab</strong> if blocked by <code>X-Frame-Options</code> or still starting</li>
+<li><strong>Status polling</strong> — refreshes every 5s while starting/stopping (Helm wait up to ~8m)</li>
+</ul>
+<p><strong>Environment variables</strong> (set in <code>k8s/dev/dashboard/deployment.yaml</code> or <code>helm/lab-dashboard</code> values):</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LAB_WORKSPACE_HOST</code></td>
+<td>Hostname/IP the browser uses to reach Coder/Kasm (e.g. node IP)</td>
+</tr>
+<tr>
+<td><code>CODER_PORT</code> / <code>KASM_PORT</code></td>
+<td>NodePorts (default <code>32080</code> / <code>32081</code>)</td>
+</tr>
+<tr>
+<td><code>NEXT_PUBLIC_CODER_URL</code> / <code>NEXT_PUBLIC_KASM_URL</code></td>
+<td>Optional full URL overrides for iframe <code>src</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>CLI equivalents:</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>./scripts/manage.sh<span class="w"> </span>start-coder
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>./scripts/manage.sh<span class="w"> </span>stop-coder
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>./scripts/manage.sh<span class="w"> </span>start-kasm
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>./scripts/manage.sh<span class="w"> </span>stop-kasm
+</span></code></pre></div>
+<p>The dashboard utility <code>scripts/utilities/dev-workspaces.sh</code> wraps the same logic for the UI. RBAC in <code>k8s/dev/dashboard/rbac.yaml</code> grants the dashboard ServiceAccount Helm lifecycle in <code>coder</code> and <code>kasm</code> namespaces only.</p>
+<p><strong>Safety:</strong> Toggling workspaces does not touch <code>ai-inference</code> Jobs. Still run <code>stop-dev</code> / <code>stop</code> before node reboot.</p>
+<p>See <code>dashboard/AGENTS.md</code> and <code>dashboard/Dockerfile</code> for stack details.</p>
+<h2 id="safety-resources">Safety &amp; Resources<a class="headerlink" href="#safety-resources" title="Permanent link">¶</a></h2>
+<ul>
+<li>All components declare requests + limits (see group_vars and values).</li>
+<li>Inference unchanged: Jobs, OnFailure + backoff 1, 0.82 util, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> highspeed only in relevant workloads, no Always.</li>
+<li>Dev tools are intentionally lighter and restart-tolerant.</li>
+<li><code>manage.sh</code> new paths have preflight cluster checks; heavy prompts untouched.</li>
+<li>After changes always validate: <code>bazelisk test //...</code></li>
+</ul>
+<p>Before reboot: <code>./scripts/manage.sh stop-dev ; ./scripts/manage.sh stop</code></p>
+<h2 id="updating-versions">Updating / Versions<a class="headerlink" href="#updating-versions" title="Permanent link">¶</a></h2>
+<p>Pin via group_vars. Re-run the dev playbook to upgrade.</p>
+<p>For custom UI changes: edit the Next.js app under <code>dashboard/</code>, rebuild the image, and roll the deployment.</p>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
+<ul>
+<li>Coder workspaces stuck "connecting": ensure CODER_ACCESS_URL points to reachable (NodePort or DNS).</li>
+<li>Metrics empty: check <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> installed + DCGM; <code>kubectl get pods -n gpu-operator</code>.</li>
+<li>Port conflict: override nodeports in values or inventory.</li>
+<li>Logs: <code>kubectl logs -n coder deploy/coder</code> etc.</li>
+</ul>
+<h2 id="next">Next<a class="headerlink" href="#next" title="Permanent link">¶</a></h2>
+<p>See getting-started.md for base cluster. Use this to develop the lab itself inside Coder workspaces running on the DGX Spark hardware.</p>
+<p>Contributions: keep resources explicit, update tests/BATS, run full bazel validation.</p>
+<!--
+  Project-wide glossary abbreviations (Material tooltips).
+  Auto-appended to every page via pymdownx.snippets in mkdocs.yml.
+  Keep definitions short (tooltip-sized). Longer prose lives in docs/glossary.md.
+-->
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden="">
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../assets/javascripts/command-vars.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
