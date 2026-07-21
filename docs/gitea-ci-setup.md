@@ -37,9 +37,9 @@ name: Gitea - Bazel + Lint
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, development, dev]
   pull_request:
-    branches: [main, master]
+    branches: [main, master, development, dev]
 
 jobs:
   bazel-test:

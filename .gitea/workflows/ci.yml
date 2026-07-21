@@ -5,9 +5,9 @@ name: CI - Test Suite
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, development, dev]
   pull_request:
-    branches: [main, master]
+    branches: [main, master, development, dev]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
