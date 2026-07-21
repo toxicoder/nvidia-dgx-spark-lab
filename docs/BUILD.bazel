@@ -139,6 +139,22 @@ sh_test(
     visibility = ["//visibility:public"],
 )
 
+# Interactive cluster-vars panel (seed/merge/profile contract + optional Playwright).
+sh_test(
+    name = "test_command_vars",
+    srcs = ["test_command_vars.sh"],
+    data = [
+        "assets",
+        "getting-started.md",
+        "hooks.py",
+        "requirements.txt",
+        "test_command_vars.py",
+        "test_command_vars.sh",
+        "//:mkdocs.yml",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # Render test data (shared). Includes goldens so the test (and update) can
 # read committed screenshots for visual diff enforcement.
 # Generated nav pages: shell reference + dashboard-api README tree (strict mkdocs).
