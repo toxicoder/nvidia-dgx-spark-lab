@@ -1414,7 +1414,7 @@
 </tr>
 </tbody>
 </table>
-<p>Workflow: <code>.github/workflows/deploy-docs.yml</code> runs on push to <code>main</code>/<code>master</code>/<code>development</code> (docs paths). After <code>//docs:docs</code> generates content, <code>mike deploy --push</code> updates the version alias on the <code>gh-pages</code> branch.</p>
+<p>Workflow: <code>.github/workflows/deploy-docs.yml</code> runs <strong>only on push</strong> to <code>main</code>/<code>master</code>/<code>development</code> (docs paths) or <code>workflow_dispatch</code> — not on <code>pull_request</code>. Merging a PR into those branches is what publishes. After <code>//docs:docs</code> generates content, <code>mike deploy --push</code> updates the version alias on the <code>gh-pages</code> branch. PR-time docs validation is CI (<code>docs-and-render</code>), not this workflow.</p>
 <p><strong>Repo setting:</strong> GitHub Pages source should be the <strong><code>gh-pages</code> branch</strong> (not “GitHub Actions” artifact-only) once mike has published. Development builds set <code>DGX_DOCS_VERSION=development</code> so hooks inject a non-production banner.</p>
 <p>Local single-version builds (<code>bazelisk run //docs:serve</code>) do not need mike; the version selector simply has no alternate aliases offline.</p>
 <h3 id="why-this-design">Why this design?<a class="headerlink" href="#why-this-design" title="Permanent link">¶</a></h3>
