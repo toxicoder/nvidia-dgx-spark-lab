@@ -1,0 +1,26 @@
+# Purpose: Kubernetes Service for glm-5.3-flash leader OpenAI endpoint
+# Source of truth: k8s/workloads/glm-5.3-flash/
+# Regenerate: n/a
+# Safety: hostNetwork leader; ClusterIP still useful in-cluster; protect with SSO
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+  name: glm-5.3-flash
+  namespace: ai-inference
+  labels:
+    app: glm-5.3-flash
+    family: glm-5.3
+spec:
+  selector:
+    app: glm-5.3-flash
+    role: leader
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: http
+  type: ClusterIP

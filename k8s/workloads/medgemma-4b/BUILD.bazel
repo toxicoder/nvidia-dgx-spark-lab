@@ -1,0 +1,24 @@
+"""Package purpose: Optional MedGemma 4B sidecar inference job manifests and service exports."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "medgemma_4b_job",
+    srcs = [
+        "kustomization.yaml",
+        "medgemma-4b-job.yaml",
+        "service.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+exports_files([
+    "kustomization.yaml",
+    "medgemma-4b-job.yaml",
+    "service.yaml",
+])

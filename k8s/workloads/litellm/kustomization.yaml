@@ -1,0 +1,25 @@
+# Purpose: Kustomize bundle for LiteLLM management proxy
+# Source of truth: k8s/workloads/litellm/
+# Regenerate: n/a
+# Safety: ConfigMap from real files only; no inline blobs
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ai-inference
+
+configMapGenerator:
+  - name: litellm-config
+    files:
+      - config.yaml=files/litellm_config.yaml
+      - lab-med-system.txt=files/lab-med-system.txt
+      - lab-med-frontier-fallback.txt=files/lab-med-frontier-fallback.txt
+    options:
+      labels:
+        app: litellm
+        workload: management
+      disableNameSuffixHash: true
+
+resources:
+  - litellm-deployment.yaml
+  - service.yaml

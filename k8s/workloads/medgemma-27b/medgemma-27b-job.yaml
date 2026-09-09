@@ -1,0 +1,113 @@
+# Purpose: MedGemma 27B multimodal Job on spark2 (Mode A medical lane)
+# Source of truth: k8s/workloads/medgemma-27b/
+# Regenerate: n/a
+# Safety: manual start only; not a medical device; HAI-DEF license; gpu-mem-util 0.72
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: medgemma-27b
+  namespace: ai-inference
+  labels:
+    app: medgemma-27b
+    workload: inference
+    mode: production
+    family: medgemma
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 7200
+  template:
+    metadata:
+      labels:
+        app: medgemma-27b
+        workload: inference
+        mode: production
+        family: medgemma
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      restartPolicy: OnFailure
+      nodeSelector:
+        kubernetes.io/hostname: spark2
+      containers:
+        - name: inference
+          # Gemma 3 family; same engine as Qwen3.6 Jobs (no Gemma-only tag required).
+          image: vllm/vllm-openai:cu130-nightly
+          imagePullPolicy: IfNotPresent
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+          resources:
+            requests:
+              cpu: "8"
+              memory: "48Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "16"
+              memory: "56Gi"
+              nvidia.com/gpu: "1"
+          env:
+            - name: CUTE_DSL_ARCH
+              value: "sm_121a"
+            - name: MODEL_NAME
+              value: "google/medgemma-27b-multimodal"
+            - name: HF_HOME
+              value: "/models"
+            - name: VLLM_PORT
+              value: "8000"
+            - name: VLLM_ALLOW_LONG_MAX_MODEL_LEN
+              value: "1"
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 180
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 360
+            periodSeconds: 30
+            timeoutSeconds: 10
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              exec vllm serve "${MODEL_NAME}"
+              --host 0.0.0.0
+              --port 8000
+              --tensor-parallel-size 1
+              --trust-remote-code
+              --served-model-name medgemma-27b
+              --quantization fp8
+              --kv-cache-dtype fp8
+              --gpu-memory-utilization 0.72
+              --max-model-len 32768
+              --enable-prefix-caching
+              --limit-mm-per-prompt image=4
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 16Gi

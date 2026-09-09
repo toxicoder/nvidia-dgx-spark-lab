@@ -19,6 +19,10 @@
 # qwen3.6-27b-nvfp4: 1-node Qwen3.6 27B dense NVFP4 (quality)
 # qwen3.6-35b-a3b-nvfp4: 1-node Qwen3.6 35B-A3B MoE NVFP4-Fast (speed)
 # qwen36-dual-spark-1: concurrent both on 1× Spark (GPU time-slicing)
+# qwen3.8-flash-next-nvfp4: 1-node Qwen3.8-Flash-Next NVFP4 (spark1, PLE mmap)
+# medgemma-27b / medgemma-4b: spark2 medical lane + optional sidecar
+# glm-5.3-flash: 3-node TP=3 NVFP4 on the QSFP ring (Mode B)
+# litellm: management OpenAI proxy (no GPU)
 # comfy-base: ComfyUI visual base (Deployment; Spark unified-memory patches)
 #
 # Model/job definitions - centralized, portable bash (no associative arrays for macOS /bin/bash 3.2 compat + set -u).
@@ -47,6 +51,12 @@ get_model_job() {
     qwen3.5-397b-nvfp4-worker-3) echo "k8s/workloads/qwen3.5-397b-nvfp4/qwen3.5-397b-nvfp4-worker-3-job.yaml" ;;
     qwen3.6-27b-nvfp4) echo "k8s/workloads/qwen3.6-27b-nvfp4/qwen3.6-27b-nvfp4-job.yaml" ;;
     qwen3.6-35b-a3b-nvfp4) echo "k8s/workloads/qwen3.6-35b-a3b-nvfp4/qwen3.6-35b-a3b-nvfp4-job.yaml" ;;
+    qwen3.8-flash-next-nvfp4) echo "k8s/workloads/qwen3.8-flash-next-nvfp4/qwen3.8-flash-next-nvfp4-job.yaml" ;;
+    medgemma-27b) echo "k8s/workloads/medgemma-27b/medgemma-27b-job.yaml" ;;
+    medgemma-4b) echo "k8s/workloads/medgemma-4b/medgemma-4b-job.yaml" ;;
+    glm-5.3-flash) echo "k8s/workloads/glm-5.3-flash/glm-5.3-flash-job.yaml" ;;
+    glm-5.3-flash-worker-1) echo "k8s/workloads/glm-5.3-flash/glm-5.3-flash-worker-1-job.yaml" ;;
+    glm-5.3-flash-worker-2) echo "k8s/workloads/glm-5.3-flash/glm-5.3-flash-worker-2-job.yaml" ;;
     *) echo "" ;;
   esac
 }
@@ -68,6 +78,7 @@ get_model_deployment() {
     ltx-balanced) echo "k8s/workloads/comfy-visual/ltx/balanced/kustomization.yaml" ;;
     ltx-quality) echo "k8s/workloads/comfy-visual/ltx/quality/kustomization.yaml" ;;
     flux-to-ltx) echo "k8s/workloads/comfy-visual/flux-to-ltx/kustomization.yaml" ;;
+    litellm) echo "k8s/workloads/litellm/litellm-deployment.yaml" ;;
     *) echo "" ;;
   esac
 }
@@ -96,6 +107,11 @@ get_model_svc() {
     qwen3.5-397b-nvfp4) echo "k8s/workloads/qwen3.5-397b-nvfp4/service.yaml" ;;
     qwen3.6-27b-nvfp4) echo "k8s/workloads/qwen3.6-27b-nvfp4/service.yaml" ;;
     qwen3.6-35b-a3b-nvfp4) echo "k8s/workloads/qwen3.6-35b-a3b-nvfp4/service.yaml" ;;
+    qwen3.8-flash-next-nvfp4) echo "k8s/workloads/qwen3.8-flash-next-nvfp4/service.yaml" ;;
+    medgemma-27b) echo "k8s/workloads/medgemma-27b/service.yaml" ;;
+    medgemma-4b) echo "k8s/workloads/medgemma-4b/service.yaml" ;;
+    glm-5.3-flash) echo "k8s/workloads/glm-5.3-flash/service.yaml" ;;
+    litellm) echo "k8s/workloads/litellm/service.yaml" ;;
     comfy-base) echo "k8s/workloads/comfy-base/service.yaml" ;;
     flux-fast) echo "k8s/workloads/comfy-visual/flux/fast/kustomization.yaml" ;;
     flux-quality) echo "k8s/workloads/comfy-visual/flux/quality/kustomization.yaml" ;;
@@ -120,6 +136,13 @@ start_workload() {
   local model="$1"
   local force_flag="${2:-}"
   local job dep svc
+  if [[ $model == "litellm" ]]; then
+    if type start_litellm &>/dev/null; then
+      start_litellm "${force_flag}"
+      return
+    fi
+  fi
+
   job=$(get_model_job "$model")
   dep=$(get_model_deployment "$model")
   svc=$(get_model_svc "$model")
@@ -638,6 +661,33 @@ start_model() {
     qwen3.6-27b-nvfp4) start_qwen36_27b ;;
     qwen3.6-35b-a3b-nvfp4) start_qwen36_35b_a3b ;;
     qwen36-dual-spark-1 | qwen36-dual) start_qwen36_dual ;;
+    qwen3.8-flash-next-nvfp4)
+      if type start_qwen38_flash_next &>/dev/null; then start_qwen38_flash_next; else start_nemotron_llm "qwen3.8-flash-next-nvfp4" "Qwen3.8-Flash-Next NVFP4"; fi
+      ;;
+    medgemma-27b)
+      if type start_medgemma &>/dev/null; then start_medgemma; else start_nemotron_llm "medgemma-27b" "MedGemma 27B"; fi
+      ;;
+    medgemma-4b) start_nemotron_llm "medgemma-4b" "MedGemma 4B sidecar" ;;
+    glm-5.3-flash | glm53-flash-spark-3)
+      if type start_glm53_flash &>/dev/null; then start_glm53_flash; else
+        err "stack-rounded.sh not loaded; cannot start glm-5.3-flash"
+        exit 1
+      fi
+      ;;
+    rounded-spark-3 | rounded-spark-3-quality)
+      if type start_stack_rounded &>/dev/null; then
+        if [[ $model == rounded-spark-3-quality ]]; then start_stack_rounded --quality; else start_stack_rounded; fi
+      else
+        err "stack-rounded.sh not loaded"
+        exit 1
+      fi
+      ;;
+    litellm)
+      if type start_litellm &>/dev/null; then start_litellm; else
+        err "stack-rounded.sh not loaded; cannot start litellm"
+        exit 1
+      fi
+      ;;
     comfy-base)
       if type start_comfy_base &>/dev/null; then
         start_comfy_base
@@ -694,11 +744,13 @@ stop_model() {
         qwen3.5-122b-a10b-nvfp4 qwen3.5-397b-spark2 \
         qwen3.5-397b-nvfp4 qwen3.5-397b-nvfp4-worker-1 qwen3.5-397b-nvfp4-worker-2 qwen3.5-397b-nvfp4-worker-3 \
         qwen3.6-27b-nvfp4 qwen3.6-35b-a3b-nvfp4 \
+        qwen3.8-flash-next-nvfp4 medgemma-27b medgemma-4b \
+        glm-5.3-flash glm-5.3-flash-worker-1 glm-5.3-flash-worker-2 \
         ray-head ray-worker \
         -n "${NAMESPACE}" --ignore-not-found=true --grace-period=30 || true
       kubectl delete deployment nemotron-retriever-embed nemotron-retriever-rerank nemotron-parse \
         nemotron-safety-guard nemotron-speech-asr nemotron-speech-tts \
-        comfy-base \
+        comfy-base litellm \
         -n "${NAMESPACE}" --ignore-not-found=true --grace-period=30 || true
       if type stop_visual &>/dev/null; then
         stop_visual || true
@@ -707,10 +759,10 @@ stop_model() {
     qwen36 | qwen3.6 | qwen36-dual)
       stop_qwen36
       ;;
-    kimi-test | kimi | nemotron-3-ultra | nemotron-3-nano-30b | nemotron-3-nano-omni-30b | nemotron-3-super-120b | glm-5.2 | glm-5.2-rpc | ray-head | ray-worker | qwen3.5-122b-a10b-nvfp4 | qwen3.5-397b-spark2 | qwen3.5-397b-nvfp4 | qwen3.5-397b-nvfp4-worker-1 | qwen3.5-397b-nvfp4-worker-2 | qwen3.5-397b-nvfp4-worker-3 | qwen3.6-27b-nvfp4 | qwen3.6-35b-a3b-nvfp4)
+    kimi-test | kimi | nemotron-3-ultra | nemotron-3-nano-30b | nemotron-3-nano-omni-30b | nemotron-3-super-120b | glm-5.2 | glm-5.2-rpc | ray-head | ray-worker | qwen3.5-122b-a10b-nvfp4 | qwen3.5-397b-spark2 | qwen3.5-397b-nvfp4 | qwen3.5-397b-nvfp4-worker-1 | qwen3.5-397b-nvfp4-worker-2 | qwen3.5-397b-nvfp4-worker-3 | qwen3.6-27b-nvfp4 | qwen3.6-35b-a3b-nvfp4 | qwen3.8-flash-next-nvfp4 | medgemma-27b | medgemma-4b | glm-5.3-flash | glm-5.3-flash-worker-1 | glm-5.3-flash-worker-2)
       stop_inference_job "$target"
       ;;
-    nemotron-retriever-embed | nemotron-retriever-rerank | nemotron-parse | nemotron-safety-guard | nemotron-speech-asr | nemotron-speech-tts | comfy-base | flux-fast | flux-quality | ltx-balanced | ltx-quality | flux-to-ltx)
+    nemotron-retriever-embed | nemotron-retriever-rerank | nemotron-parse | nemotron-safety-guard | nemotron-speech-asr | nemotron-speech-tts | comfy-base | flux-fast | flux-quality | ltx-balanced | ltx-quality | flux-to-ltx | litellm)
       stop_inference_deployment "$target"
       ;;
     visual)

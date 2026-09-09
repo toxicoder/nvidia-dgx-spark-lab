@@ -1,0 +1,11 @@
+# Purpose: Kustomize bundle for medgemma-27b workload
+# Source of truth: k8s/workloads/medgemma-27b/
+# Regenerate: n/a
+# Safety: manual start via manage.sh; not a medical device
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - medgemma-27b-job.yaml
+  - service.yaml

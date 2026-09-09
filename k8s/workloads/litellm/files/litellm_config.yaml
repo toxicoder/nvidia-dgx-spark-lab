@@ -1,0 +1,90 @@
+# Purpose: LiteLLM router config for the 3-node rounded stack
+# Source of truth: k8s/workloads/litellm/files/litellm_config.yaml
+# Regenerate: n/a
+# Safety: no cloud medical backup; proxy must stay up if backends 503
+
+model_list:
+  - model_name: lab-fast
+    litellm_params:
+      model: openai/qwen3.6-35b-a3b-nvfp4
+      api_base: http://qwen3.6-35b-a3b-nvfp4.ai-inference.svc.cluster.local:8000/v1
+      api_key: os.environ/LITELLM_DUMMY_KEY
+      timeout: 600
+  - model_name: lab-code
+    litellm_params:
+      model: openai/qwen3.6-35b-a3b-nvfp4
+      api_base: http://qwen3.6-35b-a3b-nvfp4.ai-inference.svc.cluster.local:8000/v1
+      api_key: os.environ/LITELLM_DUMMY_KEY
+      timeout: 600
+  - model_name: lab-smart
+    litellm_params:
+      model: openai/qwen3.8-flash-next
+      api_base: http://qwen3.8-flash-next-nvfp4.ai-inference.svc.cluster.local:8000/v1
+      api_key: os.environ/LITELLM_DUMMY_KEY
+      timeout: 600
+  - model_name: lab-agent
+    litellm_params:
+      model: openai/qwen3.8-flash-next
+      api_base: http://qwen3.8-flash-next-nvfp4.ai-inference.svc.cluster.local:8000/v1
+      api_key: os.environ/LITELLM_DUMMY_KEY
+      timeout: 600
+  - model_name: lab-quality
+    litellm_params:
+      model: openai/qwen3.6-27b-nvfp4
+      api_base: http://qwen3.6-27b-nvfp4.ai-inference.svc.cluster.local:8000/v1
+      api_key: os.environ/LITELLM_DUMMY_KEY
+      timeout: 600
+  - model_name: lab-med
+    litellm_params:
+      model: openai/medgemma-27b
+      api_base: http://medgemma-27b.ai-inference.svc.cluster.local:8000/v1
+      api_key: os.environ/LITELLM_DUMMY_KEY
+      timeout: 600
+  - model_name: lab-med-vision
+    litellm_params:
+      model: openai/medgemma-27b
+      api_base: http://medgemma-27b.ai-inference.svc.cluster.local:8000/v1
+      api_key: os.environ/LITELLM_DUMMY_KEY
+      timeout: 600
+  - model_name: lab-med-extract
+    litellm_params:
+      model: openai/medgemma-4b
+      api_base: http://medgemma-4b.ai-inference.svc.cluster.local:8000/v1
+      api_key: os.environ/LITELLM_DUMMY_KEY
+      timeout: 600
+  - model_name: lab-frontier
+    litellm_params:
+      model: openai/glm-5.3-flash
+      api_base: http://glm-5.3-flash.ai-inference.svc.cluster.local:8000/v1
+      api_key: os.environ/LITELLM_DUMMY_KEY
+      timeout: 600
+  - model_name: lab-auto
+    litellm_params:
+      model: openai/qwen3.6-35b-a3b-nvfp4
+      api_base: http://qwen3.6-35b-a3b-nvfp4.ai-inference.svc.cluster.local:8000/v1
+      api_key: os.environ/LITELLM_DUMMY_KEY
+      timeout: 600
+
+router_settings:
+  routing_strategy: simple-shuffle
+  num_retries: 2
+  timeout: 600
+  allowed_fails: 3
+  cooldown_time: 30
+  retry_after: 5
+  fallbacks:
+    - lab-code: [lab-fast, lab-smart]
+    - lab-smart: [lab-fast]
+    - lab-agent: [lab-smart, lab-fast]
+    - lab-med: [lab-smart, lab-frontier]
+    - lab-med-vision: [lab-med, lab-smart]
+    - lab-med-extract: [lab-med]
+    - lab-auto: [lab-fast, lab-smart]
+
+litellm_settings:
+  drop_params: true
+  request_timeout: 600
+  set_verbose: false
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY

@@ -1,0 +1,26 @@
+# Purpose: LiteLLM ClusterIP + LAN NodePort
+# Source of truth: k8s/workloads/litellm/
+# Regenerate: n/a
+# Safety: LAN only; not QSFP
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "4000"
+    prometheus.io/path: "/metrics"
+  name: litellm
+  namespace: ai-inference
+  labels:
+    app: litellm
+    workload: management
+spec:
+  selector:
+    app: litellm
+  ports:
+    - port: 4000
+      targetPort: 4000
+      nodePort: 32040
+      name: http
+  type: NodePort

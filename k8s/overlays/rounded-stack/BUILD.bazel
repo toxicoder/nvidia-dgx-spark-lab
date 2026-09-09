@@ -1,0 +1,13 @@
+"""Package purpose: Mode A rounded-stack kustomize overlay (3-node daily fleet)."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "rounded_stack",
+    srcs = glob(["**/*"]),
+    visibility = [
+        "//k8s:__subpackages__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
