@@ -74,7 +74,7 @@ NAMESPACE="ai-inference"
 
 # Source common modular libs. Fail fast if missing in normal use (tests ensure copies).
 SCRIPT_LIB_DIR="${SCRIPT_LIB_DIR:-${SCRIPT_DIR}/lib}"
-for lib in common.sh check_tool.sh domains.sh resources.sh models.sh visual.sh mcp.sh hermes.sh open-webui.sh monitoring.sh dev.sh secrets.sh sso.sh; do
+for lib in common.sh check_tool.sh domains.sh resources.sh models.sh visual.sh mcp.sh hermes.sh open-webui.sh monitoring.sh dev.sh secrets.sh sso.sh stack-rounded.sh; do
   if [[ -f "${SCRIPT_LIB_DIR}/$lib" ]]; then
     # shellcheck disable=SC1090
     source "${SCRIPT_LIB_DIR}/$lib"
@@ -556,6 +556,91 @@ case "${1:-help}" in
     check_cluster_access
     status_qwen36
     ;;
+  start-stack-rounded)
+    ## start-stack-rounded
+    # @command start-stack-rounded
+    # Mode A daily fleet (3 nodes, TP=1) + LiteLLM. Optional --quality on spark2.
+    require_kubectl
+    check_cluster_access
+    start_stack_rounded "${2:-}"
+    ;;
+  stop-stack-rounded)
+    ## stop-stack-rounded
+    # @command stop-stack-rounded
+    # Stop Mode A inference Jobs. Leaves LiteLLM running.
+    require_kubectl
+    check_cluster_access
+    stop_stack_rounded
+    ;;
+  start-medgemma)
+    ## start-medgemma
+    # @command start-medgemma
+    # MedGemma 27B on spark2 (not a medical device).
+    require_kubectl
+    check_cluster_access
+    start_medgemma
+    ;;
+  stop-medgemma)
+    ## stop-medgemma
+    # @command stop-medgemma
+    require_kubectl
+    check_cluster_access
+    stop_medgemma
+    ;;
+  start-qwen38-flash-next | start-qwen3.8-flash-next)
+    ## start-qwen38-flash-next
+    # @command start-qwen38-flash-next
+    # @command start-qwen3.8-flash-next
+    require_kubectl
+    check_cluster_access
+    start_qwen38_flash_next
+    ;;
+  start-glm53-flash | start-glm-5.3-flash)
+    ## start-glm53-flash
+    # @command start-glm53-flash
+    # @command start-glm-5.3-flash
+    # Exclusive Mode B TP=3 on the 3-node QSFP ring.
+    require_kubectl
+    check_cluster_access
+    start_glm53_flash
+    ;;
+  stop-glm53-flash | stop-glm-5.3-flash)
+    ## stop-glm53-flash
+    # @command stop-glm53-flash
+    # @command stop-glm-5.3-flash
+    require_kubectl
+    check_cluster_access
+    stop_glm53_flash
+    ;;
+  start-litellm)
+    ## start-litellm
+    # @command start-litellm
+    require_kubectl
+    check_cluster_access
+    start_litellm
+    ;;
+  stop-litellm)
+    ## stop-litellm
+    # @command stop-litellm
+    require_kubectl
+    check_cluster_access
+    stop_litellm
+    ;;
+  status-stack)
+    ## status-stack
+    # @command status-stack
+    require_kubectl
+    check_cluster_access
+    status_stack
+    ;;
+  doctor-fabric)
+    ## doctor-fabric
+    # @command doctor-fabric
+    # Warn if the 3-node QSFP ring looks down (does not hard-fail on iface names).
+    require_kubectl
+    check_cluster_access
+    doctor_fabric
+    ;;
   start-coder)
     ## start-coder
     # @command start-coder
@@ -908,6 +993,14 @@ Commands:
   start-hermes   Deploy Hermes Agent (Docker, gateway + dashboard)
   start-hermes-full Deploy Hermes + full MCP RAG integration
   stop-hermes    Stop Hermes Agent container and inference port-forward
+  start-stack-rounded [--quality]  Mode A 3-node fleet + LiteLLM (refuses Mode B)
+  stop-stack-rounded Stop Mode A inference Jobs (LiteLLM stays up)
+  start-medgemma / stop-medgemma  spark2 MedGemma 27B (not a medical device)
+  start-qwen38-flash-next  spark1 Qwen3.8-Flash-Next NVFP4
+  start-glm53-flash / stop-glm53-flash  Mode B TP=3 on the QSFP ring (refuses Mode A)
+  start-litellm / stop-litellm  LAN OpenAI proxy
+  status-stack     Mode A/B Jobs + LiteLLM aliases + fabric hint
+  doctor-fabric    Warn if the 3-node QSFP ring looks down
   start-open-webui Deploy Open WebUI chat UI (Hermes gateway backend)
   stop-open-webui  Stop Open WebUI Helm release and Hermes gateway bridge
   stop-coder     Stop Coder only (frees dev resources)

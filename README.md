@@ -56,15 +56,18 @@
 
 ## High-Speed Interconnect (for 2+ nodes)
 
-For multi-node setups (2-4), nodes are connected with dual 400G links. NCCL is configured to use them (ignored for 1 node):
+**2-node pair (reference):** dual QSFP, ~400G aggregate. Existing 1-node / 2-node Jobs use:
 
 - `NCCL_SOCKET_IFNAME=enp1s0f0np0,enp1s0f1np1`
 - `NCCL_IB_HCA=mlx5_0,mlx5_1` (or equivalent)
-- Appropriate `NCCL_P2P_DISABLE`, `NCCL_SHM_DISABLE`, etc. tuned for stability
+
+`ansible/inventory/group_vars/all.yml` `highspeed_*` / `nccl_env` document that pair. Do **not** copy them onto a 3-node ring.
+
+**3-node QSFP ring (Mode B only):** 200 Gb/s per pair, triangle mesh, OOB on 10GbE (often `enP7s7`), payload on all four CX-7 RoCE devices. See [LiteLLM rounded stack](docs/litellm-rounded-stack.md). Not NVLink.
 
 For 1 node: standard local multi-GPU NCCL (SHM/P2P) is used.
 
-See workload manifests for exact settings and scalability notes.
+See workload manifests for exact settings.
 
 ## Repository Layout
 

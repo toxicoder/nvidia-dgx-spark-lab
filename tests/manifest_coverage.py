@@ -160,7 +160,11 @@ def _check_k8s_tree(
         find_prefixes: Prefix trees used by the kubeconform find pattern.
         errors: Mutable list to append uncovered manifest paths into.
     """
-    k8s_files = [p for p in _tracked(root, prefix) if _is_yaml(p)]
+    k8s_files = [
+        p
+        for p in _tracked(root, prefix)
+        if _is_yaml(p) and "/files/" not in p
+    ]
     if not k8s_files:
         return
     found = _k8s_find_paths(root, find_prefixes)

@@ -1,0 +1,88 @@
+# Purpose: LiteLLM OpenAI-compatible proxy (management; LAN only)
+# Source of truth: k8s/workloads/litellm/
+# Regenerate: n/a
+# Safety: no GPU; Always is OK; must stay up if backends 503; no QSFP/hostNetwork
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litellm
+  namespace: ai-inference
+  labels:
+    app: litellm
+    workload: management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: litellm
+  template:
+    metadata:
+      labels:
+        app: litellm
+        workload: management
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "4000"
+        prometheus.io/path: "/metrics"
+    spec:
+      priorityClassName: lab-management
+      containers:
+        - name: litellm
+          image: ghcr.io/berriai/litellm:v1.74.3-stable
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--config"
+            - "/app/config.yaml"
+            - "--port"
+            - "4000"
+            - "--host"
+            - "0.0.0.0"
+          ports:
+            - containerPort: 4000
+              name: http
+              protocol: TCP
+          env:
+            - name: LITELLM_DUMMY_KEY
+              value: "sk-lab-local"
+            - name: LITELLM_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: litellm-secrets
+                  key: master-key
+                  optional: true
+            - name: LITELLM_LOG
+              value: "INFO"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          readinessProbe:
+            httpGet:
+              path: /health/liveliness
+              port: 4000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health/liveliness
+              port: 4000
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: litellm-config
+              mountPath: /app/config.yaml
+              subPath: config.yaml
+              readOnly: true
+            - name: litellm-config
+              mountPath: /app/prompts
+              readOnly: true
+      volumes:
+        - name: litellm-config
+          configMap:
+            name: litellm-config

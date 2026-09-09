@@ -90,6 +90,8 @@ for m in kimi-test kimi ray-head ray-worker nemotron-3-ultra \
   qwen3.5-122b-a10b-nvfp4 qwen3.5-397b-spark2 qwen3.5-397b-nvfp4 \
   qwen3.5-397b-nvfp4-worker-1 qwen3.5-397b-nvfp4-worker-2 qwen3.5-397b-nvfp4-worker-3 \
   qwen3.6-27b-nvfp4 qwen3.6-35b-a3b-nvfp4 \
+  qwen3.8-flash-next-nvfp4 medgemma-27b medgemma-4b \
+  glm-5.3-flash glm-5.3-flash-worker-1 glm-5.3-flash-worker-2 litellm \
   comfy-base flux-fast flux-quality ltx-balanced ltx-quality flux-to-ltx; do
   python3 -c "
 import json, sys
@@ -193,6 +195,150 @@ stack = j['stacks']['qwen36-dual-spark-1']
 assert 'qwen3.6-27b-nvfp4' in stack.get('stack_with', [])
 assert 'qwen3.6-35b-a3b-nvfp4' in stack.get('stack_with', [])
 "
+
+echo "Checking 3-node LiteLLM rounded stack policy registration..."
+for m in qwen3.8-flash-next-nvfp4 medgemma-27b medgemma-4b \
+  glm-5.3-flash glm-5.3-flash-worker-1 glm-5.3-flash-worker-2 litellm; do
+  python3 -c "
+import json, sys
+from pathlib import Path
+j = json.loads(Path('config/resource-policy.json').read_text())
+sys.exit(0 if '$m' in j.get('models', {}) else 1)
+"
+done
+python3 -c "
+import json
+from pathlib import Path
+j = json.loads(Path('config/resource-policy.json').read_text())
+for sid in ('rounded-spark-3', 'rounded-spark-3-quality', 'glm53-flash-spark-3'):
+    assert sid in j.get('stacks', {}), sid
+rounded = j['stacks']['rounded-spark-3']
+assert 'qwen3.6-35b-a3b-nvfp4' in rounded.get('stack_with', [])
+assert 'qwen3.8-flash-next-nvfp4' in rounded.get('stack_with', [])
+assert 'medgemma-27b' in rounded.get('stack_with', [])
+assert 'litellm' in rounded.get('stack_with', [])
+quality = j['stacks']['rounded-spark-3-quality']
+assert 'qwen3.6-27b-nvfp4' in quality.get('stack_with', [])
+assert 'medgemma-27b' not in quality.get('stack_with', [])
+glm = j['stacks']['glm53-flash-spark-3']
+assert glm.get('min_nodes') == 3
+assert 'glm-5.3-flash' in glm.get('stack_with', [])
+litellm = j['models']['litellm']
+assert litellm.get('kind') == 'deployment'
+assert litellm.get('gpus') == 0
+assert litellm.get('heavy') is False
+svc = j.get('tiers', {}).get('management', {}).get('services', {}).get('litellm', {})
+assert svc.get('namespace') == 'ai-inference'
+"
+
+echo "Checking rounded-stack Mode A Jobs have safety fields..."
+for job in \
+  k8s/workloads/qwen3.8-flash-next-nvfp4/qwen3.8-flash-next-nvfp4-job.yaml \
+  k8s/workloads/medgemma-27b/medgemma-27b-job.yaml \
+  k8s/workloads/medgemma-4b/medgemma-4b-job.yaml; do
+  test -f "$job"
+  grep -q 'restartPolicy: OnFailure' "$job"
+  grep -q 'resources:' "$job"
+  grep -q 'backoffLimit:' "$job"
+  grep -q 'nvidia.com/gpu' "$job"
+  # Mode A is TP=1: must not bake the 3-node ring NCCL block.
+  if grep -q 'NCCL_IB_SUBNET_AWARE_ROUTING' "$job"; then
+    echo "Mode A job must not set 3-node ring NCCL_IB_SUBNET_AWARE_ROUTING: $job" >&2
+    exit 1
+  fi
+done
+
+echo "Checking GLM-5.3-Flash Mode B Jobs use ring NCCL (not 2-node 400G vars)..."
+for job in \
+  k8s/workloads/glm-5.3-flash/glm-5.3-flash-job.yaml \
+  k8s/workloads/glm-5.3-flash/glm-5.3-flash-worker-1-job.yaml \
+  k8s/workloads/glm-5.3-flash/glm-5.3-flash-worker-2-job.yaml; do
+  test -f "$job"
+  grep -q 'restartPolicy: OnFailure' "$job"
+  grep -q 'resources:' "$job"
+  grep -q 'backoffLimit:' "$job"
+  grep -q 'hostNetwork: true' "$job"
+  grep -q 'hostIPC: true' "$job"
+  grep -q 'NCCL_IB_SUBNET_AWARE_ROUTING' "$job"
+  grep -q 'NCCL_NET_PLUGIN' "$job"
+  grep -q 'NCCL_IB_MERGE_NICS' "$job"
+  if grep -q 'enp1s0f0np0,enp1s0f1np1' "$job"; then
+    echo "Mode B must not copy 2-node pair NCCL_SOCKET_IFNAME: $job" >&2
+    exit 1
+  fi
+  if grep -q 'mlx5_0,mlx5_1' "$job"; then
+    echo "Mode B must not copy 2-node mlx5 NCCL_IB_HCA: $job" >&2
+    exit 1
+  fi
+done
+grep -q 'NCCL_NET_PLUGIN' k8s/workloads/glm-5.3-flash/glm-5.3-flash-job.yaml
+grep -q 'none' k8s/workloads/glm-5.3-flash/glm-5.3-flash-job.yaml
+
+echo "Checking new Jobs keep gpu-memory-utilization <= 0.82..."
+python3 -c "
+import re, sys
+from pathlib import Path
+jobs = [
+    Path('k8s/workloads/qwen3.8-flash-next-nvfp4/qwen3.8-flash-next-nvfp4-job.yaml'),
+    Path('k8s/workloads/medgemma-27b/medgemma-27b-job.yaml'),
+    Path('k8s/workloads/medgemma-4b/medgemma-4b-job.yaml'),
+    Path('k8s/workloads/glm-5.3-flash/glm-5.3-flash-job.yaml'),
+    Path('k8s/workloads/glm-5.3-flash/glm-5.3-flash-worker-1-job.yaml'),
+    Path('k8s/workloads/glm-5.3-flash/glm-5.3-flash-worker-2-job.yaml'),
+]
+pat = re.compile(r'gpu-memory-utilization[\"\\s=]+([0-9.]+)')
+for p in jobs:
+    text = p.read_text()
+    vals = [float(x) for x in pat.findall(text)]
+    env = re.findall(r'LAB_.*GPU_UTIL\\s*\\n\\s*value:\\s*\"([0-9.]+)\"', text)
+    vals.extend(float(x) for x in env)
+    if not vals:
+        print(f'missing gpu-memory-utilization in {p}', file=sys.stderr)
+        sys.exit(1)
+    if any(v > 0.82 + 1e-9 for v in vals):
+        print(f'gpu-mem-util > 0.82 in {p}: {vals}', file=sys.stderr)
+        sys.exit(1)
+"
+
+echo "Checking LiteLLM management Deployment and ConfigMap files..."
+LITELLM_DEP="k8s/workloads/litellm/litellm-deployment.yaml"
+LITELLM_KUST="k8s/workloads/litellm/kustomization.yaml"
+test -f "$LITELLM_DEP"
+test -f "$LITELLM_KUST"
+test -f k8s/workloads/litellm/service.yaml
+test -f k8s/workloads/litellm/files/litellm_config.yaml
+test -f k8s/workloads/litellm/files/lab-med-system.txt
+test -f k8s/workloads/litellm/files/lab-med-frontier-fallback.txt
+grep -qE 'kind:\s*Deployment' "$LITELLM_DEP"
+grep -q 'resources:' "$LITELLM_DEP"
+grep -q 'priorityClassName: lab-management' "$LITELLM_DEP"
+if grep -q 'nvidia.com/gpu' "$LITELLM_DEP"; then
+  echo "LiteLLM must not request a GPU" >&2
+  exit 1
+fi
+if grep -q 'hostNetwork: true' "$LITELLM_DEP"; then
+  echo "LiteLLM must bind to the LAN ClusterIP, not hostNetwork/QSFP" >&2
+  exit 1
+fi
+grep -q 'configMapGenerator' "$LITELLM_KUST"
+grep -q 'files:' "$LITELLM_KUST"
+grep -q 'litellm_config.yaml' "$LITELLM_KUST"
+if grep -E 'data:' "$LITELLM_KUST" | grep -q '|'; then
+  echo "LiteLLM ConfigMap must not inline blobs" >&2
+  exit 1
+fi
+grep -qi 'not a medical device' k8s/workloads/litellm/files/lab-med-system.txt
+grep -qi 'MedGemma is offline' k8s/workloads/litellm/files/lab-med-frontier-fallback.txt
+grep -q 'lab-fast' k8s/workloads/litellm/files/litellm_config.yaml
+grep -q 'lab-med' k8s/workloads/litellm/files/litellm_config.yaml
+grep -q 'lab-frontier' k8s/workloads/litellm/files/litellm_config.yaml
+
+echo "Checking rounded-stack overlays pin Mode A Jobs..."
+test -f k8s/overlays/rounded-stack/kustomization.yaml
+test -f k8s/overlays/rounded-stack-quality/kustomization.yaml
+grep -q 'kubernetes.io/hostname' k8s/overlays/rounded-stack/patches/pin-spark0.yaml
+grep -q 'spark0' k8s/overlays/rounded-stack/patches/pin-spark0.yaml
+grep -q 'spark2' k8s/overlays/rounded-stack-quality/patches/pin-spark2.yaml
 
 echo "Checking Open WebUI policy and resource registration..."
 test -f config/open-webui-policy.yaml

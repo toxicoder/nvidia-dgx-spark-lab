@@ -27,7 +27,10 @@ k3s_channel: "stable"
 k3s_control_plane: "spark0"
 k3s_server_ip: "{{ hostvars[k3s_control_plane].ansible_host | default('127.0.0.1') }}"
 
-# High-speed network interfaces (dual 400G interconnect between nodes)
+# High-speed network interfaces — 2-node PAIR reference only (dual QSFP / ~400G aggregate).
+# Do NOT copy this NCCL block onto the 3-node QSFP ring (Mode B GLM-5.3-Flash TP=3).
+# The ring uses OOB on 10GbE (often enP7s7) and NCCL_IB_HCA=all four CX-7 RoCE twins.
+# See docs/litellm-rounded-stack.md and k8s/workloads/glm-5.3-flash/README.md.
 # Only used for 2+ nodes. Update to your actual interface names (Mellanox/ConnectX).
 # For 1 node, these are ignored (use default local NCCL paths for multi-GPU on single host).
 highspeed_interfaces: "enp1s0f0np0,enp1s0f1np1"

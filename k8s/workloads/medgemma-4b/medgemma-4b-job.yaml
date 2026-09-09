@@ -1,0 +1,108 @@
+# Purpose: Optional MedGemma 4B sidecar Job (labs/EHR extract; not the primary medical model)
+# Source of truth: k8s/workloads/medgemma-4b/
+# Regenerate: n/a
+# Safety: off by default; enable only after Resource Guard headroom; not a medical device
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: medgemma-4b
+  namespace: ai-inference
+  labels:
+    app: medgemma-4b
+    workload: inference
+    mode: sidecar
+    family: medgemma
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 7200
+  template:
+    metadata:
+      labels:
+        app: medgemma-4b
+        workload: inference
+        mode: sidecar
+        family: medgemma
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      restartPolicy: OnFailure
+      nodeSelector:
+        kubernetes.io/hostname: spark2
+      containers:
+        - name: inference
+          image: vllm/vllm-openai:cu130-nightly
+          imagePullPolicy: IfNotPresent
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+          resources:
+            requests:
+              cpu: "2"
+              memory: "8Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "4"
+              memory: "12Gi"
+              nvidia.com/gpu: "1"
+          env:
+            - name: CUTE_DSL_ARCH
+              value: "sm_121a"
+            - name: MODEL_NAME
+              value: "google/medgemma-1.5-4b-it"
+            - name: HF_HOME
+              value: "/models"
+            - name: VLLM_PORT
+              value: "8000"
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 180
+            periodSeconds: 30
+            timeoutSeconds: 10
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              exec vllm serve "${MODEL_NAME}"
+              --host 0.0.0.0
+              --port 8000
+              --tensor-parallel-size 1
+              --trust-remote-code
+              --served-model-name medgemma-4b
+              --gpu-memory-utilization 0.40
+              --max-model-len 8192
+              --kv-cache-dtype fp8
+              --limit-mm-per-prompt image=2
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 8Gi
