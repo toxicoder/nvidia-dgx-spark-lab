@@ -628,6 +628,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../litellm-rounded-stack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LiteLLM Rounded Stack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../visual-generative-ai/" class="md-nav__link">
         
   
@@ -1321,7 +1349,8 @@
 <li>Browser chat UI backed by <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> <abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> orchestration on the lab cluster</li>
 <li>A polished agent surface without bypassing existing safety gates</li>
 </ul>
-<p>Deploy <a href="https://github.com/open-webui/open-webui"><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr></a> as a polished chat surface for lab AI agents. Conversations can route through the <strong><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> gateway</strong> (<code>:8642/v1</code>) for <abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> tools (SearXNG, fetch, memory, Context7, etc.), and through <strong>direct vLLM OpenAI endpoints</strong> for Qwen3.6-27B and Qwen3.6-35B-A3B when those Jobs are running (see <a href="../qwen36-dual-stack/">qwen36-dual-stack.md</a>).</p>
+<p>Deploy <a href="https://github.com/open-webui/open-webui"><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr></a> as a polished chat surface for lab AI agents. Conversations route through the <strong><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> gateway</strong> (<code>:8642/v1</code>) for <abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> tools (SearXNG, fetch, memory, Context7, etc.), and through <strong>LiteLLM</strong> (<code>http://litellm.ai-inference.svc.cluster.local:4000/v1</code>) for rounded-stack model aliases (<code>lab-fast</code>, <code>lab-smart</code>, <code>lab-med</code>, …). See <a href="../litellm-rounded-stack/">litellm-rounded-stack.md</a>.</p>
+<p>Raw vLLM Services (<code>http://&lt;job&gt;.ai-inference.svc.cluster.local:8000/v1</code>) remain a debug bypass — do not point the UI at them for daily use. Do not add a cloud OpenAI medical backup for <code>lab-med</code>.</p>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">¶</a></h2>
 <p>Bring up the agent stack before <abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr>:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>nemotron-stack<span class="w"> </span>start<span class="w"> </span>nemotron-agentic-spark-1<span class="w"> </span>--confirm<span class="w"> </span>yes

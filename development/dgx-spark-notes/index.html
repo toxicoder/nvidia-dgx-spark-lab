@@ -598,10 +598,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#high-speed-interconnect-dual-400g" class="md-nav__link">
+  <a href="#high-speed-interconnect" class="md-nav__link">
     <span class="md-ellipsis">
       
-        High-Speed Interconnect (Dual 400G)
+        High-Speed Interconnect
       
     </span>
   </a>
@@ -760,6 +760,34 @@
     
   
     Qwen3.6 Dual Stack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../litellm-rounded-stack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LiteLLM Rounded Stack
   
 
     
@@ -1215,10 +1243,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#high-speed-interconnect-dual-400g" class="md-nav__link">
+  <a href="#high-speed-interconnect" class="md-nav__link">
     <span class="md-ellipsis">
       
-        High-Speed Interconnect (Dual 400G)
+        High-Speed Interconnect
       
     </span>
   </a>
@@ -1397,10 +1425,8 @@
 <li>Workloads are started manually via <code>scripts/manage.sh</code>.</li>
 <li>After reboot you must explicitly re-deploy.</li>
 </ul>
-<h2 id="high-speed-interconnect-dual-400g">High-Speed Interconnect (Dual 400G)<a class="headerlink" href="#high-speed-interconnect-dual-400g" title="Permanent link">¶</a></h2>
-<p>For multi-node setups (2-4), nodes have dedicated 400G links (likely ConnectX-7 or similar). Single-node (1) uses local GPU interconnects (no inter-node <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr>).</p>
-<p>The setup is designed for 1-4 nodes total (scalable within that; high-speed for multi-node parallelism).</p>
-<p>Correct <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> environment variables are essential:</p>
+<h2 id="high-speed-interconnect">High-Speed Interconnect<a class="headerlink" href="#high-speed-interconnect" title="Permanent link">¶</a></h2>
+<p><strong>2-node pair (dual ~400G aggregate):</strong> existing Jobs and <code>group_vars</code> <code>highspeed_*</code> / <code>nccl_env</code> are <strong>reference for a pair</strong>. Typical env:</p>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">env</span><span class="p">:</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NCCL_SOCKET_IFNAME</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">"enp1s0f0np0,enp1s0f1np1"</span>
@@ -1409,9 +1435,11 @@
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NCCL_DEBUG</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">"INFO"</span>
 </span></code></pre></div>
-<p>If <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> falls back to the management network, performance will be terrible.</p>
+<p><strong>3-node QSFP ring (200 Gb/s per pair, triangle mesh):</strong> used only by Mode B (<code>glm-5.3-flash</code>). OOB/Gloo on 10GbE (often <code>enP7s7</code>); payload on all four CX-7 RoCE devices; <code>NCCL_NET_PLUGIN=none</code>. Do <strong>not</strong> copy the 2-node pair vars onto that ring. Confirm names with <code>ibdev2netdev</code>. See <a href="../litellm-rounded-stack/">LiteLLM rounded stack</a>.</p>
+<p>If <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> payload falls back to the management network, performance will be terrible.</p>
 <p>Verify interfaces on the nodes:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ip<span class="w"> </span>-br<span class="w"> </span>link<span class="w"> </span>show<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>enp
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ip<span class="w"> </span>-br<span class="w"> </span>link<span class="w"> </span>show<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s1">'enp|enP'</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>ibdev2netdev
 </span></code></pre></div>
 <h2 id="gpu-operator-on-k3s"><abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> on <abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr><a class="headerlink" href="#gpu-operator-on-k3s" title="Permanent link">¶</a></h2>
 <p>The NVIDIA <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> works well on <abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr> but:</p>

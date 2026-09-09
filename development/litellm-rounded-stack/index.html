@@ -3,17 +3,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Comparison table and detailed profiles for kimi-test, kimi, ray, nemotron, and glm workloads — resource estimator usage and safety guidance.">
+        <meta name="description" content="Daily Mode A mixed fleet and exclusive Mode B GLM-5.3-Flash TP=3 behind LiteLLM on a 3-node QSFP ring.">
       
       
       
-        <link rel="canonical" href="https://toxicoder.github.io/nvidia-dgx-spark-lab/development/models-catalog/">
+        <link rel="canonical" href="https://toxicoder.github.io/nvidia-dgx-spark-lab/development/litellm-rounded-stack/">
       
       
-        <link rel="prev" href="../reboot-safety/">
+        <link rel="prev" href="../qwen36-dual-stack/">
       
       
-        <link rel="next" href="../qwen36-dual-stack/">
+        <link rel="next" href="../visual-generative-ai/">
       
       
         
@@ -24,7 +24,7 @@
     
     
       
-        <title>Models &amp; Resource Catalog - nvidia-dgx-spark-lab</title>
+        <title>LiteLLM Rounded Stack (3× DGX Spark) - nvidia-dgx-spark-lab</title>
       
     
     
@@ -89,7 +89,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#models-resource-catalog" class="md-skip">
+        <a href="#litellm-rounded-stack-3-dgx-spark" class="md-skip">
           Skip to content
         </a>
       
@@ -129,7 +129,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Models &amp; Resource Catalog
+              LiteLLM Rounded Stack (3× DGX Spark)
             
           </span>
         </div>
@@ -569,37 +569,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Models &amp; Resources
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../models-catalog/" class="md-nav__link">
         
   
   
@@ -615,175 +588,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
-      
-        <li class="md-nav__item">
-  <a href="#quick-comparison" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Quick Comparison
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#detailed-profiles" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Detailed Profiles
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Detailed Profiles">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#kimi-test-recommended-starting-point" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        kimi-test (recommended starting point)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#kimi-full-heavy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        kimi (full heavy)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nemotron-agentic-stack-recommended" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Nemotron agentic stack (recommended)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#qwen-35-agentic-stacks-tier-substitutes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Qwen 3.5 agentic stacks (tier substitutes)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#qwen36-dual-stack-1-spark" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Qwen3.6 dual stack (1× Spark)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ray-large-models-nemotron-3-ultra-legacy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Ray + Large Models (nemotron-3-ultra legacy)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#glm-52-1-bit-ud-iq1_m-llamacpp-rpc" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        GLM-5.2 (1-bit UD-IQ1_M + llama.cpp RPC)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#adding-your-own-model" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Adding Your Own Model
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configuration-sources" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Configuration sources
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#resource-estimator-usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Resource Estimator Usage
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#related" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Related
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -821,10 +625,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../litellm-rounded-stack/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LiteLLM Rounded Stack
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -840,6 +671,120 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardware
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hardware">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#3-node-qsfp-ring-mode-b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3-node QSFP ring (Mode B)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mode-a-daily-mixed-fleet-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mode A — daily mixed fleet (default)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mode-b-exclusive-frontier-uses-the-ring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mode B — exclusive frontier (uses the ring)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#litellm-aliases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiteLLM aliases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#medical-safety" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Medical safety
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1265,99 +1210,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#quick-comparison" class="md-nav__link">
+  <a href="#hardware" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Quick Comparison
+        Hardware
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#detailed-profiles" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Detailed Profiles
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Detailed Profiles">
+    <nav class="md-nav" aria-label="Hardware">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#kimi-test-recommended-starting-point" class="md-nav__link">
+  <a href="#3-node-qsfp-ring-mode-b" class="md-nav__link">
     <span class="md-ellipsis">
       
-        kimi-test (recommended starting point)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#kimi-full-heavy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        kimi (full heavy)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#nemotron-agentic-stack-recommended" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Nemotron agentic stack (recommended)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#qwen-35-agentic-stacks-tier-substitutes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Qwen 3.5 agentic stacks (tier substitutes)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#qwen36-dual-stack-1-spark" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Qwen3.6 dual stack (1× Spark)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ray-large-models-nemotron-3-ultra-legacy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Ray + Large Models (nemotron-3-ultra legacy)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#glm-52-1-bit-ud-iq1_m-llamacpp-rpc" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        GLM-5.2 (1-bit UD-IQ1_M + llama.cpp RPC)
+        3-node QSFP ring (Mode B)
       
     </span>
   </a>
@@ -1370,10 +1238,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#adding-your-own-model" class="md-nav__link">
+  <a href="#mode-a-daily-mixed-fleet-default" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Adding Your Own Model
+        Mode A — daily mixed fleet (default)
       
     </span>
   </a>
@@ -1381,10 +1249,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-sources" class="md-nav__link">
+  <a href="#mode-b-exclusive-frontier-uses-the-ring" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration sources
+        Mode B — exclusive frontier (uses the ring)
       
     </span>
   </a>
@@ -1392,10 +1260,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#resource-estimator-usage" class="md-nav__link">
+  <a href="#litellm-aliases" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Resource Estimator Usage
+        LiteLLM aliases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#medical-safety" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Medical safety
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commands
       
     </span>
   </a>
@@ -1481,392 +1371,194 @@
   
 
 
-<h1 id="models-resource-catalog">Models &amp; Resource Catalog<a class="headerlink" href="#models-resource-catalog" title="Permanent link">¶</a></h1>
+<h1 id="litellm-rounded-stack-3-dgx-spark">LiteLLM Rounded Stack (3× DGX Spark)<a class="headerlink" href="#litellm-rounded-stack-3-dgx-spark" title="Permanent link">¶</a></h1>
 <p><strong>What's on this page</strong></p>
 <ul>
-<li>Quick comparison table of models (GPUs, memory, purpose, safety notes, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> needs)</li>
-<li>Detailed profiles for kimi-test, kimi, ray, nemotron, glm, etc.</li>
-<li>Resource estimator usage and how <code>estimate</code> works</li>
-<li>Guidance on adding your own models</li>
-<li>Links to the auto-generated shell reference</li>
+<li>Two mutually exclusive modes on three GB10 Sparks</li>
+<li>LiteLLM aliases and <abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> wiring</li>
+<li>3-node QSFP ring cabling and <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> (Mode B only)</li>
+<li>Medical safety (not a medical device)</li>
+<li>Commands, downloads, and quality/license swaps</li>
 </ul>
 <p><strong>What this enables</strong></p>
 <ul>
-<li>Picking the right (safe) starting workload based on current free GPUs</li>
-<li>Always beginning with <code>kimi-test</code> for validation before scaling up</li>
-<li>Using live <code>estimate &lt;model&gt;</code> (with {{PLACEHOLDER}} support) to get a ready-to-run command</li>
-<li>Understanding safety and multi-node requirements before launching heavy jobs</li>
+<li>Daily mixed fleet: fast coding + smart generalist + medical specialist</li>
+<li>Exclusive frontier GLM-5.3-Flash TP=3 that actually uses the QSFP ring</li>
+<li>One OpenAI base URL for chat clients</li>
 </ul>
-<blockquote>
-<p>Use <code>bazelisk run //:manage -- estimate &lt;model&gt;</code> (or the classic <code>./scripts/manage.sh estimate &lt;model&gt;</code>) for a live recommendation based on current cluster capacity.</p>
-<p>The full list of models, flags, and helpers is <strong>auto-generated</strong> from structured comments in the scripts — see <a href="../generated/shell/reference/">Shell Commands &amp; Helpers</a> (refreshed via <code>bazelisk run //docs:docs</code>).</p>
-</blockquote>
-<h2 id="quick-comparison">Quick Comparison<a class="headerlink" href="#quick-comparison" title="Permanent link">¶</a></h2>
+<p>Nothing auto-starts on reboot. Heavy Jobs are <code>OnFailure</code> + <code>backoffLimit: 1</code> with explicit resources. <abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> 15% / 64Gi <abbr title="Reserved free capacity Resource Guard keeps free so SSH and control plane stay responsive.">headroom</abbr> applies. New Jobs stay at <code>gpu-memory-utilization</code> ≤ 0.82.</p>
+<h2 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">¶</a></h2>
+<p>Three DGX Spark GB10 nodes (128 GB UMA, sm_121). Two networks — never mix roles:</p>
 <table>
 <thead>
 <tr>
-<th>Model / <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr></th>
-<th>GPUs</th>
-<th>Memory (req)</th>
-<th>Purpose</th>
-<th>Safety Notes</th>
-<th><abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> / Multi-node</th>
+<th>Plane</th>
+<th>Typical names</th>
+<th>Carries</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>kimi-test</td>
-<td>2</td>
-<td>32Gi</td>
-<td>First validation, safe</td>
-<td>Always run this before heavy</td>
-<td>Works on 1 node</td>
+<td>LAN / management (RJ-45 10GbE)</td>
+<td>often <code>enP7s7</code></td>
+<td><abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr>, SSH, dashboard, LiteLLM, <abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr>, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> bootstrap / Gloo</td>
 </tr>
 <tr>
-<td>kimi</td>
-<td>8</td>
-<td>128Gi</td>
-<td>Full production (example)</td>
-<td>Requires confirmation + capacity</td>
-<td>High-speed on 2+</td>
+<td>High-speed fabric (CX-7 RoCE)</td>
+<td>four RoCE twins per node</td>
+<td><abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> payload / TP all-reduce <strong>only</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-node-qsfp-ring-mode-b">3-node QSFP ring (Mode B)<a class="headerlink" href="#3-node-qsfp-ring-mode-b" title="Permanent link">¶</a></h3>
+<p>200 Gb/s per physical port (not 400G, not NVLink, not InfiniBand switch). Triangle mesh: every pair has a direct cable.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Node1 Port0 → Node2 Port1
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Node2 Port0 → Node3 Port1
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Node3 Port0 → Node1 Port1
+</span></code></pre></div>
+<p>Port0 = cage next to the RJ-45 jack; Port1 = far cage. Wrong polarity looks half-alive and dies in <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr>. MTU 9000 on CX-7. All four CX-7 netdevs per node need IPs (six unique /24s). Confirm live names with <code>ibdev2netdev</code> before baking env.</p>
+<p><strong>Mode B <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr></strong> (these Jobs only — do not copy 2-node pair vars):</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>NCCL_SOCKET_IFNAME=&lt;mgmt, default enP7s7&gt;
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>UCX_NET_DEVICES / GLOO_SOCKET_IFNAME / OMPI_MCA_btl_tcp_if_include = same
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>NCCL_IB_HCA=rocep1s0f0,roceP2p1s0f0,rocep1s0f1,roceP2p1s0f1
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>NCCL_IB_DISABLE=0
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>NCCL_IB_MERGE_NICS=0
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>NCCL_NET_PLUGIN=none
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>NCCL_IB_SUBNET_AWARE_ROUTING=1
+</span></code></pre></div>
+<p>If 10GbE is not <code>enP7s7</code>, set <code>LAB_MGMT_IFNAME</code>. Do not hard-fail the stack on that string. <code>ansible/inventory/group_vars/all.yml</code> <code>highspeed_*</code> is the <strong>2-node pair</strong> reference.</p>
+<p><abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr>/Flannel stay on the LAN. Mode B Jobs use <code>hostNetwork: true</code> and <code>hostIPC: true</code>. Realistic ring bus is ~12–24 GB/s allgather. Optional GB10 UMA livelock fallback (not default): <code>NCCL_NET_GDR_LEVEL=0</code>.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>doctor-fabric
+</span></code></pre></div>
+<h2 id="mode-a-daily-mixed-fleet-default">Mode A — daily mixed fleet (default)<a class="headerlink" href="#mode-a-daily-mixed-fleet-default" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Node</th>
+<th><abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr></th>
+<th>Checkpoint</th>
+<th>Aliases</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>spark0</td>
+<td>existing <code>qwen3.6-35b-a3b-nvfp4</code></td>
+<td>Unsloth NVFP4-Fast, MTP, <code>flashinfer_b12x</code></td>
+<td><code>lab-fast</code>, <code>lab-code</code></td>
 </tr>
 <tr>
-<td>ray-head + worker</td>
-<td>~2</td>
-<td>16Gi</td>
-<td>Distributed orchestration</td>
-<td>Start before nemotron/glm</td>
-<td>Required for 2+</td>
+<td>spark1</td>
+<td><code>qwen3.8-flash-next-nvfp4</code></td>
+<td><code>RadixArk/Qwen3.8-Flash-Next-NVFP4</code>, PLE mmap, image <code>vllm/vllm-openai:qwen38-flash-next</code></td>
+<td><code>lab-smart</code>, <code>lab-agent</code></td>
 </tr>
 <tr>
-<td>nemotron-3-ultra</td>
-<td>8</td>
-<td>128Gi+</td>
-<td>NVFP4 large model (legacy 8-GPU profile)</td>
-<td>Validate with test + ray first</td>
-<td>2-node preferred</td>
+<td>spark2</td>
+<td><code>medgemma-27b</code></td>
+<td><code>google/medgemma-27b-multimodal</code>, FP8 on <code>cu130-nightly</code></td>
+<td><code>lab-med</code>, <code>lab-med-vision</code></td>
 </tr>
+</tbody>
+</table>
+<p>Mode A is TP=1. The ring is unused for tokens. 35B is pinned to spark0 <strong>only</strong> via the rounded overlay so 1-node exclusive/dual still works.</p>
+<p>Qwen3.8-Flash-Next: start <code>max-model-len</code> 65536; document 262144. Prefix caching off. PLE mmap is mandatory.</p>
+<p><code>--quality</code> loads existing <code>qwen3.6-27b-nvfp4</code> on spark2 (<code>lab-quality</code>). <code>lab-med</code> then falls back to <code>lab-smart</code> with a medical system prompt (not MedGemma).</p>
+<p>Optional <code>medgemma-4b</code> sidecar (<code>lab-med-extract</code>) is <strong>off by default</strong>. Enable only after <abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> says there is GPU <abbr title="Reserved free capacity Resource Guard keeps free so SSH and control plane stay responsive.">headroom</abbr>. Never treat 4B as the only medical model.</p>
+<p>Documented Apache-2 swap if HAI-DEF is a problem: Baichuan-M2-32B (docs only). Do not default to OpenBioLLM-8B or Meditron-7B.</p>
+<h2 id="mode-b-exclusive-frontier-uses-the-ring">Mode B — exclusive frontier (uses the ring)<a class="headerlink" href="#mode-b-exclusive-frontier-uses-the-ring" title="Permanent link">¶</a></h2>
+<p><code>glm-5.3-flash</code> leader on spark0 + workers on spark1/spark2. Image <code>glm53-flash-tp3:local</code> built on Spark from the published TP=3 overlay (stock nightly cannot do TP=3). Checkpoint <code>local-inference-lab/GLM-5.3-Flash-NVFP4</code> (or RedHatAI). MTP default; DFlash2 is CC BY-NC-ND and is not the default.</p>
+<p><code>start-stack-rounded</code> and <code>start-glm53-flash</code> refuse each other. Heavy confirm. <code>lab-frontier</code> is primary; <code>lab-med</code> falls back to <code>lab-frontier</code> with an explicit prompt that MedGemma is offline and this is a general model.</p>
+<p>Do not add GLM 753B as a daily driver. Existing <code>glm-5.2</code> 1-bit RPC stays as optional night mode.</p>
+<h2 id="litellm-aliases">LiteLLM aliases<a class="headerlink" href="#litellm-aliases" title="Permanent link">¶</a></h2>
+<table>
+<thead>
 <tr>
-<td>nemotron-3-nano-30b</td>
-<td>1</td>
-<td>40Gi</td>
-<td>Agent orchestrator (Mamba-MoE)</td>
-<td>Heavy confirm + capacity</td>
-<td>1-node optimal</td>
+<th>Alias</th>
+<th>Primary</th>
+<th>Fallbacks</th>
 </tr>
+</thead>
+<tbody>
 <tr>
-<td>nemotron-3-nano-omni-30b</td>
-<td>1</td>
-<td>45Gi</td>
-<td>Multimodal + doc intel</td>
-<td>1-node full stack orchestrator</td>
-<td>1-node</td>
-</tr>
-<tr>
-<td>nemotron-3-super-120b</td>
-<td>1</td>
-<td>95Gi</td>
-<td>Hard reasoning NVFP4</td>
-<td>gpu-mem 0.65 on Spark</td>
-<td>1–4 nodes</td>
-</tr>
-<tr>
-<td>nemotron-retriever-*</td>
-<td>0</td>
-<td>4–6Gi</td>
-<td>NIM embed/rerank (CPU)</td>
-<td>Stack aux only</td>
-<td>All presets</td>
-</tr>
-<tr>
-<td>nemotron-parse</td>
-<td>1</td>
-<td>8Gi</td>
-<td>NIM document parse</td>
-<td>2+ node stacks</td>
-<td>2–4 nodes</td>
-</tr>
-<tr>
-<td>nemotron-safety-guard</td>
-<td>0</td>
-<td>4Gi</td>
-<td>NeMo Guard NIM (CPU)</td>
-<td>Always-on in stacks</td>
-<td>All presets</td>
-</tr>
-<tr>
-<td>glm-5.2</td>
-<td>2</td>
-<td>110Gi+</td>
-<td>1-bit UD-IQ1_M llama.cpp RPC (2-node dual-400G)</td>
-<td>Validate with test first; quality trade-off</td>
-<td>2-node required (no Ray)</td>
-</tr>
-<tr>
-<td>qwen3.5-122b-a10b-nvfp4</td>
-<td>1</td>
-<td>95Gi</td>
-<td>Qwen 3.5 122B NVFP4 (1-node 397B substitute)</td>
-<td>vLLM cu130-nightly + transformers 5.x</td>
-<td>1-node</td>
-</tr>
-<tr>
-<td>qwen3.5-397b-spark2</td>
-<td>2</td>
-<td>220Gi</td>
-<td>Qwen 397B int4-AutoRound (2-node 397B substitute)</td>
-<td>Ray + vLLM; ~26-30 tok/s on dual Spark</td>
-<td>2-node + Ray</td>
-</tr>
-<tr>
-<td>qwen3.5-397b-nvfp4</td>
-<td>4</td>
-<td>460Gi+</td>
-<td>Qwen 397B NVFP4 (exact HF checkpoint)</td>
-<td>SGLang TP=4; displaces other LLMs</td>
-<td>4-node required</td>
-</tr>
-<tr>
-<td>qwen3.6-27b-nvfp4</td>
-<td>1</td>
-<td>48Gi</td>
-<td>Qwen3.6 27B dense NVFP4 (quality + MTP)</td>
-<td>Exclusive util 0.72; dual util 0.38</td>
-<td>1-node</td>
-</tr>
-<tr>
-<td>qwen3.6-35b-a3b-nvfp4</td>
-<td>1</td>
-<td>48Gi</td>
-<td>Qwen3.6 35B-A3B MoE NVFP4-Fast (speed)</td>
-<td>flashinfer_b12x; dual stack with 27B</td>
-<td>1-node</td>
-</tr>
-<tr>
-<td>qwen36-dual-spark-1</td>
-<td>2*</td>
-<td>96Gi</td>
-<td>Concurrent 27B + 35B-A3B (*logical GPUs)</td>
-<td>Time-slicing required</td>
-<td>1-node dual</td>
-</tr>
-<tr>
-<td>qwen3.8-flash-next-nvfp4</td>
-<td>1</td>
-<td>90Gi</td>
-<td>Qwen3.8-Flash-Next NVFP4 (spark1)</td>
-<td>PLE mmap; util 0.82; 64k ctx first</td>
-<td>Mode A TP=1</td>
-</tr>
-<tr>
-<td>medgemma-27b</td>
-<td>1</td>
-<td>48Gi</td>
-<td>MedGemma 27B multimodal (spark2)</td>
-<td>Not a medical device; HAI-DEF; FP8</td>
-<td>Mode A TP=1</td>
-</tr>
-<tr>
-<td>medgemma-4b</td>
-<td>1</td>
-<td>8Gi</td>
-<td>Optional extract sidecar</td>
-<td>Off by default; never the only medical model</td>
-<td>sidecar</td>
-</tr>
-<tr>
-<td>glm-5.3-flash</td>
-<td>3</td>
-<td>95Gi×3</td>
-<td>GLM-5.3-Flash NVFP4 TP=3</td>
-<td>Exclusive Mode B; QSFP ring <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr></td>
-<td>3-node ring</td>
-</tr>
-<tr>
-<td>litellm</td>
-<td>0</td>
-<td>1Gi</td>
-<td>OpenAI proxy / aliases</td>
-<td>Management <abbr title="Kubernetes workload that keeps a desired replica set running continuously.">Deployment</abbr>; LAN only</td>
+<td><code>lab-fast</code></td>
+<td>qwen3.6-35b-a3b</td>
 <td>—</td>
 </tr>
 <tr>
-<td>rounded-spark-3</td>
-<td>3</td>
-<td>~186Gi</td>
-<td>Mode A daily fleet + LiteLLM</td>
-<td>Mutually exclusive with Mode B</td>
-<td>3-node</td>
+<td><code>lab-code</code></td>
+<td>lab-fast</td>
+<td>lab-smart</td>
 </tr>
 <tr>
-<td>comfy-base</td>
-<td>1</td>
-<td>60Gi</td>
-<td><abbr title="Node-based UI for diffusion / visual generative AI workflows.">ComfyUI</abbr> visual base (Spark patches)</td>
-<td>Manual; exclusive visual</td>
-<td>1-node</td>
+<td><code>lab-smart</code> / <code>lab-agent</code></td>
+<td>qwen3.8-flash-next</td>
+<td>lab-fast</td>
 </tr>
 <tr>
-<td>flux-fast</td>
-<td>1</td>
-<td>60Gi</td>
-<td>FLUX.2 Klein 9B NVFP4+Nunchaku</td>
-<td>Manual; ~4s/1024² target</td>
-<td>1-node</td>
+<td><code>lab-quality</code></td>
+<td>qwen3.6-27b</td>
+<td><code>--quality</code> only</td>
 </tr>
 <tr>
-<td>flux-quality</td>
-<td>1</td>
-<td>70Gi</td>
-<td>FLUX.2 Dev FP8 quality</td>
-<td>Manual; higher fidelity</td>
-<td>1-node</td>
+<td><code>lab-med</code></td>
+<td>medgemma-27b</td>
+<td>lab-smart, then lab-frontier</td>
 </tr>
 <tr>
-<td>ltx-balanced</td>
-<td>1</td>
-<td>70Gi</td>
-<td>LTX-2.3 distilled FP8 video</td>
-<td>Manual; audio-synced</td>
-<td>1-node</td>
+<td><code>lab-med-vision</code></td>
+<td>medgemma-27b-mm</td>
+<td>same backend</td>
 </tr>
 <tr>
-<td>ltx-quality</td>
-<td>1</td>
-<td>80Gi</td>
-<td>LTX-2.3 BF16 distilled video</td>
-<td>Manual</td>
-<td>1-node</td>
+<td><code>lab-med-extract</code></td>
+<td>4B sidecar if enabled</td>
+<td>lab-med</td>
 </tr>
 <tr>
-<td>flux-to-ltx</td>
-<td>1</td>
-<td>90Gi</td>
-<td>Flux→LTX T2I→I2V+audio pipeline</td>
-<td>Manual; both models resident</td>
-<td>1-node</td>
+<td><code>lab-frontier</code></td>
+<td>glm-5.3-flash</td>
+<td>Mode B</td>
+</tr>
+<tr>
+<td><code>lab-auto</code></td>
+<td>lab-fast</td>
+<td>lab-smart</td>
 </tr>
 </tbody>
 </table>
-<p>See <a href="../visual-generative-ai/">Visual Generative AI on DGX Spark</a> for <abbr title="Node-based UI for diffusion / visual generative AI workflows.">ComfyUI</abbr> details.</p>
-<p><strong>Image + <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> + hostNetwork unification/consistency</strong> (across kimi, kimi-test, nemotron-3-ultra):</p>
+<p><code>api_base</code>: <code>http://&lt;svc&gt;.ai-inference.svc.cluster.local:8000/v1</code>. LiteLLM: <code>http://litellm.ai-inference.svc.cluster.local:4000/v1</code> or <code>http://&lt;spark0-lan&gt;:32040/v1</code>.</p>
+<p>The proxy must stay up if backends are down (per-model 503 is fine).</p>
+<h2 id="medical-safety">Medical safety<a class="headerlink" href="#medical-safety" title="Permanent link">¶</a></h2>
 <ul>
-<li>vLLM image unified to v0.8.5 (MoE/FP8/aarch64 support) for kimi/nemotron</li>
-<li>glm-5.2 uses custom <code>lab/llama-cpp-gb10:rpc</code> (GB10 sm_121 + RPC); build on-node</li>
-<li>Minor <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> alignment (SOCKET_NTHREADS etc added to shorter; "kept in sync with kimi-test baseline")</li>
-<li>hostNetwork: true kept on heavy ray workloads (nemotron/glm); omitted (w/ comments) on kimi/kimi-test. Full decision + per-job comments in the k8s yamls.</li>
+<li>Research / education / clinician-in-the-loop only</li>
+<li><strong>Not a medical device.</strong> Not for diagnosis or treatment decisions</li>
+<li>Prefer “I don’t know” + ask for a source over fabricated guidelines</li>
+<li>PHI stays on-cluster; no cloud OpenAI medical backup for <code>lab-med</code></li>
+<li>HAI-DEF license on MedGemma</li>
 </ul>
-<p>All heavy jobs use:</p>
-<ul>
-<li><code>restartPolicy: OnFailure</code></li>
-<li><code>backoffLimit: 1</code> (or 2 for test)</li>
-<li>explicit <code>resources.requests</code> + <code>limits</code></li>
-<li><code>gpu-memory-utilization</code> capped at 0.82–0.90</li>
-</ul>
-<p>Never let these jobs auto-restart.</p>
-<h2 id="detailed-profiles">Detailed Profiles<a class="headerlink" href="#detailed-profiles" title="Permanent link">¶</a></h2>
-<h3 id="kimi-test-recommended-starting-point">kimi-test (recommended starting point)<a class="headerlink" href="#kimi-test-recommended-starting-point" title="Permanent link">¶</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>./scripts/manage.sh<span class="w"> </span>start-test
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># or</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>./scripts/manage.sh<span class="w"> </span>estimate<span class="w"> </span>kimi-test
+<p>Prompts: <code>k8s/workloads/litellm/files/lab-med-system.txt</code> and <code>lab-med-frontier-fallback.txt</code>.</p>
+<h2 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">¶</a></h2>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>download-rounded-models<span class="w"> </span>run<span class="w"> </span>--tier<span class="w"> </span>all
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-stack-rounded
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-stack-rounded<span class="w"> </span>--quality
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>stop-stack-rounded
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-medgemma
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>stop-medgemma
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-glm53-flash
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>stop-glm53-flash
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-litellm
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>stop-litellm
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>status-stack
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>doctor-fabric
 </span></code></pre></div>
-<ul>
-<li>Lightweight tensor-parallel</li>
-<li>Good for verifying the full stack (<abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr>, <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr>, high-speed, storage mounts)</li>
-<li>Uses unified v0.8.5 image (see unification note above)</li>
-</ul>
-<h3 id="kimi-full-heavy">kimi (full heavy)<a class="headerlink" href="#kimi-full-heavy" title="Permanent link">¶</a></h3>
-<p><strong>Only after successful kimi-test runs.</strong></p>
-<p>See <code>k8s/workloads/kimi/kimi-job.yaml</code> and its README for exact <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> and resource settings (unified image/<abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr>/hostNetwork notes).</p>
-<h3 id="nemotron-agentic-stack-recommended">Nemotron agentic stack (recommended)<a class="headerlink" href="#nemotron-agentic-stack-recommended" title="Permanent link">¶</a></h3>
-<p>See <a href="../nemotron-agentic-stack/">nemotron-agentic-stack.md</a> for one-click presets on 1–4 Spark nodes.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>nemotron-stack<span class="w"> </span>start<span class="w"> </span>nemotron-agentic-spark-1<span class="w"> </span>--confirm<span class="w"> </span>yes
-</span></code></pre></div>
-<h3 id="qwen-35-agentic-stacks-tier-substitutes">Qwen 3.5 agentic stacks (tier substitutes)<a class="headerlink" href="#qwen-35-agentic-stacks-tier-substitutes" title="Permanent link">¶</a></h3>
-<p>When <code>nvidia/Qwen3.5-397B-A17B-NVFP4</code> does not fit your cluster, use the same agentic architecture (orchestrator + CPU RAG + safety) with tier substitutes from <code>config/nemotron-catalog.yaml</code> (<code>qwen_tiers</code>):</p>
-<table>
-<thead>
-<tr>
-<th>Cluster</th>
-<th>Stack ID</th>
-<th>Substitute model</th>
-<th>HF checkpoint</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1× Spark</td>
-<td><code>qwen-agentic-spark-1</code></td>
-<td>Qwen 122B NVFP4</td>
-<td><code>RedHatAI/Qwen3.5-122B-A10B-NVFP4</code></td>
-</tr>
-<tr>
-<td>2× Spark</td>
-<td><code>qwen-agentic-spark-2</code></td>
-<td>Qwen 397B int4-AutoRound</td>
-<td><code>Intel/Qwen3.5-397B-A17B-int4-AutoRound</code></td>
-</tr>
-<tr>
-<td>4× Spark</td>
-<td><code>qwen-agentic-spark-4</code></td>
-<td>Qwen 397B NVFP4</td>
-<td><code>nvidia/Qwen3.5-397B-A17B-NVFP4</code></td>
-</tr>
-</tbody>
-</table>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>download-qwen-models<span class="w"> </span>run<span class="w"> </span>--tier<span class="w"> </span>all
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>nemotron-stack<span class="w"> </span>start<span class="w"> </span>qwen-agentic-spark-2<span class="w"> </span>--confirm<span class="w"> </span>yes
-</span></code></pre></div>
-<h3 id="qwen36-dual-stack-1-spark">Qwen3.6 dual stack (1× Spark)<a class="headerlink" href="#qwen36-dual-stack-1-spark" title="Permanent link">¶</a></h3>
-<p>Concurrent dense 27B + MoE 35B-A3B NVFP4 with MTP. Full guide: <a href="../qwen36-dual-stack/">qwen36-dual-stack.md</a>.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>download-qwen-models<span class="w"> </span>run<span class="w"> </span>--tier<span class="w"> </span>qwen36
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-qwen36-dual
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>status-qwen36
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>stop-qwen36
-</span></code></pre></div>
-<h3 id="ray-large-models-nemotron-3-ultra-legacy">Ray + Large Models (nemotron-3-ultra legacy)<a class="headerlink" href="#ray-large-models-nemotron-3-ultra-legacy" title="Permanent link">¶</a></h3>
-<p>Nemotron Ultra (legacy profile) requires a healthy Ray cluster first:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>./scripts/manage.sh<span class="w"> </span>start-ray
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>./scripts/manage.sh<span class="w"> </span>start-nemotron-3-ultra
-</span></code></pre></div>
-<h3 id="glm-52-1-bit-ud-iq1_m-llamacpp-rpc">GLM-5.2 (1-bit UD-IQ1_M + llama.cpp RPC)<a class="headerlink" href="#glm-52-1-bit-ud-iq1_m-llamacpp-rpc" title="Permanent link">¶</a></h3>
-<p><strong>No Ray required.</strong> Requires 2 nodes (spark0 + spark1) and pre-downloaded GGUF shards:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>download-glm52-gguf<span class="w"> </span>run
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>lab/llama-cpp-gb10:rpc<span class="w"> </span>k8s/workloads/glm-5.2/
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>./scripts/manage.sh<span class="w"> </span>start-glm-5.2
-</span></code></pre></div>
-<p><strong>GLM-5.2 ultra (2-node DGX Spark)</strong>: See <code>k8s/workloads/glm-5.2/</code> for the 1-bit UD-IQ1_M llama.cpp RPC config (~228 GB model, ~8 tok/s @ 256K). Quality trade-off vs nemotron NVFP4 — use when footprint is the constraint.</p>
-<p>The estimator will warn you if free GPUs look insufficient.</p>
-<h2 id="adding-your-own-model">Adding Your Own Model<a class="headerlink" href="#adding-your-own-model" title="Permanent link">¶</a></h2>
-<p>See the "Add your model" section in the main getting-started or the generator pattern in the workloads directory.</p>
-<p><strong>Auto-generated reference</strong>: The shell lookup functions and profiles are also documented in the generated reference (built from comments in <code>scripts/lib/models.sh</code>).</p>
-<p>See also the auto-generated Shell Reference in the site navigation.</p>
-<p>Basic pattern:
-1. Copy <code>kimi-test/</code> as a starting point.
-2. Adjust resources, image, env (MODEL, quantization, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr>).
-3. Add entry to <code>scripts/lib/models.sh</code> lookup functions.
-4. Add a <code>start-xxx</code> wrapper in <code>models.sh</code> with appropriate warnings.
-5. Add BATS coverage.
-6. Document in this catalog.</p>
-<p>Always keep <code>restartPolicy: OnFailure</code> + low backoff for anything &gt; ~4 GPUs.</p>
-<h2 id="configuration-sources">Configuration sources<a class="headerlink" href="#configuration-sources" title="Permanent link">¶</a></h2>
-<p><code>ansible/inventory/group_vars/all.yml</code> holds <strong>reference defaults</strong> (<code>llm_*</code>, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> templates, dev-tool versions) for <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> roles and documentation. <strong>Authoritative</strong> values for a running workload are always the committed manifests under <code>k8s/workloads/</code> and the profiles in <code>scripts/lib/models.sh</code> (used by <code>estimate</code> / <code>start-*</code>). Treat <code>group_vars</code> as a starting point — not the sole source of truth for deployed Jobs.</p>
-<h2 id="resource-estimator-usage">Resource Estimator Usage<a class="headerlink" href="#resource-estimator-usage" title="Permanent link">¶</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>./scripts/manage.sh<span class="w"> </span>estimate<span class="w"> </span>kimi
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>./scripts/manage.sh<span class="w"> </span>estimate<span class="w"> </span>nemotron-3-ultra
-</span></code></pre></div>
-<p>It prints:</p>
-<ul>
-<li>Detected free GPUs</li>
-<li>Profile (GPUs + memory)</li>
-<li>A suggested command with <code>{{PLACEHOLDER}}</code> variables that the interactive docs can substitute.</li>
-</ul>
+<p><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> model base URL is LiteLLM. <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> remains the <strong>agent</strong> gateway. Raw Service bypass: <code>kubectl port-forward -n ai-inference svc/&lt;job&gt; 8000:8000</code>.</p>
 <h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">¶</a></h2>
 <ul>
-<li><a href="../getting-started/">getting-started.md</a></li>
-<li><a href="../troubleshooting/">troubleshooting.md</a></li>
-<li>Workload yamls under <code>k8s/workloads/</code></li>
-<li><code>scripts/manage.sh doctor</code></li>
+<li><a href="../qwen36-dual-stack/">Qwen3.6 Dual Stack</a></li>
+<li><a href="../open-webui/"><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr></a></li>
+<li><a href="../dgx-spark-notes/">DGX Spark Notes</a></li>
+<li><a href="../models-catalog/">Models catalog</a></li>
 </ul>
 <!--
   Project-wide glossary abbreviations (Material tooltips).
