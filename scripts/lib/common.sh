@@ -232,6 +232,16 @@ get_model_profile() {
     qwen3.6-27b-nvfp4) echo "1 48Gi Qwen3.6 27B NVFP4 dense (exclusive util 0.72; dual 0.38)" ;;
     qwen3.6-35b-a3b-nvfp4) echo "1 48Gi Qwen3.6 35B-A3B NVFP4-Fast MoE (exclusive util 0.72; dual 0.38)" ;;
     qwen36-dual-spark-1 | qwen36-dual) echo "2 96Gi Qwen3.6 dual 27B+35B (time-sliced; mid ctx)" ;;
+    qwen3.8-flash-next-nvfp4) echo "1 92Gi Qwen3.8-Flash-Next NVFP4 (spark1; PLE mmap; util 0.82)" ;;
+    medgemma-27b) echo "1 48Gi MedGemma 27B multimodal (spark2; not a medical device)" ;;
+    medgemma-4b) echo "1 8Gi MedGemma 4B sidecar (optional extract)" ;;
+    glm-5.3-flash) echo "3 300Gi GLM-5.3-Flash NVFP4 TP=3 (Mode B QSFP ring)" ;;
+    litellm) echo "0 1Gi LiteLLM management proxy (LAN)" ;;
+    rounded-spark-3) echo "3 189Gi Mode A rounded fleet + LiteLLM" ;;
+    rounded-spark-3-quality) echo "3 189Gi Mode A rounded fleet with 27B quality" ;;
+    glm53-flash-spark-3) echo "3 300Gi Mode B GLM-5.3-Flash TP=3 exclusive" ;;
+    deepseek-v4.1-flash) echo "3 324Gi DeepSeek-V4.1-Flash official MXFP4 TP=3 (Mode C QSFP ring)" ;;
+    dsv41-flash-spark-3) echo "3 324Gi Mode C DeepSeek-V4.1-Flash TP=3 exclusive" ;;
     comfy-base) echo "1 60Gi ComfyUI base (visual; Spark unified-memory patches)" ;;
     flux-fast) echo "1 60Gi FLUX.2 Klein 9B NVFP4+Nunchaku (visual fast)" ;;
     flux-quality) echo "1 70Gi FLUX.2 Dev FP8 (visual quality)" ;;

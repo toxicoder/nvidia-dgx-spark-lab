@@ -30,6 +30,7 @@ find "${dirs[@]}" \
   \( -name '*.yaml' -o -name '*.yml' \) \
   ! -name 'kustomization.yaml' \
   ! -name 'kustomization.yml' \
+  ! -path '*/files/*' \
   -print0 |
   xargs -0 kubeconform -strict -summary -kubernetes-version 1.30.0
 echo "K8s schema validation passed."

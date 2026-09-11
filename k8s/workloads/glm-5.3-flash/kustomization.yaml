@@ -1,0 +1,13 @@
+# Purpose: Kustomize bundle for GLM-5.3-Flash TP=3 Mode B workload
+# Source of truth: k8s/workloads/glm-5.3-flash/
+# Regenerate: n/a
+# Safety: exclusive with Mode A; ring NCCL on these Jobs only
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - glm-5.3-flash-job.yaml
+  - glm-5.3-flash-worker-1-job.yaml
+  - glm-5.3-flash-worker-2-job.yaml
+  - service.yaml

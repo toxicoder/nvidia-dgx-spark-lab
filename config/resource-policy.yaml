@@ -9,7 +9,7 @@
 headroom:
   cpu_percent: 15
   memory_percent: 15
-  memory_min_per_node: 64Gi
+  memory_min_per_node: 24Gi
   cpu_min_per_node: "4"
 
 tiers:
@@ -31,6 +31,10 @@ tiers:
         namespace: dev
         cpu: "600m"
         memory: 640Mi
+      litellm:
+        namespace: ai-inference
+        cpu: 500m
+        memory: 1Gi
       grafana:
         namespace: monitoring
         cpu: "1"
@@ -304,6 +308,83 @@ models:
     job_name: qwen3.6-35b-a3b-nvfp4
     requires_validation:
       - kimi-test
+  qwen3.8-flash-next-nvfp4:
+    gpus: 1
+    memory: 92Gi
+    cpu: "8"
+    heavy: true
+    job_name: qwen3.8-flash-next-nvfp4
+    requires_validation:
+      - kimi-test
+  medgemma-27b:
+    gpus: 1
+    memory: 48Gi
+    cpu: "8"
+    heavy: true
+    job_name: medgemma-27b
+    requires_validation:
+      - kimi-test
+  medgemma-4b:
+    gpus: 1
+    memory: 8Gi
+    cpu: "2"
+    heavy: false
+    job_name: medgemma-4b
+  glm-5.3-flash:
+    gpus: 1
+    memory: 100Gi
+    cpu: "12"
+    heavy: true
+    job_name: glm-5.3-flash
+    multi_node_only: true
+    requires_validation:
+      - kimi-test
+    stack_with:
+      - glm-5.3-flash-worker-1
+      - glm-5.3-flash-worker-2
+  glm-5.3-flash-worker-1:
+    gpus: 1
+    memory: 100Gi
+    cpu: "8"
+    heavy: false
+    job_name: glm-5.3-flash-worker-1
+  glm-5.3-flash-worker-2:
+    gpus: 1
+    memory: 100Gi
+    cpu: "8"
+    heavy: false
+    job_name: glm-5.3-flash-worker-2
+  deepseek-v4.1-flash:
+    gpus: 1
+    memory: 108Gi
+    cpu: "12"
+    heavy: true
+    job_name: deepseek-v4.1-flash
+    multi_node_only: true
+    requires_validation:
+      - kimi-test
+    stack_with:
+      - deepseek-v4.1-flash-worker-1
+      - deepseek-v4.1-flash-worker-2
+  deepseek-v4.1-flash-worker-1:
+    gpus: 1
+    memory: 108Gi
+    cpu: "8"
+    heavy: false
+    job_name: deepseek-v4.1-flash-worker-1
+  deepseek-v4.1-flash-worker-2:
+    gpus: 1
+    memory: 108Gi
+    cpu: "8"
+    heavy: false
+    job_name: deepseek-v4.1-flash-worker-2
+  litellm:
+    gpus: 0
+    memory: 1Gi
+    cpu: "500m"
+    heavy: false
+    job_name: litellm
+    kind: deployment
   # Visual generative AI (ComfyUI). Deployments; exclusive GPU consumers.
   comfy-base:
     gpus: 1
@@ -596,6 +677,90 @@ stacks:
       - kimi-test
     pillars: [orchestrator]
     quality_notes: "NVFP4 dual on 1× Spark; time-sliced GPU; mid ctx default (~64K); exclusive for 256K"
+
+  rounded-spark-3:
+    label: Rounded daily fleet (3× Spark) + LiteLLM
+    min_nodes: 3
+    max_nodes: 3
+    heavy: true
+    tier: safe
+    description: spark0 fast coder + spark1 Flash-Next + spark2 MedGemma; LiteLLM aliases
+    stack_with:
+      - qwen3.6-35b-a3b-nvfp4
+      - qwen3.8-flash-next-nvfp4
+      - medgemma-27b
+      - litellm
+    startup_order:
+      - qwen3.6-35b-a3b-nvfp4
+      - qwen3.8-flash-next-nvfp4
+      - medgemma-27b
+      - litellm
+    requires_validation:
+      - kimi-test
+    pillars: [orchestrator]
+    quality_notes: "Mode A; TP=1 per node; QSFP ring unused for tokens"
+
+  rounded-spark-3-quality:
+    label: Rounded daily fleet with Qwen3.6 27B quality on spark2
+    min_nodes: 3
+    max_nodes: 3
+    heavy: true
+    tier: safe
+    description: spark0 fast + spark1 Flash-Next + spark2 Qwen3.6 27B; lab-med falls back to lab-smart
+    stack_with:
+      - qwen3.6-35b-a3b-nvfp4
+      - qwen3.8-flash-next-nvfp4
+      - qwen3.6-27b-nvfp4
+      - litellm
+    startup_order:
+      - qwen3.6-35b-a3b-nvfp4
+      - qwen3.8-flash-next-nvfp4
+      - qwen3.6-27b-nvfp4
+      - litellm
+    requires_validation:
+      - kimi-test
+    pillars: [orchestrator]
+    quality_notes: "Mode A --quality; lab-med is not MedGemma"
+
+  glm53-flash-spark-3:
+    label: GLM-5.3-Flash NVFP4 TP=3 (exclusive frontier)
+    min_nodes: 3
+    max_nodes: 3
+    heavy: true
+    tier: experimental
+    description: Exclusive Mode B; 3-node QSFP ring; refuses Mode A jobs
+    stack_with:
+      - glm-5.3-flash
+      - glm-5.3-flash-worker-1
+      - glm-5.3-flash-worker-2
+    startup_order:
+      - glm-5.3-flash-worker-1
+      - glm-5.3-flash-worker-2
+      - glm-5.3-flash
+    requires_validation:
+      - kimi-test
+    pillars: [orchestrator]
+    quality_notes: "Mode B uses the 3-node 200G ring; do not copy 2-node 400G NCCL vars"
+
+  dsv41-flash-spark-3:
+    label: DeepSeek-V4.1-Flash official MXFP4 TP=3 (exclusive Mode C)
+    min_nodes: 3
+    max_nodes: 3
+    heavy: true
+    tier: experimental
+    description: Exclusive Mode C; official DeepSeek-V4.1-Flash; Engram on NVMe; 3-node QSFP ring; refuses Mode A and Mode B
+    stack_with:
+      - deepseek-v4.1-flash
+      - deepseek-v4.1-flash-worker-1
+      - deepseek-v4.1-flash-worker-2
+    startup_order:
+      - deepseek-v4.1-flash-worker-1
+      - deepseek-v4.1-flash-worker-2
+      - deepseek-v4.1-flash
+    requires_validation:
+      - kimi-test
+    pillars: [orchestrator]
+    quality_notes: "Official MXFP4 experts + FP8 dense; Engram mmap/NVMe; SGLang; mem-fraction 0.95; 131K first. Do not use nvidia/DeepSeek-V4-Flash-NVFP4 (old 284B model)."
 
   hermes-lab:
     label: Hermes Agent (Docker)

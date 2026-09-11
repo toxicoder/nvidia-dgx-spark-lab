@@ -152,7 +152,7 @@ export function ResourcesPanel({ initialCapacity, monitoringStatus }: ResourcesP
         )}
 
       <p className="text-[10px] text-muted-foreground">
-        Available = allocatable − requested − policy headroom (15% / 64Gi per node). Protects SSH and dashboard under
+        Available = allocatable − requested − policy headroom (15% / 24Gi per node). Protects SSH and dashboard under
         load.
       </p>
     </div>

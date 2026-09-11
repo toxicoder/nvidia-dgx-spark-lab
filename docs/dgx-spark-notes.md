@@ -39,13 +39,9 @@ Large models (70B+, MoE like Kimi-K2.6) can quickly exhaust host memory and make
 - Workloads are started manually via `scripts/manage.sh`.
 - After reboot you must explicitly re-deploy.
 
-## High-Speed Interconnect (Dual 400G)
+## High-Speed Interconnect
 
-For multi-node setups (2-4), nodes have dedicated 400G links (likely ConnectX-7 or similar). Single-node (1) uses local GPU interconnects (no inter-node NCCL).
-
-The setup is designed for 1-4 nodes total (scalable within that; high-speed for multi-node parallelism).
-
-Correct NCCL environment variables are essential:
+**2-node pair (dual ~400G aggregate):** existing Jobs and `group_vars` `highspeed_*` / `nccl_env` are **reference for a pair**. Typical env:
 
 ```yaml
 env:
@@ -57,12 +53,15 @@ env:
     value: "INFO"
 ```
 
-If NCCL falls back to the management network, performance will be terrible.
+**3-node QSFP ring (200 Gb/s per pair, triangle mesh):** used by Mode B (`glm-5.3-flash`) and Mode C (`deepseek-v4.1-flash`). OOB/Gloo on 10GbE (often `enP7s7`); payload on all four CX-7 RoCE devices; `NCCL_NET_PLUGIN=none`. Do **not** copy the 2-node pair vars onto that ring. Confirm names with `ibdev2netdev`. See [LiteLLM rounded stack](litellm-rounded-stack.md).
+
+If NCCL payload falls back to the management network, performance will be terrible.
 
 Verify interfaces on the nodes:
 
 ```bash
-ip -br link show | grep enp
+ip -br link show | grep -E 'enp|enP'
+ibdev2netdev
 ```
 
 ## GPU Operator on K3s

@@ -1,0 +1,125 @@
+# Purpose: Qwen3.8-Flash-Next NVFP4 TP=1 Job on spark1 (Mode A generalist)
+# Source of truth: k8s/workloads/qwen3.8-flash-next-nvfp4/
+# Regenerate: n/a
+# Safety: manual start only; PLE mmap required to fit 128 GB UMA; gpu-mem-util 0.82
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: qwen3.8-flash-next-nvfp4
+  namespace: ai-inference
+  labels:
+    app: qwen3.8-flash-next-nvfp4
+    workload: inference
+    mode: production
+    family: qwen3.8
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 7200
+  template:
+    metadata:
+      labels:
+        app: qwen3.8-flash-next-nvfp4
+        workload: inference
+        mode: production
+        family: qwen3.8
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      restartPolicy: OnFailure
+      nodeSelector:
+        kubernetes.io/hostname: spark1
+      containers:
+        - name: inference
+          # qwen4_exp architecture; cu130-nightly cannot load this checkpoint.
+          image: vllm/vllm-openai:qwen38-flash-next
+          imagePullPolicy: IfNotPresent
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+          resources:
+            requests:
+              cpu: "8"
+              memory: "92Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "16"
+              memory: "110Gi"
+              nvidia.com/gpu: "1"
+          env:
+            - name: CUTE_DSL_ARCH
+              value: "sm_121a"
+            - name: TORCH_CUDA_ARCH_LIST
+              value: "12.1a"
+            - name: VLLM_PLE_MMAP
+              value: "1"
+            - name: VLLM_PLE_MMAP_WORKERS
+              value: "32"
+            - name: VLLM_PLE_MMAP_PREWARM
+              value: "1"
+            - name: MODEL_NAME
+              value: "RadixArk/Qwen3.8-Flash-Next-NVFP4"
+            - name: HF_HOME
+              value: "/models"
+            - name: VLLM_PORT
+              value: "8000"
+            - name: VLLM_ALLOW_LONG_MAX_MODEL_LEN
+              value: "1"
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 180
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 600
+            periodSeconds: 30
+            timeoutSeconds: 10
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              exec vllm serve "${MODEL_NAME}"
+              --host 0.0.0.0
+              --port 8000
+              --tensor-parallel-size 1
+              --trust-remote-code
+              --served-model-name qwen3.8-flash-next
+              --gpu-memory-utilization 0.82
+              --max-model-len 65536
+              --max-num-seqs 4
+              --kv-cache-dtype fp8
+              --enable-chunked-prefill
+              --no-enable-prefix-caching
+              --speculative-config '{"method":"mtp","num_speculative_tokens":3}'
+              --enable-auto-tool-choice
+              --tool-call-parser qwen3_coder
+              --reasoning-parser qwen3
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 16Gi

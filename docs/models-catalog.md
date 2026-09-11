@@ -46,6 +46,14 @@ tags: [models, inference, safety, resources, vllm]
 | qwen3.6-27b-nvfp4     | 1    | 48Gi        | Qwen3.6 27B dense NVFP4 (quality + MTP) | Exclusive util 0.72; dual util 0.38 | 1-node            |
 | qwen3.6-35b-a3b-nvfp4 | 1    | 48Gi        | Qwen3.6 35B-A3B MoE NVFP4-Fast (speed) | flashinfer_b12x; dual stack with 27B | 1-node            |
 | qwen36-dual-spark-1   | 2*   | 96Gi        | Concurrent 27B + 35B-A3B (*logical GPUs) | Time-slicing required | 1-node dual       |
+| qwen3.8-flash-next-nvfp4 | 1 | 92Gi        | Qwen3.8-Flash-Next NVFP4 (spark1) | PLE mmap; util 0.82; 64k ctx first | Mode A TP=1       |
+| medgemma-27b          | 1    | 48Gi        | MedGemma 27B multimodal (spark2) | Not a medical device; HAI-DEF; FP8 | Mode A TP=1       |
+| medgemma-4b           | 1    | 8Gi         | Optional extract sidecar | Off by default; never the only medical model | sidecar           |
+| glm-5.3-flash         | 3    | 100Gi×3     | GLM-5.3-Flash NVFP4 TP=3 | Exclusive Mode B; util 0.85; QSFP ring | 3-node ring       |
+| deepseek-v4.1-flash   | 3    | 108Gi×3     | DeepSeek-V4.1-Flash official MXFP4 | Exclusive Mode C; Engram NVMe; SGLang 0.95 | 3-node ring       |
+| dsv41-flash-spark-3   | 3    | 324Gi       | Mode C stack (leader + 2 workers) | Refuses Mode A and Mode B | 3-node ring       |
+| litellm               | 0    | 1Gi         | OpenAI proxy / aliases | Management Deployment; LAN only | —                 |
+| rounded-spark-3       | 3    | ~189Gi      | Mode A daily fleet + LiteLLM | Mutually exclusive with Mode B and C | 3-node            |
 | comfy-base            | 1    | 60Gi        | ComfyUI visual base (Spark patches) | Manual; exclusive visual | 1-node            |
 | flux-fast             | 1    | 60Gi        | FLUX.2 Klein 9B NVFP4+Nunchaku | Manual; ~4s/1024² target | 1-node            |
 | flux-quality          | 1    | 70Gi        | FLUX.2 Dev FP8 quality | Manual; higher fidelity | 1-node            |
@@ -67,7 +75,7 @@ All heavy jobs use:
 - `restartPolicy: OnFailure`
 - `backoffLimit: 1` (or 2 for test)
 - explicit `resources.requests` + `limits`
-- `gpu-memory-utilization` capped at 0.82–0.90
+- Mode A vLLM `gpu-memory-utilization` ≤ 0.82; Mode B exclusive ≤ 0.85; Mode C SGLang `--mem-fraction-static` ≤ 0.95. Never ship vLLM 0.88/0.90.
 
 Never let these jobs auto-restart.
 
