@@ -1,14 +1,14 @@
 ---
 title: LiteLLM Rounded Stack (3× DGX Spark)
-description: Daily Mode A mixed fleet and exclusive Mode B GLM-5.3-Flash TP=3 behind LiteLLM on a 3-node QSFP ring.
-tags: [litellm, inference, nvfp4, vllm, medgemma, glm, dgx-spark, nccl]
+description: Daily Mode A mixed fleet, exclusive Mode B GLM-5.3-Flash TP=3, and exclusive Mode C DeepSeek-V4.1-Flash TP=3 behind LiteLLM on a 3-node QSFP ring.
+tags: [litellm, inference, nvfp4, vllm, sglang, medgemma, glm, deepseek, dgx-spark, nccl]
 ---
 
 # LiteLLM Rounded Stack (3× DGX Spark)
 
 **What's on this page**
 
-- Two mutually exclusive modes on three GB10 Sparks
+- Three mutually exclusive modes on three GB10 Sparks
 - LiteLLM aliases and Open WebUI wiring
 - 3-node QSFP ring cabling and NCCL (Mode B only)
 - Medical safety (not a medical device)
@@ -17,10 +17,10 @@ tags: [litellm, inference, nvfp4, vllm, medgemma, glm, dgx-spark, nccl]
 **What this enables**
 
 - Daily mixed fleet: fast coding + smart generalist + medical specialist
-- Exclusive frontier GLM-5.3-Flash TP=3 that actually uses the QSFP ring
+- Exclusive frontier GLM-5.3-Flash TP=3 or DeepSeek-V4.1-Flash TP=3 that actually uses the QSFP ring
 - One OpenAI base URL for chat clients
 
-Nothing auto-starts on reboot. Heavy Jobs are `OnFailure` + `backoffLimit: 1` with explicit resources. Resource Guard 15% / 64Gi headroom applies. New Jobs stay at `gpu-memory-utilization` ≤ 0.82.
+Nothing auto-starts on reboot. Heavy Jobs are `OnFailure` + `backoffLimit: 1` with explicit resources. Resource Guard 15% / **24Gi** headroom applies. Mode A vLLM util ≤ 0.82; Mode B exclusive vLLM util ≤ 0.85; Mode C exclusive SGLang `--mem-fraction-static` ≤ 0.95. Never ship vLLM 0.88/0.90.
 
 ## Hardware
 
@@ -31,7 +31,7 @@ Three DGX Spark GB10 nodes (128 GB UMA, sm_121). Two networks — never mix role
 | LAN / management (RJ-45 10GbE) | often `enP7s7` | K3s, SSH, dashboard, LiteLLM, Open WebUI, NCCL bootstrap / Gloo |
 | High-speed fabric (CX-7 RoCE) | four RoCE twins per node | NCCL payload / TP all-reduce **only** |
 
-### 3-node QSFP ring (Mode B)
+### 3-node QSFP ring (Mode B and Mode C)
 
 200 Gb/s per physical port (not 400G, not NVLink, not InfiniBand switch). Triangle mesh: every pair has a direct cable.
 
@@ -43,7 +43,7 @@ Node3 Port0 → Node1 Port1
 
 Port0 = cage next to the RJ-45 jack; Port1 = far cage. Wrong polarity looks half-alive and dies in NCCL. MTU 9000 on CX-7. All four CX-7 netdevs per node need IPs (six unique /24s). Confirm live names with `ibdev2netdev` before baking env.
 
-**Mode B NCCL** (these Jobs only — do not copy 2-node pair vars):
+**Mode B / Mode C NCCL** (these Jobs only — do not copy 2-node pair vars):
 
 ```
 NCCL_SOCKET_IFNAME=<mgmt, default enP7s7>
@@ -57,7 +57,7 @@ NCCL_IB_SUBNET_AWARE_ROUTING=1
 
 If 10GbE is not `enP7s7`, set `LAB_MGMT_IFNAME`. Do not hard-fail the stack on that string. `ansible/inventory/group_vars/all.yml` `highspeed_*` is the **2-node pair** reference.
 
-K3s/Flannel stay on the LAN. Mode B Jobs use `hostNetwork: true` and `hostIPC: true`. Realistic ring bus is ~12–24 GB/s allgather. Optional GB10 UMA livelock fallback (not default): `NCCL_NET_GDR_LEVEL=0`.
+K3s/Flannel stay on the LAN. Mode B and Mode C Jobs use `hostNetwork: true` and `hostIPC: true`. Realistic ring bus is ~12–24 GB/s allgather. Optional GB10 UMA livelock fallback (not default): `NCCL_NET_GDR_LEVEL=0`. Mode C also sets NCCL buffer cuts (`NCCL_BUFFSIZE=1MiB`) so pinned host RAM does not eat the head.
 
 ```bash
 bazelisk run //:manage -- doctor-fabric
@@ -85,9 +85,27 @@ Documented Apache-2 swap if HAI-DEF is a problem: Baichuan-M2-32B (docs only). D
 
 `glm-5.3-flash` leader on spark0 + workers on spark1/spark2. Image `glm53-flash-tp3:local` built on Spark from the published TP=3 overlay (stock nightly cannot do TP=3). Checkpoint `local-inference-lab/GLM-5.3-Flash-NVFP4` (or RedHatAI). MTP default; DFlash2 is CC BY-NC-ND and is not the default.
 
-`start-stack-rounded` and `start-glm53-flash` refuse each other. Heavy confirm. `lab-frontier` is primary; `lab-med` falls back to `lab-frontier` with an explicit prompt that MedGemma is offline and this is a general model.
+`start-stack-rounded`, `start-glm53-flash`, and `start-dsv41-flash` refuse each other. Heavy confirm. `lab-frontier` stays GLM; `lab-med` falls back to `lab-smart`, then `lab-frontier`, then `lab-frontier-ds` with an explicit prompt that MedGemma is offline and this is a general model.
+
+Mode B exclusive util is **0.85**. 0.88 is not shipped. First `max-model-len` is 131072.
 
 Do not add GLM 753B as a daily driver. Existing `glm-5.2` 1-bit RPC stays as optional night mode.
+
+## Mode C — exclusive DeepSeek-V4.1-Flash (uses the ring)
+
+Official `deepseek-ai/DeepSeek-V4.1-Flash` only (native MXFP4 experts + FP8/MXFP8 dense). **Do not** use `nvidia/DeepSeek-V4-Flash-NVFP4` (old 284B) or LibertAIDAI requants.
+
+Engine is **SGLang** with the MiaAI-Lab GB10 overlay (`dsv41-flash-tp3:local`), not stock vLLM. Engram tables live on **each node’s NVMe** at `/mnt/models/dsv41-engram`. `OFFLOAD_MODE=nvme` only — RAM offload evicts the model on UMA.
+
+`PYTORCH_CUDA_ALLOC_CONF=expandable_segments:False` (True NaNs V4.1 prompts &gt;64 tokens). Do not copy the Comfy visual `True` patch.
+
+First profile: `--mem-fraction-static 0.95` (MiaAI measured load for ~101 GiB/rank), `--context-length 131072`, `--max-running-requests 1`. Hang line is MemAvailable ~8–12 GiB; MiaAI left ~6 GiB on the head. If MemAvailable drops below 8 GiB, `stop-dsv41-flash`. Job is fail-stop (`OnFailure` + `backoffLimit: 1`); nothing auto-starts on reboot.
+
+Same 3-node QSFP NCCL block as Mode B, plus NCCL buffer cuts. Master port **29522**. TP=3 head padding 64→96 is expected (overlay). A 4th Spark → TP=4 overlay is documented future work, not this tree.
+
+Image overlay is AGPL-3.0; this repo does not vendor `adapter/`. See `k8s/workloads/deepseek-v4.1-flash/README.md`.
+
+Optional `lab-frontier-cloud` (official API `deepseek-flash`) is **not** a live route in this tree — there is no optional cloud-key Secret pattern. Do not attach any cloud backup to `lab-med`.
 
 ## LiteLLM aliases
 
@@ -97,10 +115,11 @@ Do not add GLM 753B as a daily driver. Existing `glm-5.2` 1-bit RPC stays as opt
 | `lab-code` | lab-fast | lab-smart |
 | `lab-smart` / `lab-agent` | qwen3.8-flash-next | lab-fast |
 | `lab-quality` | qwen3.6-27b | `--quality` only |
-| `lab-med` | medgemma-27b | lab-smart, then lab-frontier |
+| `lab-med` | medgemma-27b | lab-smart, then lab-frontier, then lab-frontier-ds |
 | `lab-med-vision` | medgemma-27b-mm | same backend |
 | `lab-med-extract` | 4B sidecar if enabled | lab-med |
-| `lab-frontier` | glm-5.3-flash | Mode B |
+| `lab-frontier` | glm-5.3-flash | Mode B (default frontier) |
+| `lab-frontier-ds` | deepseek-v4.1-flash | Mode C |
 | `lab-auto` | lab-fast | lab-smart |
 
 `api_base`: `http://<svc>.ai-inference.svc.cluster.local:8000/v1`. LiteLLM: `http://litellm.ai-inference.svc.cluster.local:4000/v1` or `http://<spark0-lan>:32040/v1`.
@@ -128,6 +147,9 @@ bazelisk run //:manage -- start-medgemma
 bazelisk run //:manage -- stop-medgemma
 bazelisk run //:manage -- start-glm53-flash
 bazelisk run //:manage -- stop-glm53-flash
+bazelisk run //scripts:run-utility -- download-dsv41-flash run
+bazelisk run //:manage -- start-dsv41-flash
+bazelisk run //:manage -- stop-dsv41-flash
 bazelisk run //:manage -- start-litellm
 bazelisk run //:manage -- stop-litellm
 bazelisk run //:manage -- status-stack

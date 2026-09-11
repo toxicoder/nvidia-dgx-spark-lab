@@ -418,11 +418,227 @@ MOCKKUBECTL
   [[ "$output" == *"rounded"* || "$output" == *"Stopping"* || "$output" == *"delete"* ]]
 }
 
+@test "manage.sh help lists start-dsv41-flash and stop-dsv41-flash" {
+  run bash "$MANAGE_SH" help
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"start-dsv41-flash"* ]]
+  [[ "$output" == *"stop-dsv41-flash"* ]]
+}
+
+@test "manage.sh start-dsv41-flash aborts when user does not type 'yes'" {
+  run bash -c "echo 'no' | bash \"$MANAGE_SH\" start-dsv41-flash"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Aborted"* ]]
+}
+
+@test "manage.sh start-stack-rounded refuses when Mode C job is active" {
+  {
+    echo '#!/usr/bin/env bash'
+    echo "CALL_LOG=\"${TEST_TMP_DIR}/kubectl_calls.log\""
+    cat << 'MOCKKUBECTL'
+echo "kubectl $*" >> "$CALL_LOG"
+case "$1" in
+  cluster-info) echo "Kubernetes control plane is running at https://fake:6443"; exit 0 ;;
+  get)
+    if [[ "$*" == *"nodes"* ]]; then
+      echo "NAME     STATUS   ROLES    AGE   VERSION"
+      echo "spark0   Ready    control-plane,worker   1d    v1.30.3+k3s1"
+      echo "spark1   Ready    worker                 1d    v1.30.3+k3s1"
+      echo "spark2   Ready    worker                 1d    v1.30.3+k3s1"
+      exit 0
+    fi
+    if [[ "$*" == *"get job deepseek-v4.1-flash"* ]]; then
+      if [[ "$*" == *"jsonpath"* ]]; then
+        echo -n "1"
+        exit 0
+      fi
+      exit 0
+    fi
+    if [[ "$*" == *"get job"* && "$*" == *"jsonpath"* ]]; then
+      echo -n "0"
+      exit 0
+    fi
+    if [[ "$*" == *"get job"* ]]; then
+      exit 1
+    fi
+    exit 0
+    ;;
+  *) exit 0 ;;
+esac
+MOCKKUBECTL
+  } > "$TEST_TMP_DIR/bin/kubectl"
+  chmod +x "$TEST_TMP_DIR/bin/kubectl"
+  run bash -c "echo 'yes' | bash \"$MANAGE_SH\" start-stack-rounded"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"Mode C"* || "$output" == *"deepseek-v4.1-flash"* || "$output" == *"dsv41"* ]]
+}
+
+@test "manage.sh start-glm53-flash refuses when Mode C job is active" {
+  {
+    echo '#!/usr/bin/env bash'
+    echo "CALL_LOG=\"${TEST_TMP_DIR}/kubectl_calls.log\""
+    cat << 'MOCKKUBECTL'
+echo "kubectl $*" >> "$CALL_LOG"
+case "$1" in
+  cluster-info) echo "Kubernetes control plane is running at https://fake:6443"; exit 0 ;;
+  get)
+    if [[ "$*" == *"nodes"* ]]; then
+      echo "NAME     STATUS   ROLES    AGE   VERSION"
+      echo "spark0   Ready    control-plane,worker   1d    v1.30.3+k3s1"
+      echo "spark1   Ready    worker                 1d    v1.30.3+k3s1"
+      echo "spark2   Ready    worker                 1d    v1.30.3+k3s1"
+      exit 0
+    fi
+    if [[ "$*" == *"get job deepseek-v4.1-flash"* ]]; then
+      if [[ "$*" == *"jsonpath"* ]]; then
+        echo -n "1"
+        exit 0
+      fi
+      exit 0
+    fi
+    if [[ "$*" == *"get job"* && "$*" == *"jsonpath"* ]]; then
+      echo -n "0"
+      exit 0
+    fi
+    if [[ "$*" == *"get job"* ]]; then
+      exit 1
+    fi
+    exit 0
+    ;;
+  *) exit 0 ;;
+esac
+MOCKKUBECTL
+  } > "$TEST_TMP_DIR/bin/kubectl"
+  chmod +x "$TEST_TMP_DIR/bin/kubectl"
+  run bash -c "echo 'yes' | bash \"$MANAGE_SH\" start-glm53-flash"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"Mode C"* || "$output" == *"deepseek-v4.1-flash"* || "$output" == *"dsv41"* ]]
+}
+
+@test "manage.sh start-dsv41-flash refuses when Mode A job is active" {
+  {
+    echo '#!/usr/bin/env bash'
+    echo "CALL_LOG=\"${TEST_TMP_DIR}/kubectl_calls.log\""
+    cat << 'MOCKKUBECTL'
+echo "kubectl $*" >> "$CALL_LOG"
+case "$1" in
+  cluster-info) echo "Kubernetes control plane is running at https://fake:6443"; exit 0 ;;
+  get)
+    if [[ "$*" == *"nodes"* ]]; then
+      echo "NAME     STATUS   ROLES    AGE   VERSION"
+      echo "spark0   Ready    control-plane,worker   1d    v1.30.3+k3s1"
+      echo "spark1   Ready    worker                 1d    v1.30.3+k3s1"
+      echo "spark2   Ready    worker                 1d    v1.30.3+k3s1"
+      exit 0
+    fi
+    if [[ "$*" == *"get job qwen3.6-35b-a3b-nvfp4"* ]]; then
+      if [[ "$*" == *"jsonpath"* ]]; then
+        echo -n "1"
+        exit 0
+      fi
+      exit 0
+    fi
+    if [[ "$*" == *"get job"* && "$*" == *"jsonpath"* ]]; then
+      echo -n "0"
+      exit 0
+    fi
+    if [[ "$*" == *"get job"* ]]; then
+      exit 1
+    fi
+    exit 0
+    ;;
+  *) exit 0 ;;
+esac
+MOCKKUBECTL
+  } > "$TEST_TMP_DIR/bin/kubectl"
+  chmod +x "$TEST_TMP_DIR/bin/kubectl"
+  run bash -c "echo 'yes' | bash \"$MANAGE_SH\" start-dsv41-flash"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"Mode A"* || "$output" == *"rounded"* || "$output" == *"qwen3.6-35b"* ]]
+}
+
+@test "manage.sh start-dsv41-flash refuses when Mode B job is active" {
+  {
+    echo '#!/usr/bin/env bash'
+    echo "CALL_LOG=\"${TEST_TMP_DIR}/kubectl_calls.log\""
+    cat << 'MOCKKUBECTL'
+echo "kubectl $*" >> "$CALL_LOG"
+case "$1" in
+  cluster-info) echo "Kubernetes control plane is running at https://fake:6443"; exit 0 ;;
+  get)
+    if [[ "$*" == *"nodes"* ]]; then
+      echo "NAME     STATUS   ROLES    AGE   VERSION"
+      echo "spark0   Ready    control-plane,worker   1d    v1.30.3+k3s1"
+      echo "spark1   Ready    worker                 1d    v1.30.3+k3s1"
+      echo "spark2   Ready    worker                 1d    v1.30.3+k3s1"
+      exit 0
+    fi
+    if [[ "$*" == *"get job glm-5.3-flash"* ]]; then
+      if [[ "$*" == *"jsonpath"* ]]; then
+        echo -n "1"
+        exit 0
+      fi
+      exit 0
+    fi
+    if [[ "$*" == *"get job"* && "$*" == *"jsonpath"* ]]; then
+      echo -n "0"
+      exit 0
+    fi
+    if [[ "$*" == *"get job"* ]]; then
+      exit 1
+    fi
+    exit 0
+    ;;
+  *) exit 0 ;;
+esac
+MOCKKUBECTL
+  } > "$TEST_TMP_DIR/bin/kubectl"
+  chmod +x "$TEST_TMP_DIR/bin/kubectl"
+  run bash -c "echo 'yes' | bash \"$MANAGE_SH\" start-dsv41-flash"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"Mode B"* || "$output" == *"glm-5.3-flash"* || "$output" == *"frontier"* ]]
+}
+
+@test "manage.sh start-dsv41-flash requires at least 3 nodes in non-interactive mode" {
+  {
+    echo '#!/usr/bin/env bash'
+    echo "CALL_LOG=\"${TEST_TMP_DIR}/kubectl_calls.log\""
+    cat << 'MOCKKUBECTL'
+echo "kubectl $*" >> "$CALL_LOG"
+case "$1" in
+  cluster-info) echo "Kubernetes control plane is running at https://fake:6443"; exit 0 ;;
+  get)
+    if [[ "$*" == *"nodes"* ]]; then
+      echo "spark0   Ready    control-plane,worker   1d    v1.30.3+k3s1"
+      exit 0
+    fi
+    if [[ "$*" == *"get job"* && "$*" == *"jsonpath"* ]]; then
+      echo -n "0"
+      exit 0
+    fi
+    if [[ "$*" == *"get job"* ]]; then
+      exit 1
+    fi
+    exit 0
+    ;;
+  *) exit 0 ;;
+esac
+MOCKKUBECTL
+  } > "$TEST_TMP_DIR/bin/kubectl"
+  chmod +x "$TEST_TMP_DIR/bin/kubectl"
+  export LAB_NON_INTERACTIVE=1
+  export LAB_CONFIRM_TOKEN=yes
+  run bash "$MANAGE_SH" start-dsv41-flash
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"Need"* || "$output" == *"≥3"* || "$output" == *">=3"* || "$output" == *"3 Kubernetes node"* ]]
+}
+
 @test "rounded stack job manifests have OnFailure, backoffLimit, and resources" {
   for f in \
     "$REPO_ROOT/k8s/workloads/qwen3.8-flash-next-nvfp4/qwen3.8-flash-next-nvfp4-job.yaml" \
     "$REPO_ROOT/k8s/workloads/medgemma-27b/medgemma-27b-job.yaml" \
-    "$REPO_ROOT/k8s/workloads/glm-5.3-flash/glm-5.3-flash-job.yaml"; do
+    "$REPO_ROOT/k8s/workloads/glm-5.3-flash/glm-5.3-flash-job.yaml" \
+    "$REPO_ROOT/k8s/workloads/deepseek-v4.1-flash/deepseek-v4.1-flash-job.yaml"; do
     run grep -E 'restartPolicy: OnFailure' "$f"
     [ "$status" -eq 0 ]
     run grep -E 'backoffLimit: 1' "$f"

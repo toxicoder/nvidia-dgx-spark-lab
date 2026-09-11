@@ -22,6 +22,7 @@
 # qwen3.8-flash-next-nvfp4: 1-node Qwen3.8-Flash-Next NVFP4 (spark1, PLE mmap)
 # medgemma-27b / medgemma-4b: spark2 medical lane + optional sidecar
 # glm-5.3-flash: 3-node TP=3 NVFP4 on the QSFP ring (Mode B)
+# deepseek-v4.1-flash: 3-node TP=3 official MXFP4 + Engram NVMe (Mode C, SGLang)
 # litellm: management OpenAI proxy (no GPU)
 # comfy-base: ComfyUI visual base (Deployment; Spark unified-memory patches)
 #
@@ -57,6 +58,9 @@ get_model_job() {
     glm-5.3-flash) echo "k8s/workloads/glm-5.3-flash/glm-5.3-flash-job.yaml" ;;
     glm-5.3-flash-worker-1) echo "k8s/workloads/glm-5.3-flash/glm-5.3-flash-worker-1-job.yaml" ;;
     glm-5.3-flash-worker-2) echo "k8s/workloads/glm-5.3-flash/glm-5.3-flash-worker-2-job.yaml" ;;
+    deepseek-v4.1-flash) echo "k8s/workloads/deepseek-v4.1-flash/deepseek-v4.1-flash-job.yaml" ;;
+    deepseek-v4.1-flash-worker-1) echo "k8s/workloads/deepseek-v4.1-flash/deepseek-v4.1-flash-worker-1-job.yaml" ;;
+    deepseek-v4.1-flash-worker-2) echo "k8s/workloads/deepseek-v4.1-flash/deepseek-v4.1-flash-worker-2-job.yaml" ;;
     *) echo "" ;;
   esac
 }
@@ -111,6 +115,7 @@ get_model_svc() {
     medgemma-27b) echo "k8s/workloads/medgemma-27b/service.yaml" ;;
     medgemma-4b) echo "k8s/workloads/medgemma-4b/service.yaml" ;;
     glm-5.3-flash) echo "k8s/workloads/glm-5.3-flash/service.yaml" ;;
+    deepseek-v4.1-flash) echo "k8s/workloads/deepseek-v4.1-flash/service.yaml" ;;
     litellm) echo "k8s/workloads/litellm/service.yaml" ;;
     comfy-base) echo "k8s/workloads/comfy-base/service.yaml" ;;
     flux-fast) echo "k8s/workloads/comfy-visual/flux/fast/kustomization.yaml" ;;
@@ -674,6 +679,12 @@ start_model() {
         exit 1
       fi
       ;;
+    deepseek-v4.1-flash | dsv41-flash-spark-3)
+      if type start_dsv41_flash &>/dev/null; then start_dsv41_flash; else
+        err "stack-rounded.sh not loaded; cannot start deepseek-v4.1-flash"
+        exit 1
+      fi
+      ;;
     rounded-spark-3 | rounded-spark-3-quality)
       if type start_stack_rounded &>/dev/null; then
         if [[ $model == rounded-spark-3-quality ]]; then start_stack_rounded --quality; else start_stack_rounded; fi
@@ -746,6 +757,7 @@ stop_model() {
         qwen3.6-27b-nvfp4 qwen3.6-35b-a3b-nvfp4 \
         qwen3.8-flash-next-nvfp4 medgemma-27b medgemma-4b \
         glm-5.3-flash glm-5.3-flash-worker-1 glm-5.3-flash-worker-2 \
+        deepseek-v4.1-flash deepseek-v4.1-flash-worker-1 deepseek-v4.1-flash-worker-2 \
         ray-head ray-worker \
         -n "${NAMESPACE}" --ignore-not-found=true --grace-period=30 || true
       kubectl delete deployment nemotron-retriever-embed nemotron-retriever-rerank nemotron-parse \
@@ -759,7 +771,7 @@ stop_model() {
     qwen36 | qwen3.6 | qwen36-dual)
       stop_qwen36
       ;;
-    kimi-test | kimi | nemotron-3-ultra | nemotron-3-nano-30b | nemotron-3-nano-omni-30b | nemotron-3-super-120b | glm-5.2 | glm-5.2-rpc | ray-head | ray-worker | qwen3.5-122b-a10b-nvfp4 | qwen3.5-397b-spark2 | qwen3.5-397b-nvfp4 | qwen3.5-397b-nvfp4-worker-1 | qwen3.5-397b-nvfp4-worker-2 | qwen3.5-397b-nvfp4-worker-3 | qwen3.6-27b-nvfp4 | qwen3.6-35b-a3b-nvfp4 | qwen3.8-flash-next-nvfp4 | medgemma-27b | medgemma-4b | glm-5.3-flash | glm-5.3-flash-worker-1 | glm-5.3-flash-worker-2)
+    kimi-test | kimi | nemotron-3-ultra | nemotron-3-nano-30b | nemotron-3-nano-omni-30b | nemotron-3-super-120b | glm-5.2 | glm-5.2-rpc | ray-head | ray-worker | qwen3.5-122b-a10b-nvfp4 | qwen3.5-397b-spark2 | qwen3.5-397b-nvfp4 | qwen3.5-397b-nvfp4-worker-1 | qwen3.5-397b-nvfp4-worker-2 | qwen3.5-397b-nvfp4-worker-3 | qwen3.6-27b-nvfp4 | qwen3.6-35b-a3b-nvfp4 | qwen3.8-flash-next-nvfp4 | medgemma-27b | medgemma-4b | glm-5.3-flash | glm-5.3-flash-worker-1 | glm-5.3-flash-worker-2 | deepseek-v4.1-flash | deepseek-v4.1-flash-worker-1 | deepseek-v4.1-flash-worker-2)
       stop_inference_job "$target"
       ;;
     nemotron-retriever-embed | nemotron-retriever-rerank | nemotron-parse | nemotron-safety-guard | nemotron-speech-asr | nemotron-speech-tts | comfy-base | flux-fast | flux-quality | ltx-balanced | ltx-quality | flux-to-ltx | litellm)

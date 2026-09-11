@@ -1,0 +1,26 @@
+# Purpose: Kubernetes Service for deepseek-v4.1-flash leader OpenAI endpoint
+# Source of truth: k8s/workloads/deepseek-v4.1-flash/
+# Regenerate: n/a
+# Safety: hostNetwork leader; ClusterIP still useful in-cluster; protect with SSO
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+  name: deepseek-v4.1-flash
+  namespace: ai-inference
+  labels:
+    app: deepseek-v4.1-flash
+    family: deepseek-v4.1
+spec:
+  selector:
+    app: deepseek-v4.1-flash
+    role: leader
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: http
+  type: ClusterIP

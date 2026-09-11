@@ -1,18 +1,18 @@
-# Purpose: GLM-5.3-Flash NVFP4 TP=3 worker rank 2 on spark2 (Mode B, QSFP ring)
-# Source of truth: k8s/workloads/glm-5.3-flash/
+# Purpose: DeepSeek-V4.1-Flash official MXFP4 TP=3 worker rank 2 on spark2 (Mode C, QSFP ring)
+# Source of truth: k8s/workloads/deepseek-v4.1-flash/
 # Regenerate: n/a
-# Safety: exclusive frontier; hostNetwork + ring NCCL; gpu-mem-util 0.85 exclusive; no 2-node 400G vars
+# Safety: exclusive Mode C; hostNetwork + ring NCCL; mem-fraction-static 0.95; Engram NVMe; expandable_segments False; no 2-node 400G vars
 
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: glm-5.3-flash-worker-2
+  name: deepseek-v4.1-flash-worker-2
   namespace: ai-inference
   labels:
-    app: glm-5.3-flash-worker-2
+    app: deepseek-v4.1-flash-worker-2
     workload: inference
     mode: production
-    family: glm-5.3
+    family: deepseek-v4.1
     role: worker
 spec:
   backoffLimit: 1
@@ -20,10 +20,10 @@ spec:
   template:
     metadata:
       labels:
-        app: glm-5.3-flash-worker-2
+        app: deepseek-v4.1-flash-worker-2
         workload: inference
         mode: production
-        family: glm-5.3
+        family: deepseek-v4.1
         role: worker
     spec:
       restartPolicy: OnFailure
@@ -34,7 +34,7 @@ spec:
         kubernetes.io/hostname: spark2
       containers:
         - name: inference
-          image: glm53-flash-tp3:local
+          image: dsv41-flash-tp3:local
           imagePullPolicy: IfNotPresent
 
           securityContext:
@@ -47,11 +47,11 @@ spec:
           resources:
             requests:
               cpu: "8"
-              memory: "100Gi"
+              memory: "108Gi"
               nvidia.com/gpu: "1"
             limits:
               cpu: "16"
-              memory: "112Gi"
+              memory: "114Gi"
               nvidia.com/gpu: "1"
           env:
             - name: NCCL_SOCKET_IFNAME
@@ -74,68 +74,80 @@ spec:
               value: "1"
             - name: NCCL_DEBUG
               value: "INFO"
+            - name: NCCL_BUFFSIZE
+              value: "1048576"
+            - name: NCCL_LL128_BUFFSIZE
+              value: "262144"
+            - name: NCCL_PROTO
+              value: "^LL128"
+            - name: NCCL_MAX_NCHANNELS
+              value: "8"
             - name: CUTE_DSL_ARCH
               value: "sm_121a"
             - name: TORCH_CUDA_ARCH_LIST
               value: "12.1a"
             - name: PYTORCH_CUDA_ALLOC_CONF
-              value: "expandable_segments:True"
+              value: "expandable_segments:False"
+            - name: OFFLOAD_MODE
+              value: "nvme"
+            - name: DSV41_CACHE_GIB
+              value: "0"
+            - name: SGLANG_FLASHINFER_MOE_FUSED_FINALIZE
+              value: "0"
+            - name: SPEC_ALGO
+              value: "DSPARK"
+            - name: DSPARK_BLOCK_SIZE
+              value: "5"
             - name: MODEL_NAME
-              value: "local-inference-lab/GLM-5.3-Flash-NVFP4"
+              value: "deepseek-ai/DeepSeek-V4.1-Flash"
             - name: HF_HOME
               value: "/models"
+            - name: ENGRAM_DIR
+              value: "/models/dsv41-engram"
             - name: NODE_RANK
               value: "2"
             - name: MASTER_ADDR
               value: "spark0"
             - name: MASTER_PORT
-              value: "29521"
-            - name: VLLM_HOST_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
+              value: "29522"
+            - name: DIST_INIT_ADDR
+              value: "spark0:29522"
           command: ["/bin/sh", "-c"]
           args:
             - >
-              exec vllm serve "${MODEL_NAME}"
+              exec python3 -m sglang.launch_server
+              --model-path "${MODEL_NAME}"
               --host 0.0.0.0
               --port 8000
-              --served-model-name glm-5.3-flash
+              --served-model-name deepseek-v4.1-flash
               --trust-remote-code
-              --tensor-parallel-size 3
-              --pipeline-parallel-size 1
+              --tp 3
+              --dp 1
+              --ep 3
               --nnodes 3
               --node-rank "${NODE_RANK}"
-              --master-addr "${MASTER_ADDR}"
-              --master-port "${MASTER_PORT}"
-              --distributed-executor-backend mp
-              --enable-expert-parallel
-              --disable-custom-all-reduce
-              --headless
-              --quantization modelopt_mixed
-              --kv-cache-dtype fp8
-              --moe-backend marlin
-              --gpu-memory-utilization 0.85
-              --max-model-len 131072
-              --max-num-seqs 4
-              --max-num-batched-tokens 2048
-              --enable-chunked-prefill
-              --enable-prefix-caching
-              --speculative-config '{"method":"mtp","num_speculative_tokens":4}'
-              --hf-overrides '{"num_attention_heads":66,"num_key_value_heads":66,"linear_num_heads":66,"text_config":{"num_attention_heads":66,"num_key_value_heads":66,"linear_num_heads":66}}'
-              --tool-call-parser glm47
-              --enable-auto-tool-choice
-              --reasoning-parser glm45
-              --limit-mm-per-prompt '{"image":4,"video":1}'
+              --dist-init-addr "${DIST_INIT_ADDR}"
+              --mem-fraction-static 0.95
+              --context-length 131072
+              --max-running-requests 1
+              --chunked-prefill-size 2048
+              --watchdog-timeout 1800
+              --fp8-gemm-backend flashinfer_cutlass
           volumeMounts:
             - name: model-storage
               mountPath: /models
+            - name: engram-storage
+              mountPath: /models/dsv41-engram
             - name: shm
               mountPath: /dev/shm
       volumes:
         - name: model-storage
           hostPath:
             path: /mnt/models
+            type: DirectoryOrCreate
+        - name: engram-storage
+          hostPath:
+            path: /mnt/models/dsv41-engram
             type: DirectoryOrCreate
         - name: shm
           emptyDir:

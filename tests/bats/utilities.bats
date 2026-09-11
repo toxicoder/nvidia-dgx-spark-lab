@@ -493,6 +493,17 @@ teardown_file() {
   [[ "$output" == *"medgemma"* ]]
 }
 
+@test "download-dsv41-flash.sh status --json uses official DeepSeek-V4.1-Flash" {
+  export REPO_ROOT="$(bats_canonical_repo_root)"
+  export MODELS_DIR="$TEST_TMP_DIR/models"
+  mkdir -p "$MODELS_DIR"
+  run bash "${REPO_ROOT}/scripts/utilities/download-dsv41-flash.sh" status --json
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"deepseek-ai/DeepSeek-V4.1-Flash"* ]]
+  [[ "$output" != *"LibertAIDAI"* ]]
+  [[ "$output" != *"nvidia/DeepSeek-V4-Flash-NVFP4"* ]]
+}
+
 @test "download-glm52-gguf.sh status reports shard summary" {
   export REPO_ROOT="$(bats_canonical_repo_root)"
   export MODELS_DIR="$TEST_TMP_DIR/models"
