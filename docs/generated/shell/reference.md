@@ -1148,14 +1148,42 @@ Minimum on-disk GB required for tier readiness.
 ### Function `tier_dir`
 
 @function tier_dir
+Local directory for a tier's Hugging Face snapshot.
+
+### Function `check_hf_cli`
+
+@function check_hf_cli
+Require huggingface-cli or hf.
+
+### Function `hf_download`
+
+@function hf_download
+Invoke huggingface-cli download or hf download.
+
+### Function `tier_size_gb`
+
+@function tier_size_gb
+On-disk size of a directory in GB, or 0 if missing.
+
+### Function `tiers_to_process`
+
+@function tiers_to_process
+Expand --tier all into the concrete tier list.
+
+### Function `parse_args`
+
+@function parse_args
+Parse status|run, --tier, and --json.
 
 ### Function `cmd_status`
 
 @function cmd_status
+Print download readiness for selected tiers.
 
 ### Function `cmd_run`
 
 @function cmd_run
+Download selected tier checkpoints into MODELS_DIR.
 
 
 
