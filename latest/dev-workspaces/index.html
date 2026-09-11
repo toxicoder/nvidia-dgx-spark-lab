@@ -1548,7 +1548,7 @@
 <h2 id="safety-resources">Safety &amp; Resources<a class="headerlink" href="#safety-resources" title="Permanent link">¶</a></h2>
 <ul>
 <li>All components declare requests + limits (see group_vars and values).</li>
-<li>Inference unchanged: Jobs, OnFailure + backoff 1, 0.82 util, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> highspeed only in relevant workloads, no Always.</li>
+<li>Inference unchanged: Jobs, OnFailure + backoff 1, Mode A vLLM util ≤ 0.82 (Mode B exclusive 0.85 / Mode C SGLang 0.95), <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> highspeed only in relevant workloads, no Always.</li>
 <li>Dev tools are intentionally lighter and restart-tolerant.</li>
 <li><code>manage.sh</code> new paths have preflight cluster checks; heavy prompts untouched.</li>
 <li>After changes always validate: <code>bazelisk test //...</code></li>

@@ -3,17 +3,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="FLUX.2 image and LTX-2.3 video via ComfyUI on GB10 unified memory — workloads, Spark patches, benchmarks, and safety.">
+        <meta name="description" content="Daily Mode A mixed fleet, exclusive Mode B GLM-5.3-Flash TP=3, and exclusive Mode C DeepSeek-V4.1-Flash TP=3 behind LiteLLM on a 3-node QSFP ring.">
       
       
       
-        <link rel="canonical" href="https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/visual-generative-ai/">
+        <link rel="canonical" href="https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/litellm-rounded-stack/">
       
       
-        <link rel="prev" href="../litellm-rounded-stack/">
+        <link rel="prev" href="../qwen36-dual-stack/">
       
       
-        <link rel="next" href="../nemotron-agentic-stack/">
+        <link rel="next" href="../visual-generative-ai/">
       
       
         
@@ -24,7 +24,7 @@
     
     
       
-        <title>Visual Generative AI on DGX Spark - nvidia-dgx-spark-lab</title>
+        <title>LiteLLM Rounded Stack (3× DGX Spark) - nvidia-dgx-spark-lab</title>
       
     
     
@@ -89,7 +89,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#visual-generative-ai-on-dgx-spark" class="md-skip">
+        <a href="#litellm-rounded-stack-3-dgx-spark" class="md-skip">
           Skip to content
         </a>
       
@@ -129,7 +129,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Visual Generative AI on DGX Spark
+              LiteLLM Rounded Stack (3× DGX Spark)
             
           </span>
         </div>
@@ -625,34 +625,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../litellm-rounded-stack/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    LiteLLM Rounded Stack
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -672,7 +644,7 @@
   <span class="md-ellipsis">
     
   
-    Visual Generative AI
+    LiteLLM Rounded Stack
   
 
     
@@ -690,7 +662,7 @@
   <span class="md-ellipsis">
     
   
-    Visual Generative AI
+    LiteLLM Rounded Stack
   
 
     
@@ -716,55 +688,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#hardware-assumptions" class="md-nav__link">
+  <a href="#hardware" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Hardware assumptions
+        Hardware
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Architecture
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#spark-specific-optimizations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Spark-specific optimizations
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Spark-specific optimizations">
+    <nav class="md-nav" aria-label="Hardware">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#unified-memory-free-memory-patch" class="md-nav__link">
+  <a href="#3-node-qsfp-ring-mode-b-and-mode-c" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Unified-memory free-memory patch
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#env-defaults" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Env defaults
+        3-node QSFP ring (Mode B and Mode C)
       
     </span>
   </a>
@@ -777,10 +716,54 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#models-downloads" class="md-nav__link">
+  <a href="#mode-a-daily-mixed-fleet-default" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Models &amp; downloads
+        Mode A — daily mixed fleet (default)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mode-b-exclusive-frontier-uses-the-ring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mode B — exclusive frontier (uses the ring)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mode-c-exclusive-deepseek-v41-flash-uses-the-ring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mode C — exclusive DeepSeek-V4.1-Flash (uses the ring)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#litellm-aliases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiteLLM aliases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#medical-safety" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Medical safety
       
     </span>
   </a>
@@ -792,50 +775,6 @@
     <span class="md-ellipsis">
       
         Commands
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#combined-pipeline" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Combined pipeline
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#benchmarks-provisional" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Benchmarks (provisional)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#safety" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Safety
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Troubleshooting
       
     </span>
   </a>
@@ -857,6 +796,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../visual-generative-ai/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual Generative AI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1254,55 +1221,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#hardware-assumptions" class="md-nav__link">
+  <a href="#hardware" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Hardware assumptions
+        Hardware
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Architecture
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#spark-specific-optimizations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Spark-specific optimizations
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Spark-specific optimizations">
+    <nav class="md-nav" aria-label="Hardware">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#unified-memory-free-memory-patch" class="md-nav__link">
+  <a href="#3-node-qsfp-ring-mode-b-and-mode-c" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Unified-memory free-memory patch
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#env-defaults" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Env defaults
+        3-node QSFP ring (Mode B and Mode C)
       
     </span>
   </a>
@@ -1315,10 +1249,54 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#models-downloads" class="md-nav__link">
+  <a href="#mode-a-daily-mixed-fleet-default" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Models &amp; downloads
+        Mode A — daily mixed fleet (default)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mode-b-exclusive-frontier-uses-the-ring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mode B — exclusive frontier (uses the ring)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mode-c-exclusive-deepseek-v41-flash-uses-the-ring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mode C — exclusive DeepSeek-V4.1-Flash (uses the ring)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#litellm-aliases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiteLLM aliases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#medical-safety" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Medical safety
       
     </span>
   </a>
@@ -1330,50 +1308,6 @@
     <span class="md-ellipsis">
       
         Commands
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#combined-pipeline" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Combined pipeline
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#benchmarks-provisional" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Benchmarks (provisional)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#safety" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Safety
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Troubleshooting
       
     </span>
   </a>
@@ -1459,301 +1393,211 @@
   
 
 
-<h1 id="visual-generative-ai-on-dgx-spark">Visual Generative AI on DGX Spark<a class="headerlink" href="#visual-generative-ai-on-dgx-spark" title="Permanent link">¶</a></h1>
+<h1 id="litellm-rounded-stack-3-dgx-spark">LiteLLM Rounded Stack (3× DGX Spark)<a class="headerlink" href="#litellm-rounded-stack-3-dgx-spark" title="Permanent link">¶</a></h1>
 <p><strong>What's on this page</strong></p>
 <ul>
-<li>Architecture for <abbr title="Node-based UI for diffusion / visual generative AI workflows.">ComfyUI</abbr> visual workloads (FLUX.2 + LTX-2.3)</li>
-<li>Spark unified-memory patches and why they matter</li>
-<li>Download, start/stop, and pipeline commands</li>
-<li>Provisional benchmarks and troubleshooting</li>
+<li>Three mutually exclusive modes on three GB10 Sparks</li>
+<li>LiteLLM aliases and <abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> wiring</li>
+<li>3-node QSFP ring cabling and <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> (Mode B only)</li>
+<li>Medical safety (not a medical device)</li>
+<li>Commands, downloads, and quality/license swaps</li>
 </ul>
 <p><strong>What this enables</strong></p>
 <ul>
-<li>Production-grade <strong>manual</strong> lifecycle for image and audio-synced video gen</li>
-<li>Ultra-optimized paths for Blackwell NVFP4 / FP8 on 128 GB <abbr title="CPU and GPU share one physical memory pool (Grace/Blackwell on DGX Spark).">unified memory</abbr></li>
-<li>Combined <strong>Flux → LTX</strong> text-to-image-to-video in a single pod</li>
+<li>Daily mixed fleet: fast coding + smart generalist + medical specialist</li>
+<li>Exclusive frontier GLM-5.3-Flash TP=3 or DeepSeek-V4.1-Flash TP=3 that actually uses the QSFP ring</li>
+<li>One OpenAI base URL for chat clients</li>
 </ul>
-<h2 id="hardware-assumptions">Hardware assumptions<a class="headerlink" href="#hardware-assumptions" title="Permanent link">¶</a></h2>
+<p>Nothing auto-starts on reboot. Heavy Jobs are <code>OnFailure</code> + <code>backoffLimit: 1</code> with explicit resources. <abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> 15% / <strong>24Gi</strong> <abbr title="Reserved free capacity Resource Guard keeps free so SSH and control plane stay responsive.">headroom</abbr> applies. Mode A vLLM util ≤ 0.82; Mode B exclusive vLLM util ≤ 0.85; Mode C exclusive SGLang <code>--mem-fraction-static</code> ≤ 0.95. Never ship vLLM 0.88/0.90.</p>
+<h2 id="hardware">Hardware<a class="headerlink" href="#hardware" title="Permanent link">¶</a></h2>
+<p>Three DGX Spark GB10 nodes (128 GB UMA, sm_121). Two networks — never mix roles:</p>
 <table>
 <thead>
 <tr>
-<th>Resource</th>
-<th>Value</th>
+<th>Plane</th>
+<th>Typical names</th>
+<th>Carries</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Node</td>
-<td>1× DGX Spark (GB10 Grace Blackwell, ARM64)</td>
+<td>LAN / management (RJ-45 10GbE)</td>
+<td>often <code>enP7s7</code></td>
+<td><abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr>, SSH, dashboard, LiteLLM, <abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr>, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> bootstrap / Gloo</td>
 </tr>
 <tr>
-<td>Unified memory</td>
-<td>128 GB LPDDR5x</td>
-</tr>
-<tr>
-<td>Physical GPUs</td>
-<td>1 (exclusive visual pod)</td>
-</tr>
-<tr>
-<td>Model cache</td>
-<td><abbr title="Volume that mounts a file or directory from the host node filesystem.">hostPath</abbr> <code>/mnt/models</code></td>
-</tr>
-<tr>
-<td>Comfy state</td>
-<td><abbr title="PersistentVolumeClaim — Kubernetes request for durable storage.">PVC</abbr> <code>comfy-state</code> (install, custom_nodes, outputs)</td>
+<td>High-speed fabric (CX-7 RoCE)</td>
+<td>four RoCE twins per node</td>
+<td><abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> payload / TP all-reduce <strong>only</strong></td>
 </tr>
 </tbody>
 </table>
-<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">¶</a></h2>
-<pre class="mermaid"><code>flowchart LR
-  op[manage.sh / dashboard] --&gt; guard[Resource Guard]
-  guard --&gt; pod[ComfyUI Deployment]
-  pod --&gt; host["/mnt/models hostPath"]
-  pod --&gt; pvc["PVC comfy-state"]
-  pod --&gt; ui["ClusterIP :8188 port-forward"]</code></pre>
-<table>
-<thead>
-<tr>
-<th>Workload</th>
-<th>Profile</th>
-<th>Memory req</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>comfy-base</code></td>
-<td>Runtime only</td>
-<td>60Gi</td>
-<td>Spark patches + custom nodes</td>
-</tr>
-<tr>
-<td><code>flux-fast</code></td>
-<td>Klein 9B NVFP4 + Nunchaku</td>
-<td>60Gi</td>
-<td>~4s / 1024² target</td>
-</tr>
-<tr>
-<td><code>flux-quality</code></td>
-<td>Dev FP8</td>
-<td>70Gi</td>
-<td>Max quality</td>
-</tr>
-<tr>
-<td><code>ltx-balanced</code></td>
-<td>LTX-2.3 distilled FP8</td>
-<td>70Gi</td>
-<td>Kijai split + audio VAE</td>
-</tr>
-<tr>
-<td><code>ltx-quality</code></td>
-<td>LTX-2.3 BF16 distilled</td>
-<td>80Gi</td>
-<td>Higher fidelity</td>
-</tr>
-<tr>
-<td><code>flux-to-ltx</code></td>
-<td>Pipeline</td>
-<td><strong>90Gi</strong></td>
-<td>Both families resident</td>
-</tr>
-</tbody>
-</table>
-<p>All are <strong>Deployments</strong> in <code>ai-inference</code>, label <code>workload: visual</code>, <strong>manual start only</strong>.</p>
-<h2 id="spark-specific-optimizations">Spark-specific optimizations<a class="headerlink" href="#spark-specific-optimizations" title="Permanent link">¶</a></h2>
-<h3 id="unified-memory-free-memory-patch">Unified-memory free-memory patch<a class="headerlink" href="#unified-memory-free-memory-patch" title="Permanent link">¶</a></h3>
-<p>On GB10, <code>cudaMemGetInfo</code> under-reports free “VRAM” when another CUDA process holds allocations. <abbr title="Node-based UI for diffusion / visual generative AI workflows.">ComfyUI</abbr> then thrash-offloads models onto the <strong>same</strong> physical RAM.</p>
-<p><strong>Fix (applied by init ConfigMap):</strong> override free-memory query with <code>psutil.virtual_memory().available</code> in <code>comfy/model_management.py</code>.</p>
-<h3 id="env-defaults">Env defaults<a class="headerlink" href="#env-defaults" title="Permanent link">¶</a></h3>
-<table>
-<thead>
-<tr>
-<th>Variable</th>
-<th>Value</th>
-<th>Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>PYTORCH_CUDA_ALLOC_CONF</code></td>
-<td><code>expandable_segments:True</code></td>
-<td>Less allocator fragmentation</td>
-</tr>
-<tr>
-<td><code>CUDA_MODULE_LOADING</code></td>
-<td><code>LAZY</code></td>
-<td>Faster startup</td>
-</tr>
-<tr>
-<td><code>LAB_VISUAL_ENABLE_NVFP4</code></td>
-<td><code>1</code></td>
-<td>Hint for NVFP4 / Nunchaku paths</td>
-</tr>
-</tbody>
-</table>
-<p>Nunchaku and SageAttention install <strong>fail-soft</strong> if aarch64 wheels are unavailable.</p>
-<h2 id="models-downloads">Models &amp; downloads<a class="headerlink" href="#models-downloads" title="Permanent link">¶</a></h2>
-<table>
-<thead>
-<tr>
-<th>Tier</th>
-<th>HF sources</th>
-<th>Utility</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Flux fast</td>
-<td><code>black-forest-labs/FLUX.2-klein-9b-nvfp4</code>, <code>tonera/FLUX.2-klein-9B-Nunchaku</code></td>
-<td><code>download-flux</code></td>
-</tr>
-<tr>
-<td>Flux quality</td>
-<td><code>black-forest-labs/FLUX.2-dev</code></td>
-<td><code>download-flux</code></td>
-</tr>
-<tr>
-<td>LTX</td>
-<td><code>Kijai/LTX2.3_comfy</code></td>
-<td><code>download-ltx</code></td>
-</tr>
-</tbody>
-</table>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>download-flux<span class="w"> </span>status<span class="w"> </span>--tier<span class="w"> </span>all
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>download-flux<span class="w"> </span>run<span class="w"> </span>--tier<span class="w"> </span>fast
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>download-ltx<span class="w"> </span>run<span class="w"> </span>--tier<span class="w"> </span>balanced
+<h3 id="3-node-qsfp-ring-mode-b-and-mode-c">3-node QSFP ring (Mode B and Mode C)<a class="headerlink" href="#3-node-qsfp-ring-mode-b-and-mode-c" title="Permanent link">¶</a></h3>
+<p>200 Gb/s per physical port (not 400G, not NVLink, not InfiniBand switch). Triangle mesh: every pair has a direct cable.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Node1 Port0 → Node2 Port1
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Node2 Port0 → Node3 Port1
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Node3 Port0 → Node1 Port1
 </span></code></pre></div>
-<p>Weights are snapshotted under <code>MODELS_DIR</code> (default <code>/mnt/models</code>) and best-effort linked into <code>models/comfy/*</code> for <abbr title="Node-based UI for diffusion / visual generative AI workflows.">ComfyUI</abbr>.</p>
-<p>Accept model licenses on Hugging Face (BFL / LTX community licenses) and set <code>HF_TOKEN</code> when required.</p>
-<h2 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">¶</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Base runtime</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-comfy-base
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Image</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-flux-fast
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-flux-quality
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1"># Video</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-ltx-balanced
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-ltx-quality
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="c1"># Combined pipeline (90Gi)</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-flux-to-ltx
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="c1"># Status / stop</span>
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>status-visual
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>stop-visual
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="c1"># UI</span>
-</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>ai-inference<span class="w"> </span>port-forward<span class="w"> </span>svc/flux-fast<span class="w"> </span><span class="m">8188</span>:8188
+<p>Port0 = cage next to the RJ-45 jack; Port1 = far cage. Wrong polarity looks half-alive and dies in <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr>. MTU 9000 on CX-7. All four CX-7 netdevs per node need IPs (six unique /24s). Confirm live names with <code>ibdev2netdev</code> before baking env.</p>
+<p><strong>Mode B / Mode C <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr></strong> (these Jobs only — do not copy 2-node pair vars):</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>NCCL_SOCKET_IFNAME=&lt;mgmt, default enP7s7&gt;
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>UCX_NET_DEVICES / GLOO_SOCKET_IFNAME / OMPI_MCA_btl_tcp_if_include = same
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>NCCL_IB_HCA=rocep1s0f0,roceP2p1s0f0,rocep1s0f1,roceP2p1s0f1
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>NCCL_IB_DISABLE=0
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>NCCL_IB_MERGE_NICS=0
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>NCCL_NET_PLUGIN=none
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>NCCL_IB_SUBNET_AWARE_ROUTING=1
 </span></code></pre></div>
-<p>Dashboard <strong>Inference &amp; visual</strong> panel also starts these IDs with capacity gate + heavy confirm.</p>
-<h2 id="combined-pipeline">Combined pipeline<a class="headerlink" href="#combined-pipeline" title="Permanent link">¶</a></h2>
-<ol>
-<li>Download flux <strong>fast</strong> + ltx <strong>balanced</strong></li>
-<li><code>start-flux-to-ltx</code> (exclusive GPU, 90Gi request)</li>
-<li>In <abbr title="Node-based UI for diffusion / visual generative AI workflows.">ComfyUI</abbr>: run Flux T2I then LTX I2V + audio (workflow note auto-mounted under user workflows)</li>
-<li>Prefer keeping both model sets loaded; avoid full unload between stages on <abbr title="CPU and GPU share one physical memory pool (Grace/Blackwell on DGX Spark).">unified memory</abbr></li>
-</ol>
-<h2 id="benchmarks-provisional">Benchmarks (provisional)<a class="headerlink" href="#benchmarks-provisional" title="Permanent link">¶</a></h2>
-<p>Figures are <strong>indicative</strong> until measured on your Spark image pin. Method: warm pod, single 1024² image or short clip, no concurrent LLM.</p>
+<p>If 10GbE is not <code>enP7s7</code>, set <code>LAB_MGMT_IFNAME</code>. Do not hard-fail the stack on that string. <code>ansible/inventory/group_vars/all.yml</code> <code>highspeed_*</code> is the <strong>2-node pair</strong> reference.</p>
+<p><abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr>/Flannel stay on the LAN. Mode B and Mode C Jobs use <code>hostNetwork: true</code> and <code>hostIPC: true</code>. Realistic ring bus is ~12–24 GB/s allgather. Optional GB10 UMA livelock fallback (not default): <code>NCCL_NET_GDR_LEVEL=0</code>. Mode C also sets <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> buffer cuts (<code>NCCL_BUFFSIZE=1MiB</code>) so pinned host RAM does not eat the head.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>doctor-fabric
+</span></code></pre></div>
+<h2 id="mode-a-daily-mixed-fleet-default">Mode A — daily mixed fleet (default)<a class="headerlink" href="#mode-a-daily-mixed-fleet-default" title="Permanent link">¶</a></h2>
 <table>
 <thead>
 <tr>
-<th>Workload</th>
-<th>Resolution / length</th>
-<th>Expected (GB10)</th>
-<th>Resident est.</th>
+<th>Node</th>
+<th><abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr></th>
+<th>Checkpoint</th>
+<th>Aliases</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>flux-fast</td>
-<td>1024², ~4 steps</td>
-<td>~4–8 s / image</td>
-<td>15–25 GB</td>
+<td>spark0</td>
+<td>existing <code>qwen3.6-35b-a3b-nvfp4</code></td>
+<td>Unsloth NVFP4-Fast, MTP, <code>flashinfer_b12x</code></td>
+<td><code>lab-fast</code>, <code>lab-code</code></td>
 </tr>
 <tr>
-<td>flux-quality</td>
-<td>1024², more steps</td>
-<td>tens of seconds</td>
-<td>higher</td>
+<td>spark1</td>
+<td><code>qwen3.8-flash-next-nvfp4</code></td>
+<td><code>RadixArk/Qwen3.8-Flash-Next-NVFP4</code>, PLE mmap, image <code>vllm/vllm-openai:qwen38-flash-next</code></td>
+<td><code>lab-smart</code>, <code>lab-agent</code></td>
 </tr>
 <tr>
-<td>ltx-balanced</td>
-<td>short I2V + audio</td>
-<td>minutes-class (clip-dependent)</td>
-<td>mid</td>
-</tr>
-<tr>
-<td>flux-to-ltx</td>
-<td>T2I then I2V</td>
-<td>sum of stages + load</td>
-<td>up to ~90 Gi budget</td>
+<td>spark2</td>
+<td><code>medgemma-27b</code></td>
+<td><code>google/medgemma-27b-multimodal</code>, FP8 on <code>cu130-nightly</code></td>
+<td><code>lab-med</code>, <code>lab-med-vision</code></td>
 </tr>
 </tbody>
 </table>
-<p>Record real numbers with:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># After port-forward, time a fixed workflow in the UI or API queue</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># Note: cold start (first PVC install) is 10–30+ minutes — exclude from latency</span>
-</span></code></pre></div>
-<h2 id="safety">Safety<a class="headerlink" href="#safety" title="Permanent link">¶</a></h2>
+<p>Mode A is TP=1. The ring is unused for tokens. 35B is pinned to spark0 <strong>only</strong> via the rounded overlay so 1-node exclusive/dual still works.</p>
+<p>Qwen3.8-Flash-Next: start <code>max-model-len</code> 65536; document 262144. Prefix caching off. PLE mmap is mandatory.</p>
+<p><code>--quality</code> loads existing <code>qwen3.6-27b-nvfp4</code> on spark2 (<code>lab-quality</code>). <code>lab-med</code> then falls back to <code>lab-smart</code> with a medical system prompt (not MedGemma).</p>
+<p>Optional <code>medgemma-4b</code> sidecar (<code>lab-med-extract</code>) is <strong>off by default</strong>. Enable only after <abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> says there is GPU <abbr title="Reserved free capacity Resource Guard keeps free so SSH and control plane stay responsive.">headroom</abbr>. Never treat 4B as the only medical model.</p>
+<p>Documented Apache-2 swap if HAI-DEF is a problem: Baichuan-M2-32B (docs only). Do not default to OpenBioLLM-8B or Meditron-7B.</p>
+<h2 id="mode-b-exclusive-frontier-uses-the-ring">Mode B — exclusive frontier (uses the ring)<a class="headerlink" href="#mode-b-exclusive-frontier-uses-the-ring" title="Permanent link">¶</a></h2>
+<p><code>glm-5.3-flash</code> leader on spark0 + workers on spark1/spark2. Image <code>glm53-flash-tp3:local</code> built on Spark from the published TP=3 overlay (stock nightly cannot do TP=3). Checkpoint <code>local-inference-lab/GLM-5.3-Flash-NVFP4</code> (or RedHatAI). MTP default; DFlash2 is CC BY-NC-ND and is not the default.</p>
+<p><code>start-stack-rounded</code>, <code>start-glm53-flash</code>, and <code>start-dsv41-flash</code> refuse each other. Heavy confirm. <code>lab-frontier</code> stays GLM; <code>lab-med</code> falls back to <code>lab-smart</code>, then <code>lab-frontier</code>, then <code>lab-frontier-ds</code> with an explicit prompt that MedGemma is offline and this is a general model.</p>
+<p>Mode B exclusive util is <strong>0.85</strong>. 0.88 is not shipped. First <code>max-model-len</code> is 131072.</p>
+<p>Do not add GLM 753B as a daily driver. Existing <code>glm-5.2</code> 1-bit RPC stays as optional night mode.</p>
+<h2 id="mode-c-exclusive-deepseek-v41-flash-uses-the-ring">Mode C — exclusive DeepSeek-V4.1-Flash (uses the ring)<a class="headerlink" href="#mode-c-exclusive-deepseek-v41-flash-uses-the-ring" title="Permanent link">¶</a></h2>
+<p>Official <code>deepseek-ai/DeepSeek-V4.1-Flash</code> only (native MXFP4 experts + FP8/MXFP8 dense). <strong>Do not</strong> use <code>nvidia/DeepSeek-V4-Flash-NVFP4</code> (old 284B) or LibertAIDAI requants.</p>
+<p>Engine is <strong>SGLang</strong> with the MiaAI-Lab GB10 overlay (<code>dsv41-flash-tp3:local</code>), not stock vLLM. Engram tables live on <strong>each node’s NVMe</strong> at <code>/mnt/models/dsv41-engram</code>. <code>OFFLOAD_MODE=nvme</code> only — RAM offload evicts the model on UMA.</p>
+<p><code>PYTORCH_CUDA_ALLOC_CONF=expandable_segments:False</code> (True NaNs V4.1 prompts &gt;64 tokens). Do not copy the Comfy visual <code>True</code> patch.</p>
+<p>First profile: <code>--mem-fraction-static 0.95</code> (MiaAI measured load for ~101 GiB/rank), <code>--context-length 131072</code>, <code>--max-running-requests 1</code>. Hang line is MemAvailable ~8–12 GiB; MiaAI left ~6 GiB on the head. If MemAvailable drops below 8 GiB, <code>stop-dsv41-flash</code>. <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr> is fail-stop (<code>OnFailure</code> + <code>backoffLimit: 1</code>); nothing auto-starts on reboot.</p>
+<p>Same 3-node QSFP <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> block as Mode B, plus <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> buffer cuts. Master port <strong>29522</strong>. TP=3 head padding 64→96 is expected (overlay). A 4th Spark → TP=4 overlay is documented future work, not this tree.</p>
+<p>Image overlay is AGPL-3.0; this repo does not vendor <code>adapter/</code>. See <code>k8s/workloads/deepseek-v4.1-flash/README.md</code>.</p>
+<p>Optional <code>lab-frontier-cloud</code> (official API <code>deepseek-flash</code>) is <strong>not</strong> a live route in this tree — there is no optional cloud-key Secret pattern. Do not attach any cloud backup to <code>lab-med</code>.</p>
+<h2 id="litellm-aliases">LiteLLM aliases<a class="headerlink" href="#litellm-aliases" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Alias</th>
+<th>Primary</th>
+<th>Fallbacks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>lab-fast</code></td>
+<td>qwen3.6-35b-a3b</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>lab-code</code></td>
+<td>lab-fast</td>
+<td>lab-smart</td>
+</tr>
+<tr>
+<td><code>lab-smart</code> / <code>lab-agent</code></td>
+<td>qwen3.8-flash-next</td>
+<td>lab-fast</td>
+</tr>
+<tr>
+<td><code>lab-quality</code></td>
+<td>qwen3.6-27b</td>
+<td><code>--quality</code> only</td>
+</tr>
+<tr>
+<td><code>lab-med</code></td>
+<td>medgemma-27b</td>
+<td>lab-smart, then lab-frontier, then lab-frontier-ds</td>
+</tr>
+<tr>
+<td><code>lab-med-vision</code></td>
+<td>medgemma-27b-mm</td>
+<td>same backend</td>
+</tr>
+<tr>
+<td><code>lab-med-extract</code></td>
+<td>4B sidecar if enabled</td>
+<td>lab-med</td>
+</tr>
+<tr>
+<td><code>lab-frontier</code></td>
+<td>glm-5.3-flash</td>
+<td>Mode B (default frontier)</td>
+</tr>
+<tr>
+<td><code>lab-frontier-ds</code></td>
+<td>deepseek-v4.1-flash</td>
+<td>Mode C</td>
+</tr>
+<tr>
+<td><code>lab-auto</code></td>
+<td>lab-fast</td>
+<td>lab-smart</td>
+</tr>
+</tbody>
+</table>
+<p><code>api_base</code>: <code>http://&lt;svc&gt;.ai-inference.svc.cluster.local:8000/v1</code>. LiteLLM: <code>http://litellm.ai-inference.svc.cluster.local:4000/v1</code> or <code>http://&lt;spark0-lan&gt;:32040/v1</code>.</p>
+<p>The proxy must stay up if backends are down (per-model 503 is fine).</p>
+<h2 id="medical-safety">Medical safety<a class="headerlink" href="#medical-safety" title="Permanent link">¶</a></h2>
 <ul>
-<li><strong>No auto-start</strong> on reboot</li>
-<li>Explicit resources + <abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> <code>enforce_capacity</code></li>
-<li><strong>One visual <abbr title="Kubernetes workload that keeps a desired replica set running continuously.">Deployment</abbr> at a time</strong> (<code>guard_active_visual</code>)</li>
-<li>Heavy confirmation for all visual starts</li>
-<li>Conflicts with large LLM Jobs on the same GPU — stop LLMs first</li>
-<li>Always <code>stop-visual</code> before node reboot (<a href="../reboot-safety/">reboot-safety</a>)</li>
+<li>Research / education / clinician-in-the-loop only</li>
+<li><strong>Not a medical device.</strong> Not for diagnosis or treatment decisions</li>
+<li>Prefer “I don’t know” + ask for a source over fabricated guidelines</li>
+<li>PHI stays on-cluster; no cloud OpenAI medical backup for <code>lab-med</code></li>
+<li>HAI-DEF license on MedGemma</li>
 </ul>
-<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h2>
-<table>
-<thead>
-<tr>
-<th>Symptom</th>
-<th>Likely cause</th>
-<th>Action</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Extreme offload / 5–15× slow</td>
-<td>Unpatched free-memory</td>
-<td>Confirm spark patch ConfigMap; re-run init</td>
-</tr>
-<tr>
-<td>Pending pod</td>
-<td>Capacity / <abbr title="Reserved free capacity Resource Guard keeps free so SSH and control plane stay responsive.">headroom</abbr></td>
-<td><code>manage.sh resources check --action model:flux-fast</code></td>
-</tr>
-<tr>
-<td>OOM mid-load</td>
-<td>Double RAM+VRAM count on Spark</td>
-<td>Prefer NVFP4/FP8; use flux-fast; raise request carefully</td>
-</tr>
-<tr>
-<td>Nunchaku missing</td>
-<td>aarch64 wheel fail</td>
-<td>Fail-soft install; quality path still works</td>
-</tr>
-<tr>
-<td>Empty models</td>
-<td>Download not run on node</td>
-<td><code>download-flux</code> / <code>download-ltx</code> on Spark host</td>
-</tr>
-<tr>
-<td>Cold start forever</td>
-<td>First <abbr title="PersistentVolumeClaim — Kubernetes request for durable storage.">PVC</abbr> pip/git</td>
-<td>Wait; check init container logs</td>
-</tr>
-</tbody>
-</table>
+<p>Prompts: <code>k8s/workloads/litellm/files/lab-med-system.txt</code> and <code>lab-med-frontier-fallback.txt</code>.</p>
+<h2 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">¶</a></h2>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>download-rounded-models<span class="w"> </span>run<span class="w"> </span>--tier<span class="w"> </span>all
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-stack-rounded
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-stack-rounded<span class="w"> </span>--quality
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>stop-stack-rounded
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-medgemma
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>stop-medgemma
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-glm53-flash
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>stop-glm53-flash
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>download-dsv41-flash<span class="w"> </span>run
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-dsv41-flash
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>stop-dsv41-flash
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-litellm
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>stop-litellm
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>status-stack
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>doctor-fabric
+</span></code></pre></div>
+<p><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> model base URL is LiteLLM. <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> remains the <strong>agent</strong> gateway. Raw Service bypass: <code>kubectl port-forward -n ai-inference svc/&lt;job&gt; 8000:8000</code>.</p>
 <h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">¶</a></h2>
 <ul>
-<li>Workload READMEs under <code>k8s/workloads/comfy-base/</code> and <code>k8s/workloads/comfy-visual/</code></li>
+<li><a href="../qwen36-dual-stack/">Qwen3.6 Dual Stack</a></li>
+<li><a href="../open-webui/"><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr></a></li>
+<li><a href="../dgx-spark-notes/">DGX Spark Notes</a></li>
 <li><a href="../models-catalog/">Models catalog</a></li>
-<li><a href="../resource-guard/"><abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr></a></li>
-<li><a href="../qwen36-dual-stack/">Qwen3.6 dual stack</a> (LLM counterpart patterns)</li>
 </ul>
 <!--
   Project-wide glossary abbreviations (Material tooltips).
