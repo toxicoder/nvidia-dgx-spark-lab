@@ -1,0 +1,25 @@
+# Purpose: Kubernetes Service for medgemma-27b inference endpoint
+# Source of truth: k8s/workloads/medgemma-27b/
+# Regenerate: n/a
+# Safety: exposes inference API; PHI stays on-cluster; protect with SSO ingress
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+  name: medgemma-27b
+  namespace: ai-inference
+  labels:
+    app: medgemma-27b
+    family: medgemma
+spec:
+  selector:
+    app: medgemma-27b
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: http
+  type: ClusterIP

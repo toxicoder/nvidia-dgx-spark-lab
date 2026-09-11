@@ -79,7 +79,7 @@ elif cmd == "headroom":
     h = policy.get("headroom", {})
     pct_cpu = float(h.get("cpu_percent", 15)) / 100.0
     pct_mem = float(h.get("memory_percent", 15)) / 100.0
-    min_mem = _parse_quantity(h.get("memory_min_per_node", "64Gi"), "memory")
+    min_mem = _parse_quantity(h.get("memory_min_per_node", "24Gi"), "memory")
     min_cpu = _parse_quantity(h.get("cpu_min_per_node", "4"), "cpu")
     total_cpu = 0.0
     total_mem = 0

@@ -288,6 +288,11 @@ qwen3.5-397b-nvfp4: 4-node Qwen 397B NVFP4 (SGLang distributed)
 qwen3.6-27b-nvfp4: 1-node Qwen3.6 27B dense NVFP4 (quality)
 qwen3.6-35b-a3b-nvfp4: 1-node Qwen3.6 35B-A3B MoE NVFP4-Fast (speed)
 qwen36-dual-spark-1: concurrent both on 1× Spark (GPU time-slicing)
+qwen3.8-flash-next-nvfp4: 1-node Qwen3.8-Flash-Next NVFP4 (spark1, PLE mmap)
+medgemma-27b / medgemma-4b: spark2 medical lane + optional sidecar
+glm-5.3-flash: 3-node TP=3 NVFP4 on the QSFP ring (Mode B)
+deepseek-v4.1-flash: 3-node TP=3 official MXFP4 + Engram NVMe (Mode C, SGLang)
+litellm: management OpenAI proxy (no GPU)
 comfy-base: ComfyUI visual base (Deployment; Spark unified-memory patches)
 
 Model/job definitions - centralized, portable bash (no associative arrays for macOS /bin/bash 3.2 compat + set -u).
@@ -1110,6 +1115,78 @@ Best-effort install of lint tools on this host.
 
 
 
+<!-- source: scripts/utilities/download-rounded-models.sh -->
+
+## download-rounded-models
+
+Download checkpoints for the 3-node LiteLLM rounded stack.
+
+Tiers:
+  --tier flash-next  RadixArk/Qwen3.8-Flash-Next-NVFP4 (~130 GB)
+  --tier medgemma    google/medgemma-27b-multimodal (HAI-DEF gated)
+  --tier glm53       local-inference-lab/GLM-5.3-Flash-NVFP4 (~185 GB)
+  --tier all         All of the above (default)
+
+```bash
+Usage:
+  ./scripts/utilities/download-rounded-models.sh status [--tier ...] [--json]
+  ./scripts/utilities/download-rounded-models.sh run [--tier ...]
+```
+
+### Command: download-rounded-models
+
+### Function `tier_repo`
+
+@function tier_repo
+Map tier id to Hugging Face repo id.
+
+### Function `tier_min_gb`
+
+@function tier_min_gb
+Minimum on-disk GB required for tier readiness.
+
+### Function `tier_dir`
+
+@function tier_dir
+Local directory for a tier's Hugging Face snapshot.
+
+### Function `check_hf_cli`
+
+@function check_hf_cli
+Require huggingface-cli or hf.
+
+### Function `hf_download`
+
+@function hf_download
+Invoke huggingface-cli download or hf download.
+
+### Function `tier_size_gb`
+
+@function tier_size_gb
+On-disk size of a directory in GB, or 0 if missing.
+
+### Function `tiers_to_process`
+
+@function tiers_to_process
+Expand --tier all into the concrete tier list.
+
+### Function `parse_args`
+
+@function parse_args
+Parse status|run, --tier, and --json.
+
+### Function `cmd_status`
+
+@function cmd_status
+Print download readiness for selected tiers.
+
+### Function `cmd_run`
+
+@function cmd_run
+Download selected tier checkpoints into MODELS_DIR.
+
+
+
 <!-- source: scripts/utilities/nemotron-stack.sh -->
 
 ## nemotron-stack
@@ -1328,6 +1405,65 @@ Best-effort symlink snapshot files into Comfy diffusion_models dir.
 ### Function `cmd_run`
 
 @function cmd_run
+
+
+
+<!-- source: scripts/utilities/download-dsv41-flash.sh -->
+
+## download-dsv41-flash
+
+Download the official DeepSeek-V4.1-Flash checkpoint for exclusive Mode C.
+
+Official repo only: deepseek-ai/DeepSeek-V4.1-Flash (~476–510 GB).
+Does not pull nvidia/DeepSeek-V4-Flash-NVFP4 (old 284B) or LibertAIDAI requants.
+
+After download, pack Engram shards onto each node's NVMe:
+  follow MiaAI-Lab DeepSeek-v4.1-Flash-DGX-Sparks ./start.sh pack
+  destination: /mnt/models/dsv41-engram
+Never OFFLOAD_MODE=ram.
+
+```bash
+Usage:
+  ./scripts/utilities/download-dsv41-flash.sh status [--json]
+  ./scripts/utilities/download-dsv41-flash.sh run
+```
+
+### Command: download-dsv41-flash
+
+### Function `repo_dir`
+
+@function repo_dir
+Local directory for the official Hugging Face snapshot.
+
+### Function `dir_size_gb`
+
+@function dir_size_gb
+On-disk size of a directory in GB, or 0 if missing.
+
+### Function `check_hf_cli`
+
+@function check_hf_cli
+Require huggingface-cli or hf.
+
+### Function `hf_download`
+
+@function hf_download
+Invoke huggingface-cli download or hf download.
+
+### Function `cmd_status`
+
+@function cmd_status
+Print download readiness for the official V4.1-Flash snapshot.
+
+### Function `cmd_run`
+
+@function cmd_run
+Download the official checkpoint into MODELS_DIR.
+
+### Function `main`
+
+@function main
+CLI entry: status|run [--json].
 
 
 
@@ -2069,6 +2205,91 @@ Prefer ansible/files/generated/<name> when render-domains has run.
 @function domains_apply
 
 ### Command: domains
+
+
+
+<!-- source: scripts/lib/stack-rounded.sh -->
+
+## 3-node rounded stack (Mode A mixed fleet vs Mode B GLM vs Mode C DeepSeek-V4.1-Flash)
+
+LiteLLM aliases, Mode A/B/C mutual exclusion, and QSFP-ring fabric doctor.
+Heavy Jobs stay manual-start. LiteLLM is a management Deployment.
+
+### Function `rounded_mode_a_jobs`
+
+@function rounded_mode_a_jobs
+Prints Mode A inference Job names (one per line). Used by mutual exclusion.
+
+### Function `rounded_mode_b_jobs`
+
+@function rounded_mode_b_jobs
+Prints Mode B inference Job names (one per line).
+
+### Function `rounded_mode_c_jobs`
+
+@function rounded_mode_c_jobs
+Prints Mode C inference Job names (one per line).
+
+### Function `_rounded_active_from_list`
+
+@function _rounded_active_from_list
+Echoes the first active Job name from a newline-separated list, or empty.
+
+### Function `guard_rounded_mode_b_idle`
+
+@function guard_rounded_mode_b_idle
+Fail if any Mode B (frontier) Job is active.
+
+### Function `guard_rounded_mode_a_idle`
+
+@function guard_rounded_mode_a_idle
+Fail if any Mode A (rounded daily) Job is active.
+
+### Function `guard_rounded_mode_c_idle`
+
+@function guard_rounded_mode_c_idle
+Fail if any Mode C (DeepSeek-V4.1-Flash) Job is active.
+
+### Function `lab_mgmt_ifname`
+
+@function lab_mgmt_ifname
+Management / NCCL OOB interface. Default enP7s7; override LAB_MGMT_IFNAME.
+Does not hard-fail if the live name differs — callers warn via doctor_fabric.
+
+### Command: doctor-fabric
+
+### Function `_rounded_node_count`
+
+@function _rounded_node_count
+
+### Function `_require_three_nodes`
+
+@function _require_three_nodes
+Require ≥3 nodes for rounded / Mode B / Mode C starts.
+
+### Command: start-litellm
+
+### Command: stop-litellm
+
+### Command: start-qwen38-flash-next
+
+### Command: start-medgemma
+
+### Command: stop-medgemma
+
+### Command: start-stack-rounded
+
+### Command: stop-stack-rounded
+
+### Command: start-glm53-flash
+
+### Command: stop-glm53-flash
+
+### Command: start-dsv41-flash
+
+### Command: stop-dsv41-flash
+
+### Command: status-stack
 
 
 

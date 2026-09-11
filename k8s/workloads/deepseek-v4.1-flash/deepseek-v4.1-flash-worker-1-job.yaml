@@ -1,0 +1,155 @@
+# Purpose: DeepSeek-V4.1-Flash official MXFP4 TP=3 worker rank 1 on spark1 (Mode C, QSFP ring)
+# Source of truth: k8s/workloads/deepseek-v4.1-flash/
+# Regenerate: n/a
+# Safety: exclusive Mode C; hostNetwork + ring NCCL; mem-fraction-static 0.95; Engram NVMe; expandable_segments False; no 2-node 400G vars
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: deepseek-v4.1-flash-worker-1
+  namespace: ai-inference
+  labels:
+    app: deepseek-v4.1-flash-worker-1
+    workload: inference
+    mode: production
+    family: deepseek-v4.1
+    role: worker
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 7200
+  template:
+    metadata:
+      labels:
+        app: deepseek-v4.1-flash-worker-1
+        workload: inference
+        mode: production
+        family: deepseek-v4.1
+        role: worker
+    spec:
+      restartPolicy: OnFailure
+      hostNetwork: true
+      hostIPC: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/hostname: spark1
+      containers:
+        - name: inference
+          image: dsv41-flash-tp3:local
+          imagePullPolicy: IfNotPresent
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+          resources:
+            requests:
+              cpu: "8"
+              memory: "108Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "16"
+              memory: "114Gi"
+              nvidia.com/gpu: "1"
+          env:
+            - name: NCCL_SOCKET_IFNAME
+              value: "enP7s7"
+            - name: UCX_NET_DEVICES
+              value: "enP7s7"
+            - name: OMPI_MCA_btl_tcp_if_include
+              value: "enP7s7"
+            - name: GLOO_SOCKET_IFNAME
+              value: "enP7s7"
+            - name: NCCL_IB_HCA
+              value: "rocep1s0f0,roceP2p1s0f0,rocep1s0f1,roceP2p1s0f1"
+            - name: NCCL_IB_DISABLE
+              value: "0"
+            - name: NCCL_IB_MERGE_NICS
+              value: "0"
+            - name: NCCL_NET_PLUGIN
+              value: "none"
+            - name: NCCL_IB_SUBNET_AWARE_ROUTING
+              value: "1"
+            - name: NCCL_DEBUG
+              value: "INFO"
+            - name: NCCL_BUFFSIZE
+              value: "1048576"
+            - name: NCCL_LL128_BUFFSIZE
+              value: "262144"
+            - name: NCCL_PROTO
+              value: "^LL128"
+            - name: NCCL_MAX_NCHANNELS
+              value: "8"
+            - name: CUTE_DSL_ARCH
+              value: "sm_121a"
+            - name: TORCH_CUDA_ARCH_LIST
+              value: "12.1a"
+            - name: PYTORCH_CUDA_ALLOC_CONF
+              value: "expandable_segments:False"
+            - name: OFFLOAD_MODE
+              value: "nvme"
+            - name: DSV41_CACHE_GIB
+              value: "0"
+            - name: SGLANG_FLASHINFER_MOE_FUSED_FINALIZE
+              value: "0"
+            - name: SPEC_ALGO
+              value: "DSPARK"
+            - name: DSPARK_BLOCK_SIZE
+              value: "5"
+            - name: MODEL_NAME
+              value: "deepseek-ai/DeepSeek-V4.1-Flash"
+            - name: HF_HOME
+              value: "/models"
+            - name: ENGRAM_DIR
+              value: "/models/dsv41-engram"
+            - name: NODE_RANK
+              value: "1"
+            - name: MASTER_ADDR
+              value: "spark0"
+            - name: MASTER_PORT
+              value: "29522"
+            - name: DIST_INIT_ADDR
+              value: "spark0:29522"
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              exec python3 -m sglang.launch_server
+              --model-path "${MODEL_NAME}"
+              --host 0.0.0.0
+              --port 8000
+              --served-model-name deepseek-v4.1-flash
+              --trust-remote-code
+              --tp 3
+              --dp 1
+              --ep 3
+              --nnodes 3
+              --node-rank "${NODE_RANK}"
+              --dist-init-addr "${DIST_INIT_ADDR}"
+              --mem-fraction-static 0.95
+              --context-length 131072
+              --max-running-requests 1
+              --chunked-prefill-size 2048
+              --watchdog-timeout 1800
+              --fp8-gemm-backend flashinfer_cutlass
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+            - name: engram-storage
+              mountPath: /models/dsv41-engram
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate
+        - name: engram-storage
+          hostPath:
+            path: /mnt/models/dsv41-engram
+            type: DirectoryOrCreate
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 32Gi

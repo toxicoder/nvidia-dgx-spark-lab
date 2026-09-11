@@ -1,0 +1,24 @@
+"""Package purpose: Qwen3.8-Flash-Next NVFP4 TP=1 inference job manifests and service exports."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "qwen3_8_flash_next_nvfp4_job",
+    srcs = [
+        "kustomization.yaml",
+        "qwen3.8-flash-next-nvfp4-job.yaml",
+        "service.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+exports_files([
+    "kustomization.yaml",
+    "qwen3.8-flash-next-nvfp4-job.yaml",
+    "service.yaml",
+])

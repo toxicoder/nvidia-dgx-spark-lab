@@ -1,0 +1,11 @@
+# Purpose: Kustomize bundle for optional medgemma-4b sidecar
+# Source of truth: k8s/workloads/medgemma-4b/
+# Regenerate: n/a
+# Safety: off by default; Resource Guard gated
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - medgemma-4b-job.yaml
+  - service.yaml

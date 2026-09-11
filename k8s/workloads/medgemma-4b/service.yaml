@@ -1,0 +1,25 @@
+# Purpose: Kubernetes Service for medgemma-4b sidecar endpoint
+# Source of truth: k8s/workloads/medgemma-4b/
+# Regenerate: n/a
+# Safety: optional extract path; not a medical device
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+  name: medgemma-4b
+  namespace: ai-inference
+  labels:
+    app: medgemma-4b
+    family: medgemma
+spec:
+  selector:
+    app: medgemma-4b
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: http
+  type: ClusterIP

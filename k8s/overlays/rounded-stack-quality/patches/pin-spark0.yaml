@@ -1,0 +1,14 @@
+# Purpose: Pin Qwen3.6 35B-A3B to spark0 for Mode A quality stack
+# Source of truth: k8s/overlays/rounded-stack-quality/
+# Regenerate: n/a
+# Safety: overlay only; base Job stays unpinned for 1-node exclusive/dual
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ignored
+spec:
+  template:
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: spark0

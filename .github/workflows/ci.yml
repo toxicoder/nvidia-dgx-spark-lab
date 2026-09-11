@@ -183,7 +183,30 @@ jobs:
 
       # Single MkDocs build + HTML checks + Playwright (one setUpClass build).
       - name: Docs build + visual regression (single MkDocs build)
-        run: bazelisk test //docs:test_mkdocs_render --config=ci
+        id: docs_visual
+        run: |
+          set +e
+          bazelisk test //docs:test_mkdocs_render --config=ci
+          status=$?
+          set -e
+          logs="$(bazelisk info bazel-testlogs --config=ci)"
+          actuals="${logs}/docs/test_mkdocs_render/test.outputs/mkdocs-visual-actuals"
+          mkdir -p mkdocs-visual-actuals
+          if [[ -d $actuals ]]; then
+            cp -v "${actuals}"/*.png mkdocs-visual-actuals/ || true
+          else
+            echo "No MkDocs visual actuals dir at ${actuals}" >&2
+            find "${logs}" -name '*.png' -print >&2 || true
+          fi
+          exit "$status"
+
+      - name: Upload MkDocs visual actuals
+        if: failure() && steps.docs_visual.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mkdocs-visual-actuals
+          path: mkdocs-visual-actuals/
+          if-no-files-found: warn
 
   validate-gate:
     needs: [changes, bazel-core, dashboard-unit, dashboard-hermetic, docs-and-render]
