@@ -501,8 +501,19 @@ def _png_diff_ratio(actual: bytes, expected: bytes) -> tuple[float, str | None]:
 
     img_a = Image.open(io.BytesIO(actual)).convert("RGBA")
     img_e = Image.open(io.BytesIO(expected)).convert("RGBA")
-    if img_a.size != img_e.size:
+    if img_a.size[0] != img_e.size[0]:
         return 1.0, f"dimensions {img_a.size} != golden {img_e.size}"
+    # Full-page height jitters a few dozen pixels across Chromium/OS (font
+    # metrics). Crop to the shared prefix when the delta is small; a real
+    # content-length change (forgotten golden) still fails.
+    if img_a.size[1] != img_e.size[1]:
+        max_h = max(img_a.size[1], img_e.size[1])
+        delta = abs(img_a.size[1] - img_e.size[1])
+        if delta > max(32, int(0.02 * max_h)):
+            return 1.0, f"dimensions {img_a.size} != golden {img_e.size}"
+        h = min(img_a.size[1], img_e.size[1])
+        img_a = img_a.crop((0, 0, img_a.size[0], h))
+        img_e = img_e.crop((0, 0, img_e.size[0], h))
 
     diff = ImageChops.difference(img_a, img_e)
     # Count pixels with any non-zero RGB channel change.
@@ -616,20 +627,56 @@ def compare_page_screenshot(page: Page, slug: str) -> str | None:
     return None
 
 
+class TestPngDiffRatio(unittest.TestCase):
+    """Unit tests for screenshot comparison (no browser)."""
+
+    def _png(self, width: int, height: int, color: tuple[int, int, int, int] = (255, 255, 255, 255)) -> bytes:
+        import io
+
+        from PIL import Image
+
+        img = Image.new("RGBA", (width, height), color)
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        return buf.getvalue()
+
+    def test_small_height_delta_is_compared_not_hard_fail(self) -> None:
+        """Font-metric jitter of a few dozen pixels must not fail on dimensions."""
+        actual = self._png(64, 100)
+        golden = self._png(64, 104)
+        ratio, err = _png_diff_ratio(actual, golden)
+        self.assertIsNone(err)
+        self.assertEqual(ratio, 0.0)
+
+    def test_large_height_delta_is_hard_fail(self) -> None:
+        """A forgotten golden after a real page-length change still fails."""
+        actual = self._png(64, 100)
+        golden = self._png(64, 200)
+        _ratio, err = _png_diff_ratio(actual, golden)
+        self.assertIsNotNone(err)
+        self.assertIn("dimensions", err or "")
+
+
 def _run_tests() -> None:
     """Run unittest suite, optionally filtered by ``MKDOCS_TEST_MODE``."""
     mode = os.environ.get("MKDOCS_TEST_MODE", "all")
     loader = unittest.TestLoader()
-    suite = loader.loadTestsFromTestCase(TestMkDocsRender)
+    render_suite = loader.loadTestsFromTestCase(TestMkDocsRender)
+    png_suite = loader.loadTestsFromTestCase(TestPngDiffRatio)
+    suite = unittest.TestSuite()
+    suite.addTests(render_suite)
+    suite.addTests(png_suite)
     if mode == "build":
         filtered = unittest.TestSuite()
-        for case in suite:
+        for case in render_suite:
             if isinstance(case, unittest.TestCase) and "visual" not in case._testMethodName:
                 filtered.addTest(case)
+        filtered.addTests(png_suite)
         suite = filtered
     elif mode == "visual":
         suite = unittest.TestSuite()
         suite.addTest(TestMkDocsRender("test_visual_screenshots_key_pages"))
+        suite.addTests(png_suite)
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     if not result.wasSuccessful():
         sys.exit(1 if result.failures or result.errors else 5)

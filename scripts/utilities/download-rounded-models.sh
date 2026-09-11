@@ -59,12 +59,15 @@ tier_min_gb() {
 }
 
 # @function tier_dir
+# Local directory for a tier's Hugging Face snapshot.
 tier_dir() {
   local repo
   repo=$(tier_repo "$1")
   echo "${MODELS_DIR}/$(echo "${repo}" | tr '/' '__')"
 }
 
+# @function check_hf_cli
+# Require huggingface-cli or hf.
 check_hf_cli() {
   if command -v huggingface-cli >/dev/null 2>&1; then
     return 0
@@ -76,6 +79,8 @@ check_hf_cli() {
   exit 1
 }
 
+# @function hf_download
+# Invoke huggingface-cli download or hf download.
 hf_download() {
   if command -v huggingface-cli >/dev/null 2>&1; then
     huggingface-cli download "$@"
@@ -84,6 +89,8 @@ hf_download() {
   fi
 }
 
+# @function tier_size_gb
+# On-disk size of a directory in GB, or 0 if missing.
 tier_size_gb() {
   local dir="$1"
   if [[ ! -d $dir ]]; then
@@ -93,6 +100,8 @@ tier_size_gb() {
   du -sk "$dir" 2>/dev/null | awk '{printf "%.1f", $1/1024/1024}'
 }
 
+# @function tiers_to_process
+# Expand --tier all into the concrete tier list.
 tiers_to_process() {
   case "$TIER" in
     all) echo "flash-next medgemma glm53" ;;
@@ -100,6 +109,8 @@ tiers_to_process() {
   esac
 }
 
+# @function parse_args
+# Parse status|run, --tier, and --json.
 parse_args() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -119,6 +130,7 @@ parse_args() {
 }
 
 # @function cmd_status
+# Print download readiness for selected tiers.
 cmd_status() {
   local results=()
   local tier repo dir size min ready
@@ -154,6 +166,7 @@ cmd_status() {
 }
 
 # @function cmd_run
+# Download selected tier checkpoints into MODELS_DIR.
 cmd_run() {
   check_hf_cli
   mkdir -p "$MODELS_DIR"
