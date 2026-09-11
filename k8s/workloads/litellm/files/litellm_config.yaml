@@ -58,6 +58,12 @@ model_list:
       api_base: http://glm-5.3-flash.ai-inference.svc.cluster.local:8000/v1
       api_key: os.environ/LITELLM_DUMMY_KEY
       timeout: 600
+  - model_name: lab-frontier-ds
+    litellm_params:
+      model: openai/deepseek-v4.1-flash
+      api_base: http://deepseek-v4.1-flash.ai-inference.svc.cluster.local:8000/v1
+      api_key: os.environ/LITELLM_DUMMY_KEY
+      timeout: 600
   - model_name: lab-auto
     litellm_params:
       model: openai/qwen3.6-35b-a3b-nvfp4
@@ -76,7 +82,7 @@ router_settings:
     - lab-code: [lab-fast, lab-smart]
     - lab-smart: [lab-fast]
     - lab-agent: [lab-smart, lab-fast]
-    - lab-med: [lab-smart, lab-frontier]
+    - lab-med: [lab-smart, lab-frontier, lab-frontier-ds]
     - lab-med-vision: [lab-med, lab-smart]
     - lab-med-extract: [lab-med]
     - lab-auto: [lab-fast, lab-smart]

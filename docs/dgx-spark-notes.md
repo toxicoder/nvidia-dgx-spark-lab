@@ -53,7 +53,7 @@ env:
     value: "INFO"
 ```
 
-**3-node QSFP ring (200 Gb/s per pair, triangle mesh):** used only by Mode B (`glm-5.3-flash`). OOB/Gloo on 10GbE (often `enP7s7`); payload on all four CX-7 RoCE devices; `NCCL_NET_PLUGIN=none`. Do **not** copy the 2-node pair vars onto that ring. Confirm names with `ibdev2netdev`. See [LiteLLM rounded stack](litellm-rounded-stack.md).
+**3-node QSFP ring (200 Gb/s per pair, triangle mesh):** used by Mode B (`glm-5.3-flash`) and Mode C (`deepseek-v4.1-flash`). OOB/Gloo on 10GbE (often `enP7s7`); payload on all four CX-7 RoCE devices; `NCCL_NET_PLUGIN=none`. Do **not** copy the 2-node pair vars onto that ring. Confirm names with `ibdev2netdev`. See [LiteLLM rounded stack](litellm-rounded-stack.md).
 
 If NCCL payload falls back to the management network, performance will be terrible.
 

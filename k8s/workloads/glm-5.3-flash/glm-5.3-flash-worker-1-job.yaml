@@ -1,7 +1,7 @@
 # Purpose: GLM-5.3-Flash NVFP4 TP=3 worker rank 1 on spark1 (Mode B, QSFP ring)
 # Source of truth: k8s/workloads/glm-5.3-flash/
 # Regenerate: n/a
-# Safety: exclusive frontier; hostNetwork + ring NCCL; gpu-mem-util 0.82; no 2-node 400G vars
+# Safety: exclusive frontier; hostNetwork + ring NCCL; gpu-mem-util 0.85 exclusive; no 2-node 400G vars
 
 apiVersion: batch/v1
 kind: Job
@@ -47,11 +47,11 @@ spec:
           resources:
             requests:
               cpu: "8"
-              memory: "95Gi"
+              memory: "100Gi"
               nvidia.com/gpu: "1"
             limits:
               cpu: "16"
-              memory: "110Gi"
+              memory: "112Gi"
               nvidia.com/gpu: "1"
           env:
             - name: NCCL_SOCKET_IFNAME
@@ -115,7 +115,7 @@ spec:
               --quantization modelopt_mixed
               --kv-cache-dtype fp8
               --moe-backend marlin
-              --gpu-memory-utilization 0.82
+              --gpu-memory-utilization 0.85
               --max-model-len 131072
               --max-num-seqs 4
               --max-num-batched-tokens 2048

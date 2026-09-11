@@ -43,7 +43,7 @@ Realistic ring bus is ~12–24 GB/s allgather. Community Spark TP recipes hit `i
 - Image: `glm53-flash-tp3:local` built on Spark from the published TP=3 overlay (see `Dockerfile`). Stock nightly cannot pad 64 heads / MoE width for TP=3.
 - Checkpoint: `local-inference-lab/GLM-5.3-Flash-NVFP4` (or `RedHatAI/GLM-5.3-Flash-NVFP4`). Avoid LibertAIDAI (measured expert-scale defect).
 - Speculative decode: **MTP** default. DFlash2 (`incoai/GLM-5.3-Flash-DFlash2`) is CC BY-NC-ND; permission does not transfer — optional extra only.
-- gpu-mem-util **0.82** (not the recipe’s 0.88). Exclusive raise to 0.85 may be documented after measurement; 0.88 is not shipped.
+- gpu-mem-util **0.85 exclusive Mode B only** (not the recipe’s 0.88). 0.88 is not shipped. Do not use 0.85 on shared-OS Mode A.
 - max-model-len **131072** first; 262144 / 1M are exclusive raises.
 
 ## Usage
@@ -54,4 +54,4 @@ bazelisk run //:manage -- start-glm53-flash
 bazelisk run //:manage -- stop-glm53-flash
 ```
 
-Refuses any Mode A rounded Job. Heavy confirm. `start-stack-rounded` refuses Mode B.
+Refuses any Mode A rounded Job and Mode C DeepSeek-V4.1-Flash. Heavy confirm. `start-stack-rounded` and `start-dsv41-flash` refuse Mode B.

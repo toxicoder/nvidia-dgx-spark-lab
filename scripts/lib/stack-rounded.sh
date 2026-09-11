@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# ## 3-node rounded stack (Mode A mixed fleet vs Mode B GLM-5.3-Flash TP=3)
+# ## 3-node rounded stack (Mode A mixed fleet vs Mode B GLM vs Mode C DeepSeek-V4.1-Flash)
 #
-# LiteLLM aliases, Mode A/B mutual exclusion, and QSFP-ring fabric doctor.
+# LiteLLM aliases, Mode A/B/C mutual exclusion, and QSFP-ring fabric doctor.
 # Heavy Jobs stay manual-start. LiteLLM is a management Deployment.
 
 # @function rounded_mode_a_jobs
@@ -22,6 +22,15 @@ rounded_mode_b_jobs() {
     glm-5.3-flash \
     glm-5.3-flash-worker-1 \
     glm-5.3-flash-worker-2
+}
+
+# @function rounded_mode_c_jobs
+# Prints Mode C inference Job names (one per line).
+rounded_mode_c_jobs() {
+  printf '%s\n' \
+    deepseek-v4.1-flash \
+    deepseek-v4.1-flash-worker-1 \
+    deepseek-v4.1-flash-worker-2
 }
 
 # @function _rounded_active_from_list
@@ -62,6 +71,18 @@ guard_rounded_mode_a_idle() {
   return 0
 }
 
+# @function guard_rounded_mode_c_idle
+# Fail if any Mode C (DeepSeek-V4.1-Flash) Job is active.
+guard_rounded_mode_c_idle() {
+  local active
+  active=$(_rounded_active_from_list <<<"$(rounded_mode_c_jobs)")
+  if [[ -n $active ]]; then
+    err "Mode C DeepSeek-V4.1-Flash Job '$active' is active. Stop it first: ./scripts/manage.sh stop-dsv41-flash"
+    return 1
+  fi
+  return 0
+}
+
 # @function lab_mgmt_ifname
 # Management / NCCL OOB interface. Default enP7s7; override LAB_MGMT_IFNAME.
 # Does not hard-fail if the live name differs — callers warn via doctor_fabric.
@@ -86,7 +107,7 @@ doctor_fabric() {
   nodes=$(kubectl get nodes --no-headers 2>/dev/null | wc -l | tr -d ' ' || echo 0)
   n=${nodes:-0}
   if [[ $n -lt 3 ]]; then
-    warn "Only ${n} Kubernetes node(s) visible; Mode B TP=3 expects spark0+spark1+spark2."
+    warn "Only ${n} Kubernetes node(s) visible; Mode B/C TP=3 expects spark0+spark1+spark2."
     return 1
   fi
   log "Kubernetes nodes: ${n} (ok for a 3-node ring)."
@@ -100,7 +121,7 @@ _rounded_node_count() {
 }
 
 # @function _require_three_nodes
-# Require ≥3 nodes for rounded / Mode B starts.
+# Require ≥3 nodes for rounded / Mode B / Mode C starts.
 _require_three_nodes() {
   local n
   n=$(_rounded_node_count)
@@ -179,7 +200,7 @@ start_stack_rounded() {
 
   warn "=== ROUNDED STACK Mode A (3× Spark, TP=1 per node, LiteLLM) ==="
   warn "spark0: qwen3.6-35b-a3b · spark1: qwen3.8-flash-next · spark2: medgemma-27b (or 27B quality)"
-  warn "QSFP ring is unused for tokens in Mode A. Exclusive with start-glm53-flash."
+  warn "QSFP ring is unused for tokens in Mode A. Exclusive with start-glm53-flash and start-dsv41-flash."
 
   if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
     echo
@@ -193,6 +214,7 @@ start_stack_rounded() {
   fi
 
   guard_rounded_mode_b_idle || exit 1
+  guard_rounded_mode_c_idle || exit 1
   _require_three_nodes || exit 1
   ensure_namespace
 
@@ -245,7 +267,7 @@ stop_stack_rounded() {
 # @command start-glm53-flash
 start_glm53_flash() {
   warn "=== GLM-5.3-Flash NVFP4 TP=3 (Mode B, USES THE RING) ==="
-  warn "Exclusive: refuses Mode A rounded Jobs. hostNetwork + 3-node NCCL (not 2-node 400G vars)."
+  warn "Exclusive: refuses Mode A rounded Jobs and Mode C DeepSeek-V4.1-Flash. hostNetwork + 3-node NCCL (not 2-node 400G vars)."
   warn "Image glm53-flash-tp3:local must be built on Spark (see k8s/workloads/glm-5.3-flash/README.md)."
 
   if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
@@ -260,6 +282,7 @@ start_glm53_flash() {
   fi
 
   guard_rounded_mode_a_idle || exit 1
+  guard_rounded_mode_c_idle || exit 1
   doctor_fabric || warn "Fabric doctor warned; continuing only if you understand the ring is required."
   _require_three_nodes || exit 1
   ensure_namespace
@@ -287,8 +310,58 @@ stop_glm53_flash() {
   log "Mode B stopped."
 }
 
+# @function start_dsv41_flash
+# Exclusive Mode C TP=3 DeepSeek-V4.1-Flash across the QSFP ring.
+# @command start-dsv41-flash
+start_dsv41_flash() {
+  warn "=== DeepSeek-V4.1-Flash official MXFP4 TP=3 (Mode C, USES THE RING) ==="
+  warn "Exclusive: refuses Mode A and Mode B. Official checkpoint only. Engram on NVMe."
+  warn "Image dsv41-flash-tp3:local must be built on Spark (see k8s/workloads/deepseek-v4.1-flash/README.md)."
+  warn "mem-fraction-static 0.95 is exclusive Mode C (MiaAI measured load). Hang line is MemAvailable ~8–12 GiB."
+  warn "If MemAvailable drops below 8 GiB on any rank: ./scripts/manage.sh stop-dsv41-flash immediately. Do not generate load from spark0."
+
+  if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
+    echo
+    read -r -p "Start DeepSeek-V4.1-Flash TP=3? [yes/NO] " response
+    if [[ ! $response =~ ^[Yy][Ee][Ss]$ ]]; then
+      log "Aborted."
+      exit 0
+    fi
+  else
+    require_heavy_confirm "deepseek-v4.1-flash" "Mode C frontier requires confirmation." || exit 1
+  fi
+
+  guard_rounded_mode_a_idle || exit 1
+  guard_rounded_mode_b_idle || exit 1
+  doctor_fabric || warn "Fabric doctor warned; continuing only if you understand the ring is required."
+  _require_three_nodes || exit 1
+  ensure_namespace
+  guard_active_job "deepseek-v4.1-flash" || exit 1
+  guard_active_job "deepseek-v4.1-flash-worker-1" || exit 1
+  guard_active_job "deepseek-v4.1-flash-worker-2" || exit 1
+  enforce_capacity "stack:dsv41-flash-spark-3" || exit 1
+
+  log "Starting TP=3 workers then leader..."
+  start_workload "deepseek-v4.1-flash-worker-1" "--force"
+  start_workload "deepseek-v4.1-flash-worker-2" "--force"
+  start_workload "deepseek-v4.1-flash" "--force"
+  wait_for_job "deepseek-v4.1-flash" || true
+  log "lab-frontier-ds = deepseek-v4.1-flash. lab-frontier stays GLM. lab-med never uses the DeepSeek cloud API."
+  log "Soak: MemAvailable ≥ 8 GiB on every rank or run stop-dsv41-flash. LiteLLM: ./scripts/manage.sh start-litellm"
+}
+
+# @function stop_dsv41_flash
+# @command stop-dsv41-flash
+stop_dsv41_flash() {
+  log "Stopping DeepSeek-V4.1-Flash TP=3..."
+  stop_inference_job "deepseek-v4.1-flash"
+  stop_inference_job "deepseek-v4.1-flash-worker-1"
+  stop_inference_job "deepseek-v4.1-flash-worker-2"
+  log "Mode C stopped."
+}
+
 # @function status_stack
-# Mode A/B Jobs, LiteLLM, aliases, fabric hint.
+# Mode A/B/C Jobs, LiteLLM, aliases, fabric hint.
 # @command status-stack
 status_stack() {
   log "=== Rounded stack status (namespace ${NAMESPACE}) ==="
@@ -296,9 +369,10 @@ status_stack() {
   kubectl get jobs -n "${NAMESPACE}" -l family=qwen3.8 -o wide 2>/dev/null || true
   kubectl get jobs -n "${NAMESPACE}" -l family=medgemma -o wide 2>/dev/null || true
   kubectl get jobs -n "${NAMESPACE}" -l family=glm-5.3 -o wide 2>/dev/null || true
+  kubectl get jobs -n "${NAMESPACE}" -l family=deepseek-v4.1 -o wide 2>/dev/null || true
   kubectl get deploy,svc -n "${NAMESPACE}" litellm 2>/dev/null || true
   echo
-  log "Aliases: lab-fast/lab-code → 35b-a3b · lab-smart/lab-agent → flash-next · lab-med → medgemma · lab-frontier → glm-5.3-flash · lab-auto → fast then smart"
+  log "Aliases: lab-fast/lab-code → 35b-a3b · lab-smart/lab-agent → flash-next · lab-med → medgemma · lab-frontier → glm-5.3-flash · lab-frontier-ds → deepseek-v4.1-flash · lab-auto → fast then smart"
   log "Open WebUI model base URL: http://litellm.${NAMESPACE}.svc.cluster.local:4000/v1 (or spark0:32040)"
   log "Raw bypass: kubectl port-forward -n ${NAMESPACE} svc/<job> 8000:8000"
   doctor_fabric || true

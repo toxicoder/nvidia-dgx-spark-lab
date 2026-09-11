@@ -612,6 +612,23 @@ case "${1:-help}" in
     check_cluster_access
     stop_glm53_flash
     ;;
+  start-dsv41-flash | start-deepseek-v4.1-flash)
+    ## start-dsv41-flash
+    # @command start-dsv41-flash
+    # @command start-deepseek-v4.1-flash
+    # Exclusive Mode C TP=3 DeepSeek-V4.1-Flash on the 3-node QSFP ring.
+    require_kubectl
+    check_cluster_access
+    start_dsv41_flash
+    ;;
+  stop-dsv41-flash | stop-deepseek-v4.1-flash)
+    ## stop-dsv41-flash
+    # @command stop-dsv41-flash
+    # @command stop-deepseek-v4.1-flash
+    require_kubectl
+    check_cluster_access
+    stop_dsv41_flash
+    ;;
   start-litellm)
     ## start-litellm
     # @command start-litellm
@@ -993,13 +1010,14 @@ Commands:
   start-hermes   Deploy Hermes Agent (Docker, gateway + dashboard)
   start-hermes-full Deploy Hermes + full MCP RAG integration
   stop-hermes    Stop Hermes Agent container and inference port-forward
-  start-stack-rounded [--quality]  Mode A 3-node fleet + LiteLLM (refuses Mode B)
+  start-stack-rounded [--quality]  Mode A 3-node fleet + LiteLLM (refuses Mode B and C)
   stop-stack-rounded Stop Mode A inference Jobs (LiteLLM stays up)
   start-medgemma / stop-medgemma  spark2 MedGemma 27B (not a medical device)
   start-qwen38-flash-next  spark1 Qwen3.8-Flash-Next NVFP4
-  start-glm53-flash / stop-glm53-flash  Mode B TP=3 on the QSFP ring (refuses Mode A)
+  start-glm53-flash / stop-glm53-flash  Mode B TP=3 on the QSFP ring (refuses Mode A and C)
+  start-dsv41-flash / stop-dsv41-flash  Mode C DeepSeek-V4.1-Flash TP=3 (refuses Mode A and B)
   start-litellm / stop-litellm  LAN OpenAI proxy
-  status-stack     Mode A/B Jobs + LiteLLM aliases + fabric hint
+  status-stack     Mode A/B/C Jobs + LiteLLM aliases + fabric hint
   doctor-fabric    Warn if the 3-node QSFP ring looks down
   start-open-webui Deploy Open WebUI chat UI (Hermes gateway backend)
   stop-open-webui  Stop Open WebUI Helm release and Hermes gateway bridge

@@ -1,0 +1,30 @@
+"""Package purpose: DeepSeek-V4.1-Flash official MXFP4 TP=3 ring inference jobs, Dockerfile, and service exports."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "dsv41_flash_job",
+    srcs = [
+        "Dockerfile",
+        "deepseek-v4.1-flash-job.yaml",
+        "deepseek-v4.1-flash-worker-1-job.yaml",
+        "deepseek-v4.1-flash-worker-2-job.yaml",
+        "kustomization.yaml",
+        "service.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+exports_files([
+    "Dockerfile",
+    "deepseek-v4.1-flash-job.yaml",
+    "deepseek-v4.1-flash-worker-1-job.yaml",
+    "deepseek-v4.1-flash-worker-2-job.yaml",
+    "kustomization.yaml",
+    "service.yaml",
+])

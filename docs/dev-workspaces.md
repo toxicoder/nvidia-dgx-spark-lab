@@ -275,7 +275,7 @@ See `dashboard/AGENTS.md` and `dashboard/Dockerfile` for stack details.
 ## Safety & Resources
 
 - All components declare requests + limits (see group_vars and values).
-- Inference unchanged: Jobs, OnFailure + backoff 1, 0.82 util, NCCL highspeed only in relevant workloads, no Always.
+- Inference unchanged: Jobs, OnFailure + backoff 1, Mode A vLLM util ≤ 0.82 (Mode B exclusive 0.85 / Mode C SGLang 0.95), NCCL highspeed only in relevant workloads, no Always.
 - Dev tools are intentionally lighter and restart-tolerant.
 - `manage.sh` new paths have preflight cluster checks; heavy prompts untouched.
 - After changes always validate: `bazelisk test //...`

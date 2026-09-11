@@ -50,6 +50,7 @@ sh_binary(
         "//k8s/workloads/medgemma-27b:medgemma_27b_job",
         "//k8s/workloads/medgemma-4b:medgemma_4b_job",
         "//k8s/workloads/glm-5.3-flash:glm53_flash_job",
+        "//k8s/workloads/deepseek-v4.1-flash:dsv41_flash_job",
         "//k8s/workloads/litellm",
         "//k8s/overlays/rounded-stack:rounded_stack",
         "//k8s/overlays/rounded-stack-quality:rounded_stack_quality",

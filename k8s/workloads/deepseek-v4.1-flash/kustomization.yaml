@@ -1,0 +1,13 @@
+# Purpose: Kustomize bundle for DeepSeek-V4.1-Flash TP=3 Mode C workload
+# Source of truth: k8s/workloads/deepseek-v4.1-flash/
+# Regenerate: n/a
+# Safety: exclusive with Mode A and Mode B; ring NCCL on these Jobs only
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - deepseek-v4.1-flash-job.yaml
+  - deepseek-v4.1-flash-worker-1-job.yaml
+  - deepseek-v4.1-flash-worker-2-job.yaml
+  - service.yaml

@@ -26,8 +26,8 @@ export const fakeMachineIdentity = {
  */
 const SPARK_NODES = 2;
 const SPARK_ALLOCATABLE = { gpus: SPARK_NODES, cpu: 14 * SPARK_NODES, memoryGi: 56 * SPARK_NODES };
-/** Policy headroom: max(4 CPU, 15%) and max(64Gi, 15%) per node — mirrors resource-policy.json. */
-const SPARK_HEADROOM = { cpu: 4 * SPARK_NODES, memoryBytes: 64 * 1073741824 * SPARK_NODES };
+/** Policy headroom: max(4 CPU, 15%) and max(24Gi, 15%) per node — mirrors resource-policy.json. */
+const SPARK_HEADROOM = { cpu: 4 * SPARK_NODES, memoryBytes: 24 * 1073741824 * SPARK_NODES };
 
 export const fakeServices = {
   services: ["docker.service (mock)", "k3s.service (mock)", "ollama.service (mock)"]
@@ -261,7 +261,7 @@ export const fakeClusterCapacity: ClusterCapacity = {
   requested: { gpus: 0, cpu: "2.3", memory: "3.2Gi" },
   headroom: { cpu: SPARK_HEADROOM.cpu, memory: SPARK_HEADROOM.memoryBytes },
   free: { gpus: 2, cpu: "25.7", memory: "108.8Gi" },
-  available: { gpus: 2, cpu: "17.7", memory: "0Gi" },
+  available: { gpus: 2, cpu: "17.7", memory: "60.8Gi" },
   utilization: { gpu_pct: 0, cpu_pct: 8.2, memory_pct: 2.9 }
 };
 
@@ -280,7 +280,7 @@ export const fakeVisualClusterCapacity: ClusterCapacity = {
   requested: { gpus: 2, cpu: "12.3", memory: "39.2Gi" },
   headroom: { cpu: SPARK_HEADROOM.cpu, memory: SPARK_HEADROOM.memoryBytes },
   free: { gpus: 0, cpu: "15.7", memory: "72.8Gi" },
-  available: { gpus: 0, cpu: "7.7", memory: "0Gi" },
+  available: { gpus: 0, cpu: "7.7", memory: "24.8Gi" },
   utilization: { gpu_pct: 100, cpu_pct: 43.9, memory_pct: 35 }
 };
 

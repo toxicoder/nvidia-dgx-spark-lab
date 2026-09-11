@@ -63,7 +63,7 @@
 
 `ansible/inventory/group_vars/all.yml` `highspeed_*` / `nccl_env` document that pair. Do **not** copy them onto a 3-node ring.
 
-**3-node QSFP ring (Mode B only):** 200 Gb/s per pair, triangle mesh, OOB on 10GbE (often `enP7s7`), payload on all four CX-7 RoCE devices. See [LiteLLM rounded stack](docs/litellm-rounded-stack.md). Not NVLink.
+**3-node QSFP ring (Mode B and Mode C):** 200 Gb/s per pair, triangle mesh, OOB on 10GbE (often `enP7s7`), payload on all four CX-7 RoCE devices. See [LiteLLM rounded stack](docs/litellm-rounded-stack.md). Not NVLink.
 
 For 1 node: standard local multi-GPU NCCL (SHM/P2P) is used.
 

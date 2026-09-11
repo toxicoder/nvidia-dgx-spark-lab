@@ -291,6 +291,7 @@ qwen36-dual-spark-1: concurrent both on 1× Spark (GPU time-slicing)
 qwen3.8-flash-next-nvfp4: 1-node Qwen3.8-Flash-Next NVFP4 (spark1, PLE mmap)
 medgemma-27b / medgemma-4b: spark2 medical lane + optional sidecar
 glm-5.3-flash: 3-node TP=3 NVFP4 on the QSFP ring (Mode B)
+deepseek-v4.1-flash: 3-node TP=3 official MXFP4 + Engram NVMe (Mode C, SGLang)
 litellm: management OpenAI proxy (no GPU)
 comfy-base: ComfyUI visual base (Deployment; Spark unified-memory patches)
 
@@ -1379,6 +1380,65 @@ Best-effort symlink snapshot files into Comfy diffusion_models dir.
 
 
 
+<!-- source: scripts/utilities/download-dsv41-flash.sh -->
+
+## download-dsv41-flash
+
+Download the official DeepSeek-V4.1-Flash checkpoint for exclusive Mode C.
+
+Official repo only: deepseek-ai/DeepSeek-V4.1-Flash (~476–510 GB).
+Does not pull nvidia/DeepSeek-V4-Flash-NVFP4 (old 284B) or LibertAIDAI requants.
+
+After download, pack Engram shards onto each node's NVMe:
+  follow MiaAI-Lab DeepSeek-v4.1-Flash-DGX-Sparks ./start.sh pack
+  destination: /mnt/models/dsv41-engram
+Never OFFLOAD_MODE=ram.
+
+```bash
+Usage:
+  ./scripts/utilities/download-dsv41-flash.sh status [--json]
+  ./scripts/utilities/download-dsv41-flash.sh run
+```
+
+### Command: download-dsv41-flash
+
+### Function `repo_dir`
+
+@function repo_dir
+Local directory for the official Hugging Face snapshot.
+
+### Function `dir_size_gb`
+
+@function dir_size_gb
+On-disk size of a directory in GB, or 0 if missing.
+
+### Function `check_hf_cli`
+
+@function check_hf_cli
+Require huggingface-cli or hf.
+
+### Function `hf_download`
+
+@function hf_download
+Invoke huggingface-cli download or hf download.
+
+### Function `cmd_status`
+
+@function cmd_status
+Print download readiness for the official V4.1-Flash snapshot.
+
+### Function `cmd_run`
+
+@function cmd_run
+Download the official checkpoint into MODELS_DIR.
+
+### Function `main`
+
+@function main
+CLI entry: status|run [--json].
+
+
+
 <!-- source: scripts/utilities/runner.sh -->
 
 ## Utility runner (Bazel entry)
@@ -2122,9 +2182,9 @@ Prefer ansible/files/generated/<name> when render-domains has run.
 
 <!-- source: scripts/lib/stack-rounded.sh -->
 
-## 3-node rounded stack (Mode A mixed fleet vs Mode B GLM-5.3-Flash TP=3)
+## 3-node rounded stack (Mode A mixed fleet vs Mode B GLM vs Mode C DeepSeek-V4.1-Flash)
 
-LiteLLM aliases, Mode A/B mutual exclusion, and QSFP-ring fabric doctor.
+LiteLLM aliases, Mode A/B/C mutual exclusion, and QSFP-ring fabric doctor.
 Heavy Jobs stay manual-start. LiteLLM is a management Deployment.
 
 ### Function `rounded_mode_a_jobs`
@@ -2136,6 +2196,11 @@ Prints Mode A inference Job names (one per line). Used by mutual exclusion.
 
 @function rounded_mode_b_jobs
 Prints Mode B inference Job names (one per line).
+
+### Function `rounded_mode_c_jobs`
+
+@function rounded_mode_c_jobs
+Prints Mode C inference Job names (one per line).
 
 ### Function `_rounded_active_from_list`
 
@@ -2152,6 +2217,11 @@ Fail if any Mode B (frontier) Job is active.
 @function guard_rounded_mode_a_idle
 Fail if any Mode A (rounded daily) Job is active.
 
+### Function `guard_rounded_mode_c_idle`
+
+@function guard_rounded_mode_c_idle
+Fail if any Mode C (DeepSeek-V4.1-Flash) Job is active.
+
 ### Function `lab_mgmt_ifname`
 
 @function lab_mgmt_ifname
@@ -2167,7 +2237,7 @@ Does not hard-fail if the live name differs — callers warn via doctor_fabric.
 ### Function `_require_three_nodes`
 
 @function _require_three_nodes
-Require ≥3 nodes for rounded / Mode B starts.
+Require ≥3 nodes for rounded / Mode B / Mode C starts.
 
 ### Command: start-litellm
 
@@ -2186,6 +2256,10 @@ Require ≥3 nodes for rounded / Mode B starts.
 ### Command: start-glm53-flash
 
 ### Command: stop-glm53-flash
+
+### Command: start-dsv41-flash
+
+### Command: stop-dsv41-flash
 
 ### Command: status-stack
 
