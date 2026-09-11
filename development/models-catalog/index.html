@@ -1653,7 +1653,7 @@
 <tr>
 <td>qwen3.8-flash-next-nvfp4</td>
 <td>1</td>
-<td>90Gi</td>
+<td>92Gi</td>
 <td>Qwen3.8-Flash-Next NVFP4 (spark1)</td>
 <td>PLE mmap; util 0.82; 64k ctx first</td>
 <td>Mode A TP=1</td>
@@ -1677,9 +1677,25 @@
 <tr>
 <td>glm-5.3-flash</td>
 <td>3</td>
-<td>95Gi×3</td>
+<td>100Gi×3</td>
 <td>GLM-5.3-Flash NVFP4 TP=3</td>
-<td>Exclusive Mode B; QSFP ring <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr></td>
+<td>Exclusive Mode B; util 0.85; QSFP ring</td>
+<td>3-node ring</td>
+</tr>
+<tr>
+<td>deepseek-v4.1-flash</td>
+<td>3</td>
+<td>108Gi×3</td>
+<td>DeepSeek-V4.1-Flash official MXFP4</td>
+<td>Exclusive Mode C; Engram NVMe; SGLang 0.95</td>
+<td>3-node ring</td>
+</tr>
+<tr>
+<td>dsv41-flash-spark-3</td>
+<td>3</td>
+<td>324Gi</td>
+<td>Mode C stack (leader + 2 workers)</td>
+<td>Refuses Mode A and Mode B</td>
 <td>3-node ring</td>
 </tr>
 <tr>
@@ -1693,9 +1709,9 @@
 <tr>
 <td>rounded-spark-3</td>
 <td>3</td>
-<td>~186Gi</td>
+<td>~189Gi</td>
 <td>Mode A daily fleet + LiteLLM</td>
-<td>Mutually exclusive with Mode B</td>
+<td>Mutually exclusive with Mode B and C</td>
 <td>3-node</td>
 </tr>
 <tr>
@@ -1761,7 +1777,7 @@
 <li><code>restartPolicy: OnFailure</code></li>
 <li><code>backoffLimit: 1</code> (or 2 for test)</li>
 <li>explicit <code>resources.requests</code> + <code>limits</code></li>
-<li><code>gpu-memory-utilization</code> capped at 0.82–0.90</li>
+<li>Mode A vLLM <code>gpu-memory-utilization</code> ≤ 0.82; Mode B exclusive ≤ 0.85; Mode C SGLang <code>--mem-fraction-static</code> ≤ 0.95. Never ship vLLM 0.88/0.90.</li>
 </ul>
 <p>Never let these jobs auto-restart.</p>
 <h2 id="detailed-profiles">Detailed Profiles<a class="headerlink" href="#detailed-profiles" title="Permanent link">¶</a></h2>

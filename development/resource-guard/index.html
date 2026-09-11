@@ -893,6 +893,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#headroom-floor-24gi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Headroom floor (24Gi)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Headroom floor (24Gi)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#util-matrix-do-not-flatten" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Util matrix (do not flatten)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#cli" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1169,6 +1197,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#headroom-floor-24gi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Headroom floor (24Gi)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Headroom floor (24Gi)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#util-matrix-do-not-flatten" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Util matrix (do not flatten)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#cli" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1288,8 +1344,61 @@
 <li><strong>Policy</strong> — <code>config/resource-policy.yaml</code> (human) + <code>config/resource-policy.json</code> (parsed by scripts)</li>
 <li><strong>Runtime checks</strong> — <code>scripts/lib/resources.sh</code> blocks unsafe <code>start-*</code> unless you confirm or <code>--force</code></li>
 <li><strong>Kubernetes</strong> — <code>k8s/base/resource-guard/</code> (PriorityClass, ResourceQuota, LimitRange, PDB)</li>
-<li><strong>Host reservation</strong> — kubelet <code>system-reserved</code> / <code>kube-reserved</code> via <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> <code>group_vars</code></li>
+<li><strong>Host reservation</strong> — kubelet <code>system-reserved</code> / <code>kube-reserved</code> via <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> <code>group_vars</code> (do not double-count in policy)</li>
 </ol>
+<h2 id="headroom-floor-24gi">Headroom floor (24Gi)<a class="headerlink" href="#headroom-floor-24gi" title="Permanent link">¶</a></h2>
+<p><abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> reserves <strong><code>max(24Gi, 15% of allocatable)</code> per node</strong>. It does <strong>not</strong> try to keep 64Gi free after kubelet reservations.</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>kubelet <code>system-reserved</code> / <code>kube-reserved</code></td>
+<td>Host hang line (sshd, k3s). <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> still documents 64Gi+8Gi; measure live <code>allocatable</code> before changing it. 95Gi Jobs already schedule, so those args are probably not applied as written.</td>
+</tr>
+<tr>
+<td>Policy <code>memory_min_per_node: 24Gi</code></td>
+<td>Capacity math only. 24 GiB is above 15% of ~121.7 GiB visible RAM (~18.3 GiB) and above the community hang line (~8–12 GiB MemAvailable).</td>
+</tr>
+</tbody>
+</table>
+<p>The old 64Gi policy floor reserved ~192 GiB across three Sparks before any <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr>, so Mode A (~189 GiB) always failed and operators clicked through. That made the guard a paper tiger.</p>
+<h3 id="util-matrix-do-not-flatten">Util matrix (do not flatten)<a class="headerlink" href="#util-matrix-do-not-flatten" title="Permanent link">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Engine knob</th>
+<th>Cap</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A daily fleet</td>
+<td>vLLM <code>--gpu-memory-utilization</code></td>
+<td><strong>≤ 0.82</strong></td>
+<td>Shared with <abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr>, LiteLLM, dashboard, SSH</td>
+</tr>
+<tr>
+<td>B GLM exclusive</td>
+<td>vLLM <code>--gpu-memory-utilization</code></td>
+<td><strong>≤ 0.85</strong></td>
+<td>Exclusive ring only. 0.88 is not shipped</td>
+</tr>
+<tr>
+<td>C DeepSeek-V4.1 exclusive</td>
+<td>SGLang <code>--mem-fraction-static</code></td>
+<td><strong>≤ 0.95</strong></td>
+<td>MiaAI measured load for ~101 GiB/rank. Not a global util raise</td>
+</tr>
+</tbody>
+</table>
+<p>Never ship vLLM <strong>0.88 / 0.90</strong>. Do not raise <code>llm_gpu_memory_utilization</code> in <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr>.</p>
 <h2 id="cli">CLI<a class="headerlink" href="#cli" title="Permanent link">¶</a></h2>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>./scripts/manage.sh<span class="w"> </span>resources
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>./scripts/manage.sh<span class="w"> </span>resources<span class="w"> </span>check<span class="w"> </span>model:kimi<span class="w"> </span>--json
