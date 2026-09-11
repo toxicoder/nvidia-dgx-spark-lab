@@ -464,13 +464,16 @@ class TestMkDocsRender(unittest.TestCase):
             browser = p.chromium.launch(headless=True)
             context = browser.new_context()
             try:
+                errors: list[str] = []
                 for slug, suffix in KEY_PAGES:
                     page = context.new_page()
                     page.goto(self.server_base + suffix)
                     err = compare_page_screenshot(page, slug)
                     page.close()
                     if err:
-                        self.fail(err)
+                        errors.append(err)
+                if errors:
+                    self.fail("\n".join(errors))
             finally:
                 context.close()
                 browser.close()
