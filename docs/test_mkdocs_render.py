@@ -49,23 +49,33 @@ SCRIPT_DIR = Path(__file__).parent
 REPO_ROOT = SCRIPT_DIR.parent
 GOLDENS_DIR = SCRIPT_DIR / "tests" / "visual" / "goldens"
 
+# MkDocs nav entries pointing at markdown under docs/ (not URLs).
+_MKDOCS_NAV_MD_RE = re.compile(r"(?m)^[ \t]*-[ \t]+[^:\n]+:[ \t]+([A-Za-z0-9_./-]+\.md)\s*$")
+
+
+def hand_written_nav_pages(mkdocs_text: str) -> list[str]:
+    """Return nav markdown paths excluding generated reference trees.
+
+    Args:
+        mkdocs_text: Contents of ``mkdocs.yml``.
+
+    Returns:
+        Sorted unique paths relative to ``docs/``.
+    """
+    pages = {
+        match.group(1)
+        for match in _MKDOCS_NAV_MD_RE.finditer(mkdocs_text)
+        if not match.group(1).startswith("http") and not match.group(1).startswith("generated/")
+    }
+    return sorted(pages)
+
+
 # Hand-written pages listed in mkdocs.yml nav (excludes generated/).
-HAND_WRITTEN_NAV_PAGES = [
-    "index.md",
-    "getting-started.md",
-    "dgx-spark-notes.md",
-    "reboot-safety.md",
-    "models-catalog.md",
-    "architecture.md",
-    "monitoring-observability.md",
-    "glossary.md",
-    "BUILDING_WITH_BAZEL.md",
-    "gitea-ci-setup.md",
-    "dev-workspaces.md",
-    "troubleshooting.md",
-    "CONTRIBUTING.md",
-    "project-conventions.md",
-]
+# Derived at import so adding a nav page without frontmatter fails this test.
+_MKDOCS_YML = REPO_ROOT / "mkdocs.yml"
+HAND_WRITTEN_NAV_PAGES = (
+    hand_written_nav_pages(_MKDOCS_YML.read_text(encoding="utf-8")) if _MKDOCS_YML.is_file() else []
+)
 
 # Key pages to screenshot for visual regression. These exercise
 # Mermaid diagrams, interactive panels (command-vars), lists, tabs,
@@ -97,6 +107,7 @@ FRONTMATTER_RE = re.compile(
 )
 TITLE_RE = re.compile(r"^title:\s*.+$", re.M)
 DESCRIPTION_RE = re.compile(r"^description:\s*.+$", re.M)
+TAGS_RE = re.compile(r"^tags:\s*\[", re.M)
 # Colon at end of a prose line, then list on the *next* line (no blank line between).
 # Only horizontal whitespace allowed after the colon — not a blank line.
 BAD_PROSE_LIST_RE = re.compile(r"[^\n]:[ \t]*\n-\s")
@@ -303,6 +314,9 @@ class TestMkDocsRender(unittest.TestCase):
             "dgx-spark-notes/index.html",
             "architecture/index.html",
             "troubleshooting/index.html",
+            "start/choose-topology/index.html",
+            "concepts/interconnect-nccl/index.html",
+            "operate/workload-catalog/index.html",
         ]
         for rel in expected:
             self.assertTrue(
@@ -310,8 +324,15 @@ class TestMkDocsRender(unittest.TestCase):
                 f"Expected rendered page missing: {rel}",
             )
 
+    def test_hand_written_nav_pages_derived_from_mkdocs(self) -> None:
+        """Nav derivation must include every current hand-written docs page."""
+        self.assertTrue(HAND_WRITTEN_NAV_PAGES, "mkdocs.yml nav produced no hand-written pages")
+        self.assertIn("index.md", HAND_WRITTEN_NAV_PAGES)
+        self.assertIn("resource-guard.md", HAND_WRITTEN_NAV_PAGES)
+        self.assertNotIn("generated/shell/reference.md", HAND_WRITTEN_NAV_PAGES)
+
     def test_frontmatter_on_nav_pages(self) -> None:
-        """Every hand-written nav page must have YAML frontmatter with title + description."""
+        """Every hand-written nav page must have YAML frontmatter with title, description, tags."""
         for rel in HAND_WRITTEN_NAV_PAGES:
             md = REPO_ROOT / "docs" / rel
             self.assertTrue(md.exists(), f"Missing nav page: {rel}")
@@ -321,12 +342,11 @@ class TestMkDocsRender(unittest.TestCase):
             body = m.group("body") if m else ""
             self.assertRegex(body, TITLE_RE, f"{rel}: frontmatter missing title:")
             self.assertRegex(body, DESCRIPTION_RE, f"{rel}: frontmatter missing description:")
+            self.assertRegex(body, TAGS_RE, f"{rel}: frontmatter missing tags:")
 
     def test_whats_on_this_page_sections(self) -> None:
         """Major pages must include scannable overview sections."""
         for rel in HAND_WRITTEN_NAV_PAGES:
-            if rel == "index.md":
-                continue  # index uses equivalent content under the home title
             text = (REPO_ROOT / "docs" / rel).read_text(encoding="utf-8", errors="replace")
             prose = prose_regions(text)
             self.assertIn("**What's on this page**", prose, f"{rel}: missing 'What's on this page'")
@@ -358,16 +378,18 @@ class TestMkDocsRender(unittest.TestCase):
         """Cluster config interactive panel markup is present in built or source HTML."""
         # The live cluster vars panel (JS driven) must be detectable either in
         # a built HTML or (fallback) in the source md.
+        snippet = (REPO_ROOT / "docs/includes/cluster-config.md").read_text(encoding="utf-8")
+        self.assertIn('class="cluster-config', snippet)
+        self.assertIn('data-var="SPARK0_IP" value="localhost"', snippet)
+        self.assertIn('data-profile="1node"', snippet)
+        operate = (REPO_ROOT / "docs/operate/capacity-planning.md").read_text(encoding="utf-8")
+        self.assertIn("cluster-config.md", operate)
         if (self.site_dir / "getting-started/index.html").exists():
             html = (self.site_dir / "getting-started/index.html").read_text(encoding="utf-8")
             self.assertIn('class="cluster-config', html)
             # Defaults must match primary profile (1-node / localhost) — see command-vars.
             self.assertIn('data-var="SPARK0_IP" value="localhost"', html)
             self.assertIn('data-profile="1node"', html)
-        else:
-            src = (REPO_ROOT / "docs/getting-started.md").read_text(encoding="utf-8")
-            self.assertIn("cluster-config", src)
-            self.assertIn('data-var="SPARK0_IP" value="localhost"', src)
 
     def test_mermaid_blocks_present_and_clean(self) -> None:
         """Mermaid source blocks avoid browser-only syntax errors and appear in HTML."""

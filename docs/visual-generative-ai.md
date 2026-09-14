@@ -6,6 +6,12 @@ tags: [comfyui, flux, ltx, visual, dgx-spark, nvfp4]
 
 # Visual Generative AI on DGX Spark
 
+--8<-- "docs/includes/cluster-config.md"
+
+!!! note "Sister repo for Compose learners"
+
+    Single-node **Docker Compose** ComfyUI (US-safe studio demo) is [ez-comfy-stack](https://github.com/toxicoder/ez-comfy-stack). This page is the **K3s-operated** lab path: `k8s/workloads/comfy-base`, `k8s/workloads/comfy-visual/*`, `scripts/lib/visual.sh`. Manual start only, one visual Deployment, Resource Guard + heavy confirm.
+
 **What's on this page**
 
 - Architecture for ComfyUI visual workloads (FLUX.2 + LTX-2.3)

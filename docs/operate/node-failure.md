@@ -1,0 +1,66 @@
+---
+title: Node failure
+description: What to do when one Spark worker is down — control-plane assumptions and NCCL Jobs that cannot reschedule.
+tags: [failure, nccl, kubernetes, safety]
+---
+
+# Node failure
+
+**What's on this page**
+
+- spark0 vs worker failure
+- What happens to TP=2 / TP=3 / TP=4 Jobs
+- Recover without copying the wrong NCCL env
+
+**What this enables**
+
+- Stopping a split-brain NCCL Job instead of waiting on backoff
+- Knowing this lab is **not** HA control plane
+
+--8<-- "docs/includes/cluster-config.md"
+
+## Assumptions
+
+- **One** K3s server: spark0 (control-plane + worker). There is no stacked HA etcd in this repo.
+- If spark0 dies, the API is gone until it returns. Use OOB console.
+- Workers (spark1+) can disappear while spark0 still serves `kubectl`.
+
+## One worker down
+
+1. From a machine that still has kubeconfig:
+
+    ```bash
+    kubectl get nodes -o wide
+    bazelisk run //:manage -- doctor
+    ```
+
+2. **Stop NCCL Jobs** that spanned the missing node. They will not usefully reschedule: tensor-parallel ranks are pinned.
+
+    ```bash
+    bazelisk run //:manage -- stop
+    bazelisk run //:manage -- stop-stack-rounded
+    # Mode B / C
+    ./scripts/manage.sh stop-glm53-flash
+    ./scripts/manage.sh stop-dsv41-flash
+    ```
+
+3. TP=1 Jobs on **other** live nodes can stay if Resource Guard still passes. Visual Deployments are 1-node — they survive a *different* node dying.
+
+4. Repair or reboot the worker, `bazelisk run //ansible:verify`, then `start-test` before exclusive modes.
+
+## Control plane down
+
+SSH/console to spark0. If K3s is up but the workstation kubeconfig is stale, copy `/etc/rancher/k3s/k3s.yaml` again (Ansible fetch). If the node is wedged, power-cycle via OOB **after** you accept that in-flight Jobs are gone.
+
+## NCCL-specific
+
+| Job class | If a rank node dies |
+| --- | --- |
+| kimi-test / TP=1 | Pod may reschedule if the remaining node has GPU — still `OnFailure` + low backoff |
+| 2-node pair (GLM-5.2, kimi-scale) | Stop; do not leave one RPC rank hung |
+| 3-node ring Mode B/C | Stop both leader and workers; ring is not “run on two” |
+| 4-node TP=4 | Stop the whole stack |
+
+`backoffLimit` is 1 (2 on kimi-test). The Job fails; it does not hunt for a new topology.
+
+Verify: `kubectl get nodes`; `bazelisk run //:manage -- doctor-fabric` on a 3-node ring after repair.

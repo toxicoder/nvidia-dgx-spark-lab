@@ -1,9 +1,12 @@
 ---
 title: Monitoring & Observability
 description: Full observability stack (Prometheus, DCGM, Grafana dashboards, lab dashboard integration), ports, startup commands, and metric troubleshooting for the lab cluster.
+tags: [monitoring, grafana, prometheus, dcgm, safety]
 ---
 
 # Monitoring & Observability
+
+--8<-- "docs/includes/cluster-config.md"
 
 **What's on this page**
 
@@ -112,6 +115,18 @@ kubectl get pods -n gpu-operator | grep dcgm
 kubectl logs -n gpu-operator -l app=nvidia-dcgm-exporter --tail=20
 ./scripts/manage.sh monitoring verify
 ```
+
+## What red means
+
+| Signal | Meaning | First action |
+| --- | --- | --- |
+| Grafana panel empty | No scrape, not necessarily idle GPU | `bazelisk run //:manage -- monitoring verify` |
+| DCGM target down | GPU Operator exporter missing | `kubectl get pods -n gpu-operator -l app=nvidia-dcgm-exporter` |
+| Prometheus target red | Job annotation / network | Check `prometheus.io/scrape` on the inference Service |
+| Dashboard Observability red | Same scrape set as Grafana | Open Grafana at NodePort 32083 / SSO hostname |
+| High GPU util + SSH slowness | Guard failed or util cap exceeded | `stop` immediately; do not raise 0.82/0.85/0.95 |
+
+Entry: `bazelisk run //:manage -- urls` then Grafana. DCGM comes from GPU Operator, not from `start-monitoring` alone.
 
 ## Troubleshooting
 

@@ -1,0 +1,69 @@
+---
+title: Patch and reboot
+description: OS patch, GPU Operator, drain, stop inference first, and reboot order for DGX Spark nodes.
+tags: [reboot, safety, operate, kubernetes]
+---
+
+# Patch and reboot
+
+**What's on this page**
+
+- Stop inference before any host reboot
+- Drain vs `manage.sh stop`
+- GPU Operator / driver updates
+- Node order and post-reboot verify
+
+**What this enables**
+
+- Patching Ubuntu or the GPU Operator without pinning unified memory on the way down
+- Coming back with an empty `ai-inference` namespace (by design)
+
+--8<-- "docs/includes/cluster-config.md"
+
+Full reboot narrative: [Reboot safety](../reboot-safety.md).
+
+!!! danger "Never reboot with inference scheduled"
+
+    Large Jobs can exhaust host memory and make SSH unusable. `restartPolicy: OnFailure` will **not** bring them back — you must start again — but a reboot *during* a 90Gi+ Job can still hang the node.
+
+## Sequence
+
+1. From the workstation:
+
+    === "Bazel"
+
+        ```bash
+        bazelisk run //:manage -- stop
+        bazelisk run //:manage -- stop-visual
+        bazelisk run //:manage -- stop-stack-rounded
+        bazelisk run //:manage -- status
+        ```
+
+    === "Classic"
+
+        ```bash
+        ./scripts/manage.sh stop
+        ./scripts/manage.sh stop-visual
+        ./scripts/manage.sh stop-stack-rounded
+        ./scripts/manage.sh status
+        ```
+
+2. Confirm `kubectl get pods -n {{NAMESPACE}}` is empty (or Completed and deleted).
+3. Optional: `kubectl drain <node> --ignore-daemonsets --delete-emptydir-data` for worker OS patches. Drain does **not** replace step 1 for Jobs that already occupy unified memory.
+4. Patch OS packages on the node (vendor docs). For GPU Operator, re-run `bazelisk run //ansible:gpu-operator -- -i inventory/hosts.ini` **after** nodes are up, not during a hung driver compile with inference running.
+5. Reboot **workers first** (spark1+), then spark0. 1-node: just spark0 after stop.
+6. Use IPMI/iDRAC/console if SSH is already degraded.
+
+## After reboot
+
+```bash
+bazelisk run //ansible:verify -- -i inventory/hosts.ini
+bazelisk run //:manage -- doctor
+bazelisk run //:manage -- start-test
+```
+
+Heavy profiles stay off until you start them. That is the safety property.
+
+!!! warning "GPU Operator first boot"
+
+    Driver containers can take 5–15+ minutes. Watch `kubectl get pods -n gpu-operator -w` before starting Jobs.

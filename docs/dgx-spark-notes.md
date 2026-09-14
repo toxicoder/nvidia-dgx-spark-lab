@@ -57,6 +57,20 @@ env:
 
 If NCCL payload falls back to the management network, performance will be terrible.
 
+Full pair vs ring env: [Interconnect & NCCL](concepts/interconnect-nccl.md).
+
+### hostNetwork and hostIPC
+
+- **Omitted** (default false) on kimi / kimi-test and several 1-GPU vLLM Jobs — isolation; NCCL IFNAME still set in env.
+- **`hostNetwork: true`** on Ray, GLM-5.2, Qwen 397B, Mode B/C — ranks need the fabric NICs.
+- **`hostIPC: true`** on GLM RPC and Mode B/C ring Jobs — shared memory for TP.
+
+Do not add hostNetwork to a Job “for luck”; follow the workload YAML.
+
+### PLE mmap (Qwen3.8-Flash-Next)
+
+Mode A `qwen3.8-flash-next-nvfp4` requires PLE mmap (weights mapped, not fully resident). Prefix caching off. Start `max-model-len` 65536. See [LiteLLM rounded stack](litellm-rounded-stack.md).
+
 Verify interfaces on the nodes:
 
 ```bash

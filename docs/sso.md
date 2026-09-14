@@ -6,6 +6,8 @@ tags: [sso, traefik, authelia, oauth2-proxy, security]
 
 # SSO with Traefik and Authelia
 
+--8<-- "docs/includes/cluster-config.md"
+
 **What's on this page**
 
 - Traefik, Authelia, and oauth2-proxy architecture for lab HTTPS entry
@@ -46,7 +48,7 @@ ansible-playbook -i inventory/hosts.ini playbooks/install-sso.yml
 
 Add to `/etc/hosts` on your workstation (replace `<node-ip>`):
 
-```
+```text
 <node-ip> auth.lab.local dashboard.lab.local chat.lab.local coder.lab.local grafana.lab.local headlamp.lab.local kasm.lab.local traefik.lab.local oauth.lab.local
 ```
 
@@ -102,6 +104,20 @@ MCP servers on ports `32100`–`32106` are machine-to-machine endpoints. They us
 - Traefik values: [`ansible/files/traefik-values.yaml`](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/ansible/files/traefik-values.yaml)
 - Middlewares: [`k8s/traefik/middlewares/`](https://github.com/toxicoder/nvidia-dgx-spark-lab/tree/main/k8s/traefik/middlewares)
 - Routes: [`k8s/auth/generated/routes.yaml`](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/k8s/auth/generated/routes.yaml) (rendered from lab-domains + sso-policy)
+
+## Failure modes
+
+| Symptom | Cause | Action | Verify |
+| --- | --- | --- | --- |
+| Auth loop | Missing `authelia-secrets` | `bazelisk run //:manage -- sso ensure-secrets` | `kubectl get secret -n auth` |
+| 404 on `*.lab.local` | `/etc/hosts` or domains policy | `domains show` / `domains apply`; hosts file | curl Traefik entry |
+| Ingress down after `stop-sso` | Expected | `start-sso` or `SSO_ENABLED=0` + NodePorts | `sso urls` |
+
+```bash
+bazelisk run //:manage -- start-sso
+bazelisk run //:manage -- sso status
+bazelisk run //:manage -- sso urls
+```
 
 ## Disable SSO
 

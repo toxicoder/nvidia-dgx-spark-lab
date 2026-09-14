@@ -6,6 +6,8 @@ tags: [mcp, agents, privacy, searxng, qdrant]
 
 # MCP Agent Toolkit
 
+--8<-- "docs/includes/cluster-config.md"
+
 **What's on this page**
 
 - Deploy commands and stack catalog for MCP workloads on K3s
@@ -37,6 +39,19 @@ Pair with a Qwen tier stack when the frontier 397B NVFP4 model does not fit your
 ```bash
 bazelisk run //scripts:run-utility -- nemotron-stack start qwen-agentic-spark-2 --confirm yes
 bazelisk run //scripts:run-utility -- mcp-stack start mcp-agent-toolkit-full --confirm yes
+```
+
+## Failure modes
+
+| Symptom | Cause | Action | Verify |
+| --- | --- | --- | --- |
+| Start blocked | Resource Guard / missing confirm | `doctor`; `start-mcp` with `yes` | `kubectl get pods -n agent-tools` |
+| Empty search | SearxNG / secrets.env missing | Copy `mcp/config/secrets.example.env`; never commit the live file | utility `mcp-stack catalog` |
+| Hermes cannot call tools | MCP NodePorts 32100–32106 closed | Do not put MCP behind Traefik; firewall to lab LAN | curl NodePort from spark0 |
+
+```bash
+bazelisk run //:manage -- start-mcp
+bazelisk run //:manage -- stop-mcp
 ```
 
 ## Related

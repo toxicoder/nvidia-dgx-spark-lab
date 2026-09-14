@@ -1,6 +1,6 @@
 ---
 title: nvidia-dgx-spark-lab
-description: Practical, production-oriented lab for running large AI inference workloads on 1-4 NVIDIA DGX Spark nodes (scalable) with K3s and NVIDIA GPU Operator.
+description: Practical K3s lab for large inference on 1-4 NVIDIA DGX Spark nodes — Resource Guard, no auto-start, Bazel-first operations.
 tags: [bazel, kubernetes, ansible, nvidia, dgx, inference]
 ---
 
@@ -8,29 +8,117 @@ tags: [bazel, kubernetes, ansible, nvidia, dgx, inference]
 
 **What's on this page**
 
-- Project goals and core safety principles
-- Node role table (1-node vs 2-4 node configurations)
-- Core components (K3s, GPU Operator, Ansible + cloud-init, Helm vs raw manifests)
-- High-speed interconnect and NCCL configuration
-- High-level repository layout
-- Links to getting started and other sections
+- What this lab is (and is not)
+- Four starting paths: first cluster, run a model, operate safely, recover
+- Default stack and the safety table that protects SSH
+- Documentation map for Start / Concepts / Operate / Reference
 
 **What this enables**
 
-- Quickly understanding the lab's scope (small 1-4 node DGX Spark clusters for large inference)
-- Seeing the emphasis on stability, explicit resources, and no auto-start of heavy jobs
-- Deciding where to go next (Getting Started guide is the primary entry point)
+- Finding the right page in one screen instead of scrolling a dump
+- Bringing up a 1–4 node DGX Spark K3s lab without auto-starting heavy jobs
+- Knowing when to stay here versus using the Compose Comfy sibling
 
-## Goals
+This is a **K3s lab** for 1–4 [NVIDIA DGX Spark](https://docs.nvidia.com/dgx/dgx-spark/hardware.html) nodes. Workloads are Kubernetes Jobs and Deployments with explicit resources. Nothing heavy starts on reboot.
 
-- Run very large models (e.g. Kimi-K2.6 and similar) reliably without freezing the host or making SSH unresponsive.
-- Utilize the dual 400G high-speed interconnect between nodes.
-- Provide both a heavy production configuration and a lighter/safer test mode.
-- Never auto-start heavy containers on reboot.
-- Everything managed through simple, auditable scripts and manifests.
+Single-node **Compose** ComfyUI lives in [ez-comfy-stack](https://github.com/toxicoder/ez-comfy-stack). Visual generative AI **in this repo** is `k8s/workloads/comfy-*` plus `scripts/lib/visual.sh` — see [Visual generative AI](visual-generative-ai.md).
 
-See the sections on the left (or top tabs) to get started.
+---
 
-**Start here**: the [Getting Started](getting-started.md) guide is now a hyper-detailed, end-to-end walkthrough with numbered steps, verification commands after each action, 1-node vs multi-node tabs, safety warnings, Bazel-first examples, and direct integration of the auto-generated command reference (powered by `generate_shell_docs.py` from comments in `scripts/` — refreshed via `bazelisk run //docs:docs`).
+## Choose a path
 
-This documentation site is built with [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/).
+<div class="grid cards" markdown>
+
+-   **First cluster**
+
+    ---
+
+    Inventory → cloud-init → Ansible bootstrap → GPU Operator → `doctor` → `kimi-test`.
+
+    [Getting Started](getting-started.md)
+
+-   **Run a model**
+
+    ---
+
+    Pick kimi-test, a daily stack, exclusive Mode B/C, visual Comfy, or agents — after capacity checks.
+
+    [Profiles](start/profiles.md)
+
+-   **Operate safely**
+
+    ---
+
+    Resource Guard 15% / 24Gi, overlays, capacity math, reboot, secrets, dashboard.
+
+    [Resource Guard](resource-guard.md)
+
+-   **Something broke**
+
+    ---
+
+    `doctor` first. SSH hang, scheduler, NCCL iface, mode collision, Grafana, dashboard.
+
+    [Troubleshooting](troubleshooting.md)
+
+</div>
+
+Contributors: [Contribute](contribute/index.md) · [Project conventions](project-conventions.md). Topology (1 vs 2 vs 3 vs 4): [Choose topology](start/choose-topology.md).
+
+---
+
+## Default stack
+
+| Item | Value |
+| --- | --- |
+| Runtime | K3s + NVIDIA GPU Operator |
+| First workload | **kimi-test** (`start-test`) — always before heavy Jobs |
+| Inference | Jobs, `restartPolicy: OnFailure`, low `backoffLimit` |
+| Capacity | Resource Guard — `config/resource-policy.yaml` |
+| Headroom | **max(24Gi, 15% of allocatable)** per node |
+| GPU util | Mode A vLLM ≤ 0.82; Mode B exclusive ≤ 0.85; Mode C SGLang ≤ 0.95. Never ship vLLM 0.88/0.90 |
+| Visual | Manual ComfyUI Deployments, one at a time |
+| Docs | MkDocs Material; `bazelisk run //docs:docs` |
+
+## Safety first
+
+!!! warning "Remote Spark rules"
+
+    These defaults protect SSH and the control plane on remotely managed GB10 nodes. Do not weaken them for demos.
+
+| Guard | Behavior |
+| --- | --- |
+| **No auto-start** | Heavy inference never returns after reboot |
+| **Heavy confirmation** | Type `yes` or set `LAB_CONFIRM_TOKEN=yes` |
+| **Headroom preflight** | Resource Guard blocks starts when free GPU/CPU/RAM is too low |
+| **High-speed NCCL only** | Multi-node Jobs pin `NCCL_*` to the fabric — never copy 2-node pair env onto a 3-node QSFP ring |
+
+```mermaid
+flowchart LR
+  S1["OnFailure + low backoff"] --> S2["type yes on heavy start"]
+  S2 --> S3["15% / 24Gi headroom"]
+  S3 --> S4["NCCL on high-speed only"]
+  S4 --> Safe["SSH and K3s stay usable"]
+```
+
+Why those exist: [Learn the lab](learn/index.md) · [Reboot safety](reboot-safety.md) · [Resource Guard](resource-guard.md).
+
+---
+
+## Documentation map
+
+```mermaid
+flowchart TB
+  Home["Home"] --> Start["Start · gold path, topology, profiles"]
+  Home --> Concepts["Concepts · architecture, NCCL, Resource Guard"]
+  Start --> GS["Getting Started"]
+  GS --> Operate["Operate · catalogs, dashboard, runbooks"]
+  Operate --> TS["Troubleshooting"]
+  Concepts --> Operate
+  Home --> Ref["Reference · conventions + generated CLI/API"]
+  Home --> Contrib["Contribute · env, Bazel"]
+```
+
+**Start here:** [Getting Started](getting-started.md) is the gold path (numbered steps, verify after every phase, 1-node vs multi-node tabs, Bazel-first commands).
+
+This site is built with [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/). Shell reference is generated from `# ##` / `# @command` comments via `bazelisk run //docs:docs`.

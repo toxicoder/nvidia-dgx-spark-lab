@@ -47,14 +47,16 @@ See `bazel run //docs:status` or the `--help` output for all options.
 
 ## Information Architecture
 
-We follow this mental model:
+Diátaxis tabs (see `mkdocs.yml`):
 
-- **Home / Getting Started** — New users
-- **Concepts & Notes** — Background and important constraints (safety, resources, reboot)
-- **How-to Guides** — Task-oriented (Bazel docs, Gitea setup, etc.)
-- **Reference** — Deeper or cross-cutting material
+- **Home** — path cards, default stack, safety table
+- **Start** — gold path, topology, profiles, learn-the-lab
+- **Concepts** — architecture, NCCL, Resource Guard, stacks, glossary
+- **Operate** — catalogs, dashboard, runbooks, troubleshooting
+- **Reference** — project conventions, docs contributing, generated shell + dashboard API
+- **Contribute** — dev environment, Bazel
 
-Every major section should have a good `index.md`.
+Every major section has an `index.md`. Keep existing published slugs (`getting-started.md`, `architecture.md`, …); put **new** pages under `start/`, `learn/`, `concepts/`, `operate/`, `contribute/`.
 
 Use the right-hand ToC for long pages. Keep navigation focused.
 
