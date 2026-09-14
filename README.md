@@ -25,7 +25,7 @@
 
 - Quickly understanding the lab's scope (small 1-4 node DGX Spark clusters for large inference)
 - Seeing the emphasis on stability, explicit resources, and no auto-start of heavy jobs
-- Deciding where to go next ([Getting Started](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/) on the documentation site is the primary entry point)
+- Deciding where to go next: [Getting Started](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/) (Start tab). Compose Comfy: [ez-comfy-stack](https://github.com/toxicoder/ez-comfy-stack)
 
 ## Goals
 
@@ -126,22 +126,16 @@ nvidia-dgx-spark-lab/
 
 5. **Deploy Workloads (via script)**
    ```bash
-   ./scripts/manage.sh status
-   ./scripts/manage.sh start-test
-   ./scripts/manage.sh start-kimi   # heavy production (example)
-   ./scripts/manage.sh start-ray
-   ./scripts/manage.sh start-nemotron   # alias: start-nemotron-3-ultra
-   ./scripts/manage.sh start-glm        # alias: start-glm-5.2
-   ./scripts/manage.sh stop
+   bazelisk run //:manage -- status
+   bazelisk run //:manage -- start-test
+   bazelisk run //:manage -- start-kimi   # heavy; after kimi-test
+   bazelisk run //:manage -- stop
+   # classic: ./scripts/manage.sh start-test
    ```
 
-See the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/) for the **hyper-detailed, step-by-step** walkthrough (with variants for 1/2/4 nodes, verification after every step, safety callouts, and heavy use of the live interactive panel).
+See the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/) for the gold path (1/2/4-node inventory, cloud-init, Ansible, GPU Operator, `doctor`, first `kimi-test`, dashboard URL, reboot reminder). Prefer `bazelisk run //:manage -- <verb>` (equivalent: `./scripts/manage.sh <verb>`).
 
-The auto-generated command reference (from structured comments in the scripts) is at [Shell Commands & Helpers](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/generated/shell/reference/) and is integrated throughout the main docs.
-
-For model config defaults (reference only — authoritative values live in workload manifests), see `ansible/inventory/group_vars/all.yml` (`llm_*` vars).
-
-See the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/) for full instructions.
+The auto-generated command reference is [Shell Commands & Helpers](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/generated/shell/reference/) (`bazelisk run //docs:docs`). Workload numbers: [Workload catalog](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/operate/workload-catalog/). `group_vars/all.yml` is reference only.
 
 ## Safety First
 

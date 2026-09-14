@@ -72,6 +72,7 @@ Prints recommended sequence for inventory, ansible playbooks, and first workload
 
 ```bash
 Usage:
+  bazelisk run //:manage -- setup
   ./scripts/manage.sh setup
   ./scripts/manage.sh init
 
@@ -81,6 +82,7 @@ Usage:
 
     Safety:
       Purely informational + prints URLs. Does not modify cluster.
+      Gold path remains docs/getting-started.md (inventory, Ansible, doctor, start-test).
     @function setup
     Guided first-time setup: prints recommended Ansible and workload sequence.
     Informational only; does not modify the cluster.
@@ -150,6 +152,18 @@ Wait for a named Kubernetes job to complete.
 Preflight checks: tools, cluster access, GPUs, resources, and URLs.
 Read-only; never starts or stops workloads.
 
+```bash
+Usage:
+  bazelisk run //:manage -- doctor
+  ./scripts/manage.sh doctor
+
+```
+
+!!! warning
+
+    Safety:
+      Run before every heavy start-* command. Does not apply manifests.
+
 ### Function `resources_cmd`
 
 @function resources_cmd
@@ -167,6 +181,19 @@ Live resource estimator for a model profile.
 Stop all inference jobs and Ray workloads plus dev components.
 Safe to run before node reboot.
 
+```bash
+Usage:
+  bazelisk run //:manage -- stop
+  ./scripts/manage.sh stop
+
+```
+
+!!! warning
+
+    Safety:
+      Always run stop (and stop-visual / stop-stack-rounded as needed) before reboot.
+      Does not auto-start anything afterward.
+
 ### Command: cleanup
 
 Destructive namespace cleanup after interactive DELETE confirmation.
@@ -179,15 +206,17 @@ Uses lower resources (2 GPUs) for validation. Includes pre-flights.
 
 ```bash
 Usage:
-  ./scripts/manage.sh start-test
   bazelisk run //:manage -- start-test
+  ./scripts/manage.sh start-test
 
 ```
 
 !!! warning
 
     Safety:
-      Lighter model. Still runs access + namespace checks. Good for first use.
+      Lighter model (2 GPU / 32Gi request, backoffLimit 2). Still runs access +
+      namespace checks. Required first Job on a new or patched cluster.
+      Dashboard: http://{{SPARK0_IP}}:{{DASHBOARD_PORT}}
       See start-kimi for full production (after validation).
 
 ### Command: start-kimi

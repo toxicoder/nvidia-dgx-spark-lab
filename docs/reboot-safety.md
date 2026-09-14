@@ -6,6 +6,8 @@ tags: [safety, reboot, operations, kubernetes]
 
 # Safe Reboot Procedure
 
+--8<-- "docs/includes/cluster-config.md"
+
 **What's on this page**
 
 - The golden rule and why heavy workloads are dangerous around power events

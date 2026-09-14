@@ -1,0 +1,68 @@
+---
+title: Ansible catalog
+description: Every playbook in ansible/playbooks/ — when to run it, extra-vars, idempotency, and Bazel vs classic entry points.
+tags: [ansible, bazel, k3s, operate]
+---
+
+# Ansible catalog
+
+**What's on this page**
+
+- Table of all playbooks under `ansible/playbooks/`
+- Bazel targets vs `ansible-playbook`
+- extra-vars that change safety-sensitive behavior
+- What Ansible does **not** start
+
+**What this enables**
+
+- Running bootstrap and GPU Operator without inventing playbook names
+- Avoiding `full-lab-setup` when you need a prompted, stepwise bring-up
+
+--8<-- "docs/includes/cluster-config.md"
+
+Inventory: copy `ansible/inventory/hosts.ini.example` → `ansible/inventory/hosts.ini` (gitignored). Group vars: `ansible/inventory/group_vars/all.yml` (**reference**; deployed Jobs override NCCL/resources).
+
+## Playbooks
+
+| Playbook | When | Idempotent? | extra-vars / notes | Bazel | Classic |
+| --- | --- | --- | --- | --- | --- |
+| `apply-cloud-init-prep.yml` | Physical nodes, **before** or as first part of bootstrap | Render is safe; apply is not | `apply_now=true` copies user-data and can reboot. Default `apply_now: false` | `bazelisk run //ansible:playbook -- apply-cloud-init-prep.yml` | `ansible-playbook -i inventory/hosts.ini playbooks/apply-cloud-init-prep.yml` |
+| `bootstrap-cluster.yml` | First cluster; re-run for labels/highspeed | Yes for K3s install tasks | `run_cloud_init_prep=true` imports cloud-init prep first | `bazelisk run //ansible:bootstrap` | `ansible-playbook -i inventory/hosts.ini playbooks/bootstrap-cluster.yml` |
+| `install-gpu-operator.yml` | After nodes Ready | Helm upgrade-style | May restart GPU pods; fetches kubeconfig | `bazelisk run //ansible:gpu-operator` | `ansible-playbook -i inventory/hosts.ini playbooks/install-gpu-operator.yml` |
+| `verify-cluster.yml` | After bootstrap / GPU Operator / drift | Read-only | none | `bazelisk run //ansible:verify` | `ansible-playbook -i inventory/hosts.ini playbooks/verify-cluster.yml` |
+| `install-dev-workspaces.yml` | After GPU Operator, if you want Coder/Kasm/dashboard | Helm | NodePort exposure; conservative values | `bazelisk run //ansible:install-dev-workspaces` | `ansible-playbook -i inventory/hosts.ini playbooks/install-dev-workspaces.yml` |
+| `install-sso.yml` | After bootstrap, when Traefik+Authelia is required | Helm + secret ensure | Needs secrets; misconfig blocks ingress | `bazelisk run //ansible:playbook -- install-sso.yml` | `ansible-playbook -i inventory/hosts.ini playbooks/install-sso.yml` |
+| `full-lab-setup.yml` | Convenience chain only | Inherits children | `run_cloud_init_prep`, `run_dev_workspaces` | `bazelisk run //ansible:full-lab-setup` | `ansible-playbook -i inventory/hosts.ini playbooks/full-lab-setup.yml` |
+
+Pass real inventory after `--`:
+
+```bash
+bazelisk run //ansible:bootstrap -- -i inventory/hosts.ini --ask-become-pass
+```
+
+Wrappers default to the **example** inventory for safety. Do not point them at production hosts until `hosts.ini` is reviewed.
+
+## What these playbooks never do
+
+- They do **not** start kimi, Mode B/C, or visual Deployments
+- They do **not** weaken `restartPolicy` or Resource Guard
+- `full-lab-setup.yml` still leaves inference off — use `manage.sh start-test` yourself
+
+!!! danger "cloud-init apply_now"
+
+    `apply_now=true` writes user-data on the node and can reboot it. Only with OOB console and empty inference.
+
+## Roles (not playbooks)
+
+`ansible/roles/` implements k3s_common, highspeed_network, labels, gpu_operator, coder, kasm, monitoring, traefik, sso, cloud_init. Do not invoke roles except through the playbooks above.
+
+SSO from the operator CLI (after cluster exists): `bazelisk run //:manage -- start-sso`.
+
+## Verify
+
+```bash
+bazelisk run //ansible:verify -- -i inventory/hosts.ini
+bazelisk run //:manage -- doctor
+```
+
+Expected: all inventory hosts Ready, `nvidia.com/gpu` allocatable, no crash-loop GPU Operator pods.

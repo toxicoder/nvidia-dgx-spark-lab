@@ -55,35 +55,53 @@ theme:
 
 nav:
   - Home: index.md
-  - Getting Started: getting-started.md
-  - Concepts & Notes:
+  - Start:
+      - Overview: start/index.md
+      - Getting Started: getting-started.md
+      - Choose topology: start/choose-topology.md
+      - Profiles: start/profiles.md
+      - Learn the lab: learn/index.md
+  - Concepts:
+      - Overview: concepts/index.md
+      - Architecture: architecture.md
+      - Interconnect & NCCL: concepts/interconnect-nccl.md
       - DGX Spark Notes: dgx-spark-notes.md
+      - Resource Guard: resource-guard.md
       - Reboot Safety: reboot-safety.md
       - Models & Resources: models-catalog.md
       - Qwen3.6 Dual Stack: qwen36-dual-stack.md
       - LiteLLM Rounded Stack: litellm-rounded-stack.md
       - Visual Generative AI: visual-generative-ai.md
       - Nemotron Agentic Stack: nemotron-agentic-stack.md
-      - MCP Agent Toolkit: mcp-agent-toolkit.md
-      - Hermes Agent (Docker): hermes-agent.md
-      - Open WebUI (Agent Chat): open-webui.md
-      - SSO (Traefik + Authelia): sso.md
-      - Resource Guard: resource-guard.md
-      - Architecture: architecture.md
-      - Monitoring & Observability: monitoring-observability.md
       - Glossary: glossary.md
-  - How-to Guides:
-      - Developer Environment: dev-environment.md
-      - Bazel Documentation: BUILDING_WITH_BAZEL.md
-      - Gitea CI Setup: gitea-ci-setup.md
-      - Dev Workspaces & Dashboard: dev-workspaces.md
+  - Operate:
+      - Overview: operate/index.md
+      - Ansible catalog: operate/ansible-catalog.md
+      - Overlays: operate/overlays.md
+      - Workload catalog: operate/workload-catalog.md
+      - Dashboard: operate/dashboard.md
+      - Secrets: operate/secrets.md
+      - Capacity planning: operate/capacity-planning.md
+      - Patch and reboot: operate/patch-and-reboot.md
+      - Node failure: operate/node-failure.md
+      - Backup and restore: operate/backup-restore.md
+      - Monitoring: monitoring-observability.md
       - Troubleshooting: troubleshooting.md
+      - Hermes Agent: hermes-agent.md
+      - MCP Agent Toolkit: mcp-agent-toolkit.md
+      - Open WebUI: open-webui.md
+      - SSO: sso.md
+      - Dev workspaces (Coder vs Kasm): dev-workspaces.md
+      - Gitea CI: gitea-ci-setup.md
   - Reference:
       - Project Conventions: project-conventions.md
       - Contributing to Docs: CONTRIBUTING.md
-      - Code-Generated Reference:
-          - Shell Commands & Helpers: generated/shell/reference.md
-          - Dashboard API: generated/dashboard-api/README.md
+      - Shell Commands & Helpers: generated/shell/reference.md
+      - Dashboard API: generated/dashboard-api/README.md
+  - Contribute:
+      - Overview: contribute/index.md
+      - Developer Environment: dev-environment.md
+      - Building with Bazel: BUILDING_WITH_BAZEL.md
 
 plugins:
   - search

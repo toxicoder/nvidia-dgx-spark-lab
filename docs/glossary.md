@@ -24,10 +24,15 @@ Hover any dotted abbreviation in the docs (for example K3s or Resource Guard) fo
 
 | Term | Definition | Learn more |
 | --- | --- | --- |
-| **Resource Guard** | Capacity gate that estimates free GPU/CPU/memory and blocks heavy starts when headroom is insufficient. | [Resource Guard](resource-guard.md) |
+| **Resource Guard** | Capacity gate that estimates free GPU/CPU/memory and blocks heavy starts when headroom is insufficient. Floor: max(24Gi, 15% allocatable) per node. | [Resource Guard](resource-guard.md) |
 | **headroom** | Free capacity kept reserved so SSH, K3s, and the dashboard stay responsive under load. | [Resource Guard](resource-guard.md), [Reboot safety](reboot-safety.md) |
+| **occupancy vs Guard** | ez-comfy-stack occupancy = Compose project up. This lab gates on K8s **requests** vs allocatable minus headroom. | [Resource Guard](resource-guard.md), [Capacity planning](operate/capacity-planning.md) |
 | **restartPolicy** | How Kubernetes restarts Job pods. Heavy inference uses `OnFailure` or `Never` with a low **backoffLimit** (never `Always`). | [Reboot safety](reboot-safety.md) |
 | **manage.sh** | Primary operator CLI for status, start/stop workloads, SSO, monitoring, and utilities (Bazel: `//:manage`). | [Getting started](getting-started.md), [Shell reference](generated/shell/reference.md) |
+| **Mode A** | Daily 3-node fleet behind LiteLLM (35B + Flash-Next + MedGemma). vLLM util ≤ 0.82. Refuses B and C. | [LiteLLM rounded stack](litellm-rounded-stack.md) |
+| **Mode B** | Exclusive GLM-5.3-Flash TP=3 on the QSFP ring. vLLM util ≤ 0.85. | [LiteLLM rounded stack](litellm-rounded-stack.md) |
+| **Mode C** | Exclusive DeepSeek-V4.1-Flash TP=3 (SGLang ≤ 0.95) on the same ring. | [LiteLLM rounded stack](litellm-rounded-stack.md) |
+| **rounded stack** | Mode A kustomize overlay + `start-stack-rounded`. | [Overlays](operate/overlays.md) |
 
 ## Cluster & platform
 
@@ -46,7 +51,10 @@ Hover any dotted abbreviation in the docs (for example K3s or Resource Guard) fo
 | --- | --- | --- |
 | **Job** | Run-to-completion Kubernetes workload (typical for heavy model starts). | [Architecture](architecture.md) |
 | **Deployment** | Long-running replica set (dashboard, ComfyUI, gateways). | [Visual generative AI](visual-generative-ai.md) |
-| **NCCL** | Collective communications for multi-GPU / multi-node; lab multi-node jobs set high-speed `NCCL_*` env. | [DGX Spark notes](dgx-spark-notes.md) |
+| **NCCL** | Collective communications for multi-GPU / multi-node; lab multi-node jobs set high-speed `NCCL_*` env. | [Interconnect & NCCL](concepts/interconnect-nccl.md) |
+| **QSFP ring** | 3-node triangle at 200 Gb/s per pair. Not the 2-node dual-400G pair; do not copy pair env. | [Interconnect & NCCL](concepts/interconnect-nccl.md) |
+| **hostNetwork** / **hostIPC** | Pod uses node net/IPC namespaces. Required on some TP/RPC Jobs; omitted on kimi-test. | [DGX Spark notes](dgx-spark-notes.md) |
+| **PLE mmap** | Qwen3.8-Flash-Next weight mapping; mandatory on Mode A spark1. | [LiteLLM rounded stack](litellm-rounded-stack.md) |
 | **tensor parallel** | Shard model layers across GPUs to fit large models. | [Models catalog](models-catalog.md) |
 | **unified memory** | Single memory pool shared by CPU and GPU on DGX Spark (Grace + Blackwell). | [DGX Spark notes](dgx-spark-notes.md) |
 | **MIG** | Multi-Instance GPU partitioning (when enabled on supporting GPUs). | [Resource Guard](resource-guard.md) |
