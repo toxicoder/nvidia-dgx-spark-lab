@@ -38,7 +38,7 @@ if [[ ! -f docs/requirements.txt ]]; then
   if [[ $QUIET != "true" ]]; then echo "Creating docs/requirements.txt..."; fi
   cat >docs/requirements.txt <<'EOF'
 mkdocs==1.6.1
-mkdocs-material==9.7.6
+mkdocs-material==9.7.7
 mkdocs-glightbox==0.5.2
 # Pin Playwright for reproducible visual goldens across local/CI Chromium builds.
 playwright==1.61.0
