@@ -10,17 +10,17 @@
         <link rel="canonical" href="https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/dev-workspaces/">
       
       
-        <link rel="prev" href="../gitea-ci-setup/">
+        <link rel="prev" href="../sso/">
       
       
-        <link rel="next" href="../troubleshooting/">
+        <link rel="next" href="../gitea-ci-setup/">
       
       
         
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -269,17 +269,18 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="../getting-started/" class="md-tabs__link">
-        
-  
-  
     
+    
+      <li class="md-tabs__item">
+        <a href="../start/" class="md-tabs__link">
+          
   
-  Getting Started
+  
+  Start
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -291,11 +292,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../dgx-spark-notes/" class="md-tabs__link">
+        <a href="../concepts/" class="md-tabs__link">
           
   
   
-  Concepts &amp; Notes
+  Concepts
 
         </a>
       </li>
@@ -313,11 +314,11 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../dev-environment/" class="md-tabs__link">
+        <a href="../operate/" class="md-tabs__link">
           
   
   
-  How-to Guides
+  Operate
 
         </a>
       </li>
@@ -338,6 +339,26 @@
   
   
   Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../contribute/" class="md-tabs__link">
+          
+  
+  
+  Contribute
 
         </a>
       </li>
@@ -429,15 +450,35 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
+    
+    
+    
+    
+      
+      
         
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../start/" class="md-nav__link">
+      
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Start
   
 
     
@@ -445,7 +486,13 @@
   
   
 
-      </a>
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
     </li>
   
 
@@ -477,14 +524,14 @@
   
   
   
-    <a href="../dgx-spark-notes/" class="md-nav__link">
+    <a href="../concepts/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    Concepts &amp; Notes
+    Concepts
   
 
     
@@ -540,7 +587,7 @@
   <span class="md-ellipsis">
     
   
-    How-to Guides
+    Operate
   
 
     
@@ -556,7 +603,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    How-to Guides
+    Operate
   
 
           </label>
@@ -569,14 +616,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../dev-environment/" class="md-nav__link">
+      <a href="../operate/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Developer Environment
+    Overview
   
 
     
@@ -597,14 +644,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../BUILDING_WITH_BAZEL/" class="md-nav__link">
+      <a href="../operate/ansible-catalog/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Bazel Documentation
+    Ansible catalog
   
 
     
@@ -625,14 +672,378 @@
   
   
     <li class="md-nav__item">
-      <a href="../gitea-ci-setup/" class="md-nav__link">
+      <a href="../operate/overlays/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Gitea CI Setup
+    Overlays
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/workload-catalog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workload catalog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dashboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/secrets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Secrets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/capacity-planning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capacity planning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/patch-and-reboot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Patch and reboot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/node-failure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Node failure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/backup-restore/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backup and restore
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../monitoring-observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hermes-agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hermes Agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp-agent-toolkit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP Agent Toolkit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../open-webui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Open WebUI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sso/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SSO
   
 
     
@@ -669,7 +1080,7 @@
   <span class="md-ellipsis">
     
   
-    Dev Workspaces &amp; Dashboard
+    Dev workspaces (Coder vs Kasm)
   
 
     
@@ -687,7 +1098,7 @@
   <span class="md-ellipsis">
     
   
-    Dev Workspaces &amp; Dashboard
+    Dev workspaces (Coder vs Kasm)
   
 
     
@@ -717,6 +1128,17 @@
     <span class="md-ellipsis">
       
         Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#user-journeys-coder-vs-kasm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User journeys (Coder vs Kasm)
       
     </span>
   </a>
@@ -921,14 +1343,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../troubleshooting/" class="md-nav__link">
+      <a href="../gitea-ci-setup/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Troubleshooting
+    Gitea CI
   
 
     
@@ -1002,6 +1424,59 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../contribute/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contribute
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -1033,6 +1508,17 @@
     <span class="md-ellipsis">
       
         Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#user-journeys-coder-vs-kasm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User journeys (Coder vs Kasm)
       
     </span>
   </a>
@@ -1264,10 +1750,10 @@
     
     
       <li class="md-path__item">
-        <a href="../dev-environment/" class="md-path__link">
+        <a href="../operate/" class="md-path__link">
           
   <span class="md-ellipsis">
-    How-to Guides
+    Operate
   </span>
 
         </a>
@@ -1290,6 +1776,24 @@
 
 
 <h1 id="remote-developer-workspaces-dashboard">Remote Developer Workspaces &amp; Dashboard<a class="headerlink" href="#remote-developer-workspaces-dashboard" title="Permanent link">¶</a></h1>
+<blockquote>
+<p><strong>Interactive docs</strong>: Use the cluster variables panel below. Edit the values — every code example on this page (and other pages that include this panel) will update instantly and the Copy buttons will use the live values.</p>
+</blockquote>
+<div class="cluster-config admonition info" data-vars="SPARK0_IP,NAMESPACE,DASHBOARD_PORT">
+  <p><strong>Live cluster variables</strong> (edits propagate to all examples + copies on this page)</p>
+  <div>
+    <!-- Defaults must match the primary profile button (1-node / localhost). -->
+    <label>SPARK0_IP: <input data-var="SPARK0_IP" value="localhost" placeholder="spark0-ip"></label>
+    <label>NAMESPACE: <input data-var="NAMESPACE" value="ai-inference"></label>
+    <label>PORT example: <input data-var="DASHBOARD_PORT" value="32082"></label>
+  </div>
+  <div>
+    <button type="button" data-profile="1node" class="md-button md-button--primary">1-node / localhost profile</button>
+    <button type="button" data-profile="2node" class="md-button">2-node typical profile</button>
+    <small>(live updates + copy buttons respect current values)</small>
+  </div>
+</div>
+
 <p><strong>What's on this page</strong></p>
 <ul>
 <li>Coder, Kasm, and the custom Spark Lab Dashboard (Headlamp + Grafana + Next.js portal)</li>
@@ -1318,6 +1822,45 @@
   Plus links to Grafana/Headlamp and legacy inference controls.</li>
 </ul>
 <p>All use explicit resource requests/limits. Dev management components use Deployments (<abbr title="Kubernetes Job pod restart behavior (lab heavy jobs use OnFailure or Never).">restartPolicy</abbr> handled by controller). Inference remains strict Jobs.</p>
+<h2 id="user-journeys-coder-vs-kasm">User journeys (Coder vs Kasm)<a class="headerlink" href="#user-journeys-coder-vs-kasm" title="Permanent link">¶</a></h2>
+<p>Install is <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> (<code>install-dev-workspaces.yml</code>) / <code>start-coder</code> / <code>start-kasm</code>. Daily use is different:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Coder</th>
+<th>Kasm</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>You want</strong></td>
+<td>VS Code in the browser, clone this repo, <code>bazelisk run //:validate</code></td>
+<td>A full desktop or isolated app stream</td>
+</tr>
+<tr>
+<td><strong>Where it runs</strong></td>
+<td>Workspace pods in <code>coder-workspaces</code></td>
+<td>Kasm session containers</td>
+</tr>
+<tr>
+<td><strong>How you open it</strong></td>
+<td>Dashboard Workspaces panel or <code>https://coder.lab.local:32443</code> / NodePort 32080</td>
+<td>Kasm port 32081 / SSO hostname</td>
+</tr>
+<tr>
+<td><strong>Capacity</strong></td>
+<td><code>optional_dev</code> tier — stop these first when <abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> blocks inference</td>
+<td>Same — <code>stop-kasm</code> frees RAM</td>
+</tr>
+<tr>
+<td><strong>Not for</strong></td>
+<td>Serving kimi</td>
+<td>Serving kimi</td>
+</tr>
+</tbody>
+</table>
+<p>Dashboard panels (capacity, inference, storage, secrets): <a href="../operate/dashboard/">Dashboard</a>. This page keeps install + ports.</p>
 <h2 id="prerequisites-exposure">Prerequisites &amp; Exposure<a class="headerlink" href="#prerequisites-exposure" title="Permanent link">¶</a></h2>
 <ul>
 <li>Cluster bootstrapped + <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> installed.</li>
@@ -1548,7 +2091,7 @@
 <h2 id="safety-resources">Safety &amp; Resources<a class="headerlink" href="#safety-resources" title="Permanent link">¶</a></h2>
 <ul>
 <li>All components declare requests + limits (see group_vars and values).</li>
-<li>Inference unchanged: Jobs, OnFailure + backoff 1, Mode A vLLM util ≤ 0.82 (Mode B exclusive 0.85 / Mode C SGLang 0.95), <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> highspeed only in relevant workloads, no Always.</li>
+<li>Inference unchanged: Jobs, OnFailure + backoff 1, <abbr title="Daily 3-node mixed fleet (35B + Flash-Next + MedGemma) behind LiteLLM; vLLM util ≤ 0.82.">Mode A</abbr> vLLM util ≤ 0.82 (<abbr title="Exclusive GLM-5.3-Flash TP=3 on the 3-node QSFP ring; vLLM util ≤ 0.85.">Mode B</abbr> exclusive 0.85 / <abbr title="Exclusive DeepSeek-V4.1-Flash TP=3 on the QSFP ring; SGLang mem-fraction-static ≤ 0.95.">Mode C</abbr> SGLang 0.95), <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> highspeed only in relevant workloads, no Always.</li>
 <li>Dev tools are intentionally lighter and restart-tolerant.</li>
 <li><code>manage.sh</code> new paths have preflight cluster checks; heavy prompts untouched.</li>
 <li>After changes always validate: <code>bazelisk test //...</code></li>
@@ -1651,7 +2194,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="../assets/javascripts/command-vars.js"></script>
       

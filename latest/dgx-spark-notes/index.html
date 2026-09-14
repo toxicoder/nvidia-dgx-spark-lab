@@ -10,17 +10,17 @@
         <link rel="canonical" href="https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/dgx-spark-notes/">
       
       
-        <link rel="prev" href="../getting-started/">
+        <link rel="prev" href="../concepts/interconnect-nccl/">
       
       
-        <link rel="next" href="../reboot-safety/">
+        <link rel="next" href="../resource-guard/">
       
       
         
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -269,17 +269,18 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="../getting-started/" class="md-tabs__link">
-        
-  
-  
     
+    
+      <li class="md-tabs__item">
+        <a href="../start/" class="md-tabs__link">
+          
   
-  Getting Started
+  
+  Start
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -293,11 +294,11 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+        <a href="../concepts/" class="md-tabs__link">
           
   
   
-  Concepts &amp; Notes
+  Concepts
 
         </a>
       </li>
@@ -313,11 +314,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../dev-environment/" class="md-tabs__link">
+        <a href="../operate/" class="md-tabs__link">
           
   
   
-  How-to Guides
+  Operate
 
         </a>
       </li>
@@ -338,6 +339,26 @@
   
   
   Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../contribute/" class="md-tabs__link">
+          
+  
+  
+  Contribute
 
         </a>
       </li>
@@ -429,15 +450,35 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
+    
+    
+    
+    
+      
+      
         
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../start/" class="md-nav__link">
+      
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Start
   
 
     
@@ -445,7 +486,13 @@
   
   
 
-      </a>
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
     </li>
   
 
@@ -487,7 +534,7 @@
   <span class="md-ellipsis">
     
   
-    Concepts &amp; Notes
+    Concepts
   
 
     
@@ -503,11 +550,95 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Concepts &amp; Notes
+    Concepts
   
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/interconnect-nccl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interconnect &amp; NCCL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -606,6 +737,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="High-Speed Interconnect">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hostnetwork-and-hostipc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hostNetwork and hostIPC
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ple-mmap-qwen38-flash-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PLE mmap (Qwen3.8-Flash-Next)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -684,6 +843,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resource-guard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resource Guard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -864,202 +1051,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../mcp-agent-toolkit/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    MCP Agent Toolkit
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../hermes-agent/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Hermes Agent (Docker)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../open-webui/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Open WebUI (Agent Chat)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sso/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    SSO (Traefik + Authelia)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../resource-guard/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Resource Guard
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Architecture
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../monitoring-observability/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Monitoring &amp; Observability
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../glossary/" class="md-nav__link">
         
   
@@ -1115,14 +1106,14 @@
   
   
   
-    <a href="../dev-environment/" class="md-nav__link">
+    <a href="../operate/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    How-to Guides
+    Operate
   
 
     
@@ -1176,6 +1167,59 @@
     
   
     Reference
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../contribute/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contribute
   
 
     
@@ -1250,6 +1294,34 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="High-Speed Interconnect">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hostnetwork-and-hostipc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hostNetwork and hostIPC
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ple-mmap-qwen38-flash-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PLE mmap (Qwen3.8-Flash-Next)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1368,10 +1440,10 @@
     
     
       <li class="md-path__item">
-        <a href="./" class="md-path__link">
+        <a href="../concepts/" class="md-path__link">
           
   <span class="md-ellipsis">
-    Concepts &amp; Notes
+    Concepts
   </span>
 
         </a>
@@ -1435,8 +1507,18 @@
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NCCL_DEBUG</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">"INFO"</span>
 </span></code></pre></div>
-<p><strong>3-node QSFP ring (200 Gb/s per pair, triangle mesh):</strong> used by Mode B (<code>glm-5.3-flash</code>) and Mode C (<code>deepseek-v4.1-flash</code>). OOB/Gloo on 10GbE (often <code>enP7s7</code>); payload on all four CX-7 RoCE devices; <code>NCCL_NET_PLUGIN=none</code>. Do <strong>not</strong> copy the 2-node pair vars onto that ring. Confirm names with <code>ibdev2netdev</code>. See <a href="../litellm-rounded-stack/">LiteLLM rounded stack</a>.</p>
+<p><strong>3-node <abbr title="3-node triangle of 200 Gb/s QSFP links — not the 2-node dual-400G pair.">QSFP ring</abbr> (200 Gb/s per pair, triangle mesh):</strong> used by <abbr title="Exclusive GLM-5.3-Flash TP=3 on the 3-node QSFP ring; vLLM util ≤ 0.85.">Mode B</abbr> (<code>glm-5.3-flash</code>) and <abbr title="Exclusive DeepSeek-V4.1-Flash TP=3 on the QSFP ring; SGLang mem-fraction-static ≤ 0.95.">Mode C</abbr> (<code>deepseek-v4.1-flash</code>). OOB/Gloo on 10GbE (often <code>enP7s7</code>); payload on all four CX-7 RoCE devices; <code>NCCL_NET_PLUGIN=none</code>. Do <strong>not</strong> copy the 2-node pair vars onto that ring. Confirm names with <code>ibdev2netdev</code>. See <a href="../litellm-rounded-stack/">LiteLLM <abbr title="Mode A overlay: 35B + Flash-Next + MedGemma + LiteLLM on three Sparks.">rounded stack</abbr></a>.</p>
 <p>If <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> payload falls back to the management network, performance will be terrible.</p>
+<p>Full pair vs ring env: <a href="../concepts/interconnect-nccl/">Interconnect &amp; <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr></a>.</p>
+<h3 id="hostnetwork-and-hostipc"><abbr title="Pod uses the node's network namespace (fabric-visible NICs).">hostNetwork</abbr> and <abbr title="Pod uses the node's IPC namespace (needed for some TP/RPC Jobs).">hostIPC</abbr><a class="headerlink" href="#hostnetwork-and-hostipc" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Omitted</strong> (default false) on kimi / kimi-test and several 1-GPU vLLM Jobs — isolation; <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> IFNAME still set in env.</li>
+<li><strong><code>hostNetwork: true</code></strong> on Ray, GLM-5.2, Qwen 397B, <abbr title="Exclusive GLM-5.3-Flash TP=3 on the 3-node QSFP ring; vLLM util ≤ 0.85.">Mode B</abbr>/C — ranks need the fabric NICs.</li>
+<li><strong><code>hostIPC: true</code></strong> on GLM RPC and <abbr title="Exclusive GLM-5.3-Flash TP=3 on the 3-node QSFP ring; vLLM util ≤ 0.85.">Mode B</abbr>/C ring Jobs — shared memory for TP.</li>
+</ul>
+<p>Do not add <abbr title="Pod uses the node's network namespace (fabric-visible NICs).">hostNetwork</abbr> to a <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr> “for luck”; follow the workload YAML.</p>
+<h3 id="ple-mmap-qwen38-flash-next"><abbr title="Memory-map of Qwen3.8-Flash-Next PLE weights; required on Mode A spark1.">PLE mmap</abbr> (Qwen3.8-Flash-Next)<a class="headerlink" href="#ple-mmap-qwen38-flash-next" title="Permanent link">¶</a></h3>
+<p><abbr title="Daily 3-node mixed fleet (35B + Flash-Next + MedGemma) behind LiteLLM; vLLM util ≤ 0.82.">Mode A</abbr> <code>qwen3.8-flash-next-nvfp4</code> requires <abbr title="Memory-map of Qwen3.8-Flash-Next PLE weights; required on Mode A spark1.">PLE mmap</abbr> (weights mapped, not fully resident). Prefix caching off. Start <code>max-model-len</code> 65536. See <a href="../litellm-rounded-stack/">LiteLLM <abbr title="Mode A overlay: 35B + Flash-Next + MedGemma + LiteLLM on three Sparks.">rounded stack</abbr></a>.</p>
 <p>Verify interfaces on the nodes:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ip<span class="w"> </span>-br<span class="w"> </span>link<span class="w"> </span>show<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s1">'enp|enP'</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>ibdev2netdev
@@ -1570,7 +1652,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="../assets/javascripts/command-vars.js"></script>
       

@@ -10,17 +10,17 @@
         <link rel="canonical" href="https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/gitea-ci-setup/">
       
       
-        <link rel="prev" href="../BUILDING_WITH_BAZEL/">
+        <link rel="prev" href="../dev-workspaces/">
       
       
-        <link rel="next" href="../dev-workspaces/">
+        <link rel="next" href="../project-conventions/">
       
       
         
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -269,17 +269,18 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="../getting-started/" class="md-tabs__link">
-        
-  
-  
     
+    
+      <li class="md-tabs__item">
+        <a href="../start/" class="md-tabs__link">
+          
   
-  Getting Started
+  
+  Start
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -291,11 +292,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../dgx-spark-notes/" class="md-tabs__link">
+        <a href="../concepts/" class="md-tabs__link">
           
   
   
-  Concepts &amp; Notes
+  Concepts
 
         </a>
       </li>
@@ -313,11 +314,11 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../dev-environment/" class="md-tabs__link">
+        <a href="../operate/" class="md-tabs__link">
           
   
   
-  How-to Guides
+  Operate
 
         </a>
       </li>
@@ -338,6 +339,26 @@
   
   
   Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../contribute/" class="md-tabs__link">
+          
+  
+  
+  Contribute
 
         </a>
       </li>
@@ -429,15 +450,35 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
+    
+    
+    
+    
+      
+      
         
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../start/" class="md-nav__link">
+      
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Start
   
 
     
@@ -445,7 +486,13 @@
   
   
 
-      </a>
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
     </li>
   
 
@@ -477,14 +524,14 @@
   
   
   
-    <a href="../dgx-spark-notes/" class="md-nav__link">
+    <a href="../concepts/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    Concepts &amp; Notes
+    Concepts
   
 
     
@@ -540,7 +587,7 @@
   <span class="md-ellipsis">
     
   
-    How-to Guides
+    Operate
   
 
     
@@ -556,7 +603,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    How-to Guides
+    Operate
   
 
           </label>
@@ -569,14 +616,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../dev-environment/" class="md-nav__link">
+      <a href="../operate/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Developer Environment
+    Overview
   
 
     
@@ -597,14 +644,434 @@
   
   
     <li class="md-nav__item">
-      <a href="../BUILDING_WITH_BAZEL/" class="md-nav__link">
+      <a href="../operate/ansible-catalog/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Bazel Documentation
+    Ansible catalog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/overlays/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overlays
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/workload-catalog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workload catalog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dashboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/secrets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Secrets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/capacity-planning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capacity planning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/patch-and-reboot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Patch and reboot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/node-failure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Node failure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/backup-restore/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backup and restore
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../monitoring-observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hermes-agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hermes Agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp-agent-toolkit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP Agent Toolkit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../open-webui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Open WebUI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sso/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SSO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev-workspaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dev workspaces (Coder vs Kasm)
   
 
     
@@ -641,7 +1108,7 @@
   <span class="md-ellipsis">
     
   
-    Gitea CI Setup
+    Gitea CI
   
 
     
@@ -659,7 +1126,7 @@
   <span class="md-ellipsis">
     
   
-    Gitea CI Setup
+    Gitea CI
   
 
     
@@ -776,62 +1243,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../dev-workspaces/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Dev Workspaces &amp; Dashboard
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../troubleshooting/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Troubleshooting
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -874,6 +1285,59 @@
     
   
     Reference
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../contribute/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contribute
   
 
     
@@ -1044,10 +1508,10 @@
     
     
       <li class="md-path__item">
-        <a href="../dev-environment/" class="md-path__link">
+        <a href="../operate/" class="md-path__link">
           
   <span class="md-ellipsis">
-    How-to Guides
+    Operate
   </span>
 
         </a>
@@ -1153,7 +1617,7 @@
 </tr>
 <tr>
 <td><code>.github/dependabot.yml</code></td>
-<td>Dependabot is a GitHub product; use Renovate or manual bumps on Gitea.</td>
+<td>Dependabot is a GitHub product; use Renovate or manual bumps on Gitea. On GitHub it must open PRs against <code>development</code> (<code>target-branch</code>), not <code>main</code>. Enforced by <code>tests/bats/tooling.bats</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -1267,7 +1731,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.path", "navigation.top", "navigation.prune", "navigation.instant", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="../assets/javascripts/command-vars.js"></script>
       
