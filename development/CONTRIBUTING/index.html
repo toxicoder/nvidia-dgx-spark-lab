@@ -269,33 +269,14 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="../getting-started/" class="md-tabs__link">
-        
-  
-  
-    
-  
-  Getting Started
-
-      </a>
-    </li>
-  
-
-      
-        
-  
-  
-  
-  
     
     
       <li class="md-tabs__item">
-        <a href="../dgx-spark-notes/" class="md-tabs__link">
+        <a href="../start/" class="md-tabs__link">
           
   
   
-  Concepts &amp; Notes
+  Start
 
         </a>
       </li>
@@ -311,11 +292,31 @@
     
     
       <li class="md-tabs__item">
-        <a href="../dev-environment/" class="md-tabs__link">
+        <a href="../concepts/" class="md-tabs__link">
           
   
   
-  How-to Guides
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../operate/" class="md-tabs__link">
+          
+  
+  
+  Operate
 
         </a>
       </li>
@@ -338,6 +339,26 @@
   
   
   Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../contribute/" class="md-tabs__link">
+          
+  
+  
+  Contribute
 
         </a>
       </li>
@@ -429,33 +450,6 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Getting Started
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
     
     
     
@@ -477,14 +471,14 @@
   
   
   
-    <a href="../dgx-spark-notes/" class="md-nav__link">
+    <a href="../start/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    Concepts &amp; Notes
+    Start
   
 
     
@@ -530,14 +524,67 @@
   
   
   
-    <a href="../dev-environment/" class="md-nav__link">
+    <a href="../concepts/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    How-to Guides
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../operate/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operate
   
 
     
@@ -840,63 +887,6 @@
   
   
   
-    
-    
-    
-    
-      
-      
-        
-          
-          
-        
-      
-    
-    
-      
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3">
-        
-          
-          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Code-Generated Reference
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5_3">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Code-Generated Reference
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix="">
-            
-              
-                
-  
-  
-  
-  
     <li class="md-nav__item">
       <a href="../generated/shell/reference/" class="md-nav__link">
         
@@ -953,10 +943,55 @@
     </li>
   
 
-              
-            
-          </ul>
-        </nav>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../contribute/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contribute
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
       
     </li>
   
@@ -1202,14 +1237,16 @@
 </span></code></pre></div>
 <p>See <code>bazel run //docs:status</code> or the <code>--help</code> output for all options.</p>
 <h2 id="information-architecture">Information Architecture<a class="headerlink" href="#information-architecture" title="Permanent link">¶</a></h2>
-<p>We follow this mental model:</p>
+<p>Diátaxis tabs (see <code>mkdocs.yml</code>):</p>
 <ul>
-<li><strong>Home / Getting Started</strong> — New users</li>
-<li><strong>Concepts &amp; Notes</strong> — Background and important constraints (safety, resources, reboot)</li>
-<li><strong>How-to Guides</strong> — Task-oriented (<abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> docs, Gitea setup, etc.)</li>
-<li><strong>Reference</strong> — Deeper or cross-cutting material</li>
+<li><strong>Home</strong> — path cards, default stack, safety table</li>
+<li><strong>Start</strong> — gold path, topology, profiles, learn-the-lab</li>
+<li><strong>Concepts</strong> — architecture, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr>, <abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr>, stacks, glossary</li>
+<li><strong>Operate</strong> — catalogs, dashboard, runbooks, troubleshooting</li>
+<li><strong>Reference</strong> — project conventions, docs contributing, generated shell + dashboard API</li>
+<li><strong>Contribute</strong> — dev environment, <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr></li>
 </ul>
-<p>Every major section should have a good <code>index.md</code>.</p>
+<p>Every major section has an <code>index.md</code>. Keep existing published slugs (<code>getting-started.md</code>, <code>architecture.md</code>, …); put <strong>new</strong> pages under <code>start/</code>, <code>learn/</code>, <code>concepts/</code>, <code>operate/</code>, <code>contribute/</code>.</p>
 <p>Use the right-hand ToC for long pages. Keep navigation focused.</p>
 <h2 id="frontmatter-required-on-every-page">Frontmatter (Required on every page)<a class="headerlink" href="#frontmatter-required-on-every-page" title="Permanent link">¶</a></h2>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nn">---</span>

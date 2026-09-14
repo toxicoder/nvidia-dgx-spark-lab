@@ -3,17 +3,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="High-level cluster layout, bootstrap flow, workload lifecycle, dashboard data paths, and safety invariants for the DGX Spark lab.">
+        <meta name="description" content="Ansible and cloud-init through K3s, GPU Operator, Resource Guard, manage.sh, Jobs, dashboard, LiteLLM, visual Comfy, and agent stacks.">
       
       
       
         <link rel="canonical" href="https://toxicoder.github.io/nvidia-dgx-spark-lab/development/architecture/">
       
       
-        <link rel="prev" href="../resource-guard/">
+        <link rel="prev" href="../concepts/">
       
       
-        <link rel="next" href="../monitoring-observability/">
+        <link rel="next" href="../concepts/interconnect-nccl/">
       
       
         
@@ -269,17 +269,18 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="../getting-started/" class="md-tabs__link">
-        
-  
-  
     
+    
+      <li class="md-tabs__item">
+        <a href="../start/" class="md-tabs__link">
+          
   
-  Getting Started
+  
+  Start
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -293,11 +294,11 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../dgx-spark-notes/" class="md-tabs__link">
+        <a href="../concepts/" class="md-tabs__link">
           
   
   
-  Concepts &amp; Notes
+  Concepts
 
         </a>
       </li>
@@ -313,11 +314,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../dev-environment/" class="md-tabs__link">
+        <a href="../operate/" class="md-tabs__link">
           
   
   
-  How-to Guides
+  Operate
 
         </a>
       </li>
@@ -338,6 +339,26 @@
   
   
   Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../contribute/" class="md-tabs__link">
+          
+  
+  
+  Contribute
 
         </a>
       </li>
@@ -429,15 +450,35 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
+    
+    
+    
+    
+      
+      
         
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../start/" class="md-nav__link">
+      
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Start
   
 
     
@@ -445,7 +486,13 @@
   
   
 
-      </a>
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
     </li>
   
 
@@ -487,7 +534,7 @@
   <span class="md-ellipsis">
     
   
-    Concepts &amp; Notes
+    Concepts
   
 
     
@@ -503,11 +550,241 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Concepts &amp; Notes
+    Concepts
   
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#node-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node roles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bootstrap-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bootstrap flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overlay-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overlay matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workload-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workload lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dashboard-data-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dashboard data flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cross-stack-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-stack map
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visual-comfy-k3s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visual Comfy (K3s)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#safety-invariants-enforced" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Safety invariants (enforced)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/interconnect-nccl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interconnect &amp; NCCL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -524,6 +801,34 @@
     
   
     DGX Spark Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resource-guard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resource Guard
   
 
     
@@ -712,304 +1017,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../mcp-agent-toolkit/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    MCP Agent Toolkit
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../hermes-agent/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Hermes Agent (Docker)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../open-webui/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Open WebUI (Agent Chat)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sso/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    SSO (Traefik + Authelia)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../resource-guard/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Resource Guard
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Architecture
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Architecture
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
-      
-        <li class="md-nav__item">
-  <a href="#high-level-cluster" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        High-Level Cluster
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#bootstrap-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Bootstrap Flow
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#workload-lifecycle-safe-by-design" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Workload Lifecycle (Safe by Design)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dashboard-data-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dashboard Data Flow
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#safety-invariants-enforced" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Safety Invariants (Enforced)
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../monitoring-observability/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Monitoring &amp; Observability
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../glossary/" class="md-nav__link">
         
   
@@ -1065,14 +1072,14 @@
   
   
   
-    <a href="../dev-environment/" class="md-nav__link">
+    <a href="../operate/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    How-to Guides
+    Operate
   
 
     
@@ -1144,6 +1151,59 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../contribute/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contribute
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -1171,10 +1231,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#high-level-cluster" class="md-nav__link">
+  <a href="#pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        High-Level Cluster
+        Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#node-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node roles
       
     </span>
   </a>
@@ -1185,7 +1256,7 @@
   <a href="#bootstrap-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Bootstrap Flow
+        Bootstrap flow
       
     </span>
   </a>
@@ -1193,10 +1264,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#workload-lifecycle-safe-by-design" class="md-nav__link">
+  <a href="#overlay-matrix" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Workload Lifecycle (Safe by Design)
+        Overlay matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workload-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workload lifecycle
       
     </span>
   </a>
@@ -1207,7 +1289,29 @@
   <a href="#dashboard-data-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dashboard Data Flow
+        Dashboard data flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cross-stack-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-stack map
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visual-comfy-k3s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visual Comfy (K3s)
       
     </span>
   </a>
@@ -1218,7 +1322,7 @@
   <a href="#safety-invariants-enforced" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Safety Invariants (Enforced)
+        Safety invariants (enforced)
       
     </span>
   </a>
@@ -1268,10 +1372,10 @@
     
     
       <li class="md-path__item">
-        <a href="../dgx-spark-notes/" class="md-path__link">
+        <a href="../concepts/" class="md-path__link">
           
   <span class="md-ellipsis">
-    Concepts &amp; Notes
+    Concepts
   </span>
 
         </a>
@@ -1296,71 +1400,189 @@
 <h1 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">¶</a></h1>
 <p><strong>What's on this page</strong></p>
 <ul>
-<li>High-level cluster diagram (1-4 nodes with control-plane + workers + dual 400G links)</li>
-<li>Bootstrap flow (workstation → <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> → <abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr> + <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr>)</li>
-<li>Safe workload lifecycle (manage.sh prompts → <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr> apply → OnFailure + low backoff)</li>
-<li>Dashboard data flow (Next.js → docker.sock / kubectl / ollama / fs)</li>
-<li>Enforced safety invariants (explicit resources, no Always restart for heavy jobs, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> only on high-speed)</li>
+<li>End-to-end pipeline from first boot to a serving <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr></li>
+<li>1 / 2 / 3 / 4 node roles and overlay matrix</li>
+<li>Dashboard host-action path and docker.sock</li>
+<li>Cross-stack map: <abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr>, <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr>, <abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr>, SSO, Nemotron, LiteLLM</li>
+<li>Enforced safety invariants</li>
 </ul>
 <p><strong>What this enables</strong></p>
 <ul>
-<li>Understanding the "why" behind design choices for host stability and performance</li>
-<li>Safe extension or debugging of the system while preserving core guarantees</li>
-<li>Quick mental model before editing playbooks, manifests, or scripts</li>
+<li>Extending playbooks or manifests without breaking host stability</li>
+<li>Seeing why visual Comfy here is <abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr>, not Compose</li>
 </ul>
-<h2 id="high-level-cluster">High-Level Cluster<a class="headerlink" href="#high-level-cluster" title="Permanent link">¶</a></h2>
+<h2 id="pipeline">Pipeline<a class="headerlink" href="#pipeline" title="Permanent link">¶</a></h2>
 <pre class="mermaid"><code>flowchart TD
-    subgraph Control Plane
-        spark0[spark0&lt;br/&gt;control-plane + worker]
-    end
-    subgraph Workers
-        spark1[spark1&lt;br/&gt;worker]
-        sparkN[sparkN&lt;br/&gt;worker]
-    end
-    spark0 &lt;--&gt;|Dual 400G&lt;br/&gt;highspeed| spark1
-    spark0 &lt;--&gt;|Dual 400G| sparkN
-
-    style spark0 fill:#166534,color:#fff</code></pre>
-<h2 id="bootstrap-flow">Bootstrap Flow<a class="headerlink" href="#bootstrap-flow" title="Permanent link">¶</a></h2>
+  CI[cloud-init / Ansible] --&gt; K3s[K3s server on spark0]
+  K3s --&gt; GPU[GPU Operator + DCGM]
+  GPU --&gt; RG[Resource Guard policy]
+  RG --&gt; MG[manage.sh / dashboard]
+  MG --&gt; Jobs[Jobs and Deployments]
+  Jobs --&gt; LLM[vLLM / SGLang / llama.cpp]
+  Jobs --&gt; Vis[ComfyUI visual]
+  MG --&gt; Dash[Next.js dashboard]
+  Dash --&gt; Host[docker.sock / kubectl / /mnt/models]
+  LLM --&gt; Lite[LiteLLM + Open WebUI]
+  MG --&gt; Agents[Hermes Docker + MCP]</code></pre>
+<h2 id="node-roles">Node roles<a class="headerlink" href="#node-roles" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Nodes</th>
+<th>spark0</th>
+<th>Others</th>
+<th>Fabric</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>control-plane + worker</td>
+<td>—</td>
+<td>local <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> only</td>
+</tr>
+<tr>
+<td>2</td>
+<td>control-plane + worker</td>
+<td>spark1 worker</td>
+<td>dual QSFP ~400G pair</td>
+</tr>
+<tr>
+<td>3</td>
+<td>control-plane + worker</td>
+<td>spark1–2</td>
+<td>QSFP <strong>ring</strong> 200 Gb/s/pair</td>
+</tr>
+<tr>
+<td>4</td>
+<td>control-plane + worker</td>
+<td>spark1–3</td>
+<td>TP=4 Jobs; do not copy pair env</td>
+</tr>
+</tbody>
+</table>
+<p>Details: <a href="../start/choose-topology/">Choose topology</a> · <a href="../concepts/interconnect-nccl/">Interconnect &amp; <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr></a>.</p>
+<h2 id="bootstrap-flow">Bootstrap flow<a class="headerlink" href="#bootstrap-flow" title="Permanent link">¶</a></h2>
 <pre class="mermaid"><code>sequenceDiagram
     participant WS as Workstation
     participant Ansible
     participant Nodes
     participant K3s
-    participant GPU-Op
+    participant GPUOp as GPU Operator
 
-    WS-&gt;&gt;Ansible: ansible-playbook bootstrap-cluster.yml
-    Ansible-&gt;&gt;Nodes: install K3s + labels + highspeed netplan
-    Nodes--&gt;&gt;K3s: server + agents ready
-    WS-&gt;&gt;Ansible: install-gpu-operator.yml
-    Ansible-&gt;&gt;GPU-Op: helm install
-    GPU-Op--&gt;&gt;Nodes: drivers + device plugin + DCGM</code></pre>
-<h2 id="workload-lifecycle-safe-by-design">Workload Lifecycle (Safe by Design)<a class="headerlink" href="#workload-lifecycle-safe-by-design" title="Permanent link">¶</a></h2>
+    WS-&gt;&gt;Ansible: bazelisk run //ansible:bootstrap
+    Ansible-&gt;&gt;Nodes: k3s_common + highspeed netplan + labels
+    Nodes--&gt;&gt;K3s: server + agents Ready
+    WS-&gt;&gt;Ansible: //ansible:gpu-operator
+    Ansible-&gt;&gt;GPUOp: helm install
+    GPUOp--&gt;&gt;Nodes: drivers + device plugin + DCGM
+    WS-&gt;&gt;Ansible: //ansible:verify</code></pre>
+<p>Playbooks: <a href="../operate/ansible-catalog/"><abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> catalog</a>. <abbr title="Early OS bootstrap configuration applied on first boot (network, packages, users).">cloud-init</abbr> templates: <code>ansible/cloud-init/example-user-data-1node.yaml</code> and <code>2node.yaml</code>.</p>
+<h2 id="overlay-matrix">Overlay matrix<a class="headerlink" href="#overlay-matrix" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Overlay</th>
+<th>Points at</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>k8s/overlays/test</code></td>
+<td>kimi-test + lighter patch</td>
+<td>First validation</td>
+</tr>
+<tr>
+<td><code>k8s/overlays/prod</code></td>
+<td>kimi (no patches)</td>
+<td>Production kimi entry</td>
+</tr>
+<tr>
+<td><code>k8s/overlays/single-node</code></td>
+<td>kimi-test TP=1 GPU=1</td>
+<td>One host</td>
+</tr>
+<tr>
+<td><code>k8s/overlays/rounded-stack</code></td>
+<td>35B + Flash-Next + MedGemma + LiteLLM</td>
+<td><abbr title="Daily 3-node mixed fleet (35B + Flash-Next + MedGemma) behind LiteLLM; vLLM util ≤ 0.82.">Mode A</abbr></td>
+</tr>
+<tr>
+<td><code>k8s/overlays/rounded-stack-quality</code></td>
+<td>27B on spark2 instead of MedGemma</td>
+<td><abbr title="Daily 3-node mixed fleet (35B + Flash-Next + MedGemma) behind LiteLLM; vLLM util ≤ 0.82.">Mode A</abbr> <code>--quality</code></td>
+</tr>
+</tbody>
+</table>
+<p><a href="../operate/overlays/">Overlays</a>.</p>
+<h2 id="workload-lifecycle">Workload lifecycle<a class="headerlink" href="#workload-lifecycle" title="Permanent link">¶</a></h2>
 <pre class="mermaid"><code>flowchart LR
-    A[manage.sh start-xxx] --&gt;|free GPU check + prompt| B[kubectl apply Job]
-    B --&gt; C[restartPolicy: OnFailure&lt;br/&gt;backoffLimit: 1]
-    C --&gt; D[Pod scheduled with&lt;br/&gt;NCCL + affinity]
-    D --&gt; E[Inference serving&lt;br/&gt;or Ray cluster]
-    F[manage.sh stop] --&gt; G[delete jobs]
-    H[Reboot] --&gt; I[You must explicitly&lt;br/&gt;start again]</code></pre>
-<h2 id="dashboard-data-flow">Dashboard Data Flow<a class="headerlink" href="#dashboard-data-flow" title="Permanent link">¶</a></h2>
+    A["manage.sh start-xxx"] --&gt;|capacity + confirm| B[kubectl apply Job]
+    B --&gt; C["OnFailure + low backoff"]
+    C --&gt; D[Pod + NCCL + affinity]
+    D --&gt; E[Serve or Ray]
+    F[stop] --&gt; G[delete jobs]
+    H[Reboot] --&gt; I[Must start again]</code></pre>
+<p>Visual Comfy uses <strong>Deployments</strong> but still <strong>manual start</strong>, one at a time, <abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> + heavy confirm.</p>
+<h2 id="dashboard-data-flow">Dashboard data flow<a class="headerlink" href="#dashboard-data-flow" title="Permanent link">¶</a></h2>
 <pre class="mermaid"><code>flowchart TD
-    UI[Next.js UI] --&gt;|Server Actions| Host[Host exec&lt;br/&gt;via mounted docker.sock + /mnt/models]
-    Host --&gt; Docker[Docker ps]
-    Host --&gt; Ollama[Ollama list]
-    Host --&gt; FS[fs walk /mnt/models]
-    Host --&gt; Sys[nvidia-smi + systemctl]
-    FS --&gt; Treemap[Interactive Treemap&lt;br/&gt;drill / filter / bulk delete]
-    UI --&gt;|read| K8s[K8s via kubectl in doctor/estimate]</code></pre>
-<h2 id="safety-invariants-enforced">Safety Invariants (Enforced)<a class="headerlink" href="#safety-invariants-enforced" title="Permanent link">¶</a></h2>
+    UI[Next.js UI] --&gt;|Server Actions + session| Host[Host exec]
+    Host --&gt; Docker[docker.sock]
+    Host --&gt; FS["/mnt/models treemap"]
+    Host --&gt; Sys[nvidia-smi]
+    UI --&gt; K8s[kubectl doctor/estimate/inference]
+    UI --&gt; Vault[SQLite vault AES-256-GCM]</code></pre>
+<p>Helm chart <code>helm/lab-dashboard/</code> NodePort 32082. Operator journey: <a href="../operate/dashboard/">Dashboard</a>.</p>
+<div class="admonition warning">
+<p class="admonition-title">docker.sock</p>
+<p>Login to the dashboard implies Tasks/Storage power on the node. Keep auth; no <code>AUTH_BYPASS</code> in production.</p>
+</div>
+<h2 id="cross-stack-map">Cross-stack map<a class="headerlink" href="#cross-stack-map" title="Permanent link">¶</a></h2>
+<pre class="mermaid"><code>flowchart LR
+  subgraph Access
+    SSO[Traefik + Authelia]
+    Dash[Lab dashboard]
+    Coder[Coder]
+    Kasm[Kasm]
+  end
+  subgraph Chat
+    OWUI[Open WebUI]
+    Lite[LiteLLM]
+  end
+  subgraph Infer
+    ModeA[Mode A fleet]
+    ModeB[Mode B GLM TP=3]
+    ModeC[Mode C DeepSeek TP=3]
+    Other[kimi / qwen / nemotron]
+  end
+  subgraph Agents
+    Hermes[Hermes Docker]
+    MCP[MCP toolkit]
+    Nim[Nemotron NIMs]
+  end
+  SSO --&gt; Dash
+  SSO --&gt; OWUI
+  OWUI --&gt; Hermes
+  OWUI --&gt; Lite
+  Lite --&gt; ModeA
+  Lite --&gt; ModeB
+  Lite --&gt; ModeC
+  Hermes --&gt; MCP
+  Hermes --&gt; Nim</code></pre>
+<p>Modes A/B/C are mutually exclusive. <a href="../litellm-rounded-stack/">LiteLLM <abbr title="Mode A overlay: 35B + Flash-Next + MedGemma + LiteLLM on three Sparks.">rounded stack</abbr></a> · <a href="../open-webui/"><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr></a> · <a href="../hermes-agent/"><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr></a> · <a href="../mcp-agent-toolkit/"><abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr></a> · <a href="../sso/">SSO</a> · <a href="../nemotron-agentic-stack/">Nemotron</a>.</p>
+<h2 id="visual-comfy-k3s">Visual Comfy (<abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr>)<a class="headerlink" href="#visual-comfy-k3s" title="Permanent link">¶</a></h2>
+<p><code>k8s/workloads/comfy-base</code> + <code>comfy-visual/*</code>, <code>scripts/lib/visual.sh</code>. Models on <code>/mnt/models</code>. Compose sibling: <a href="https://github.com/toxicoder/ez-comfy-stack">ez-comfy-stack</a>.</p>
+<h2 id="safety-invariants-enforced">Safety invariants (enforced)<a class="headerlink" href="#safety-invariants-enforced" title="Permanent link">¶</a></h2>
 <ul>
-<li>Heavy inference = <strong><abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr></strong> + <code>OnFailure</code> + <code>backoff:1</code></li>
-<li>Explicit requests <strong>and</strong> limits on every container</li>
-<li>No <code>Always</code> restart for large models</li>
-<li><abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> only on high-speed interfaces for multi-node</li>
-<li>All mutations go through <code>manage.sh</code> (with prompts for heavy)</li>
+<li>Heavy inference = <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr> + <code>OnFailure</code> + low <code>backoffLimit</code> (never <code>Always</code>)</li>
+<li>Explicit requests <strong>and</strong> limits</li>
+<li><abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> 15% / 24Gi floor</li>
+<li><abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> only on the correct high-speed plane</li>
+<li>Mutations through <code>manage.sh</code> / dashboard with confirms</li>
+<li>No auto-start after reboot</li>
 </ul>
-<p>See AGENTS.md for the full list.</p>
+<p>Tests: <code>bazelisk test //tests:safety_invariants</code>. Agent list: <a href="https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/development/AGENTS.md">AGENTS.md</a>.</p>
 <!--
   Project-wide glossary abbreviations (Material tooltips).
   Auto-appended to every page via pymdownx.snippets in mkdocs.yml.

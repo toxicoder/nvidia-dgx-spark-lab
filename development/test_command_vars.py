@@ -28,6 +28,7 @@ SCRIPT_DIR = Path(__file__).parent
 REPO_ROOT = SCRIPT_DIR.parent
 JS_PATH = SCRIPT_DIR / "assets" / "javascripts" / "command-vars.js"
 GETTING_STARTED = SCRIPT_DIR / "getting-started.md"
+CLUSTER_CONFIG_SNIPPET = SCRIPT_DIR / "includes" / "cluster-config.md"
 
 
 # --- Pure contract (mirrored from command-vars.js; keep in sync) -------------
@@ -101,9 +102,15 @@ class TestCommandVarsLogic(unittest.TestCase):
 
     def test_getting_started_defaults_match_primary_profile(self) -> None:
         """Source panel: primary 1node and default SPARK0_IP=localhost stay aligned."""
-        src = GETTING_STARTED.read_text(encoding="utf-8")
-        self.assertIn('data-profile="1node" class="md-button md-button--primary"', src)
-        self.assertIn('data-var="SPARK0_IP" value="localhost"', src)
+        self.assertTrue(CLUSTER_CONFIG_SNIPPET.is_file(), f"missing {CLUSTER_CONFIG_SNIPPET}")
+        snippet = CLUSTER_CONFIG_SNIPPET.read_text(encoding="utf-8")
+        self.assertIn('data-profile="1node" class="md-button md-button--primary"', snippet)
+        self.assertIn('data-var="SPARK0_IP" value="localhost"', snippet)
+        gs = GETTING_STARTED.read_text(encoding="utf-8")
+        self.assertTrue(
+            "cluster-config.md" in gs or "cluster-config" in gs,
+            "getting-started.md must include the cluster-config snippet or widget",
+        )
         self.assertTrue(JS_PATH.is_file(), f"missing {JS_PATH}")
         self.assertIn("dgx-lab-docs-cluster-vars", JS_PATH.read_text(encoding="utf-8"))
 

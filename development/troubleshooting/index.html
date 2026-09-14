@@ -3,17 +3,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="First-stop diagnosis flow, common problems (SSH, resources, NCCL, Grafana, dashboard), fixes, doctor/estimate commands, and verification for the DGX Spark lab.">
+        <meta name="description" content="Decision tree and symptom → cause → action → prevention → verify tables for SSH, scheduler, NCCL, Grafana, dashboard, and mode collisions.">
       
       
       
         <link rel="canonical" href="https://toxicoder.github.io/nvidia-dgx-spark-lab/development/troubleshooting/">
       
       
-        <link rel="prev" href="../dev-workspaces/">
+        <link rel="prev" href="../monitoring-observability/">
       
       
-        <link rel="next" href="../project-conventions/">
+        <link rel="next" href="../hermes-agent/">
       
       
         
@@ -269,17 +269,18 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="../getting-started/" class="md-tabs__link">
-        
-  
-  
     
+    
+      <li class="md-tabs__item">
+        <a href="../start/" class="md-tabs__link">
+          
   
-  Getting Started
+  
+  Start
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -291,11 +292,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../dgx-spark-notes/" class="md-tabs__link">
+        <a href="../concepts/" class="md-tabs__link">
           
   
   
-  Concepts &amp; Notes
+  Concepts
 
         </a>
       </li>
@@ -313,11 +314,11 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../dev-environment/" class="md-tabs__link">
+        <a href="../operate/" class="md-tabs__link">
           
   
   
-  How-to Guides
+  Operate
 
         </a>
       </li>
@@ -338,6 +339,26 @@
   
   
   Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../contribute/" class="md-tabs__link">
+          
+  
+  
+  Contribute
 
         </a>
       </li>
@@ -429,15 +450,35 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
+    
+    
+    
+    
+      
+      
         
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../start/" class="md-nav__link">
+      
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Start
   
 
     
@@ -445,7 +486,13 @@
   
   
 
-      </a>
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
     </li>
   
 
@@ -477,14 +524,14 @@
   
   
   
-    <a href="../dgx-spark-notes/" class="md-nav__link">
+    <a href="../concepts/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    Concepts &amp; Notes
+    Concepts
   
 
     
@@ -540,7 +587,7 @@
   <span class="md-ellipsis">
     
   
-    How-to Guides
+    Operate
   
 
     
@@ -556,7 +603,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    How-to Guides
+    Operate
   
 
           </label>
@@ -569,14 +616,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../dev-environment/" class="md-nav__link">
+      <a href="../operate/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Developer Environment
+    Overview
   
 
     
@@ -597,14 +644,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../BUILDING_WITH_BAZEL/" class="md-nav__link">
+      <a href="../operate/ansible-catalog/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Bazel Documentation
+    Ansible catalog
   
 
     
@@ -625,14 +672,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../gitea-ci-setup/" class="md-nav__link">
+      <a href="../operate/overlays/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Gitea CI Setup
+    Overlays
   
 
     
@@ -653,14 +700,210 @@
   
   
     <li class="md-nav__item">
-      <a href="../dev-workspaces/" class="md-nav__link">
+      <a href="../operate/workload-catalog/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Dev Workspaces &amp; Dashboard
+    Workload catalog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dashboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/secrets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Secrets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/capacity-planning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capacity planning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/patch-and-reboot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Patch and reboot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/node-failure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Node failure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operate/backup-restore/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backup and restore
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../monitoring-observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Monitoring
   
 
     
@@ -741,10 +984,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#quick-diagnosis-flow" class="md-nav__link">
+  <a href="#decision-tree" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Quick Diagnosis Flow
+        Decision tree
       
     </span>
   </a>
@@ -752,96 +995,68 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#common-problems-fixes" class="md-nav__link">
+  <a href="#ssh-unresponsive" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Common Problems &amp; Fixes
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Common Problems &amp; Fixes">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ssh-becomes-completely-unresponsive" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        SSH becomes completely unresponsive
+        SSH unresponsive
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#no-resources-or-scheduler-wont-place-pod" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#scheduler-no-resources" class="md-nav__link">
     <span class="md-ellipsis">
       
-        "No resources" or scheduler won't place pod
+        Scheduler / no resources
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#nccl-not-using-the-400g-links" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#nccl-fabric" class="md-nav__link">
     <span class="md-ellipsis">
       
-        NCCL not using the 400G links
+        NCCL / fabric
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#grafana-has-no-gpu-data" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#grafana-dcgm" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Grafana has no GPU data
+        Grafana / DCGM
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#dashboard-wont-load-or-actions-do-nothing" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#dashboard" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dashboard won't load or actions do nothing
+        Dashboard
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#estimate-says-unknown-gpus" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#mode-collision-visual" class="md-nav__link">
     <span class="md-ellipsis">
       
-        estimate says "unknown" GPUs
+        Mode collision / visual
       
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#helm-timeouts-repo-issues-during-start-monitoring" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Helm timeouts / repo issues during start-monitoring
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -849,7 +1064,7 @@
   <a href="#still-stuck" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Still Stuck?
+        Still stuck
       
     </span>
   </a>
@@ -860,6 +1075,174 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hermes-agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hermes Agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp-agent-toolkit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP Agent Toolkit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../open-webui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Open WebUI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sso/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SSO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev-workspaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dev workspaces (Coder vs Kasm)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gitea-ci-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gitea CI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -925,6 +1308,59 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../contribute/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contribute
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -952,10 +1388,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#quick-diagnosis-flow" class="md-nav__link">
+  <a href="#decision-tree" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Quick Diagnosis Flow
+        Decision tree
       
     </span>
   </a>
@@ -963,96 +1399,68 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#common-problems-fixes" class="md-nav__link">
+  <a href="#ssh-unresponsive" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Common Problems &amp; Fixes
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Common Problems &amp; Fixes">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ssh-becomes-completely-unresponsive" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        SSH becomes completely unresponsive
+        SSH unresponsive
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#no-resources-or-scheduler-wont-place-pod" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#scheduler-no-resources" class="md-nav__link">
     <span class="md-ellipsis">
       
-        "No resources" or scheduler won't place pod
+        Scheduler / no resources
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#nccl-not-using-the-400g-links" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#nccl-fabric" class="md-nav__link">
     <span class="md-ellipsis">
       
-        NCCL not using the 400G links
+        NCCL / fabric
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#grafana-has-no-gpu-data" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#grafana-dcgm" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Grafana has no GPU data
+        Grafana / DCGM
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#dashboard-wont-load-or-actions-do-nothing" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#dashboard" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dashboard won't load or actions do nothing
+        Dashboard
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#estimate-says-unknown-gpus" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#mode-collision-visual" class="md-nav__link">
     <span class="md-ellipsis">
       
-        estimate says "unknown" GPUs
+        Mode collision / visual
       
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#helm-timeouts-repo-issues-during-start-monitoring" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Helm timeouts / repo issues during start-monitoring
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1060,7 +1468,7 @@
   <a href="#still-stuck" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Still Stuck?
+        Still stuck
       
     </span>
   </a>
@@ -1110,10 +1518,10 @@
     
     
       <li class="md-path__item">
-        <a href="../dev-environment/" class="md-path__link">
+        <a href="../operate/" class="md-path__link">
           
   <span class="md-ellipsis">
-    How-to Guides
+    Operate
   </span>
 
         </a>
@@ -1138,135 +1546,267 @@
 <h1 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h1>
 <p><strong>What's on this page</strong></p>
 <ul>
-<li>Quick diagnosis Mermaid flow and initial <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> doctor + estimate commands</li>
-<li>Common problems &amp; fixes: unresponsive SSH, scheduler "no resources", <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> 400G, Grafana, dashboard, Helm, estimate "unknown"</li>
-<li>Verification steps, kubectl checks, and links to related safety docs</li>
-<li>Prevention guidance and still-stuck escalation</li>
+<li>Top-level decision tree</li>
+<li>Symptom tables (SSH, capacity, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr>, Grafana, dashboard, modes, visual)</li>
+<li><code>doctor</code> / <code>estimate</code> as the first commands</li>
 </ul>
 <p><strong>What this enables</strong></p>
 <ul>
-<li>Rapid, safe first-stop resolution of cluster and workload issues</li>
-<li>Using <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>-primary commands and documented prevention steps consistently</li>
-<li>Maintaining host stability when diagnosing large inference problems</li>
+<li>Recovering a remote Spark without guessing</li>
+<li>Preventing the same hang on the next start</li>
 </ul>
-<p>This page is the first stop when something goes wrong.</p>
-<h2 id="quick-diagnosis-flow">Quick Diagnosis Flow<a class="headerlink" href="#quick-diagnosis-flow" title="Permanent link">¶</a></h2>
-<pre class="mermaid"><code>flowchart TD
-    A[Problem] --&gt; B{SSH unresponsive?}
-    B --&gt;|Yes| C[STOP workloads immediately&lt;br/&gt;./scripts/manage.sh stop]
-    B --&gt;|No| D[Run doctor]
-    C --&gt; E[Hard power reset only if necessary]
-    D --&gt; F{Issue type?}
-    F --&gt;|OOM / memory| G[Lower gpu-memory-utilization&lt;br/&gt;or request more mem]
-    F --&gt;|NCCL slow| H[Verify highspeed interfaces&lt;br/&gt;check logs for enp1s0f0np0]
-    F --&gt;|Helm / start fails| I[Check free GPUs with estimate&lt;br/&gt;doctor]
-    F --&gt;|Dashboard blank| J[Rebuild image&lt;br/&gt;kubectl describe pod]</code></pre>
-<p>Always run this first (<abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> primary):</p>
+<blockquote>
+<p><strong>Interactive docs</strong>: Use the cluster variables panel below. Edit the values — every code example on this page (and other pages that include this panel) will update instantly and the Copy buttons will use the live values.</p>
+</blockquote>
+<div class="cluster-config admonition info" data-vars="SPARK0_IP,NAMESPACE,DASHBOARD_PORT">
+  <p><strong>Live cluster variables</strong> (edits propagate to all examples + copies on this page)</p>
+  <div>
+    <!-- Defaults must match the primary profile button (1-node / localhost). -->
+    <label>SPARK0_IP: <input data-var="SPARK0_IP" value="localhost" placeholder="spark0-ip"></label>
+    <label>NAMESPACE: <input data-var="NAMESPACE" value="ai-inference"></label>
+    <label>PORT example: <input data-var="DASHBOARD_PORT" value="32082"></label>
+  </div>
+  <div>
+    <button type="button" data-profile="1node" class="md-button md-button--primary">1-node / localhost profile</button>
+    <button type="button" data-profile="2node" class="md-button">2-node typical profile</button>
+    <small>(live updates + copy buttons respect current values)</small>
+  </div>
+</div>
+
+<div class="admonition tip">
+<p class="admonition-title">Try this first</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>doctor
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>estimate<span class="w"> </span>kimi-test
 </span></code></pre></div>
-<blockquote>
-<p>The full command reference (including every flag for <code>doctor</code>, <code>estimate</code>, <code>start-*</code>, etc.) is <strong>auto-generated</strong> from structured comments in the scripts. See <a href="../generated/shell/reference/">Shell Commands &amp; Helpers</a>. Refresh with <code>bazelisk run //docs:docs</code> after editing comments.</p>
-</blockquote>
-<h2 id="common-problems-fixes">Common Problems &amp; Fixes<a class="headerlink" href="#common-problems-fixes" title="Permanent link">¶</a></h2>
-<h3 id="ssh-becomes-completely-unresponsive">SSH becomes completely unresponsive<a class="headerlink" href="#ssh-becomes-completely-unresponsive" title="Permanent link">¶</a></h3>
-<p><strong>Cause</strong>: Heavy inference job consumed host memory / CPU.</p>
-<p><strong>Immediate action</strong>:
-</p><div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># From any machine that can reach the node (IPMI/iDRAC console is best)</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>./scripts/manage.sh<span class="w"> </span>stop
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># or on the node console</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>kubectl<span class="w"> </span>delete<span class="w"> </span>job<span class="w"> </span>--all<span class="w"> </span>-n<span class="w"> </span>ai-inference<span class="w"> </span>--ignore-not-found
-</span></code></pre></div><p></p>
-<p><strong>Prevention</strong>:</p>
-<ul>
-<li>Always use <code>start-test</code> first.</li>
-<li>Never exceed the documented <code>gpu-memory-utilization</code>.</li>
-<li>Monitor with <code>./scripts/manage.sh status</code> + Grafana.</li>
-</ul>
-<h3 id="no-resources-or-scheduler-wont-place-pod">"No resources" or scheduler won't place pod<a class="headerlink" href="#no-resources-or-scheduler-wont-place-pod" title="Permanent link">¶</a></h3>
-<p><strong>Hyper-detailed diagnosis steps</strong>:</p>
+<p>Classic: <code>./scripts/manage.sh doctor</code>. Many rows below are hard failures doctor already reports.</p>
+</div>
+<h2 id="decision-tree">Decision tree<a class="headerlink" href="#decision-tree" title="Permanent link">¶</a></h2>
+<pre class="mermaid"><code>flowchart TD
+    P[Problem] --&gt; SSH{SSH unresponsive?}
+    SSH --&gt;|Yes| Stop["STOP: manage.sh stop from OOB"]
+    Stop --&gt; Power[Hard power only if still dead]
+    SSH --&gt;|No| Doc[Run doctor]
+    Doc --&gt; Kind{Issue type?}
+    Kind --&gt;|OOM / capacity| Cap[Headroom / util / stop lighter]
+    Kind --&gt;|NCCL slow or hang| Fabric[IFNAME vs pair vs ring]
+    Kind --&gt;|Start refused| Gate[estimate + resources suggest]
+    Kind --&gt;|Grafana empty| DCGM[dcgm-exporter + start-monitoring]
+    Kind --&gt;|Dashboard blank| Img[image + auth + docker.sock]
+    Kind --&gt;|Mode collision| Modes[stop A or B or C then one mode]</code></pre>
+<p>Generated flags: <a href="../generated/shell/reference/">Shell reference</a>.</p>
+<h2 id="ssh-unresponsive">SSH unresponsive<a class="headerlink" href="#ssh-unresponsive" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+<th>Action</th>
+<th>Prevention</th>
+<th>Verify</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SSH hangs, node otherwise powered</td>
+<td>Inference consumed <abbr title="CPU and GPU share one physical memory pool (Grace/Blackwell on DGX Spark).">unified memory</abbr></td>
+<td>OOB console: <code>./scripts/manage.sh stop</code> or <code>kubectl delete job --all -n {{NAMESPACE}}</code></td>
+<td><code>start-test</code> first; Guard 15%/24Gi; util caps</td>
+<td>SSH works; <code>kubectl get pods -n {{NAMESPACE}}</code> empty</td>
+</tr>
+<tr>
+<td>Still dead after stop</td>
+<td>Kernel OOM / GPU driver wedged</td>
+<td>BMC power cycle <strong>after</strong> accepting Jobs are gone</td>
+<td>Never reboot <em>with</em> Jobs still scheduled</td>
+<td><code>doctor</code> after boot</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition danger">
+<p class="admonition-title">Do not start another heavy <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr> to “test” a hung node</p>
+</div>
+<h2 id="scheduler-no-resources">Scheduler / no resources<a class="headerlink" href="#scheduler-no-resources" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+<th>Action</th>
+<th>Prevention</th>
+<th>Verify</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pod Pending Insufficient nvidia.com/gpu</td>
+<td>Previous <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr> still allocated</td>
+<td><code>stop</code> + <code>cleanup</code> of leftover Jobs</td>
+<td>One heavy profile at a time</td>
+<td><code>kubectl describe pod</code></td>
+</tr>
+<tr>
+<td>Pending memory</td>
+<td>Requests &gt; allocatable − <abbr title="Reserved free capacity Resource Guard keeps free so SSH and control plane stay responsive.">headroom</abbr></td>
+<td><code>resources suggest</code>; lighter overlay</td>
+<td>Policy matches manifests</td>
+<td><code>estimate &lt;model&gt;</code></td>
+</tr>
+<tr>
+<td>Pending on 1-node with TP=2</td>
+<td>Overlay still 2 GPU</td>
+<td><code>k8s/overlays/single-node</code></td>
+<td><a href="../operate/overlays/">Overlays</a></td>
+<td><code>kubectl kustomize</code></td>
+</tr>
+<tr>
+<td><code>estimate</code> unknown GPUs</td>
+<td>Broken kubeconfig / no jq</td>
+<td>Run doctor on a host with cluster access</td>
+<td>Keep fetched kubeconfig</td>
+<td>doctor GPU lines</td>
+</tr>
+</tbody>
+</table>
+<h2 id="nccl-fabric"><abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> / fabric<a class="headerlink" href="#nccl-fabric" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+<th>Action</th>
+<th>Prevention</th>
+<th>Verify</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>All-reduce on 10GbE</td>
+<td>Wrong <code>NCCL_SOCKET_IFNAME</code></td>
+<td>Stop <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr>; fix env from <code>ibdev2netdev</code></td>
+<td>Pair env only on pair Jobs</td>
+<td>logs <code>grep -i nccl</code></td>
+</tr>
+<tr>
+<td><abbr title="Exclusive GLM-5.3-Flash TP=3 on the 3-node QSFP ring; vLLM util ≤ 0.85.">Mode B</abbr>/C hang</td>
+<td>Pair env copied onto ring</td>
+<td>Use ring block in glm-5.3 / deepseek Jobs</td>
+<td><a href="../concepts/interconnect-nccl/">Interconnect</a></td>
+<td><code>doctor-fabric</code></td>
+</tr>
+<tr>
+<td>Half-alive ring</td>
+<td>QSFP polarity</td>
+<td>Recable Port0→Port1 triangle</td>
+<td>Label cages</td>
+<td><code>ibdev2netdev</code> + ping</td>
+</tr>
+</tbody>
+</table>
+<h2 id="grafana-dcgm">Grafana / DCGM<a class="headerlink" href="#grafana-dcgm" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+<th>Action</th>
+<th>Prevention</th>
+<th>Verify</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No GPU panels</td>
+<td>dcgm-exporter missing</td>
+<td>Re-run <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr>; <code>start-monitoring</code></td>
+<td>Wait for gpu-operator Ready</td>
+<td><code>kubectl get pods -n gpu-operator -l app=nvidia-dcgm-exporter</code></td>
+</tr>
+<tr>
+<td>Node CPU empty</td>
+<td>node-exporter not installed</td>
+<td><code>install-dev-workspaces</code> / <code>start-monitoring</code></td>
+<td><a href="../monitoring-observability/">Monitoring</a></td>
+<td>Grafana Explore</td>
+</tr>
+</tbody>
+</table>
+<h2 id="dashboard">Dashboard<a class="headerlink" href="#dashboard" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+<th>Action</th>
+<th>Prevention</th>
+<th>Verify</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Blank page</td>
+<td>Image <code>lab-dashboard:local</code> missing</td>
+<td>Build <code>dashboard/Dockerfile</code>; <code>imagePullPolicy: IfNotPresent</code></td>
+<td>Helm values</td>
+<td><code>kubectl describe pod -n dev</code></td>
+</tr>
+<tr>
+<td>Actions no-op</td>
+<td>Session / RBAC</td>
+<td>Log in; mutations are server actions</td>
+<td>Do not <code>AUTH_BYPASS</code></td>
+<td>Network tab 401</td>
+</tr>
+<tr>
+<td>Tasks cannot see Docker</td>
+<td>docker.sock not mounted</td>
+<td>Check dashboard <abbr title="Kubernetes workload that keeps a desired replica set running continuously.">Deployment</abbr></td>
+<td>Understand blast radius</td>
+<td><a href="../operate/dashboard/">Dashboard</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="mode-collision-visual">Mode collision / visual<a class="headerlink" href="#mode-collision-visual" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+<th>Action</th>
+<th>Prevention</th>
+<th>Verify</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>start-stack-rounded</code> refuses</td>
+<td><abbr title="Exclusive GLM-5.3-Flash TP=3 on the 3-node QSFP ring; vLLM util ≤ 0.85.">Mode B</abbr> or C still up</td>
+<td><code>stop-glm53-flash</code> / <code>stop-dsv41-flash</code></td>
+<td>One of A/B/C</td>
+<td><code>status-stack</code></td>
+</tr>
+<tr>
+<td><code>start-glm53-flash</code> refuses</td>
+<td><abbr title="Daily 3-node mixed fleet (35B + Flash-Next + MedGemma) behind LiteLLM; vLLM util ≤ 0.82.">Mode A</abbr> or C</td>
+<td><code>stop-stack-rounded</code> or stop C</td>
+<td>Exclusive ring</td>
+<td><code>status-stack</code></td>
+</tr>
+<tr>
+<td>Visual start blocked</td>
+<td>Another <code>workload: visual</code></td>
+<td><code>stop-visual</code></td>
+<td>One Comfy <abbr title="Kubernetes workload that keeps a desired replica set running continuously.">Deployment</abbr></td>
+<td><code>status-visual</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="still-stuck">Still stuck<a class="headerlink" href="#still-stuck" title="Permanent link">¶</a></h2>
 <ol>
-<li>
-<p>Run the estimator and doctor (<abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>):
-   </p><div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>doctor
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>estimate<span class="w"> </span>kimi-test
-</span></code></pre></div><p></p>
-</li>
-<li>
-<p>Check labels and taints:
-   </p><div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span>--show-labels
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>kubectl<span class="w"> </span>describe<span class="w"> </span>node<span class="w"> </span>spark0<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s1">'Taints|Labels'</span>
-</span></code></pre></div><p></p>
-</li>
-<li>
-<p>Look at the workload yaml (example for kimi-test):
-   </p><div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># See k8s/workloads/kimi-test/kimi-test-job.yaml for the exact requests/limits</span>
-</span></code></pre></div><p></p>
-</li>
-<li>
-<p>If on multi-node: verify high-speed labeling happened during bootstrap.</p>
-</li>
+<li><code>bazelisk run //:manage -- doctor</code> output</li>
+<li><code>kubectl get nodes,pods -A</code></li>
+<li><a href="../operate/node-failure/">Node failure</a> if a worker is NotReady</li>
+<li>Do not raise vLLM util above the documented caps to “make it fit”</li>
 </ol>
-<p>See the <a href="../generated/shell/reference/">auto-generated reference</a> for the full <code>doctor</code> and <code>estimate</code> implementations (they are extracted directly from the script source comments).</p>
-<p>Common root causes and fixes:</p>
-<ul>
-<li>Not enough free GPUs after previous job (use <code>stop</code> + <code>cleanup</code>).</li>
-<li>Resource requests &gt; allocatable (reduce in the manifest or use a lighter model).</li>
-<li>Missing node labels (re-run the bootstrap or GPU operator play via the <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr> targets).</li>
-</ul>
-<p><strong>Verification after fix</strong>:
-</p><div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-test
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>ai-inference<span class="w"> </span>-w
-</span></code></pre></div><p></p>
-<p>See also the full <a href="../models-catalog/">Models &amp; Resources catalog</a> and the generated shell ref.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>kubectl<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span>--show-labels<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>highspeed
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>kubectl<span class="w"> </span>describe<span class="w"> </span>pod<span class="w"> </span>-n<span class="w"> </span>ai-inference<span class="w"> </span>-l<span class="w"> </span><span class="nv">workload</span><span class="o">=</span>inference<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-A<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="s2">"Node-Selectors\|Tolerations"</span>
-</span></code></pre></div>
-<p>Fix: the workload yamls expect certain labels applied by bootstrap + highspeed role.</p>
-<p>Re-apply labels:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>ansible-playbook<span class="w"> </span>-i<span class="w"> </span>...<span class="w"> </span>playbooks/bootstrap-cluster.yml<span class="w"> </span>--tags<span class="w"> </span>label
-</span></code></pre></div>
-<h3 id="nccl-not-using-the-400g-links"><abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> not using the 400G links<a class="headerlink" href="#nccl-not-using-the-400g-links" title="Permanent link">¶</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>kubectl<span class="w"> </span>logs<span class="w"> </span>-n<span class="w"> </span>ai-inference<span class="w"> </span>job/kimi<span class="w"> </span>-c<span class="w"> </span>inference<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>nccl<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-20
-</span></code></pre></div>
-<p>Look for <code>NCCL_SOCKET_IFNAME=enp1s0f0np0,enp1s0f1np1</code>.</p>
-<p>If falling back, verify the netplan highspeed config was applied and the interfaces are up on both nodes.</p>
-<h3 id="grafana-has-no-gpu-data">Grafana has no GPU data<a class="headerlink" href="#grafana-has-no-gpu-data" title="Permanent link">¶</a></h3>
-<p><abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> should install DCGM exporter by default.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>gpu-operator<span class="w"> </span>-l<span class="w"> </span><span class="nv">app</span><span class="o">=</span>nvidia-dcgm-exporter
-</span></code></pre></div>
-<p>If missing, re-run the <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> playbook.</p>
-<p>Node metrics (CPU, disk) appear after node-exporter is deployed (see dev-workspaces.md).</p>
-<h3 id="dashboard-wont-load-or-actions-do-nothing">Dashboard won't load or actions do nothing<a class="headerlink" href="#dashboard-wont-load-or-actions-do-nothing" title="Permanent link">¶</a></h3>
-<ol>
-<li>Image must be built and present:
-   <div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>lab-dashboard:local<span class="w"> </span>-f<span class="w"> </span>dashboard/Dockerfile<span class="w"> </span>.
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="c1"># then load into your cluster nodes or use imagePullPolicy: Never</span>
-</span></code></pre></div></li>
-<li>The <abbr title="Kubernetes workload that keeps a desired replica set running continuously.">Deployment</abbr> in <code>k8s/dev/dashboard/deployment.yaml</code> uses <code>lab-dashboard:local</code>.</li>
-<li>RBAC is read-only by design — mutations go through <code>manage.sh</code>.</li>
-</ol>
-<h3 id="estimate-says-unknown-gpus">estimate says "unknown" GPUs<a class="headerlink" href="#estimate-says-unknown-gpus" title="Permanent link">¶</a></h3>
-<p>The function uses <code>kubectl get nodes -o json</code> + allocatable math. Run on a machine with a working kubeconfig and jq.</p>
-<p>Inside a Coder workspace that has the cluster context it will work.</p>
-<h3 id="helm-timeouts-repo-issues-during-start-monitoring">Helm timeouts / repo issues during start-monitoring<a class="headerlink" href="#helm-timeouts-repo-issues-during-start-monitoring" title="Permanent link">¶</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>helm<span class="w"> </span>repo<span class="w"> </span>update
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>helm<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>grafana<span class="w"> </span>https://grafana.github.io/helm-charts<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
-</span></code></pre></div>
-<p>Network from control plane must reach the internet (or have an internal mirror).</p>
-<h2 id="still-stuck">Still Stuck?<a class="headerlink" href="#still-stuck" title="Permanent link">¶</a></h2>
-<ol>
-<li><code>./scripts/manage.sh doctor</code></li>
-<li><code>kubectl get events -n ai-inference --sort-by=.lastTimestamp | tail -30</code></li>
-<li>Check host <code>dmesg</code> and <code>nvidia-smi</code> on the nodes.</li>
-<li>Open an issue with the doctor output + relevant logs.</li>
-</ol>
-<p>See also:</p>
-<ul>
-<li><a href="../reboot-safety/">reboot-safety.md</a></li>
-<li><a href="../dgx-spark-notes/">dgx-spark-notes.md</a></li>
-<li><a href="../dev-workspaces/">dev-workspaces.md</a></li>
-</ul>
 <!--
   Project-wide glossary abbreviations (Material tooltips).
   Auto-appended to every page via pymdownx.snippets in mkdocs.yml.

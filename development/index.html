@@ -3,7 +3,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Practical, production-oriented lab for running large AI inference workloads on 1-4 NVIDIA DGX Spark nodes (scalable) with K3s and NVIDIA GPU Operator.">
+        <meta name="description" content="Practical K3s lab for large inference on 1-4 NVIDIA DGX Spark nodes — Resource Guard, no auto-start, Bazel-first operations.">
       
       
       
@@ -11,7 +11,7 @@
       
       
       
-        <link rel="next" href="getting-started/">
+        <link rel="next" href="start/">
       
       
         
@@ -269,33 +269,14 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="getting-started/" class="md-tabs__link">
-        
-  
-  
-    
-  
-  Getting Started
-
-      </a>
-    </li>
-  
-
-      
-        
-  
-  
-  
-  
     
     
       <li class="md-tabs__item">
-        <a href="dgx-spark-notes/" class="md-tabs__link">
+        <a href="start/" class="md-tabs__link">
           
   
   
-  Concepts &amp; Notes
+  Start
 
         </a>
       </li>
@@ -311,11 +292,31 @@
     
     
       <li class="md-tabs__item">
-        <a href="dev-environment/" class="md-tabs__link">
+        <a href="concepts/" class="md-tabs__link">
           
   
   
-  How-to Guides
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="operate/" class="md-tabs__link">
+          
+  
+  
+  Operate
 
         </a>
       </li>
@@ -336,6 +337,26 @@
   
   
   Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="contribute/" class="md-tabs__link">
+          
+  
+  
+  Contribute
 
         </a>
       </li>
@@ -461,10 +482,43 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#goals" class="md-nav__link">
+  <a href="#choose-a-path" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Goals
+        Choose a path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#default-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Default stack
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#safety-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Safety first
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation map
       
     </span>
   </a>
@@ -475,33 +529,6 @@
   
 </nav>
       
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="getting-started/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Getting Started
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -533,14 +560,14 @@
   
   
   
-    <a href="dgx-spark-notes/" class="md-nav__link">
+    <a href="start/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    Concepts &amp; Notes
+    Start
   
 
     
@@ -586,14 +613,67 @@
   
   
   
-    <a href="dev-environment/" class="md-nav__link">
+    <a href="concepts/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    How-to Guides
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="operate/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operate
   
 
     
@@ -665,6 +745,59 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="contribute/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contribute
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -692,10 +825,43 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#goals" class="md-nav__link">
+  <a href="#choose-a-path" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Goals
+        Choose a path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#default-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Default stack
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#safety-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Safety first
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation map
       
     </span>
   </a>
@@ -733,30 +899,144 @@
 <h1 id="nvidia-dgx-spark-lab">nvidia-dgx-spark-lab<a class="headerlink" href="#nvidia-dgx-spark-lab" title="Permanent link">¶</a></h1>
 <p><strong>What's on this page</strong></p>
 <ul>
-<li>Project goals and core safety principles</li>
-<li>Node role table (1-node vs 2-4 node configurations)</li>
-<li>Core components (<abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr>, <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr>, <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> + <abbr title="Early OS bootstrap configuration applied on first boot (network, packages, users).">cloud-init</abbr>, Helm vs raw manifests)</li>
-<li>High-speed interconnect and <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> configuration</li>
-<li>High-level repository layout</li>
-<li>Links to getting started and other sections</li>
+<li>What this lab is (and is not)</li>
+<li>Four starting paths: first cluster, run a model, operate safely, recover</li>
+<li>Default stack and the safety table that protects SSH</li>
+<li>Documentation map for Start / Concepts / Operate / Reference</li>
 </ul>
 <p><strong>What this enables</strong></p>
 <ul>
-<li>Quickly understanding the lab's scope (small 1-4 node DGX Spark clusters for large inference)</li>
-<li>Seeing the emphasis on stability, explicit resources, and no auto-start of heavy jobs</li>
-<li>Deciding where to go next (Getting Started guide is the primary entry point)</li>
+<li>Finding the right page in one screen instead of scrolling a dump</li>
+<li>Bringing up a 1–4 node DGX Spark <abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr> lab without auto-starting heavy jobs</li>
+<li>Knowing when to stay here versus using the Compose Comfy sibling</li>
 </ul>
-<h2 id="goals">Goals<a class="headerlink" href="#goals" title="Permanent link">¶</a></h2>
+<p>This is a <strong><abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr> lab</strong> for 1–4 <a href="https://docs.nvidia.com/dgx/dgx-spark/hardware.html">NVIDIA DGX Spark</a> nodes. Workloads are Kubernetes Jobs and Deployments with explicit resources. Nothing heavy starts on reboot.</p>
+<p>Single-node <strong>Compose</strong> <abbr title="Node-based UI for diffusion / visual generative AI workflows.">ComfyUI</abbr> lives in <a href="https://github.com/toxicoder/ez-comfy-stack">ez-comfy-stack</a>. Visual generative AI <strong>in this repo</strong> is <code>k8s/workloads/comfy-*</code> plus <code>scripts/lib/visual.sh</code> — see <a href="visual-generative-ai/">Visual generative AI</a>.</p>
+<hr>
+<h2 id="choose-a-path">Choose a path<a class="headerlink" href="#choose-a-path" title="Permanent link">¶</a></h2>
+<div class="grid cards">
 <ul>
-<li>Run very large models (e.g. Kimi-K2.6 and similar) reliably without freezing the host or making SSH unresponsive.</li>
-<li>Utilize the dual 400G high-speed interconnect between nodes.</li>
-<li>Provide both a heavy production configuration and a lighter/safer test mode.</li>
-<li>Never auto-start heavy containers on reboot.</li>
-<li>Everything managed through simple, auditable scripts and manifests.</li>
+<li>
+<p><strong>First cluster</strong></p>
+<hr>
+<p>Inventory → <abbr title="Early OS bootstrap configuration applied on first boot (network, packages, users).">cloud-init</abbr> → <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> bootstrap → <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr> → <code>doctor</code> → <code>kimi-test</code>.</p>
+<p><a href="getting-started/">Getting Started</a></p>
+</li>
+<li>
+<p><strong>Run a model</strong></p>
+<hr>
+<p>Pick kimi-test, a daily stack, exclusive <abbr title="Exclusive GLM-5.3-Flash TP=3 on the 3-node QSFP ring; vLLM util ≤ 0.85.">Mode B</abbr>/C, visual Comfy, or agents — after capacity checks.</p>
+<p><a href="start/profiles/">Profiles</a></p>
+</li>
+<li>
+<p><strong>Operate safely</strong></p>
+<hr>
+<p><abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> 15% / 24Gi, overlays, capacity math, reboot, secrets, dashboard.</p>
+<p><a href="resource-guard/"><abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr></a></p>
+</li>
+<li>
+<p><strong>Something broke</strong></p>
+<hr>
+<p><code>doctor</code> first. SSH hang, scheduler, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> iface, mode collision, Grafana, dashboard.</p>
+<p><a href="troubleshooting/">Troubleshooting</a></p>
+</li>
 </ul>
-<p>See the sections on the left (or top tabs) to get started.</p>
-<p><strong>Start here</strong>: the <a href="getting-started/">Getting Started</a> guide is now a hyper-detailed, end-to-end walkthrough with numbered steps, verification commands after each action, 1-node vs multi-node tabs, safety warnings, <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>-first examples, and direct integration of the auto-generated command reference (powered by <code>generate_shell_docs.py</code> from comments in <code>scripts/</code> — refreshed via <code>bazelisk run //docs:docs</code>).</p>
-<p>This documentation site is built with <a href="https://squidfunk.github.io/mkdocs-material/"><abbr title="Material for MkDocs theme powering search, tabs, and tooltips on this site.">Material</abbr> for <abbr title="Static site generator used for this documentation.">MkDocs</abbr></a>.</p>
+</div>
+<p>Contributors: <a href="contribute/">Contribute</a> · <a href="project-conventions/">Project conventions</a>. Topology (1 vs 2 vs 3 vs 4): <a href="start/choose-topology/">Choose topology</a>.</p>
+<hr>
+<h2 id="default-stack">Default stack<a class="headerlink" href="#default-stack" title="Permanent link">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Runtime</td>
+<td><abbr title="Lightweight certified Kubernetes distribution used as the lab control plane.">K3s</abbr> + NVIDIA <abbr title="NVIDIA operator that installs drivers, device plugin, and related GPU components.">GPU Operator</abbr></td>
+</tr>
+<tr>
+<td>First workload</td>
+<td><strong>kimi-test</strong> (<code>start-test</code>) — always before heavy Jobs</td>
+</tr>
+<tr>
+<td>Inference</td>
+<td>Jobs, <code>restartPolicy: OnFailure</code>, low <code>backoffLimit</code></td>
+</tr>
+<tr>
+<td>Capacity</td>
+<td><abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> — <code>config/resource-policy.yaml</code></td>
+</tr>
+<tr>
+<td>Headroom</td>
+<td><strong>max(24Gi, 15% of allocatable)</strong> per node</td>
+</tr>
+<tr>
+<td>GPU util</td>
+<td><abbr title="Daily 3-node mixed fleet (35B + Flash-Next + MedGemma) behind LiteLLM; vLLM util ≤ 0.82.">Mode A</abbr> vLLM ≤ 0.82; <abbr title="Exclusive GLM-5.3-Flash TP=3 on the 3-node QSFP ring; vLLM util ≤ 0.85.">Mode B</abbr> exclusive ≤ 0.85; <abbr title="Exclusive DeepSeek-V4.1-Flash TP=3 on the QSFP ring; SGLang mem-fraction-static ≤ 0.95.">Mode C</abbr> SGLang ≤ 0.95. Never ship vLLM 0.88/0.90</td>
+</tr>
+<tr>
+<td>Visual</td>
+<td>Manual <abbr title="Node-based UI for diffusion / visual generative AI workflows.">ComfyUI</abbr> Deployments, one at a time</td>
+</tr>
+<tr>
+<td>Docs</td>
+<td><abbr title="Static site generator used for this documentation.">MkDocs</abbr> <abbr title="Material for MkDocs theme powering search, tabs, and tooltips on this site.">Material</abbr>; <code>bazelisk run //docs:docs</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="safety-first">Safety first<a class="headerlink" href="#safety-first" title="Permanent link">¶</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Remote Spark rules</p>
+<p>These defaults protect SSH and the control plane on remotely managed GB10 nodes. Do not weaken them for demos.</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Guard</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>No auto-start</strong></td>
+<td>Heavy inference never returns after reboot</td>
+</tr>
+<tr>
+<td><strong>Heavy confirmation</strong></td>
+<td>Type <code>yes</code> or set <code>LAB_CONFIRM_TOKEN=yes</code></td>
+</tr>
+<tr>
+<td><strong>Headroom preflight</strong></td>
+<td><abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr> blocks starts when free GPU/CPU/RAM is too low</td>
+</tr>
+<tr>
+<td><strong>High-speed <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> only</strong></td>
+<td>Multi-node Jobs pin <code>NCCL_*</code> to the fabric — never copy 2-node pair env onto a 3-node <abbr title="3-node triangle of 200 Gb/s QSFP links — not the 2-node dual-400G pair.">QSFP ring</abbr></td>
+</tr>
+</tbody>
+</table>
+<pre class="mermaid"><code>flowchart LR
+  S1["OnFailure + low backoff"] --&gt; S2["type yes on heavy start"]
+  S2 --&gt; S3["15% / 24Gi headroom"]
+  S3 --&gt; S4["NCCL on high-speed only"]
+  S4 --&gt; Safe["SSH and K3s stay usable"]</code></pre>
+<p>Why those exist: <a href="learn/">Learn the lab</a> · <a href="reboot-safety/">Reboot safety</a> · <a href="resource-guard/"><abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr></a>.</p>
+<hr>
+<h2 id="documentation-map">Documentation map<a class="headerlink" href="#documentation-map" title="Permanent link">¶</a></h2>
+<pre class="mermaid"><code>flowchart TB
+  Home["Home"] --&gt; Start["Start · gold path, topology, profiles"]
+  Home --&gt; Concepts["Concepts · architecture, NCCL, Resource Guard"]
+  Start --&gt; GS["Getting Started"]
+  GS --&gt; Operate["Operate · catalogs, dashboard, runbooks"]
+  Operate --&gt; TS["Troubleshooting"]
+  Concepts --&gt; Operate
+  Home --&gt; Ref["Reference · conventions + generated CLI/API"]
+  Home --&gt; Contrib["Contribute · env, Bazel"]</code></pre>
+<p><strong>Start here:</strong> <a href="getting-started/">Getting Started</a> is the gold path (numbered steps, verify after every phase, 1-node vs multi-node tabs, <abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr>-first commands).</p>
+<p>This site is built with <a href="https://squidfunk.github.io/mkdocs-material/"><abbr title="Material for MkDocs theme powering search, tabs, and tooltips on this site.">Material</abbr> for <abbr title="Static site generator used for this documentation.">MkDocs</abbr></a>. Shell reference is generated from <code># ##</code> / <code># @command</code> comments via <code>bazelisk run //docs:docs</code>.</p>
 <!--
   Project-wide glossary abbreviations (Material tooltips).
   Auto-appended to every page via pymdownx.snippets in mkdocs.yml.

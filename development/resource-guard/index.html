@@ -3,15 +3,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
+        <meta name="description" content="Capacity gate, 15%/24Gi headroom floor, util matrix A/B/C, policy twins, and Kubernetes guardrails that keep SSH and the control plane responsive.">
+      
       
       
         <link rel="canonical" href="https://toxicoder.github.io/nvidia-dgx-spark-lab/development/resource-guard/">
       
       
-        <link rel="prev" href="../sso/">
+        <link rel="prev" href="../dgx-spark-notes/">
       
       
-        <link rel="next" href="../architecture/">
+        <link rel="next" href="../reboot-safety/">
       
       
         
@@ -267,17 +269,18 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="../getting-started/" class="md-tabs__link">
-        
-  
-  
     
+    
+      <li class="md-tabs__item">
+        <a href="../start/" class="md-tabs__link">
+          
   
-  Getting Started
+  
+  Start
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -291,11 +294,11 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../dgx-spark-notes/" class="md-tabs__link">
+        <a href="../concepts/" class="md-tabs__link">
           
   
   
-  Concepts &amp; Notes
+  Concepts
 
         </a>
       </li>
@@ -311,11 +314,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../dev-environment/" class="md-tabs__link">
+        <a href="../operate/" class="md-tabs__link">
           
   
   
-  How-to Guides
+  Operate
 
         </a>
       </li>
@@ -336,6 +339,26 @@
   
   
   Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../contribute/" class="md-tabs__link">
+          
+  
+  
+  Contribute
 
         </a>
       </li>
@@ -427,15 +450,35 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
+    
+    
+    
+    
+      
+      
         
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../start/" class="md-nav__link">
+      
   
   
   <span class="md-ellipsis">
     
   
-    Getting Started
+    Start
   
 
     
@@ -443,7 +486,13 @@
   
   
 
-      </a>
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
     </li>
   
 
@@ -485,7 +534,7 @@
   <span class="md-ellipsis">
     
   
-    Concepts &amp; Notes
+    Concepts
   
 
     
@@ -501,11 +550,95 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Concepts &amp; Notes
+    Concepts
   
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/interconnect-nccl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interconnect &amp; NCCL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -530,6 +663,175 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resource Guard
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resource Guard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#headroom-floor-24gi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Headroom floor (24Gi)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Headroom floor (24Gi)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#util-matrix-do-not-flatten" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Util matrix (do not flatten)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#occupancy-vs-guard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Occupancy vs Guard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#policy-customization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Policy customization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CLI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#safety-impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Safety impact
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -710,321 +1012,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../mcp-agent-toolkit/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    MCP Agent Toolkit
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../hermes-agent/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Hermes Agent (Docker)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../open-webui/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Open WebUI (Agent Chat)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sso/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    SSO (Traefik + Authelia)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Resource Guard
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Resource Guard
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
-      
-        <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Overview
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#headroom-floor-24gi" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Headroom floor (24Gi)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Headroom floor (24Gi)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#util-matrix-do-not-flatten" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Util matrix (do not flatten)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cli" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        CLI
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dashboard" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dashboard
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#safety-impact" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Safety impact
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Architecture
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../monitoring-observability/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Monitoring &amp; Observability
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../glossary/" class="md-nav__link">
         
   
@@ -1080,14 +1067,14 @@
   
   
   
-    <a href="../dev-environment/" class="md-nav__link">
+    <a href="../operate/" class="md-nav__link">
       
   
   
   <span class="md-ellipsis">
     
   
-    How-to Guides
+    Operate
   
 
     
@@ -1141,6 +1128,59 @@
     
   
     Reference
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../contribute/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contribute
   
 
     
@@ -1225,6 +1265,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#occupancy-vs-guard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Occupancy vs Guard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#policy-customization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Policy customization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#cli" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1300,10 +1362,10 @@
     
     
       <li class="md-path__item">
-        <a href="../dgx-spark-notes/" class="md-path__link">
+        <a href="../concepts/" class="md-path__link">
           
   <span class="md-ellipsis">
-    Concepts &amp; Notes
+    Concepts
   </span>
 
         </a>
@@ -1326,6 +1388,24 @@
 
 
 <h1 id="resource-guard"><abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr><a class="headerlink" href="#resource-guard" title="Permanent link">¶</a></h1>
+<blockquote>
+<p><strong>Interactive docs</strong>: Use the cluster variables panel below. Edit the values — every code example on this page (and other pages that include this panel) will update instantly and the Copy buttons will use the live values.</p>
+</blockquote>
+<div class="cluster-config admonition info" data-vars="SPARK0_IP,NAMESPACE,DASHBOARD_PORT">
+  <p><strong>Live cluster variables</strong> (edits propagate to all examples + copies on this page)</p>
+  <div>
+    <!-- Defaults must match the primary profile button (1-node / localhost). -->
+    <label>SPARK0_IP: <input data-var="SPARK0_IP" value="localhost" placeholder="spark0-ip"></label>
+    <label>NAMESPACE: <input data-var="NAMESPACE" value="ai-inference"></label>
+    <label>PORT example: <input data-var="DASHBOARD_PORT" value="32082"></label>
+  </div>
+  <div>
+    <button type="button" data-profile="1node" class="md-button md-button--primary">1-node / localhost profile</button>
+    <button type="button" data-profile="2node" class="md-button">2-node typical profile</button>
+    <small>(live updates + copy buttons respect current values)</small>
+  </div>
+</div>
+
 <p><strong>What's on this page</strong></p>
 <ul>
 <li>Service tiers (critical, management, optional dev, inference) and how they are protected</li>
@@ -1366,7 +1446,7 @@
 </tr>
 </tbody>
 </table>
-<p>The old 64Gi policy floor reserved ~192 GiB across three Sparks before any <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr>, so Mode A (~189 GiB) always failed and operators clicked through. That made the guard a paper tiger.</p>
+<p>The old 64Gi policy floor reserved ~192 GiB across three Sparks before any <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr>, so <abbr title="Daily 3-node mixed fleet (35B + Flash-Next + MedGemma) behind LiteLLM; vLLM util ≤ 0.82.">Mode A</abbr> (~189 GiB) always failed and operators clicked through. That made the guard a paper tiger.</p>
 <h3 id="util-matrix-do-not-flatten">Util matrix (do not flatten)<a class="headerlink" href="#util-matrix-do-not-flatten" title="Permanent link">¶</a></h3>
 <table>
 <thead>
@@ -1399,14 +1479,49 @@
 </tbody>
 </table>
 <p>Never ship vLLM <strong>0.88 / 0.90</strong>. Do not raise <code>llm_gpu_memory_utilization</code> in <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr>.</p>
-<h2 id="cli">CLI<a class="headerlink" href="#cli" title="Permanent link">¶</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>./scripts/manage.sh<span class="w"> </span>resources
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>./scripts/manage.sh<span class="w"> </span>resources<span class="w"> </span>check<span class="w"> </span>model:kimi<span class="w"> </span>--json
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>./scripts/manage.sh<span class="w"> </span>resources<span class="w"> </span>suggest<span class="w"> </span>model:kimi
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>./scripts/manage.sh<span class="w"> </span>resources<span class="w"> </span>apply-policy
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>./scripts/manage.sh<span class="w"> </span>doctor<span class="w">    </span><span class="c1"># includes capacity summary</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>./scripts/manage.sh<span class="w"> </span>estimate<span class="w"> </span>kimi-test
+<h2 id="occupancy-vs-guard">Occupancy vs Guard<a class="headerlink" href="#occupancy-vs-guard" title="Permanent link">¶</a></h2>
+<p><a href="https://github.com/toxicoder/ez-comfy-stack">ez-comfy-stack</a> <strong><abbr title="Compose &quot;is the studio up&quot; in ez-comfy-stack — not this lab's Resource Guard.">occupancy</abbr></strong> means “is the Compose project up.” This lab’s gate is <strong>Kubernetes requests</strong> versus allocatable minus <abbr title="Reserved free capacity Resource Guard keeps free so SSH and control plane stay responsive.">headroom</abbr>. <code>nvidia-smi</code> can look idle while requests already fill the node — <code>start-*</code> still blocks.</p>
+<h2 id="policy-customization">Policy customization<a class="headerlink" href="#policy-customization" title="Permanent link">¶</a></h2>
+<ol>
+<li>Edit <code>config/resource-policy.yaml</code> (human source of truth).</li>
+<li>Update the JSON twin <code>config/resource-policy.json</code>.</li>
+<li>Extend <code>tests/safety_invariants.sh</code> if you add models or stacks.</li>
+<li>Apply Kubernetes guardrails: <code>bazelisk run //:manage -- resources apply-policy</code>.</li>
+</ol>
+<p>Do not lower <code>memory_min_per_node</code> below 24Gi or <code>memory_percent</code> below 15 without measuring MemAvailable under load. Do not treat kubelet 64Gi+8Gi docs as a second Guard tax.</p>
+<p>Example — add a model that already has a workload directory:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">models</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">kimi-test</span><span class="p">:</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">gpus</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">32Gi</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">"8"</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">heavy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">job_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kimi-test</span>
 </span></code></pre></div>
+<p>Requests must match <code>k8s/workloads/&lt;id&gt;/</code>. Capacity math: <a href="../operate/capacity-planning/">Capacity planning</a>.</p>
+<h2 id="cli">CLI<a class="headerlink" href="#cli" title="Permanent link">¶</a></h2>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio"><input id="__tabbed_1_2" name="__tabbed_1" type="radio"><div class="tabbed-labels"><label for="__tabbed_1_1"><abbr title="Hermetic build and test system; this lab uses Bazelisk as the launcher.">Bazel</abbr></label><label for="__tabbed_1_2">Classic</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>resources
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>resources<span class="w"> </span>check<span class="w"> </span>model:kimi<span class="w"> </span>--json
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>resources<span class="w"> </span>suggest<span class="w"> </span>model:kimi
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>resources<span class="w"> </span>apply-policy
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>doctor
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>estimate<span class="w"> </span>kimi-test
+</span></code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>./scripts/manage.sh<span class="w"> </span>resources
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>./scripts/manage.sh<span class="w"> </span>resources<span class="w"> </span>check<span class="w"> </span>model:kimi<span class="w"> </span>--json
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>./scripts/manage.sh<span class="w"> </span>resources<span class="w"> </span>suggest<span class="w"> </span>model:kimi
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>./scripts/manage.sh<span class="w"> </span>resources<span class="w"> </span>apply-policy
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>./scripts/manage.sh<span class="w"> </span>doctor
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>./scripts/manage.sh<span class="w"> </span>estimate<span class="w"> </span>kimi-test
+</span></code></pre></div>
+</div>
+</div>
+</div>
 <h2 id="dashboard">Dashboard<a class="headerlink" href="#dashboard" title="Permanent link">¶</a></h2>
 <ul>
 <li><strong><abbr title="Lab capacity gate that blocks heavy starts when free GPU/CPU/memory headroom is too low.">Resource Guard</abbr></strong> panel — GPU/CPU/memory available vs allocatable (30s refresh)</li>
@@ -1421,7 +1536,7 @@
 <li>Inference <code>restartPolicy</code>, <code>backoffLimit</code>, and <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> settings are unchanged</li>
 </ul>
 <p>Apply guardrails after bootstrap:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>./scripts/manage.sh<span class="w"> </span>resources<span class="w"> </span>apply-policy
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>resources<span class="w"> </span>apply-policy
 </span></code></pre></div>
 <p>Reboot nodes after <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> kubelet reservation changes.</p>
 <!--
@@ -1435,6 +1550,9 @@
 
 
 
+
+  
+  
 
 
 
