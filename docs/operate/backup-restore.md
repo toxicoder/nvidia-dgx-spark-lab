@@ -1,0 +1,54 @@
+---
+title: Backup and restore
+description: What to copy off-cluster — inventory, group_vars, secrets, model cache, and the dashboard database.
+tags: [backup, secrets, operate, safety]
+---
+
+# Backup and restore
+
+**What's on this page**
+
+- What is configuration vs cache vs secret
+- Where dashboard SQLite and the vault master key live
+- Restore order that does not auto-start inference
+
+**What this enables**
+
+- Rebuilding a node without committing live inventory or keys
+- Not treating `/mnt/models` as optional if you care about download time
+
+--8<-- "docs/includes/cluster-config.md"
+
+!!! danger "Do not check backups into git"
+
+    Inventory IPs, kubeconfig, Authelia secrets, and `LAB_SECRETS_MASTER_KEY` stay in an operator secret store.
+
+## What to copy
+
+| Item | Path (typical) | Notes |
+| --- | --- | --- |
+| Inventory | `ansible/inventory/hosts.ini` | Never committed; start from `.example` |
+| Group vars overrides | host_vars / extra-vars | `group_vars/all.yml` in git is reference |
+| Policy | `config/resource-policy.yaml` + `.json` | Already in git if unchanged |
+| Domains / SSO policy | `config/lab-domains.yaml`, `config/sso-policy.yaml` | Twins where they exist |
+| Dashboard DB | `dashboard/data/lab-dashboard.db` or pod `/data/lab-dashboard.db` | Vault ciphertext lives here |
+| Dashboard master key | K8s Secret `lab-dashboard-secrets` in `dev` | `secrets ensure-key` creates; backup the Secret YAML **privately** |
+| Model weights | hostPath `/mnt/models` | Large; rsync between Sparks if needed |
+| Comfy state | PVC `comfy-state` | Visual install + custom_nodes + outputs |
+| Hermes | `hermes/data/` (gitignored) | Includes `.env` |
+
+## Restore order
+
+1. OS + cloud-init + `bazelisk run //ansible:bootstrap` + GPU Operator + `verify`
+2. Restore `/mnt/models` (or re-download with documented utilities)
+3. Restore dashboard Secret then DB; `bazelisk run //:manage -- secrets status`
+4. `bazelisk run //:manage -- resources apply-policy`
+5. **Do not** auto-start Jobs. Run `doctor` then `start-test`.
+
+## Verify
+
+```bash
+bazelisk run //:manage -- doctor
+bazelisk run //:manage -- secrets status
+ls /mnt/models | head
+```

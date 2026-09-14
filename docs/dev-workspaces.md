@@ -6,6 +6,8 @@ tags: [coder, kasm, dashboard, devcontainer, helm]
 
 # Remote Developer Workspaces & Dashboard
 
+--8<-- "docs/includes/cluster-config.md"
+
 **What's on this page**
 
 - Coder, Kasm, and the custom Spark Lab Dashboard (Headlamp + Grafana + Next.js portal)
@@ -36,6 +38,20 @@ Goal: remotely connect via browser and have everything needed to work on the lab
   Plus links to Grafana/Headlamp and legacy inference controls.
 
 All use explicit resource requests/limits. Dev management components use Deployments (restartPolicy handled by controller). Inference remains strict Jobs.
+
+## User journeys (Coder vs Kasm)
+
+Install is Ansible (`install-dev-workspaces.yml`) / `start-coder` / `start-kasm`. Daily use is different:
+
+| | Coder | Kasm |
+| --- | --- | --- |
+| **You want** | VS Code in the browser, clone this repo, `bazelisk run //:validate` | A full desktop or isolated app stream |
+| **Where it runs** | Workspace pods in `coder-workspaces` | Kasm session containers |
+| **How you open it** | Dashboard Workspaces panel or `https://coder.lab.local:32443` / NodePort 32080 | Kasm port 32081 / SSO hostname |
+| **Capacity** | `optional_dev` tier — stop these first when Resource Guard blocks inference | Same — `stop-kasm` frees RAM |
+| **Not for** | Serving kimi | Serving kimi |
+
+Dashboard panels (capacity, inference, storage, secrets): [Dashboard](operate/dashboard.md). This page keeps install + ports.
 
 ## Prerequisites & Exposure
 

@@ -38,7 +38,7 @@ if [[ ! -f docs/requirements.txt ]]; then
   if [[ $QUIET != "true" ]]; then echo "Creating docs/requirements.txt..."; fi
   cat >docs/requirements.txt <<'EOF'
 mkdocs==1.6.1
-mkdocs-material==9.7.6
+mkdocs-material==9.7.7
 mkdocs-glightbox==0.5.2
 # Pin Playwright for reproducible visual goldens across local/CI Chromium builds.
 playwright==1.61.0
@@ -50,7 +50,7 @@ elif [[ $QUIET != "true" ]]; then
 fi
 
 # @function docs_venv_is_usable
-# Return 0 if VENV_DIR has a working python that can run under this OS.
+# Return 0 if VENV_DIR has a working python (and pip) that can run under this OS.
 docs_venv_is_usable() {
   local venv="${1:-}"
   local py=""
@@ -66,6 +66,10 @@ docs_venv_is_usable() {
   fi
   # Broken host bind-mounts: symlink exists but target is missing / wrong OS.
   if ! "${py}" -c 'import sys' >/dev/null 2>&1; then
+    return 1
+  fi
+  # A python that cannot run pip cannot install docs requirements.
+  if ! "${py}" -m pip --version >/dev/null 2>&1; then
     return 1
   fi
   return 0

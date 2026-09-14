@@ -4,6 +4,8 @@ Guidelines for AI coding agents working in the `nvidia-dgx-spark-lab` repository
 
 **Shared conventions** (naming, patterns, formatting, safety, testing, change discipline) live in [docs/project-conventions.md](docs/project-conventions.md). Read that document first. This file covers **AI-agent workflow** only.
 
+Operator docs (MkDocs): Start / Concepts / Operate / Reference / Contribute — begin at [docs/index.md](docs/index.md) and [docs/getting-started.md](docs/getting-started.md). Single-node Compose Comfy is **not** this repo; point learners at [ez-comfy-stack](https://github.com/toxicoder/ez-comfy-stack). Visual here stays `k8s/workloads/comfy-*` + `scripts/lib/visual.sh`.
+
 Subdirectory addenda extend the conventions doc:
 
 - [dashboard/AGENTS.md](dashboard/AGENTS.md) — Next.js dashboard specifics

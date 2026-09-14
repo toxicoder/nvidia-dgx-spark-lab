@@ -9,6 +9,7 @@ interface that works everywhere (including without Bazel installed).
 Usage:
   bazel run //docs:serve
   bazel run //docs:docs   # builds the site
+  bazel run //docs:preview  # strict build + static serve
   bazel run //docs:status
   bazel run //docs:visual-update   # approve visual changes to site (see test_mkdocs_render)
 
@@ -18,48 +19,71 @@ See .bazelignore for generated output exclusions (site/, .venv-docs/).
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
+# Keep in sync with mkdocs.yml nav (enforced by //tests:doc_coverage).
+# Subdir pages must be listed by path so runfiles and the coverage gate both see them.
+_HAND_WRITTEN_MD = [
+    "BUILDING_WITH_BAZEL.md",
+    "CONTRIBUTING.md",
+    "architecture.md",
+    "concepts/index.md",
+    "concepts/interconnect-nccl.md",
+    "contribute/index.md",
+    "dev-environment.md",
+    "dev-workspaces.md",
+    "dgx-spark-notes.md",
+    "getting-started.md",
+    "gitea-ci-setup.md",
+    "glossary.md",
+    "hermes-agent.md",
+    "index.md",
+    "learn/index.md",
+    "litellm-rounded-stack.md",
+    "mcp-agent-toolkit.md",
+    "models-catalog.md",
+    "monitoring-observability.md",
+    "nemotron-agentic-stack.md",
+    "open-webui.md",
+    "operate/ansible-catalog.md",
+    "operate/backup-restore.md",
+    "operate/capacity-planning.md",
+    "operate/dashboard.md",
+    "operate/index.md",
+    "operate/node-failure.md",
+    "operate/overlays.md",
+    "operate/patch-and-reboot.md",
+    "operate/secrets.md",
+    "operate/workload-catalog.md",
+    "project-conventions.md",
+    "qwen36-dual-stack.md",
+    "reboot-safety.md",
+    "resource-guard.md",
+    "sso.md",
+    "start/choose-topology.md",
+    "start/index.md",
+    "start/profiles.md",
+    "troubleshooting.md",
+    "visual-generative-ai.md",
+]
+
+_DOCS_COMMON_DATA = [
+    "assets",
+    "generate_shell_docs.py",
+    "generated",
+    "hooks.py",
+    "includes",
+    "requirements.txt",
+    "setup-docs.sh",
+    "//:mkdocs.yml",
+    # Script sources that feed the code generators (so Bazel correctly
+    # invalidates docs targets when structured comments or sources change).
+    "//scripts:doc_sources",
+] + _HAND_WRITTEN_MD
+
 sh_binary(
     name = "serve",
     srcs = ["manage-docs.sh"],
     args = ["serve"],
-    data = [
-        "BUILDING_WITH_BAZEL.md",
-        "CONTRIBUTING.md",
-        "architecture.md",
-        "assets",
-        "models-catalog.md",
-        "nemotron-agentic-stack.md",
-        "monitoring-observability.md",
-        "qwen36-dual-stack.md",
-        "litellm-rounded-stack.md",
-        "resource-guard.md",
-        "troubleshooting.md",
-        "dev-environment.md",
-        "dev-workspaces.md",
-        "dgx-spark-notes.md",
-        "getting-started.md",
-        "gitea-ci-setup.md",
-        "generate_shell_docs.py",
-        "glossary.md",
-        "hermes-agent.md",
-        "hooks.py",
-        "includes",
-        "index.md",
-        "mcp-agent-toolkit.md",
-        "open-webui.md",
-        "project-conventions.md",
-        "reboot-safety.md",
-        "requirements.txt",
-        "setup-docs.sh",
-        "sso.md",
-        "visual-generative-ai.md",
-        "//:mkdocs.yml",
-        # Script sources that feed the code generators (so Bazel correctly
-        # invalidates docs targets when structured comments or sources change).
-        "//scripts:doc_sources",
-        # Generated content (populated at execution time by generate_code_docs)
-        "generated",
-    ],
+    data = _DOCS_COMMON_DATA,
     visibility = ["//visibility:public"],
 )
 
@@ -67,41 +91,15 @@ sh_binary(
     name = "docs",
     srcs = ["manage-docs.sh"],
     args = ["build"],
-    data = [
-        "BUILDING_WITH_BAZEL.md",
-        "CONTRIBUTING.md",
-        "architecture.md",
-        "assets",
-        "dev-environment.md",
-        "dev-workspaces.md",
-        "dgx-spark-notes.md",
-        "generate_shell_docs.py",
-        "generated",
-        "getting-started.md",
-        "gitea-ci-setup.md",
-        "glossary.md",
-        "hermes-agent.md",
-        "hooks.py",
-        "includes",
-        "index.md",
-        "litellm-rounded-stack.md",
-        "mcp-agent-toolkit.md",
-        "models-catalog.md",
-        "monitoring-observability.md",
-        "nemotron-agentic-stack.md",
-        "open-webui.md",
-        "project-conventions.md",
-        "qwen36-dual-stack.md",
-        "reboot-safety.md",
-        "requirements.txt",
-        "resource-guard.md",
-        "setup-docs.sh",
-        "sso.md",
-        "troubleshooting.md",
-        "visual-generative-ai.md",
-        "//:mkdocs.yml",
-        "//scripts:doc_sources",
-    ],
+    data = _DOCS_COMMON_DATA,
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "preview",
+    srcs = ["manage-docs.sh"],
+    args = ["preview"],
+    data = _DOCS_COMMON_DATA,
     visibility = ["//visibility:public"],
 )
 
@@ -153,6 +151,7 @@ sh_test(
         "assets",
         "getting-started.md",
         "hooks.py",
+        "includes",
         "requirements.txt",
         "test_command_vars.py",
         "test_command_vars.sh",
@@ -173,45 +172,13 @@ _RENDER_GENERATED = glob(
 )
 
 _RENDER_TEST_DATA = [
-    "BUILDING_WITH_BAZEL.md",
-    "CONTRIBUTING.md",
-    "architecture.md",
-    "assets",
-    "dev-environment.md",
-    "dev-workspaces.md",
-    "dgx-spark-notes.md",
-    "generate_shell_docs.py",
-    "getting-started.md",
-    "gitea-ci-setup.md",
-    "glossary.md",
-    "hermes-agent.md",
-    "hooks.py",
-    "includes",
-    "index.md",
     "manage-docs.sh",
-    "mcp-agent-toolkit.md",
-    "models-catalog.md",
-    "monitoring-observability.md",
-    "nemotron-agentic-stack.md",
-    "open-webui.md",
-    "project-conventions.md",
-    "qwen36-dual-stack.md",
-    "litellm-rounded-stack.md",
-    "reboot-safety.md",
-    "requirements.txt",
-    "resource-guard.md",
-    "setup-docs.sh",
-    "sso.md",
     "test_mkdocs_render.py",
     "test_mkdocs_render.sh",
     "tests",
     "tests/visual",
     "tests/visual/goldens",
-    "troubleshooting.md",
-    "visual-generative-ai.md",
-    "//:mkdocs.yml",
-    "//scripts:doc_sources",
-] + _RENDER_GENERATED
+] + _DOCS_COMMON_DATA + _RENDER_GENERATED
 
 # Render test: actually runs mkdocs build (the server-side render of the
 # full site) and then inspects the produced HTML + source for elements

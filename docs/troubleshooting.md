@@ -1,6 +1,6 @@
 ---
 title: Troubleshooting
-description: First-stop diagnosis flow, common problems (SSH, resources, NCCL, Grafana, dashboard), fixes, doctor/estimate commands, and verification for the DGX Spark lab.
+description: Decision tree and symptom → cause → action → prevention → verify tables for SSH, scheduler, NCCL, Grafana, dashboard, and mode collisions.
 tags: [troubleshooting, safety, bazel, kubernetes, nvidia]
 ---
 
@@ -8,171 +8,97 @@ tags: [troubleshooting, safety, bazel, kubernetes, nvidia]
 
 **What's on this page**
 
-- Quick diagnosis Mermaid flow and initial Bazel doctor + estimate commands
-- Common problems & fixes: unresponsive SSH, scheduler "no resources", NCCL 400G, Grafana, dashboard, Helm, estimate "unknown"
-- Verification steps, kubectl checks, and links to related safety docs
-- Prevention guidance and still-stuck escalation
+- Top-level decision tree
+- Symptom tables (SSH, capacity, NCCL, Grafana, dashboard, modes, visual)
+- `doctor` / `estimate` as the first commands
 
 **What this enables**
 
-- Rapid, safe first-stop resolution of cluster and workload issues
-- Using Bazel-primary commands and documented prevention steps consistently
-- Maintaining host stability when diagnosing large inference problems
+- Recovering a remote Spark without guessing
+- Preventing the same hang on the next start
 
-This page is the first stop when something goes wrong.
+--8<-- "docs/includes/cluster-config.md"
 
-## Quick Diagnosis Flow
+!!! tip "Try this first"
+
+    ```bash
+    bazelisk run //:manage -- doctor
+    bazelisk run //:manage -- estimate kimi-test
+    ```
+
+    Classic: `./scripts/manage.sh doctor`. Many rows below are hard failures doctor already reports.
+
+## Decision tree
 
 ```mermaid
 flowchart TD
-    A[Problem] --> B{SSH unresponsive?}
-    B -->|Yes| C[STOP workloads immediately<br/>./scripts/manage.sh stop]
-    B -->|No| D[Run doctor]
-    C --> E[Hard power reset only if necessary]
-    D --> F{Issue type?}
-    F -->|OOM / memory| G[Lower gpu-memory-utilization<br/>or request more mem]
-    F -->|NCCL slow| H[Verify highspeed interfaces<br/>check logs for enp1s0f0np0]
-    F -->|Helm / start fails| I[Check free GPUs with estimate<br/>doctor]
-    F -->|Dashboard blank| J[Rebuild image<br/>kubectl describe pod]
+    P[Problem] --> SSH{SSH unresponsive?}
+    SSH -->|Yes| Stop["STOP: manage.sh stop from OOB"]
+    Stop --> Power[Hard power only if still dead]
+    SSH -->|No| Doc[Run doctor]
+    Doc --> Kind{Issue type?}
+    Kind -->|OOM / capacity| Cap[Headroom / util / stop lighter]
+    Kind -->|NCCL slow or hang| Fabric[IFNAME vs pair vs ring]
+    Kind -->|Start refused| Gate[estimate + resources suggest]
+    Kind -->|Grafana empty| DCGM[dcgm-exporter + start-monitoring]
+    Kind -->|Dashboard blank| Img[image + auth + docker.sock]
+    Kind -->|Mode collision| Modes[stop A or B or C then one mode]
 ```
 
-Always run this first (Bazel primary):
+Generated flags: [Shell reference](generated/shell/reference.md).
 
-```bash
-bazelisk run //:manage -- doctor
-bazelisk run //:manage -- estimate kimi-test
-```
+## SSH unresponsive
 
-> The full command reference (including every flag for `doctor`, `estimate`, `start-*`, etc.) is **auto-generated** from structured comments in the scripts. See [Shell Commands & Helpers](generated/shell/reference.md). Refresh with `bazelisk run //docs:docs` after editing comments.
+| Symptom | Likely cause | Action | Prevention | Verify |
+| --- | --- | --- | --- | --- |
+| SSH hangs, node otherwise powered | Inference consumed unified memory | OOB console: `./scripts/manage.sh stop` or `kubectl delete job --all -n {{NAMESPACE}}` | `start-test` first; Guard 15%/24Gi; util caps | SSH works; `kubectl get pods -n {{NAMESPACE}}` empty |
+| Still dead after stop | Kernel OOM / GPU driver wedged | BMC power cycle **after** accepting Jobs are gone | Never reboot *with* Jobs still scheduled | `doctor` after boot |
 
-## Common Problems & Fixes
+!!! danger "Do not start another heavy Job to “test” a hung node"
 
-### SSH becomes completely unresponsive
+## Scheduler / no resources
 
-**Cause**: Heavy inference job consumed host memory / CPU.
+| Symptom | Likely cause | Action | Prevention | Verify |
+| --- | --- | --- | --- | --- |
+| Pod Pending Insufficient nvidia.com/gpu | Previous Job still allocated | `stop` + `cleanup` of leftover Jobs | One heavy profile at a time | `kubectl describe pod` |
+| Pending memory | Requests > allocatable − headroom | `resources suggest`; lighter overlay | Policy matches manifests | `estimate <model>` |
+| Pending on 1-node with TP=2 | Overlay still 2 GPU | `k8s/overlays/single-node` | [Overlays](operate/overlays.md) | `kubectl kustomize` |
+| `estimate` unknown GPUs | Broken kubeconfig / no jq | Run doctor on a host with cluster access | Keep fetched kubeconfig | doctor GPU lines |
 
-**Immediate action**:
-```bash
-# From any machine that can reach the node (IPMI/iDRAC console is best)
-./scripts/manage.sh stop
-# or on the node console
-kubectl delete job --all -n ai-inference --ignore-not-found
-```
+## NCCL / fabric
 
-**Prevention**:
+| Symptom | Likely cause | Action | Prevention | Verify |
+| --- | --- | --- | --- | --- |
+| All-reduce on 10GbE | Wrong `NCCL_SOCKET_IFNAME` | Stop Job; fix env from `ibdev2netdev` | Pair env only on pair Jobs | logs `grep -i nccl` |
+| Mode B/C hang | Pair env copied onto ring | Use ring block in glm-5.3 / deepseek Jobs | [Interconnect](concepts/interconnect-nccl.md) | `doctor-fabric` |
+| Half-alive ring | QSFP polarity | Recable Port0→Port1 triangle | Label cages | `ibdev2netdev` + ping |
 
-- Always use `start-test` first.
-- Never exceed the documented `gpu-memory-utilization`.
-- Monitor with `./scripts/manage.sh status` + Grafana.
+## Grafana / DCGM
 
-### "No resources" or scheduler won't place pod
+| Symptom | Likely cause | Action | Prevention | Verify |
+| --- | --- | --- | --- | --- |
+| No GPU panels | dcgm-exporter missing | Re-run GPU Operator; `start-monitoring` | Wait for gpu-operator Ready | `kubectl get pods -n gpu-operator -l app=nvidia-dcgm-exporter` |
+| Node CPU empty | node-exporter not installed | `install-dev-workspaces` / `start-monitoring` | [Monitoring](monitoring-observability.md) | Grafana Explore |
 
-**Hyper-detailed diagnosis steps**:
+## Dashboard
 
-1. Run the estimator and doctor (Bazel):
-   ```bash
-   bazelisk run //:manage -- doctor
-   bazelisk run //:manage -- estimate kimi-test
-   ```
+| Symptom | Likely cause | Action | Prevention | Verify |
+| --- | --- | --- | --- | --- |
+| Blank page | Image `lab-dashboard:local` missing | Build `dashboard/Dockerfile`; `imagePullPolicy: IfNotPresent` | Helm values | `kubectl describe pod -n dev` |
+| Actions no-op | Session / RBAC | Log in; mutations are server actions | Do not `AUTH_BYPASS` | Network tab 401 |
+| Tasks cannot see Docker | docker.sock not mounted | Check dashboard Deployment | Understand blast radius | [Dashboard](operate/dashboard.md) |
 
-2. Check labels and taints:
-   ```bash
-   kubectl get nodes --show-labels
-   kubectl describe node spark0 | grep -E 'Taints|Labels'
-   ```
+## Mode collision / visual
 
-3. Look at the workload yaml (example for kimi-test):
-   ```bash
-   # See k8s/workloads/kimi-test/kimi-test-job.yaml for the exact requests/limits
-   ```
+| Symptom | Likely cause | Action | Prevention | Verify |
+| --- | --- | --- | --- | --- |
+| `start-stack-rounded` refuses | Mode B or C still up | `stop-glm53-flash` / `stop-dsv41-flash` | One of A/B/C | `status-stack` |
+| `start-glm53-flash` refuses | Mode A or C | `stop-stack-rounded` or stop C | Exclusive ring | `status-stack` |
+| Visual start blocked | Another `workload: visual` | `stop-visual` | One Comfy Deployment | `status-visual` |
 
-4. If on multi-node: verify high-speed labeling happened during bootstrap.
+## Still stuck
 
-See the [auto-generated reference](generated/shell/reference.md) for the full `doctor` and `estimate` implementations (they are extracted directly from the script source comments).
-
-Common root causes and fixes:
-
-- Not enough free GPUs after previous job (use `stop` + `cleanup`).
-- Resource requests > allocatable (reduce in the manifest or use a lighter model).
-- Missing node labels (re-run the bootstrap or GPU operator play via the Bazel targets).
-
-**Verification after fix**:
-```bash
-bazelisk run //:manage -- start-test
-kubectl get pods -n ai-inference -w
-```
-
-See also the full [Models & Resources catalog](models-catalog.md) and the generated shell ref.
-
-```bash
-kubectl get nodes --show-labels | grep highspeed
-kubectl describe pod -n ai-inference -l workload=inference | grep -A 20 "Node-Selectors\|Tolerations"
-```
-
-Fix: the workload yamls expect certain labels applied by bootstrap + highspeed role.
-
-Re-apply labels:
-
-```bash
-ansible-playbook -i ... playbooks/bootstrap-cluster.yml --tags label
-```
-
-### NCCL not using the 400G links
-
-```bash
-kubectl logs -n ai-inference job/kimi -c inference | grep -i nccl | head -20
-```
-
-Look for `NCCL_SOCKET_IFNAME=enp1s0f0np0,enp1s0f1np1`.
-
-If falling back, verify the netplan highspeed config was applied and the interfaces are up on both nodes.
-
-### Grafana has no GPU data
-
-GPU Operator should install DCGM exporter by default.
-
-```bash
-kubectl get pods -n gpu-operator -l app=nvidia-dcgm-exporter
-```
-
-If missing, re-run the GPU Operator playbook.
-
-Node metrics (CPU, disk) appear after node-exporter is deployed (see dev-workspaces.md).
-
-### Dashboard won't load or actions do nothing
-
-1. Image must be built and present:
-   ```bash
-   docker build -t lab-dashboard:local -f dashboard/Dockerfile .
-   # then load into your cluster nodes or use imagePullPolicy: Never
-   ```
-2. The Deployment in `k8s/dev/dashboard/deployment.yaml` uses `lab-dashboard:local`.
-3. RBAC is read-only by design — mutations go through `manage.sh`.
-
-### estimate says "unknown" GPUs
-
-The function uses `kubectl get nodes -o json` + allocatable math. Run on a machine with a working kubeconfig and jq.
-
-Inside a Coder workspace that has the cluster context it will work.
-
-### Helm timeouts / repo issues during start-monitoring
-
-```bash
-helm repo update
-helm repo add grafana https://grafana.github.io/helm-charts || true
-```
-
-Network from control plane must reach the internet (or have an internal mirror).
-
-## Still Stuck?
-
-1. `./scripts/manage.sh doctor`
-2. `kubectl get events -n ai-inference --sort-by=.lastTimestamp | tail -30`
-3. Check host `dmesg` and `nvidia-smi` on the nodes.
-4. Open an issue with the doctor output + relevant logs.
-
-See also:
-
-- [reboot-safety.md](reboot-safety.md)
-- [dgx-spark-notes.md](dgx-spark-notes.md)
-- [dev-workspaces.md](dev-workspaces.md)
+1. `bazelisk run //:manage -- doctor` output
+2. `kubectl get nodes,pods -A`
+3. [Node failure](operate/node-failure.md) if a worker is NotReady
+4. Do not raise vLLM util above the documented caps to “make it fit”

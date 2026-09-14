@@ -1,42 +1,53 @@
 ---
 title: Architecture Overview
-description: High-level cluster layout, bootstrap flow, workload lifecycle, dashboard data paths, and safety invariants for the DGX Spark lab.
+description: Ansible and cloud-init through K3s, GPU Operator, Resource Guard, manage.sh, Jobs, dashboard, LiteLLM, visual Comfy, and agent stacks.
+tags: [architecture, k3s, kubernetes, safety, bazel]
 ---
 
 # Architecture Overview
 
 **What's on this page**
 
-- High-level cluster diagram (1-4 nodes with control-plane + workers + dual 400G links)
-- Bootstrap flow (workstation → Ansible → K3s + GPU Operator)
-- Safe workload lifecycle (manage.sh prompts → Job apply → OnFailure + low backoff)
-- Dashboard data flow (Next.js → docker.sock / kubectl / ollama / fs)
-- Enforced safety invariants (explicit resources, no Always restart for heavy jobs, NCCL only on high-speed)
+- End-to-end pipeline from first boot to a serving Job
+- 1 / 2 / 3 / 4 node roles and overlay matrix
+- Dashboard host-action path and docker.sock
+- Cross-stack map: Open WebUI, Hermes, MCP, SSO, Nemotron, LiteLLM
+- Enforced safety invariants
 
 **What this enables**
 
-- Understanding the "why" behind design choices for host stability and performance
-- Safe extension or debugging of the system while preserving core guarantees
-- Quick mental model before editing playbooks, manifests, or scripts
+- Extending playbooks or manifests without breaking host stability
+- Seeing why visual Comfy here is K3s, not Compose
 
-## High-Level Cluster
+## Pipeline
 
 ```mermaid
 flowchart TD
-    subgraph Control Plane
-        spark0[spark0<br/>control-plane + worker]
-    end
-    subgraph Workers
-        spark1[spark1<br/>worker]
-        sparkN[sparkN<br/>worker]
-    end
-    spark0 <-->|Dual 400G<br/>highspeed| spark1
-    spark0 <-->|Dual 400G| sparkN
-
-    style spark0 fill:#166534,color:#fff
+  CI[cloud-init / Ansible] --> K3s[K3s server on spark0]
+  K3s --> GPU[GPU Operator + DCGM]
+  GPU --> RG[Resource Guard policy]
+  RG --> MG[manage.sh / dashboard]
+  MG --> Jobs[Jobs and Deployments]
+  Jobs --> LLM[vLLM / SGLang / llama.cpp]
+  Jobs --> Vis[ComfyUI visual]
+  MG --> Dash[Next.js dashboard]
+  Dash --> Host[docker.sock / kubectl / /mnt/models]
+  LLM --> Lite[LiteLLM + Open WebUI]
+  MG --> Agents[Hermes Docker + MCP]
 ```
 
-## Bootstrap Flow
+## Node roles
+
+| Nodes | spark0 | Others | Fabric |
+| --- | --- | --- | --- |
+| 1 | control-plane + worker | — | local NCCL only |
+| 2 | control-plane + worker | spark1 worker | dual QSFP ~400G pair |
+| 3 | control-plane + worker | spark1–2 | QSFP **ring** 200 Gb/s/pair |
+| 4 | control-plane + worker | spark1–3 | TP=4 Jobs; do not copy pair env |
+
+Details: [Choose topology](start/choose-topology.md) · [Interconnect & NCCL](concepts/interconnect-nccl.md).
+
+## Bootstrap flow
 
 ```mermaid
 sequenceDiagram
@@ -44,47 +55,112 @@ sequenceDiagram
     participant Ansible
     participant Nodes
     participant K3s
-    participant GPU-Op
+    participant GPUOp as GPU Operator
 
-    WS->>Ansible: ansible-playbook bootstrap-cluster.yml
-    Ansible->>Nodes: install K3s + labels + highspeed netplan
-    Nodes-->>K3s: server + agents ready
-    WS->>Ansible: install-gpu-operator.yml
-    Ansible->>GPU-Op: helm install
-    GPU-Op-->>Nodes: drivers + device plugin + DCGM
+    WS->>Ansible: bazelisk run //ansible:bootstrap
+    Ansible->>Nodes: k3s_common + highspeed netplan + labels
+    Nodes-->>K3s: server + agents Ready
+    WS->>Ansible: //ansible:gpu-operator
+    Ansible->>GPUOp: helm install
+    GPUOp-->>Nodes: drivers + device plugin + DCGM
+    WS->>Ansible: //ansible:verify
 ```
 
-## Workload Lifecycle (Safe by Design)
+Playbooks: [Ansible catalog](operate/ansible-catalog.md). cloud-init templates: `ansible/cloud-init/example-user-data-1node.yaml` and `2node.yaml`.
+
+## Overlay matrix
+
+| Overlay | Points at | Role |
+| --- | --- | --- |
+| `k8s/overlays/test` | kimi-test + lighter patch | First validation |
+| `k8s/overlays/prod` | kimi (no patches) | Production kimi entry |
+| `k8s/overlays/single-node` | kimi-test TP=1 GPU=1 | One host |
+| `k8s/overlays/rounded-stack` | 35B + Flash-Next + MedGemma + LiteLLM | Mode A |
+| `k8s/overlays/rounded-stack-quality` | 27B on spark2 instead of MedGemma | Mode A `--quality` |
+
+[Overlays](operate/overlays.md).
+
+## Workload lifecycle
 
 ```mermaid
 flowchart LR
-    A[manage.sh start-xxx] -->|free GPU check + prompt| B[kubectl apply Job]
-    B --> C[restartPolicy: OnFailure<br/>backoffLimit: 1]
-    C --> D[Pod scheduled with<br/>NCCL + affinity]
-    D --> E[Inference serving<br/>or Ray cluster]
-    F[manage.sh stop] --> G[delete jobs]
-    H[Reboot] --> I[You must explicitly<br/>start again]
+    A["manage.sh start-xxx"] -->|capacity + confirm| B[kubectl apply Job]
+    B --> C["OnFailure + low backoff"]
+    C --> D[Pod + NCCL + affinity]
+    D --> E[Serve or Ray]
+    F[stop] --> G[delete jobs]
+    H[Reboot] --> I[Must start again]
 ```
 
-## Dashboard Data Flow
+Visual Comfy uses **Deployments** but still **manual start**, one at a time, Resource Guard + heavy confirm.
+
+## Dashboard data flow
 
 ```mermaid
 flowchart TD
-    UI[Next.js UI] -->|Server Actions| Host[Host exec<br/>via mounted docker.sock + /mnt/models]
-    Host --> Docker[Docker ps]
-    Host --> Ollama[Ollama list]
-    Host --> FS[fs walk /mnt/models]
-    Host --> Sys[nvidia-smi + systemctl]
-    FS --> Treemap[Interactive Treemap<br/>drill / filter / bulk delete]
-    UI -->|read| K8s[K8s via kubectl in doctor/estimate]
+    UI[Next.js UI] -->|Server Actions + session| Host[Host exec]
+    Host --> Docker[docker.sock]
+    Host --> FS["/mnt/models treemap"]
+    Host --> Sys[nvidia-smi]
+    UI --> K8s[kubectl doctor/estimate/inference]
+    UI --> Vault[SQLite vault AES-256-GCM]
 ```
 
-## Safety Invariants (Enforced)
+Helm chart `helm/lab-dashboard/` NodePort 32082. Operator journey: [Dashboard](operate/dashboard.md).
 
-- Heavy inference = **Job** + `OnFailure` + `backoff:1`
-- Explicit requests **and** limits on every container
-- No `Always` restart for large models
-- NCCL only on high-speed interfaces for multi-node
-- All mutations go through `manage.sh` (with prompts for heavy)
+!!! warning "docker.sock"
 
-See AGENTS.md for the full list.
+    Login to the dashboard implies Tasks/Storage power on the node. Keep auth; no `AUTH_BYPASS` in production.
+
+## Cross-stack map
+
+```mermaid
+flowchart LR
+  subgraph Access
+    SSO[Traefik + Authelia]
+    Dash[Lab dashboard]
+    Coder[Coder]
+    Kasm[Kasm]
+  end
+  subgraph Chat
+    OWUI[Open WebUI]
+    Lite[LiteLLM]
+  end
+  subgraph Infer
+    ModeA[Mode A fleet]
+    ModeB[Mode B GLM TP=3]
+    ModeC[Mode C DeepSeek TP=3]
+    Other[kimi / qwen / nemotron]
+  end
+  subgraph Agents
+    Hermes[Hermes Docker]
+    MCP[MCP toolkit]
+    Nim[Nemotron NIMs]
+  end
+  SSO --> Dash
+  SSO --> OWUI
+  OWUI --> Hermes
+  OWUI --> Lite
+  Lite --> ModeA
+  Lite --> ModeB
+  Lite --> ModeC
+  Hermes --> MCP
+  Hermes --> Nim
+```
+
+Modes A/B/C are mutually exclusive. [LiteLLM rounded stack](litellm-rounded-stack.md) · [Open WebUI](open-webui.md) · [Hermes](hermes-agent.md) · [MCP](mcp-agent-toolkit.md) · [SSO](sso.md) · [Nemotron](nemotron-agentic-stack.md).
+
+## Visual Comfy (K3s)
+
+`k8s/workloads/comfy-base` + `comfy-visual/*`, `scripts/lib/visual.sh`. Models on `/mnt/models`. Compose sibling: [ez-comfy-stack](https://github.com/toxicoder/ez-comfy-stack).
+
+## Safety invariants (enforced)
+
+- Heavy inference = Job + `OnFailure` + low `backoffLimit` (never `Always`)
+- Explicit requests **and** limits
+- Resource Guard 15% / 24Gi floor
+- NCCL only on the correct high-speed plane
+- Mutations through `manage.sh` / dashboard with confirms
+- No auto-start after reboot
+
+Tests: `bazelisk test //tests:safety_invariants`. Agent list: [AGENTS.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md).

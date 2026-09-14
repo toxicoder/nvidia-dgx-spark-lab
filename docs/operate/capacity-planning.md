@@ -1,0 +1,86 @@
+---
+title: Capacity planning
+description: Resource Guard estimate, check, suggest, apply-policy, and the 15%/24Gi headroom floor math.
+tags: [resources, safety, bazel, capacity]
+---
+
+# Capacity planning
+
+**What's on this page**
+
+- Headroom floor math (policy, not kubelet)
+- `estimate` / `resources check` / `suggest` / `apply-policy`
+- Util matrix A/B/C (do not flatten)
+- What to change when a start is blocked
+
+**What this enables**
+
+- Knowing whether kimi-test or a 3-node exclusive Job will fit **before** you confirm
+- Editing YAML policy first, JSON twin second, prose last
+
+--8<-- "docs/includes/cluster-config.md"
+
+## Floor
+
+Resource Guard reserves **max(24Gi, 15% of allocatable)** **per node**. It is capacity math only. It is **not** “keep 64Gi free after kubelet reservations.”
+
+Kubelet `system-reserved` / `kube-reserved` (Ansible still documents 64Gi+8Gi) is the host hang line. Measure live allocatable before changing those args — 95Gi Jobs already schedule on current Sparks.
+
+Policy keys (`config/resource-policy.yaml`):
+
+```yaml
+headroom:
+  cpu_percent: 15
+  memory_percent: 15
+  memory_min_per_node: 24Gi
+  cpu_min_per_node: "4"
+```
+
+Model **requests** in the same file must match `k8s/workloads/*` manifests.
+
+## Commands
+
+=== "Bazel"
+
+    ```bash
+    bazelisk run //:manage -- doctor
+    bazelisk run //:manage -- estimate kimi-test
+    bazelisk run //:manage -- resources
+    bazelisk run //:manage -- resources check model:kimi --json
+    bazelisk run //:manage -- resources suggest model:kimi
+    bazelisk run //:manage -- resources apply-policy
+    ```
+
+=== "Classic"
+
+    ```bash
+    ./scripts/manage.sh doctor
+    ./scripts/manage.sh estimate kimi-test
+    ./scripts/manage.sh resources check model:kimi --json
+    ./scripts/manage.sh resources suggest model:kimi
+    ./scripts/manage.sh resources apply-policy
+    ```
+
+`estimate` prints free GPUs, the profile, and a copy-pasteable start command. Placeholders such as `{{SPARK0_IP}}` stay editable in this docs panel.
+
+## Util matrix (do not flatten)
+
+| Mode | Engine knob | Cap | Notes |
+| --- | --- | --- | --- |
+| A daily fleet | vLLM `--gpu-memory-utilization` | **≤ 0.82** | Shared with K3s, LiteLLM, dashboard, SSH |
+| B GLM exclusive | vLLM `--gpu-memory-utilization` | **≤ 0.85** | Exclusive ring only. 0.88 is not shipped |
+| C DeepSeek exclusive | SGLang `--mem-fraction-static` | **≤ 0.95** | Measured load. Not a global util raise |
+
+Never raise `llm_gpu_memory_utilization` in Ansible above 0.82 for daily use.
+
+## Occupancy vs Guard
+
+ez-comfy-stack **occupancy** is “is Compose up.” This lab’s gate is **requested** CPU/GPU/memory vs allocatable minus headroom. Live `nvidia-smi` util can look low while requests already fill the node — the scheduler still refuses.
+
+## If blocked
+
+1. `resources suggest` — stop Coder/Kasm/lighter Jobs
+2. Do not `--force` past the floor on a remote Spark
+3. Customize policy only with a measured allocatable dump
+
+[Resource Guard](../resource-guard.md) · [Workload catalog](workload-catalog.md)

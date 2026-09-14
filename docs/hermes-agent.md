@@ -6,6 +6,8 @@ tags: [hermes, agents, docker, mcp, nemotron]
 
 # Hermes Agent (Docker)
 
+--8<-- "docs/includes/cluster-config.md"
+
 **What's on this page**
 
 - Host-network Docker architecture for Hermes on the Spark node
@@ -168,6 +170,19 @@ docker compose -f hermes/docker-compose.yaml up -d
 ```
 
 Data in `hermes/data/` is preserved across image upgrades.
+
+## Failure modes
+
+| Symptom | Cause | Action | Verify |
+| --- | --- | --- | --- |
+| `start-hermes` refuses | Missing `hermes/data/.env` or confirm | Copy `hermes/config/env.example`; type `yes` / `LAB_CONFIRM_TOKEN` | `./scripts/manage.sh start-hermes` then `curl -fsS http://127.0.0.1:8642/v1/models` |
+| Gateway 401 | Rotated `API_SERVER_KEY` | Restart Open WebUI to re-sync Secret | Open WebUI models list |
+| Port-forward dead after reboot | Hermes is Docker `restart: no` equivalent posture — **manual start** | `start-hermes` again; inference Jobs stay off | `docker ps` on spark0 |
+
+```bash
+bazelisk run //:manage -- start-hermes
+bazelisk run //:manage -- stop-hermes
+```
 
 ## Related
 
