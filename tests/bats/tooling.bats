@@ -111,6 +111,21 @@ _ci_action_pins() {
   fi
 }
 
+@test "Dependabot PRs target development" {
+  # GitHub's default branch is main, but lab work lands on development first.
+  # Without target-branch, Dependabot opens stale PRs against main.
+  local cfg="${REPO_ROOT}/.github/dependabot.yml"
+  [[ -f $cfg ]]
+  local ecosystems targets
+  ecosystems=$(grep -cE '^[[:space:]]+-[[:space:]]+package-ecosystem:' "$cfg" || true)
+  targets=$(grep -cE '^[[:space:]]+target-branch:[[:space:]]+development[[:space:]]*$' "$cfg" || true)
+  if [[ $ecosystems -lt 3 || $ecosystems -ne $targets ]]; then
+    echo "Each Dependabot ecosystem must set target-branch: development:" >&2
+    echo "package-ecosystem count=${ecosystems} target-branch: development count=${targets}" >&2
+    return 1
+  fi
+}
+
 @test "GitHub Actions cache action is Node-24-capable (not cache@v4)" {
   # actions/cache@v4 targets deprecated Node 20 on GitHub runners.
   # Prefer @v5+ (repo standard: @v6) in workflows and composite actions.
