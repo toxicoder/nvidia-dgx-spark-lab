@@ -1,4 +1,12 @@
+---
+title: Resource Guard
+description: Capacity gate, 15%/24Gi headroom floor, util matrix A/B/C, policy twins, and Kubernetes guardrails that keep SSH and the control plane responsive.
+tags: [safety, resources, kubernetes, bazel, nvidia]
+---
+
 # Resource Guard
+
+--8<-- "docs/includes/cluster-config.md"
 
 **What's on this page**
 
@@ -42,16 +50,56 @@ The old 64Gi policy floor reserved ~192 GiB across three Sparks before any Job, 
 
 Never ship vLLM **0.88 / 0.90**. Do not raise `llm_gpu_memory_utilization` in Ansible.
 
+## Occupancy vs Guard
+
+[ez-comfy-stack](https://github.com/toxicoder/ez-comfy-stack) **occupancy** means “is the Compose project up.” This lab’s gate is **Kubernetes requests** versus allocatable minus headroom. `nvidia-smi` can look idle while requests already fill the node — `start-*` still blocks.
+
+## Policy customization
+
+1. Edit `config/resource-policy.yaml` (human source of truth).
+2. Update the JSON twin `config/resource-policy.json`.
+3. Extend `tests/safety_invariants.sh` if you add models or stacks.
+4. Apply Kubernetes guardrails: `bazelisk run //:manage -- resources apply-policy`.
+
+Do not lower `memory_min_per_node` below 24Gi or `memory_percent` below 15 without measuring MemAvailable under load. Do not treat kubelet 64Gi+8Gi docs as a second Guard tax.
+
+Example — add a model that already has a workload directory:
+
+```yaml
+models:
+  kimi-test:
+    gpus: 2
+    memory: 32Gi
+    cpu: "8"
+    heavy: false
+    job_name: kimi-test
+```
+
+Requests must match `k8s/workloads/<id>/`. Capacity math: [Capacity planning](operate/capacity-planning.md).
+
 ## CLI
 
-```bash
-./scripts/manage.sh resources
-./scripts/manage.sh resources check model:kimi --json
-./scripts/manage.sh resources suggest model:kimi
-./scripts/manage.sh resources apply-policy
-./scripts/manage.sh doctor    # includes capacity summary
-./scripts/manage.sh estimate kimi-test
-```
+=== "Bazel"
+
+    ```bash
+    bazelisk run //:manage -- resources
+    bazelisk run //:manage -- resources check model:kimi --json
+    bazelisk run //:manage -- resources suggest model:kimi
+    bazelisk run //:manage -- resources apply-policy
+    bazelisk run //:manage -- doctor
+    bazelisk run //:manage -- estimate kimi-test
+    ```
+
+=== "Classic"
+
+    ```bash
+    ./scripts/manage.sh resources
+    ./scripts/manage.sh resources check model:kimi --json
+    ./scripts/manage.sh resources suggest model:kimi
+    ./scripts/manage.sh resources apply-policy
+    ./scripts/manage.sh doctor
+    ./scripts/manage.sh estimate kimi-test
+    ```
 
 ## Dashboard
 
@@ -69,7 +117,7 @@ Never ship vLLM **0.88 / 0.90**. Do not raise `llm_gpu_memory_utilization` in An
 Apply guardrails after bootstrap:
 
 ```bash
-./scripts/manage.sh resources apply-policy
+bazelisk run //:manage -- resources apply-policy
 ```
 
 Reboot nodes after Ansible kubelet reservation changes.

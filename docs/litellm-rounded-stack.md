@@ -35,7 +35,7 @@ Three DGX Spark GB10 nodes (128 GB UMA, sm_121). Two networks — never mix role
 
 200 Gb/s per physical port (not 400G, not NVLink, not InfiniBand switch). Triangle mesh: every pair has a direct cable.
 
-```
+```text
 Node1 Port0 → Node2 Port1
 Node2 Port0 → Node3 Port1
 Node3 Port0 → Node1 Port1
@@ -45,7 +45,7 @@ Port0 = cage next to the RJ-45 jack; Port1 = far cage. Wrong polarity looks half
 
 **Mode B / Mode C NCCL** (these Jobs only — do not copy 2-node pair vars):
 
-```
+```text
 NCCL_SOCKET_IFNAME=<mgmt, default enP7s7>
 UCX_NET_DEVICES / GLOO_SOCKET_IFNAME / OMPI_MCA_btl_tcp_if_include = same
 NCCL_IB_HCA=rocep1s0f0,roceP2p1s0f0,rocep1s0f1,roceP2p1s0f1
@@ -86,6 +86,22 @@ Documented Apache-2 swap if HAI-DEF is a problem: Baichuan-M2-32B (docs only). D
 `glm-5.3-flash` leader on spark0 + workers on spark1/spark2. Image `glm53-flash-tp3:local` built on Spark from the published TP=3 overlay (stock nightly cannot do TP=3). Checkpoint `local-inference-lab/GLM-5.3-Flash-NVFP4` (or RedHatAI). MTP default; DFlash2 is CC BY-NC-ND and is not the default.
 
 `start-stack-rounded`, `start-glm53-flash`, and `start-dsv41-flash` refuse each other. Heavy confirm. `lab-frontier` stays GLM; `lab-med` falls back to `lab-smart`, then `lab-frontier`, then `lab-frontier-ds` with an explicit prompt that MedGemma is offline and this is a general model.
+
+### Recover when modes collide
+
+1. `bazelisk run //:manage -- status-stack` — see which Jobs exist.
+2. Stop **only** the mode that is up:
+
+    ```bash
+    bazelisk run //:manage -- stop-stack-rounded
+    ./scripts/manage.sh stop-glm53-flash
+    ./scripts/manage.sh stop-dsv41-flash
+    ```
+
+3. `doctor` then start **one** of A, B, or C.
+4. LiteLLM Deployment can stay; aliases 503 until the matching backend Job is Ready.
+
+Do not run two exclusive TP=3 Jobs “to compare.” The ring and 24Gi floor will not fit.
 
 Mode B exclusive util is **0.85**. 0.88 is not shipped. First `max-model-len` is 131072.
 

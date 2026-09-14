@@ -1,0 +1,51 @@
+---
+title: Operate
+description: Day-2 operator pages — Ansible, overlays, workloads, dashboard, capacity, reboot, failure, backup, and troubleshooting.
+tags: [operate, bazel, kubernetes, safety]
+---
+
+# Operate
+
+**What's on this page**
+
+- Catalog of how-to pages for a running lab
+- Where generated CLI/API docs sit (Reference, not here)
+- Safety reminders that apply to every mutation
+
+**What this enables**
+
+- Finding the playbook, overlay, or `manage.sh` verb without grepping the tree
+- Keeping Resource Guard and reboot rules in view during ops
+
+--8<-- "docs/includes/cluster-config.md"
+
+## Catalogs
+
+| Page | Contents |
+| --- | --- |
+| [Ansible catalog](ansible-catalog.md) | Every playbook in `ansible/playbooks/` |
+| [Overlays](overlays.md) | test / prod / single-node / rounded-stack |
+| [Workload catalog](workload-catalog.md) | Every `k8s/workloads/*` directory |
+| [Dashboard](dashboard.md) | Human journey per panel |
+| [Secrets](secrets.md) | Examples vs runtime; vault sync |
+| [Capacity planning](capacity-planning.md) | `estimate` / `resources` / 24Gi floor |
+
+## Runbooks
+
+| Page | Contents |
+| --- | --- |
+| [Patch and reboot](patch-and-reboot.md) | OS, GPU Operator, drain, stop first |
+| [Node failure](node-failure.md) | Worker down, control plane, NCCL Jobs |
+| [Backup and restore](backup-restore.md) | Inventory, secrets, models, dashboard DB |
+| [Monitoring](../monitoring-observability.md) | What red means, DCGM, Grafana |
+| [Troubleshooting](../troubleshooting.md) | Symptom tables + decision tree |
+
+## Stacks and access
+
+[Hermes](../hermes-agent.md) · [MCP](../mcp-agent-toolkit.md) · [Open WebUI](../open-webui.md) · [SSO](../sso.md) · [Coder vs Kasm](../dev-workspaces.md) · [Gitea CI](../gitea-ci-setup.md)
+
+!!! danger "Mutations"
+
+    Heavy starts require confirmation. `cleanup` requires typing `DELETE`. Never reboot with inference scheduled.
+
+Generated command reference: [Shell Commands & Helpers](../generated/shell/reference.md).

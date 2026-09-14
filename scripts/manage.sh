@@ -92,11 +92,13 @@ done
 # @command setup
 # @command init
 # Usage:
+#   bazelisk run //:manage -- setup
 #   ./scripts/manage.sh setup
 #   ./scripts/manage.sh init
 #
 # Safety:
 #   Purely informational + prints URLs. Does not modify cluster.
+#   Gold path remains docs/getting-started.md (inventory, Ansible, doctor, start-test).
 # @function setup
 # Guided first-time setup: prints recommended Ansible and workload sequence.
 # Informational only; does not modify the cluster.
@@ -182,6 +184,13 @@ wait_for() {
 # @command check
 # Preflight checks: tools, cluster access, GPUs, resources, and URLs.
 # Read-only; never starts or stops workloads.
+#
+# Usage:
+#   bazelisk run //:manage -- doctor
+#   ./scripts/manage.sh doctor
+#
+# Safety:
+#   Run before every heavy start-* command. Does not apply manifests.
 
 doctor() {
   log "=== Lab Doctor Preflight ==="
@@ -255,6 +264,14 @@ estimate() {
 # @command stop
 # Stop all inference jobs and Ray workloads plus dev components.
 # Safe to run before node reboot.
+#
+# Usage:
+#   bazelisk run //:manage -- stop
+#   ./scripts/manage.sh stop
+#
+# Safety:
+#   Always run stop (and stop-visual / stop-stack-rounded as needed) before reboot.
+#   Does not auto-start anything afterward.
 
 stop_workloads() {
   log "Stopping managed workloads (all models + ray)..."
@@ -298,11 +315,13 @@ cleanup() {
 # Uses lower resources (2 GPUs) for validation. Includes pre-flights.
 #
 # Usage:
-#   ./scripts/manage.sh start-test
 #   bazelisk run //:manage -- start-test
+#   ./scripts/manage.sh start-test
 #
 # Safety:
-#   Lighter model. Still runs access + namespace checks. Good for first use.
+#   Lighter model (2 GPU / 32Gi request, backoffLimit 2). Still runs access +
+#   namespace checks. Required first Job on a new or patched cluster.
+#   Dashboard: http://{{SPARK0_IP}}:{{DASHBOARD_PORT}}
 #   See start-kimi for full production (after validation).
 #
 # @command start-kimi

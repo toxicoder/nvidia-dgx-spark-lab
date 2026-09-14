@@ -1,0 +1,115 @@
+---
+title: Interconnect and NCCL
+description: DGX Spark high-speed fabrics — 2-node dual-400G pair vs 3-node QSFP ring, interface names, HCAs, and verification.
+tags: [nccl, interconnect, qsfp, safety, nvidia]
+---
+
+# Interconnect and NCCL
+
+**What's on this page**
+
+- Two fabrics this lab actually ships: 2-node pair and 3-node QSFP ring
+- Which env vars belong to which Jobs
+- How to verify with `ibdev2netdev`, ping, logs, and `doctor-fabric`
+
+**What this enables**
+
+- Setting `NCCL_SOCKET_IFNAME` and `NCCL_IB_HCA` from live devices, not folklore
+- Not copying `group_vars` pair env onto Mode B/C ring Jobs
+
+Authoritative **runtime** values are in `k8s/workloads/*` Job YAML. `ansible/inventory/group_vars/all.yml` `highspeed_*` / `nccl_env` is **reference for a 2-node pair only**.
+
+## Planes
+
+| Plane | Typical names | Carries |
+| --- | --- | --- |
+| LAN / management | RJ-45 10GbE, often `enP7s7` | K3s, SSH, dashboard, LiteLLM, NCCL bootstrap / Gloo |
+| High-speed | ConnectX-7 QSFP | NCCL payload / tensor-parallel all-reduce |
+
+K3s/Flannel stay on the LAN. Do not put Kubernetes on the QSFP nets.
+
+## 1 node
+
+No inter-node NCCL. Local multi-GPU (if advertised) uses SHM/P2P. The `highspeed` inventory group is ignored.
+
+## 2-node pair (dual ~400G aggregate)
+
+Existing 1-node / 2-node Jobs and `group_vars` document:
+
+```text
+NCCL_SOCKET_IFNAME=enp1s0f0np0,enp1s0f1np1
+NCCL_IB_HCA=mlx5_0,mlx5_1
+```
+
+Also typically `NCCL_IB_DISABLE=0`, `NCCL_P2P_DISABLE=0`, `NCCL_SHM_DISABLE=0`. Confirm names with `ibdev2netdev` on **your** nodes before baking env.
+
+kimi / kimi-test omit `hostNetwork` (isolation). Heavy Ray / GLM-5.2 Jobs set `hostNetwork: true` (and GLM `hostIPC: true`) so IFNAME is visible.
+
+## 3-node QSFP ring (Mode B and Mode C)
+
+200 Gb/s per physical port — not 400G, not NVLink, not an IB switch. Triangle:
+
+```text
+Node1 Port0 → Node2 Port1
+Node2 Port0 → Node3 Port1
+Node3 Port0 → Node1 Port1
+```
+
+Port0 = cage next to the RJ-45 jack; Port1 = far cage. Wrong polarity looks half-alive.
+
+Mode B (GLM-5.3-Flash TP=3) and Mode C (DeepSeek-V4.1-Flash TP=3) Jobs set:
+
+```text
+NCCL_SOCKET_IFNAME=<mgmt, default enP7s7>
+NCCL_IB_HCA=rocep1s0f0,roceP2p1s0f0,rocep1s0f1,roceP2p1s0f1
+NCCL_IB_DISABLE=0
+NCCL_IB_MERGE_NICS=0
+NCCL_NET_PLUGIN=none
+NCCL_IB_SUBNET_AWARE_ROUTING=1
+```
+
+Plus `hostNetwork: true` and `hostIPC: true`. If 10GbE is not `enP7s7`, set `LAB_MGMT_IFNAME`. Mode C also cuts `NCCL_BUFFSIZE=1MiB`.
+
+!!! danger "Do not copy the 2-node pair block onto ring Jobs"
+
+    `highspeed_interfaces: enp1s0f0np0,enp1s0f1np1` is the pair reference. Ring Jobs in `k8s/workloads/glm-5.3-flash/` and `deepseek-v4.1-flash/` already have the ring block.
+
+Full cabling, aliases, and util caps: [LiteLLM rounded stack](../litellm-rounded-stack.md).
+
+## 4 nodes
+
+Qwen 3.5 397B NVFP4 uses TP=4 Jobs with `hostNetwork: true`. Treat each hop as its own wiring plan. Do not assume the 2-node pair `NCCL_SOCKET_IFNAME` list is complete.
+
+## Verify
+
+```bash
+# On each node (console or SSH)
+ibdev2netdev
+ip -br link
+```
+
+=== "Bazel"
+
+    ```bash
+    bazelisk run //:manage -- doctor
+    bazelisk run //:manage -- doctor-fabric
+    ```
+
+=== "Classic"
+
+    ```bash
+    ./scripts/manage.sh doctor
+    ./scripts/manage.sh doctor-fabric
+    ```
+
+After `start-test` on a pair:
+
+```bash
+kubectl logs -n {{NAMESPACE}} -l app=kimi-test --tail=100 | grep -i nccl
+```
+
+Expect the high-speed IFNAME in the NCCL init lines, not the management NIC as payload.
+
+!!! warning "Mis-iface"
+
+    If logs show fallback to `eth0` / 10GbE for all-reduce, stop the Job (`bazelisk run //:manage -- stop`) and fix netplan / Job env before retrying a heavy TP Job.

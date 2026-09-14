@@ -6,6 +6,8 @@ tags: [open-webui, agents, hermes, chat, sso]
 
 # Open WebUI (Agent Chat)
 
+--8<-- "docs/includes/cluster-config.md"
+
 **What's on this page**
 
 - Prerequisites and deploy paths for the Open WebUI Helm stack
@@ -78,12 +80,17 @@ The lab portal **Agent Chat** panel shows prerequisites, deploy/stop controls, a
 
 ## Troubleshooting
 
-| Symptom | Fix |
-|---------|-----|
-| Start fails: Hermes not running | `./scripts/manage.sh start-hermes` |
-| Gateway not reachable from pod | Re-run `start-open-webui` to refresh Endpoints IP after node IP change |
-| 401 from Hermes | Re-sync secrets: stop/start Open WebUI (reads `API_SERVER_KEY` from `hermes/data/.env`) |
-| Models empty in chat | Confirm Hermes gateway: `curl -H "Authorization: Bearer $API_SERVER_KEY" http://127.0.0.1:8642/v1/models` |
+| Symptom | Cause | Action | Prevention | Verify |
+| --- | --- | --- | --- | --- |
+| Start fails: Hermes not running | Gateway down | `bazelisk run //:manage -- start-hermes` | Start Hermes before Open WebUI | curl `:8642/v1/models` |
+| Gateway not reachable from pod | Endpoints IP stale after node IP change | Re-run `start-open-webui` | Re-apply after spark0 address change | `kubectl get endpoints hermes-gateway -n dev` |
+| 401 from Hermes | `API_SERVER_KEY` drift | stop/start Open WebUI (reads `hermes/data/.env`) | Do not hand-edit the K8s Secret | chat models list |
+| Models empty | LiteLLM/Hermes empty | Confirm backends; Mode A Jobs running if you expect lab-* aliases | [LiteLLM rounded stack](litellm-rounded-stack.md) | `/v1/models` |
+
+```bash
+bazelisk run //:manage -- start-open-webui
+bazelisk run //:manage -- stop-open-webui
+```
 
 ## Related
 

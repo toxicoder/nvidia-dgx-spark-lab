@@ -1,0 +1,40 @@
+---
+title: Start
+description: Gold path into the lab — first cluster, topology choice, workload profiles, and a short newcomer track.
+tags: [getting-started, bazel, k3s, safety]
+---
+
+# Start
+
+**What's on this page**
+
+- Where to begin on a new clone or a new cluster
+- How topology, profiles, and the newcomer track relate
+- Links into Operate once the first `kimi-test` Job succeeds
+
+**What this enables**
+
+- A single entry for operators who have not brought up this lab before
+- Avoiding 3-node ring NCCL copied from a 2-node pair
+- Knowing the first safe workload is always `kimi-test`
+
+## Paths
+
+| If you need to… | Open |
+| --- | --- |
+| Bootstrap K3s + GPU Operator and run the first Job | [Getting Started](../getting-started.md) |
+| Decide 1 vs 2 vs 3 vs 4 nodes | [Choose topology](choose-topology.md) |
+| Pick kimi-test vs daily fleet vs exclusive vs visual vs agents | [Profiles](profiles.md) |
+| Understand why nothing auto-starts | [Learn the lab](../learn/index.md) |
+
+## Order of operations
+
+1. Read [Learn the lab](../learn/index.md) if Resource Guard or NCCL is new.
+2. Follow [Getting Started](../getting-started.md) through `doctor` and `start-test`.
+3. Only then pick a heavier profile.
+
+!!! danger "Never skip kimi-test on a new or patched cluster"
+
+    `start-kimi`, Mode B/C, and visual Deployments assume scheduling, GPU Operator, and (on 2+ nodes) the fabric already work.
+
+Next: [Operate](../operate/index.md) for catalogs and runbooks.
