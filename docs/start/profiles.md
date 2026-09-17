@@ -43,9 +43,10 @@ flowchart TD
 | **GLM-5.2** | `start-glm` | **2-node required** | llama.cpp RPC; `hostNetwork` + `hostIPC`. |
 | **Qwen 3.5** | `start-qwen3.5-122b-nvfp4`, `start-qwen3.5-397b-spark2`, `start-qwen3.5-397b-nvfp4` | 1 / 2 / **4** | 397B NVFP4 is four nodes. |
 | **Qwen 3.6** | `start-qwen36-27b`, `start-qwen36-35b-a3b`, `start-qwen36-dual` | 1 | Dual needs GPU time-slicing. See [Qwen3.6 dual](../qwen36-dual-stack.md). |
+| **Qwen 3.8 27B** | `start-qwen38-27b [--with-litellm]` | 1 | Dense NVFP4. Refuses Mode B and C. Open WebUI `lab-auto`. |
 | **Mode A daily** | `start-stack-rounded` (`--quality` optional) | **3-node** | 35B + Flash-Next + MedGemma + LiteLLM. Refuses B and C. |
-| **Mode B exclusive** | `start-glm-5.3-flash` | **3-node ring** | GLM-5.3-Flash TP=3. Refuses A and C. |
-| **Mode C exclusive** | `start-deepseek-v4.1-flash` | **3-node ring** | DeepSeek-V4.1-Flash TP=3. Refuses A and B. |
+| **Mode B exclusive** | `start-glm-5.3-flash [--with-litellm]` | **3-node ring** | GLM-5.3-Flash TP=3. Refuses A and C. |
+| **Mode C exclusive** | `start-deepseek-v4.1-flash [--with-litellm]` | **3-node ring** | DeepSeek-V4.1-Flash TP=3. Refuses A and B. V4.1-Pro is not released. |
 | **Visual** | `start-comfy-base`, `start-flux-fast`, `start-flux-quality`, `start-ltx-balanced`, `start-ltx-quality`, `start-flux-to-ltx` | **1 node** | One visual Deployment. Manual. `stop-visual`. |
 | **Agents** | `start-mcp`, `start-hermes`, `start-open-webui` | any | Plus Nemotron nano/super Jobs. See agent docs. |
 | **Safe auto-pick** | `start-default` / `start-safe` | any | Always delegates to `start-test`. |

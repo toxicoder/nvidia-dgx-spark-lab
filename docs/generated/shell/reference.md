@@ -317,6 +317,7 @@ qwen3.5-397b-nvfp4: 4-node Qwen 397B NVFP4 (SGLang distributed)
 qwen3.6-27b-nvfp4: 1-node Qwen3.6 27B dense NVFP4 (quality)
 qwen3.6-35b-a3b-nvfp4: 1-node Qwen3.6 35B-A3B MoE NVFP4-Fast (speed)
 qwen36-dual-spark-1: concurrent both on 1× Spark (GPU time-slicing)
+qwen3.8-27b-nvfp4: 1-node Qwen3.8-27B dense NVFP4 (quality, MTP)
 qwen3.8-flash-next-nvfp4: 1-node Qwen3.8-Flash-Next NVFP4 (spark1, PLE mmap)
 medgemma-27b / medgemma-4b: spark2 medical lane + optional sidecar
 glm-5.3-flash: 3-node TP=3 NVFP4 on the QSFP ring (Mode B)
@@ -1550,7 +1551,8 @@ Qwen3.6 dual stack (1× Spark):
   --tier 27b-nvfp4       unsloth/Qwen3.6-27B-NVFP4
   --tier 35b-a3b-nvfp4   unsloth/Qwen3.6-35B-A3B-NVFP4-Fast
   --tier qwen36          Both Qwen3.6 NVFP4 tiers
-  --tier all             All Qwen 3.5 tiers (default; does not include qwen36)
+  --tier 27b-38-nvfp4    unsloth/Qwen3.8-27B-NVFP4
+  --tier all             All Qwen 3.5 tiers (default; does not include qwen36 or 3.8)
 
 ```bash
 Usage:
@@ -2296,9 +2298,30 @@ Does not hard-fail if the live name differs — callers warn via doctor_fabric.
 @function _require_three_nodes
 Require ≥3 nodes for rounded / Mode B / Mode C starts.
 
+### Function `litellm_overlay_for_backend`
+
+@function litellm_overlay_for_backend
+Prints the kustomize path for a LiteLLM backend id.
+@param $1  Backend id (rounded | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | glm-5.3-flash | deepseek-v4.1-flash).
+
+### Function `args_have_with_litellm`
+
+@function args_have_with_litellm
+Returns 0 if --with-litellm is among the given args.
+
+### Function `maybe_attach_litellm`
+
+@function maybe_attach_litellm
+Start LiteLLM with the given backend profile when --with-litellm is present.
+@param $1  Backend id. Remaining args are scanned for --with-litellm.
+
 ### Command: start-litellm
 
 ### Command: stop-litellm
+
+### Command: start-qwen38-27b
+
+### Command: stop-qwen38-27b
 
 ### Command: start-qwen38-flash-next
 

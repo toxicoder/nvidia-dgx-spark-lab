@@ -14,5 +14,8 @@ Open WebUI model base URL: `http://litellm.ai-inference.svc.cluster.local:4000/v
 
 ```bash
 bazelisk run //:manage -- start-litellm
+bazelisk run //:manage -- start-litellm --backend qwen3.8-27b-nvfp4
 bazelisk run //:manage -- stop-litellm
 ```
+
+`--backend` overlays live under `k8s/overlays/litellm-*` and replace `files/profiles/*.yaml`. Exclusive profiles expose `lab-auto` plus one canonical alias. Open WebUI default model is `lab-auto`.

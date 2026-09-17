@@ -184,6 +184,19 @@ models:
     min_nodes: 1
     notes: "MoE speed model (~3B active); flashinfer_b12x on DGX Spark; MTP"
 
+  qwen3.8-27b-nvfp4:
+    display_name: Qwen 3.8 27B NVFP4
+    family: reasoning
+    runtime: vllm
+    hf_path: unsloth/Qwen3.8-27B-NVFP4
+    quantization: nvfp4
+    agent_roles: [orchestrator, hard_reasoning, coding]
+    spark_gpu_mem_util: 0.72
+    openai_svc: qwen3.8-27b-nvfp4
+    port: 8000
+    min_nodes: 1
+    notes: "Dense quality successor to Qwen3.6-27B; native MTP; hybrid thinking + vision"
+
 pillars:
   orchestrator: { label: Orchestrator, icon: brain }
   document_intel: { label: Document intel, icon: file-text }

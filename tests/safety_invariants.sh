@@ -91,7 +91,7 @@ for m in kimi-test kimi ray-head ray-worker nemotron-3-ultra \
   qwen3.5-122b-a10b-nvfp4 qwen3.5-397b-spark2 qwen3.5-397b-nvfp4 \
   qwen3.5-397b-nvfp4-worker-1 qwen3.5-397b-nvfp4-worker-2 qwen3.5-397b-nvfp4-worker-3 \
   qwen3.6-27b-nvfp4 qwen3.6-35b-a3b-nvfp4 \
-  qwen3.8-flash-next-nvfp4 medgemma-27b medgemma-4b \
+  qwen3.8-27b-nvfp4 qwen3.8-flash-next-nvfp4 medgemma-27b medgemma-4b \
   glm-5.3-flash glm-5.3-flash-worker-1 glm-5.3-flash-worker-2 litellm \
   deepseek-v4.1-flash deepseek-v4.1-flash-worker-1 deepseek-v4.1-flash-worker-2 \
   comfy-base flux-fast flux-quality ltx-balanced ltx-quality flux-to-ltx; do
@@ -180,7 +180,8 @@ for job in \
   k8s/workloads/qwen3.5-397b-spark2/qwen3.5-397b-spark2-job.yaml \
   k8s/workloads/qwen3.5-397b-nvfp4/qwen3.5-397b-nvfp4-job.yaml \
   k8s/workloads/qwen3.6-27b-nvfp4/qwen3.6-27b-nvfp4-job.yaml \
-  k8s/workloads/qwen3.6-35b-a3b-nvfp4/qwen3.6-35b-a3b-nvfp4-job.yaml; do
+  k8s/workloads/qwen3.6-35b-a3b-nvfp4/qwen3.6-35b-a3b-nvfp4-job.yaml \
+  k8s/workloads/qwen3.8-27b-nvfp4/qwen3.8-27b-nvfp4-job.yaml; do
   test -f "$job"
   grep -q 'restartPolicy: OnFailure' "$job"
   grep -q 'resources:' "$job"
@@ -242,6 +243,7 @@ assert svc.get('namespace') == 'ai-inference'
 
 echo "Checking rounded-stack Mode A Jobs have safety fields..."
 for job in \
+  k8s/workloads/qwen3.8-27b-nvfp4/qwen3.8-27b-nvfp4-job.yaml \
   k8s/workloads/qwen3.8-flash-next-nvfp4/qwen3.8-flash-next-nvfp4-job.yaml \
   k8s/workloads/medgemma-27b/medgemma-27b-job.yaml \
   k8s/workloads/medgemma-4b/medgemma-4b-job.yaml; do
@@ -288,6 +290,7 @@ python3 -c "
 import re, sys
 from pathlib import Path
 jobs = [
+    Path('k8s/workloads/qwen3.8-27b-nvfp4/qwen3.8-27b-nvfp4-job.yaml'),
     Path('k8s/workloads/qwen3.8-flash-next-nvfp4/qwen3.8-flash-next-nvfp4-job.yaml'),
     Path('k8s/workloads/medgemma-27b/medgemma-27b-job.yaml'),
     Path('k8s/workloads/medgemma-4b/medgemma-4b-job.yaml'),
@@ -475,6 +478,76 @@ grep -q 'lab-fast' k8s/workloads/litellm/files/litellm_config.yaml
 grep -q 'lab-med' k8s/workloads/litellm/files/litellm_config.yaml
 grep -q 'lab-frontier' k8s/workloads/litellm/files/litellm_config.yaml
 grep -q 'lab-frontier-ds' k8s/workloads/litellm/files/litellm_config.yaml
+
+echo "Checking per-backend LiteLLM profiles and overlays..."
+python3 - <<'PY'
+from pathlib import Path
+import sys
+
+profiles = {
+    'k8s/workloads/litellm/files/profiles/qwen3.8-27b.yaml': 'qwen3.8-27b-nvfp4.ai-inference.svc.cluster.local',
+    'k8s/workloads/litellm/files/profiles/qwen3.8-flash-next.yaml': 'qwen3.8-flash-next-nvfp4.ai-inference.svc.cluster.local',
+    'k8s/workloads/litellm/files/profiles/glm-5.3-flash.yaml': 'glm-5.3-flash.ai-inference.svc.cluster.local',
+    'k8s/workloads/litellm/files/profiles/deepseek-v4.1-flash.yaml': 'deepseek-v4.1-flash.ai-inference.svc.cluster.local',
+}
+overlays = [
+    'k8s/overlays/litellm-qwen38-27b/kustomization.yaml',
+    'k8s/overlays/litellm-qwen38-flash-next/kustomization.yaml',
+    'k8s/overlays/litellm-glm53-flash/kustomization.yaml',
+    'k8s/overlays/litellm-dsv41-flash/kustomization.yaml',
+]
+for path, svc in profiles.items():
+    p = Path(path)
+    if not p.is_file():
+        print(f'missing LiteLLM profile: {path}', file=sys.stderr)
+        sys.exit(1)
+    text = p.read_text()
+    if 'lab-auto' not in text:
+        print(f'{path} must define lab-auto', file=sys.stderr)
+        sys.exit(1)
+    if svc not in text:
+        print(f'{path} must point lab-auto at {svc}', file=sys.stderr)
+        sys.exit(1)
+    if 'api.deepseek.com' in text.lower() or 'deepseek-flash' in text and 'lab-med' in text:
+        print(f'{path} must not route lab-med to the DeepSeek cloud API', file=sys.stderr)
+        sys.exit(1)
+for ov in overlays:
+    p = Path(ov)
+    if not p.is_file():
+        print(f'missing LiteLLM overlay: {ov}', file=sys.stderr)
+        sys.exit(1)
+    text = p.read_text()
+    if 'configMapGenerator' not in text or 'files:' not in text:
+        print(f'{ov} must use configMapGenerator files:', file=sys.stderr)
+        sys.exit(1)
+    if 'behavior: replace' not in text:
+        print(f'{ov} must replace litellm-config', file=sys.stderr)
+        sys.exit(1)
+    if '|' in text.split('configMapGenerator', 1)[-1] and 'data:' in text:
+        print(f'{ov} must not inline ConfigMap blobs', file=sys.stderr)
+        sys.exit(1)
+job = Path('k8s/workloads/qwen3.8-27b-nvfp4/qwen3.8-27b-nvfp4-job.yaml')
+if not job.is_file():
+    print('missing qwen3.8-27b-nvfp4 Job', file=sys.stderr)
+    sys.exit(1)
+jtxt = job.read_text()
+if 'restartPolicy: OnFailure' not in jtxt or 'backoffLimit:' not in jtxt:
+    print('qwen3.8-27b-nvfp4 must be fail-stop', file=sys.stderr)
+    sys.exit(1)
+if 'gpu-memory-utilization 0.72' not in jtxt:
+    print('qwen3.8-27b-nvfp4 exclusive util must be 0.72', file=sys.stderr)
+    sys.exit(1)
+if '0.88' in jtxt or '0.90' in jtxt:
+    print('qwen3.8-27b-nvfp4 must not ship vLLM util 0.88/0.90', file=sys.stderr)
+    sys.exit(1)
+values = Path('ansible/files/open-webui-values.yaml').read_text()
+if 'DEFAULT_MODELS' not in values or 'lab-auto' not in values:
+    print('Open WebUI DEFAULT_MODELS must be lab-auto', file=sys.stderr)
+    sys.exit(1)
+if 'hermes-gateway' in values and 'value: "hermes-gateway"' in values:
+    print('Open WebUI default model must not stay hermes-gateway', file=sys.stderr)
+    sys.exit(1)
+PY
 
 echo "Checking rounded-stack overlays pin Mode A Jobs..."
 test -f k8s/overlays/rounded-stack/kustomization.yaml

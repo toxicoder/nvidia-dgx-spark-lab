@@ -13,7 +13,8 @@
 #   --tier 27b-nvfp4       unsloth/Qwen3.6-27B-NVFP4
 #   --tier 35b-a3b-nvfp4   unsloth/Qwen3.6-35B-A3B-NVFP4-Fast
 #   --tier qwen36          Both Qwen3.6 NVFP4 tiers
-#   --tier all             All Qwen 3.5 tiers (default; does not include qwen36)
+#   --tier 27b-38-nvfp4    unsloth/Qwen3.8-27B-NVFP4
+#   --tier all             All Qwen 3.5 tiers (default; does not include qwen36 or 3.8)
 #
 # Usage:
 #   ./scripts/utilities/download-qwen-models.sh status [--tier ...] [--json]
@@ -52,6 +53,7 @@ tier_repo() {
     397b-nvfp4) echo "nvidia/Qwen3.5-397B-A17B-NVFP4" ;;
     27b-nvfp4) echo "unsloth/Qwen3.6-27B-NVFP4" ;;
     35b-a3b-nvfp4) echo "unsloth/Qwen3.6-35B-A3B-NVFP4-Fast" ;;
+    27b-38-nvfp4) echo "unsloth/Qwen3.8-27B-NVFP4" ;;
     *) echo "" ;;
   esac
 }
@@ -67,6 +69,7 @@ tier_min_gb() {
     397b-nvfp4) echo 220 ;;
     27b-nvfp4) echo 14 ;;
     35b-a3b-nvfp4) echo 16 ;;
+    27b-38-nvfp4) echo 20 ;;
     *) echo 0 ;;
   esac
 }
@@ -212,7 +215,7 @@ case "$CMD" in
   status) cmd_status ;;
   run) cmd_run ;;
   *)
-    err "Usage: $0 status|run [--tier 122b|397b-spark2|397b-nvfp4|27b-nvfp4|35b-a3b-nvfp4|qwen36|all] [--json]"
+    err "Usage: $0 status|run [--tier 122b|397b-spark2|397b-nvfp4|27b-nvfp4|35b-a3b-nvfp4|qwen36|27b-38-nvfp4|all] [--json]"
     exit 1
     ;;
 esac

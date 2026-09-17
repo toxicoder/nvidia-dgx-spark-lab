@@ -11,6 +11,7 @@ metadata:
   labels:
     app: litellm
     workload: management
+    lab.litellm-backend: rounded
 spec:
   replicas: 1
   selector:
@@ -21,6 +22,7 @@ spec:
       labels:
         app: litellm
         workload: management
+        lab.litellm-backend: rounded
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "4000"

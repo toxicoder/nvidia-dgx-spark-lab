@@ -97,8 +97,11 @@ Do not generate load from spark0 (head) while serving.
 ```bash
 bazelisk run //:manage -- doctor-fabric
 bazelisk run //:manage -- start-dsv41-flash
+bazelisk run //:manage -- start-dsv41-flash --with-litellm
 bazelisk run //:manage -- stop-dsv41-flash
 ```
+
+LiteLLM exclusive profile: `lab-auto` / `lab-frontier-ds`. There is no official DeepSeek-V4.1 (non-Flash) / V4.1-Pro checkpoint.
 
 Refuses any Mode A rounded Job **and** Mode B GLM Job. Heavy confirm. `start-stack-rounded` and `start-glm53-flash` refuse Mode C.
 

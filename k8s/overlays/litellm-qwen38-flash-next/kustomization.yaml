@@ -1,0 +1,33 @@
+# Purpose: LiteLLM ConfigMap overlay for exclusive Qwen3.8-Flash-Next
+# Source of truth: k8s/overlays/litellm-qwen38-flash-next/
+# Regenerate: n/a
+# Safety: replaces router config only; no GPU; LAN ClusterIP
+# apply: kubectl apply -k --load-restrictor=LoadRestrictionsNone (profiles live under workloads/litellm/files)
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ai-inference
+
+resources:
+  - ../../workloads/litellm
+
+configMapGenerator:
+  - name: litellm-config
+    behavior: replace
+    files:
+      - config.yaml=../../workloads/litellm/files/profiles/qwen3.8-flash-next.yaml
+      - lab-med-system.txt=../../workloads/litellm/files/lab-med-system.txt
+      - lab-med-frontier-fallback.txt=../../workloads/litellm/files/lab-med-frontier-fallback.txt
+    options:
+      labels:
+        app: litellm
+        workload: management
+        lab.litellm-backend: qwen3.8-flash-next-nvfp4
+      disableNameSuffixHash: true
+
+labels:
+  - pairs:
+      lab.litellm-backend: qwen3.8-flash-next-nvfp4
+    includeSelectors: false
+    includeTemplates: true

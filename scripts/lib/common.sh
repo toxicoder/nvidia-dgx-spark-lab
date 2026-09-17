@@ -232,6 +232,7 @@ get_model_profile() {
     qwen3.6-27b-nvfp4) echo "1 48Gi Qwen3.6 27B NVFP4 dense (exclusive util 0.72; dual 0.38)" ;;
     qwen3.6-35b-a3b-nvfp4) echo "1 48Gi Qwen3.6 35B-A3B NVFP4-Fast MoE (exclusive util 0.72; dual 0.38)" ;;
     qwen36-dual-spark-1 | qwen36-dual) echo "2 96Gi Qwen3.6 dual 27B+35B (time-sliced; mid ctx)" ;;
+    qwen3.8-27b-nvfp4) echo "1 48Gi Qwen3.8-27B NVFP4 dense (exclusive util 0.72; MTP 3)" ;;
     qwen3.8-flash-next-nvfp4) echo "1 92Gi Qwen3.8-Flash-Next NVFP4 (spark1; PLE mmap; util 0.82)" ;;
     medgemma-27b) echo "1 48Gi MedGemma 27B multimodal (spark2; not a medical device)" ;;
     medgemma-4b) echo "1 8Gi MedGemma 4B sidecar (optional extract)" ;;

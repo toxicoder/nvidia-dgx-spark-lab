@@ -30,6 +30,10 @@ tags: [kustomize, overlays, kubernetes, safety]
 | `test/qwen36-dual` | Qwen3.6 dual | test-resources | Lighter dual |
 | `rounded-stack` | 35B-A3B + Flash-Next + MedGemma 27B + LiteLLM | pin 35B to spark0 | Mode A daily 3-node fleet |
 | `rounded-stack-quality` | 35B-A3B + Flash-Next + **27B** + LiteLLM | pin 35B spark0, 27B spark2 | Mode A `--quality`; `lab-med` falls back |
+| `litellm-qwen38-27b` | LiteLLM Deployment + Qwen3.8-27B profile | replace ConfigMap | `start-qwen38-27b --with-litellm` |
+| `litellm-qwen38-flash-next` | LiteLLM + Flash-Next profile | replace ConfigMap | `start-qwen38-flash-next --with-litellm` |
+| `litellm-glm53-flash` | LiteLLM + GLM profile | replace ConfigMap | `start-glm53-flash --with-litellm` |
+| `litellm-dsv41-flash` | LiteLLM + DeepSeek-V4.1-Flash profile | replace ConfigMap | `start-dsv41-flash --with-litellm` |
 
 Inspect:
 

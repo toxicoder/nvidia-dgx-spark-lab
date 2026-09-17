@@ -20,6 +20,9 @@ bazelisk run //scripts:run-utility -- download-rounded-models run --tier flash-n
 bazelisk run //:manage -- start-stack-rounded
 # or standalone:
 bazelisk run //:manage -- start-qwen38-flash-next
+bazelisk run //:manage -- start-qwen38-flash-next --with-litellm
 ```
 
-LiteLLM aliases: `lab-smart`, `lab-agent` (fallback `lab-fast`).
+LiteLLM aliases (rounded): `lab-smart`, `lab-agent` (fallback `lab-fast`). Exclusive profile: `lab-auto` + `lab-smart` / `lab-agent`.
+
+Keep `RadixArk/Qwen3.8-Flash-Next-NVFP4` in this tree (PLE mmap + `qwen38-flash-next` image). `nvidia/Qwen3.8-Flash-Next-NVFP4` is documented as a future on-Spark A/B, not the default.

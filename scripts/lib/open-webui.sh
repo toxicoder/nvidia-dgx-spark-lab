@@ -204,6 +204,13 @@ start_openwebui_stack() {
     exit 1
   fi
 
+  local litellm_ready
+  litellm_ready=$(kubectl get deploy litellm -n ai-inference -o jsonpath='{.status.readyReplicas}' 2>/dev/null || true)
+  if [[ -z ${litellm_ready} || ${litellm_ready} -lt 1 ]]; then
+    warn "LiteLLM is not Ready in ai-inference. Open WebUI default model lab-auto will 503 until: ./scripts/manage.sh start-litellm"
+    warn "Hermes agent chat on the second OpenAI base URL still works."
+  fi
+
   openwebui_ensure_secrets
   openwebui_apply_hermes_gateway
 

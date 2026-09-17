@@ -1,0 +1,13 @@
+"""Package purpose: LiteLLM kustomize overlay for exclusive Qwen3.8-27B."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "litellm_qwen38_27b",
+    srcs = glob(["**/*"]),
+    visibility = [
+        "//k8s:__subpackages__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)

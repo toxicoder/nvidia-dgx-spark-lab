@@ -19,7 +19,7 @@ tags: [open-webui, agents, hermes, chat, sso]
 - Browser chat UI backed by Hermes MCP orchestration on the lab cluster
 - A polished agent surface without bypassing existing safety gates
 
-Deploy [Open WebUI](https://github.com/open-webui/open-webui) as a polished chat surface for lab AI agents. Conversations route through the **Hermes gateway** (`:8642/v1`) for MCP tools (SearXNG, fetch, memory, Context7, etc.), and through **LiteLLM** (`http://litellm.ai-inference.svc.cluster.local:4000/v1`) for rounded-stack model aliases (`lab-fast`, `lab-smart`, `lab-med`, …). See [litellm-rounded-stack.md](litellm-rounded-stack.md).
+Deploy [Open WebUI](https://github.com/open-webui/open-webui) as a polished chat surface for lab AI agents. Conversations route through the **Hermes gateway** (`:8642/v1`) for MCP tools (SearXNG, fetch, memory, Context7, etc.), and through **LiteLLM** (`http://litellm.ai-inference.svc.cluster.local:4000/v1`) for model aliases. The UI default model is **`lab-auto`**, which follows whichever LiteLLM backend profile is active (`start-qwen38-27b --with-litellm`, Mode A rounded, Mode B, or Mode C). See [litellm-rounded-stack.md](litellm-rounded-stack.md).
 
 Raw vLLM Services (`http://<job>.ai-inference.svc.cluster.local:8000/v1`) remain a debug bypass — do not point the UI at them for daily use. Do not add a cloud OpenAI medical backup for `lab-med`.
 
@@ -85,7 +85,8 @@ The lab portal **Agent Chat** panel shows prerequisites, deploy/stop controls, a
 | Start fails: Hermes not running | Gateway down | `bazelisk run //:manage -- start-hermes` | Start Hermes before Open WebUI | curl `:8642/v1/models` |
 | Gateway not reachable from pod | Endpoints IP stale after node IP change | Re-run `start-open-webui` | Re-apply after spark0 address change | `kubectl get endpoints hermes-gateway -n dev` |
 | 401 from Hermes | `API_SERVER_KEY` drift | stop/start Open WebUI (reads `hermes/data/.env`) | Do not hand-edit the K8s Secret | chat models list |
-| Models empty | LiteLLM/Hermes empty | Confirm backends; Mode A Jobs running if you expect lab-* aliases | [LiteLLM rounded stack](litellm-rounded-stack.md) | `/v1/models` |
+| Models empty | LiteLLM/Hermes empty | Confirm backends; start LiteLLM with `--backend` or `--with-litellm` if you expect `lab-auto` | [LiteLLM rounded stack](litellm-rounded-stack.md) | `/v1/models` |
+| Default chat 503 | LiteLLM down or profile backend Job not Ready | `start-litellm --backend …` then start the matching Job | Open WebUI warns if LiteLLM is not Ready; does not hard-fail | `/v1/models` on `:4000` |
 
 ```bash
 bazelisk run //:manage -- start-open-webui
