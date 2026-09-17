@@ -46,6 +46,7 @@ tags: [models, inference, safety, resources, vllm]
 | qwen3.6-27b-nvfp4     | 1    | 48Gi        | Qwen3.6 27B dense NVFP4 (quality + MTP) | Exclusive util 0.72; dual util 0.38 | 1-node            |
 | qwen3.6-35b-a3b-nvfp4 | 1    | 48Gi        | Qwen3.6 35B-A3B MoE NVFP4-Fast (speed) | flashinfer_b12x; dual stack with 27B | 1-node            |
 | qwen36-dual-spark-1   | 2*   | 96Gi        | Concurrent 27B + 35B-A3B (*logical GPUs) | Time-slicing required | 1-node dual       |
+| qwen3.8-27b-nvfp4     | 1    | 48Gi        | Qwen3.8 27B dense NVFP4 (quality + MTP) | Exclusive util 0.72; 131K first | 1-node            |
 | qwen3.8-flash-next-nvfp4 | 1 | 92Gi        | Qwen3.8-Flash-Next NVFP4 (spark1) | PLE mmap; util 0.82; 64k ctx first | Mode A TP=1       |
 | medgemma-27b          | 1    | 48Gi        | MedGemma 27B multimodal (spark2) | Not a medical device; HAI-DEF; FP8 | Mode A TP=1       |
 | medgemma-4b           | 1    | 8Gi         | Optional extract sidecar | Off by default; never the only medical model | sidecar           |
@@ -120,6 +121,17 @@ When `nvidia/Qwen3.5-397B-A17B-NVFP4` does not fit your cluster, use the same ag
 ```bash
 bazelisk run //scripts:run-utility -- download-qwen-models run --tier all
 bazelisk run //scripts:run-utility -- nemotron-stack start qwen-agentic-spark-2 --confirm yes
+```
+
+### Qwen3.8-27B (1× Spark)
+
+Dense successor to Qwen3.6-27B. Default checkpoint `unsloth/Qwen3.8-27B-NVFP4` (~23 GB). Exclusive util **0.72**, `max-model-len` **131072** first. Optional `--with-litellm` attaches `lab-auto` to this Service.
+
+There is **no** official DeepSeek-V4.1 / V4.1-Pro checkpoint. Local DeepSeek on this lab is **V4.1-Flash only** (Mode C). Do not use `nvidia/DeepSeek-V4-Flash-NVFP4` (old 284B).
+
+```bash
+bazelisk run //scripts:run-utility -- download-qwen-models run --tier 27b-38-nvfp4
+bazelisk run //:manage -- start-qwen38-27b --with-litellm
 ```
 
 ### Qwen3.6 dual stack (1× Spark)

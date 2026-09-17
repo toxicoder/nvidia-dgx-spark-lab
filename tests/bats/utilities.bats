@@ -482,6 +482,16 @@ teardown_file() {
   [[ "$output" == *"122b"* ]]
 }
 
+@test "download-qwen-models.sh status --tier 27b-38-nvfp4 is Unsloth Qwen3.8-27B NVFP4" {
+  export REPO_ROOT="$(bats_canonical_repo_root)"
+  export MODELS_DIR="$TEST_TMP_DIR/models"
+  mkdir -p "$MODELS_DIR"
+  run bash "${REPO_ROOT}/scripts/utilities/download-qwen-models.sh" status --tier 27b-38-nvfp4 --json
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"27b-38-nvfp4"* ]]
+  [[ "$output" == *"unsloth/Qwen3.8-27B-NVFP4"* ]]
+}
+
 @test "download-rounded-models.sh status --json includes flash-next and medgemma" {
   export REPO_ROOT="$(bats_canonical_repo_root)"
   export MODELS_DIR="$TEST_TMP_DIR/models"

@@ -308,6 +308,14 @@ models:
     job_name: qwen3.6-35b-a3b-nvfp4
     requires_validation:
       - kimi-test
+  qwen3.8-27b-nvfp4:
+    gpus: 1
+    memory: 48Gi
+    cpu: "8"
+    heavy: true
+    job_name: qwen3.8-27b-nvfp4
+    requires_validation:
+      - kimi-test
   qwen3.8-flash-next-nvfp4:
     gpus: 1
     memory: 92Gi

@@ -109,7 +109,7 @@ Do not add GLM 753B as a daily driver. Existing `glm-5.2` 1-bit RPC stays as opt
 
 ## Mode C — exclusive DeepSeek-V4.1-Flash (uses the ring)
 
-Official `deepseek-ai/DeepSeek-V4.1-Flash` only (native MXFP4 experts + FP8/MXFP8 dense). **Do not** use `nvidia/DeepSeek-V4-Flash-NVFP4` (old 284B) or LibertAIDAI requants.
+Official `deepseek-ai/DeepSeek-V4.1-Flash` only (native MXFP4 experts + FP8/MXFP8 dense). **Do not** use `nvidia/DeepSeek-V4-Flash-NVFP4` (old 284B) or LibertAIDAI requants. DeepSeek-V4.1 / V4.1-Pro weights are **not published** — do not invent a non-Flash V4.1 Job.
 
 Engine is **SGLang** with the MiaAI-Lab GB10 overlay (`dsv41-flash-tp3:local`), not stock vLLM. Engram tables live on **each node’s NVMe** at `/mnt/models/dsv41-engram`. `OFFLOAD_MODE=nvme` only — RAM offload evicts the model on UMA.
 
@@ -172,7 +172,31 @@ bazelisk run //:manage -- status-stack
 bazelisk run //:manage -- doctor-fabric
 ```
 
-Open WebUI model base URL is LiteLLM. Hermes remains the **agent** gateway. Raw Service bypass: `kubectl port-forward -n ai-inference svc/<job> 8000:8000`.
+Open WebUI model base URL is LiteLLM. Default model is **`lab-auto`**. Hermes remains the **agent** gateway. Raw Service bypass: `kubectl port-forward -n ai-inference svc/<job> 8000:8000`.
+
+## Exclusive stacks + LiteLLM profiles
+
+Mode A keeps the mixed-fleet `litellm_config.yaml`. For a single chosen Job, start LiteLLM with a matching profile so Open WebUI is not a wall of 503s. Last `--backend` / `--with-litellm` wins (ConfigMap replace + rollout).
+
+| Start | LiteLLM | `lab-auto` |
+| --- | --- | --- |
+| `start-qwen38-27b --with-litellm` | overlay `litellm-qwen38-27b` | Qwen3.8-27B (`lab-quality`) |
+| `start-qwen38-flash-next --with-litellm` | overlay `litellm-qwen38-flash-next` | Flash-Next (`lab-smart`) |
+| `start-glm53-flash --with-litellm` | overlay `litellm-glm53-flash` | GLM (`lab-frontier`) |
+| `start-dsv41-flash --with-litellm` | overlay `litellm-dsv41-flash` | DeepSeek-V4.1-Flash (`lab-frontier-ds`) |
+| `start-stack-rounded` | default rounded config | `lab-fast` then `lab-smart` |
+
+```bash
+bazelisk run //scripts:run-utility -- download-qwen-models run --tier 27b-38-nvfp4
+bazelisk run //:manage -- start-qwen38-27b --with-litellm
+bazelisk run //:manage -- start-litellm --backend qwen3.8-flash-next-nvfp4
+```
+
+`--backend` ids: `rounded` (default) | `qwen3.8-27b-nvfp4` | `qwen3.8-flash-next-nvfp4` | `glm-5.3-flash` | `deepseek-v4.1-flash`.
+
+**DeepSeek-V4.1 / V4.1-Pro weights are not published.** Do not invent a non-Flash V4.1 stack. Official open weights are `deepseek-ai/DeepSeek-V4.1-Flash` only. Qwen3.8-Flash-Next stays on `RadixArk/Qwen3.8-Flash-Next-NVFP4` + PLE mmap in this tree; `nvidia/Qwen3.8-Flash-Next-NVFP4` is the next on-Spark A/B, not this PR.
+
+Qwen3.8-27B and Flash-Next standalone starts refuse Mode B and Mode C (same GPU exclusion as the exclusive TP=3 Jobs).
 
 ## Related
 

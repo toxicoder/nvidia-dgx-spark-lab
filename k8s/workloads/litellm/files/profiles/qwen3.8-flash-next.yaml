@@ -1,0 +1,40 @@
+# Purpose: LiteLLM router profile for exclusive Qwen3.8-Flash-Next
+# Source of truth: k8s/workloads/litellm/files/profiles/qwen3.8-flash-next.yaml
+# Regenerate: n/a
+# Safety: single backend; proxy stays up if the Job 503s; no cloud routes
+
+model_list:
+  - model_name: lab-auto
+    litellm_params:
+      model: openai/qwen3.8-flash-next
+      api_base: http://qwen3.8-flash-next-nvfp4.ai-inference.svc.cluster.local:8000/v1
+      api_key: os.environ/LITELLM_DUMMY_KEY
+      timeout: 600
+  - model_name: lab-smart
+    litellm_params:
+      model: openai/qwen3.8-flash-next
+      api_base: http://qwen3.8-flash-next-nvfp4.ai-inference.svc.cluster.local:8000/v1
+      api_key: os.environ/LITELLM_DUMMY_KEY
+      timeout: 600
+  - model_name: lab-agent
+    litellm_params:
+      model: openai/qwen3.8-flash-next
+      api_base: http://qwen3.8-flash-next-nvfp4.ai-inference.svc.cluster.local:8000/v1
+      api_key: os.environ/LITELLM_DUMMY_KEY
+      timeout: 600
+
+router_settings:
+  routing_strategy: simple-shuffle
+  num_retries: 2
+  timeout: 600
+  allowed_fails: 3
+  cooldown_time: 30
+  retry_after: 5
+
+litellm_settings:
+  drop_params: true
+  request_timeout: 600
+  set_verbose: false
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY

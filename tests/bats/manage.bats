@@ -649,6 +649,52 @@ MOCKKUBECTL
 }
 
 # =============================================================================
+# Qwen3.8-27B + per-backend LiteLLM
+# =============================================================================
+
+@test "manage.sh help lists start-qwen38-27b and start-litellm --backend" {
+  run bash "$MANAGE_SH" help
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"start-qwen38-27b"* ]]
+  [[ "$output" == *"start-litellm"* ]]
+  [[ "$output" == *"--backend"* ]]
+  [[ "$output" == *"--with-litellm"* ]]
+}
+
+@test "manage.sh start-qwen38-27b aborts when user does not type 'yes'" {
+  run bash -c "echo 'no' | bash \"$MANAGE_SH\" start-qwen38-27b"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Aborted"* ]]
+}
+
+@test "qwen3.8-27b job manifest has OnFailure, backoffLimit, resources, and util 0.72" {
+  local f="$REPO_ROOT/k8s/workloads/qwen3.8-27b-nvfp4/qwen3.8-27b-nvfp4-job.yaml"
+  run grep -E 'restartPolicy: OnFailure' "$f"
+  [ "$status" -eq 0 ]
+  run grep -E 'backoffLimit: 1' "$f"
+  [ "$status" -eq 0 ]
+  run grep -E 'resources:' "$f"
+  [ "$status" -eq 0 ]
+  run grep -E 'gpu-memory-utilization 0.72' "$f"
+  [ "$status" -eq 0 ]
+  run grep -F 'unsloth/Qwen3.8-27B-NVFP4' "$f"
+  [ "$status" -eq 0 ]
+}
+
+@test "manage.sh start-litellm --backend rejects unknown ids" {
+  run bash "$MANAGE_SH" start-litellm --backend not-a-backend
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"Unknown LiteLLM backend"* || "$output" == *"not-a-backend"* ]]
+}
+
+@test "manage.sh start-qwen38-27b --with-litellm applies the qwen38-27b LiteLLM overlay" {
+  run bash -c "echo 'yes' | bash \"$MANAGE_SH\" start-qwen38-27b --with-litellm"
+  [ "$status" -eq 0 ]
+  run grep -E 'overlays/litellm-qwen38-27b|litellm-qwen38-27b' "$TEST_TMP_DIR/kubectl_calls.log"
+  [ "$status" -eq 0 ]
+}
+
+# =============================================================================
 # stop and cleanup
 # =============================================================================
 

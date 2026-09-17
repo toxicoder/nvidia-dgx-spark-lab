@@ -68,7 +68,8 @@ Presets: [Nemotron agentic stack](../nemotron-agentic-stack.md). These Deploymen
 
 | Id | Verb | GPU | Mem | CPU | Kind | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| litellm | `start-litellm` | 0 | 1Gi | 500m | Deployment | LAN OpenAI proxy; `Always` OK |
+| litellm | `start-litellm [--backend …]` | 0 | 1Gi | 500m | Deployment | LAN OpenAI proxy; `Always` OK; `lab-auto` |
+| qwen3.8-27b-nvfp4 | `start-qwen38-27b [--with-litellm]` | 1 | 48Gi | 8 | Job | Exclusive util 0.72; refuses B and C |
 | rounded-stack | `start-stack-rounded` | 3 nodes | ~189Gi | — | overlay | Mode A; refuses B and C |
 
 `stop-stack-rounded` stops Mode A inference Jobs; LiteLLM can stay. `--quality` uses `rounded-stack-quality` (27B on spark2; `lab-med` falls back).

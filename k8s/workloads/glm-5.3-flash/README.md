@@ -51,6 +51,7 @@ Realistic ring bus is ~12–24 GB/s allgather. Community Spark TP recipes hit `i
 ```bash
 bazelisk run //:manage -- doctor-fabric
 bazelisk run //:manage -- start-glm53-flash
+bazelisk run //:manage -- start-glm53-flash --with-litellm
 bazelisk run //:manage -- stop-glm53-flash
 ```
 

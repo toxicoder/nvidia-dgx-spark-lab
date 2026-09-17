@@ -140,19 +140,91 @@ _require_three_nodes() {
   fi
 }
 
+# @function litellm_overlay_for_backend
+# Prints the kustomize path for a LiteLLM backend id.
+# @param $1  Backend id (rounded | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | glm-5.3-flash | deepseek-v4.1-flash).
+litellm_overlay_for_backend() {
+  case "$1" in
+    rounded | "") echo "${REPO_ROOT}/k8s/workloads/litellm" ;;
+    qwen3.8-27b-nvfp4) echo "${REPO_ROOT}/k8s/overlays/litellm-qwen38-27b" ;;
+    qwen3.8-flash-next-nvfp4) echo "${REPO_ROOT}/k8s/overlays/litellm-qwen38-flash-next" ;;
+    glm-5.3-flash) echo "${REPO_ROOT}/k8s/overlays/litellm-glm53-flash" ;;
+    deepseek-v4.1-flash) echo "${REPO_ROOT}/k8s/overlays/litellm-dsv41-flash" ;;
+    *) echo "" ;;
+  esac
+}
+
+# @function args_have_with_litellm
+# Returns 0 if --with-litellm is among the given args.
+args_have_with_litellm() {
+  local arg
+  for arg in "$@"; do
+    if [[ $arg == --with-litellm ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+# @function maybe_attach_litellm
+# Start LiteLLM with the given backend profile when --with-litellm is present.
+# @param $1  Backend id. Remaining args are scanned for --with-litellm.
+maybe_attach_litellm() {
+  local backend="$1"
+  shift
+  if args_have_with_litellm "$@"; then
+    start_litellm --backend "$backend"
+  fi
+}
+
 # @function start_litellm
 # Apply LiteLLM kustomize (management Deployment). Always is OK; no GPU.
+# Optional --backend selects a single-stack profile overlay; default is rounded.
 # @command start-litellm
 start_litellm() {
-  local path="${REPO_ROOT}/k8s/workloads/litellm"
-  log "Starting LiteLLM proxy (management, LAN only)..."
+  local backend="rounded"
+  local force_flag=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --backend)
+        backend="${2:-}"
+        if [[ -z $backend ]]; then
+          err "start-litellm --backend requires an id (rounded | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | glm-5.3-flash | deepseek-v4.1-flash)."
+          return 1
+        fi
+        shift 2
+        ;;
+      --force)
+        force_flag="--force"
+        shift
+        ;;
+      --with-litellm)
+        shift
+        ;;
+      *)
+        err "Unknown LiteLLM backend: $1. Use rounded | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | glm-5.3-flash | deepseek-v4.1-flash"
+        return 1
+        ;;
+    esac
+  done
+
+  local path
+  path=$(litellm_overlay_for_backend "$backend")
+  if [[ -z $path ]]; then
+    err "Unknown LiteLLM backend: ${backend}. Use rounded | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | glm-5.3-flash | deepseek-v4.1-flash"
+    return 1
+  fi
+
+  log "Starting LiteLLM proxy (management, LAN only, backend=${backend})..."
   ensure_namespace
-  if [[ ${1:-} != "--force" ]]; then
+  if [[ $force_flag != "--force" ]]; then
     enforce_capacity "model:litellm" || exit 1
   fi
-  kubectl apply -k "$path" -n "${NAMESPACE}"
-  log "LiteLLM submitted. ClusterIP: http://litellm.${NAMESPACE}.svc.cluster.local:4000/v1"
-  log "LAN NodePort: 32040 on spark0. Backends may 503; the proxy must stay up."
+  # Profiles live under k8s/workloads/litellm/files/; overlays must load them.
+  kubectl apply -k "$path" --load-restrictor=LoadRestrictionsNone -n "${NAMESPACE}"
+  kubectl rollout restart deployment/litellm -n "${NAMESPACE}" 2>/dev/null || true
+  log "LiteLLM submitted (${backend}). ClusterIP: http://litellm.${NAMESPACE}.svc.cluster.local:4000/v1"
+  log "LAN NodePort: 32040 on spark0. lab-auto points at this backend. Backends may 503; the proxy must stay up."
 }
 
 # @function stop_litellm
@@ -164,11 +236,36 @@ stop_litellm() {
   log "LiteLLM stopped (ConfigMap retained until namespace delete)."
 }
 
+# @function start_qwen38_27b
+# Exclusive 1-node Qwen3.8-27B NVFP4. Optional --with-litellm attaches the matching profile.
+# @command start-qwen38-27b
+start_qwen38_27b() {
+  warn "=== QWEN 3.8 27B NVFP4 (dense, exclusive, 1-node) ==="
+  warn "unsloth/Qwen3.8-27B-NVFP4 · MTP 3 · CUTE_DSL_ARCH=sm_121a · util 0.72 · ~48 Gi"
+  warn "Refuses Mode B GLM-5.3-Flash and Mode C DeepSeek-V4.1-Flash."
+  guard_rounded_mode_b_idle || exit 1
+  guard_rounded_mode_c_idle || exit 1
+  start_nemotron_llm "qwen3.8-27b-nvfp4" "Qwen 3.8 27B NVFP4"
+  maybe_attach_litellm "qwen3.8-27b-nvfp4" "$@"
+}
+
+# @function stop_qwen38_27b
+# @command stop-qwen38-27b
+stop_qwen38_27b() {
+  log "Stopping Qwen3.8-27B..."
+  stop_inference_job "qwen3.8-27b-nvfp4"
+  log "Qwen3.8-27B stopped. LiteLLM left running unless you run stop-litellm."
+}
+
 # @function start_qwen38_flash_next
 # @command start-qwen38-flash-next
 start_qwen38_flash_next() {
   warn "=== Qwen3.8-Flash-Next NVFP4 (spark1, PLE mmap, TP=1) ==="
+  warn "Refuses Mode B GLM-5.3-Flash and Mode C DeepSeek-V4.1-Flash."
+  guard_rounded_mode_b_idle || exit 1
+  guard_rounded_mode_c_idle || exit 1
   start_nemotron_llm "qwen3.8-flash-next-nvfp4" "Qwen3.8-Flash-Next NVFP4"
+  maybe_attach_litellm "qwen3.8-flash-next-nvfp4" "$@"
 }
 
 # @function start_medgemma
@@ -297,7 +394,10 @@ start_glm53_flash() {
   start_workload "glm-5.3-flash" "--force"
   wait_for_job "glm-5.3-flash" || true
   log "lab-frontier = glm-5.3-flash. lab-med falls back to lab-frontier with an explicit general-model prompt."
-  log "LiteLLM should already be up, or run: ./scripts/manage.sh start-litellm"
+  maybe_attach_litellm "glm-5.3-flash" "$@"
+  if ! args_have_with_litellm "$@"; then
+    log "LiteLLM should already be up, or run: ./scripts/manage.sh start-litellm --backend glm-5.3-flash"
+  fi
 }
 
 # @function stop_glm53_flash
@@ -347,7 +447,11 @@ start_dsv41_flash() {
   start_workload "deepseek-v4.1-flash" "--force"
   wait_for_job "deepseek-v4.1-flash" || true
   log "lab-frontier-ds = deepseek-v4.1-flash. lab-frontier stays GLM. lab-med never uses the DeepSeek cloud API."
-  log "Soak: MemAvailable ≥ 8 GiB on every rank or run stop-dsv41-flash. LiteLLM: ./scripts/manage.sh start-litellm"
+  log "Soak: MemAvailable ≥ 8 GiB on every rank or run stop-dsv41-flash."
+  maybe_attach_litellm "deepseek-v4.1-flash" "$@"
+  if ! args_have_with_litellm "$@"; then
+    log "LiteLLM: ./scripts/manage.sh start-litellm --backend deepseek-v4.1-flash"
+  fi
 }
 
 # @function stop_dsv41_flash
@@ -371,8 +475,12 @@ status_stack() {
   kubectl get jobs -n "${NAMESPACE}" -l family=glm-5.3 -o wide 2>/dev/null || true
   kubectl get jobs -n "${NAMESPACE}" -l family=deepseek-v4.1 -o wide 2>/dev/null || true
   kubectl get deploy,svc -n "${NAMESPACE}" litellm 2>/dev/null || true
+  local ll_backend
+  ll_backend=$(kubectl get deploy litellm -n "${NAMESPACE}" -o jsonpath='{.metadata.labels.lab\.litellm-backend}' 2>/dev/null || true)
+  log "LiteLLM backend profile: ${ll_backend:-unknown (start-litellm --backend …)}"
   echo
-  log "Aliases: lab-fast/lab-code → 35b-a3b · lab-smart/lab-agent → flash-next · lab-med → medgemma · lab-frontier → glm-5.3-flash · lab-frontier-ds → deepseek-v4.1-flash · lab-auto → fast then smart"
+  log "Aliases (rounded profile): lab-fast/lab-code → 35b-a3b · lab-smart/lab-agent → flash-next · lab-med → medgemma · lab-frontier → glm-5.3-flash · lab-frontier-ds → deepseek-v4.1-flash · lab-auto → fast then smart"
+  log "Exclusive profiles expose lab-auto plus one canonical alias. Open WebUI default model is lab-auto."
   log "Open WebUI model base URL: http://litellm.${NAMESPACE}.svc.cluster.local:4000/v1 (or spark0:32040)"
   log "Raw bypass: kubectl port-forward -n ${NAMESPACE} svc/<job> 8000:8000"
   doctor_fabric || true

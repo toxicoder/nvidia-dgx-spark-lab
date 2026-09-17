@@ -65,4 +65,4 @@ extraEnvVars:
   - name: WEBUI_NAME
     value: "Spark Lab Agent Chat"
   - name: DEFAULT_MODELS
-    value: "hermes-gateway"
+    value: "lab-auto"

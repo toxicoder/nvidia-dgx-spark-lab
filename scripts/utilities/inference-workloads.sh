@@ -31,6 +31,8 @@ source "${REPO_ROOT}/scripts/lib/common.sh"
 source "${REPO_ROOT}/scripts/lib/resources.sh"
 # shellcheck source=../lib/models.sh
 source "${REPO_ROOT}/scripts/lib/models.sh"
+# shellcheck source=../lib/stack-rounded.sh
+source "${REPO_ROOT}/scripts/lib/stack-rounded.sh"
 
 # @function usage
 # Print inference-workloads CLI usage to stdout.

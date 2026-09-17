@@ -606,22 +606,40 @@ case "${1:-help}" in
     check_cluster_access
     stop_medgemma
     ;;
+  start-qwen38-27b | start-qwen3.8-27b)
+    ## start-qwen38-27b
+    # @command start-qwen38-27b
+    # @command start-qwen3.8-27b
+    # Exclusive 1-node Qwen3.8-27B NVFP4. Optional --with-litellm.
+    require_kubectl
+    check_cluster_access
+    start_qwen38_27b "${@:2}"
+    ;;
+  stop-qwen38-27b | stop-qwen3.8-27b)
+    ## stop-qwen38-27b
+    # @command stop-qwen38-27b
+    # @command stop-qwen3.8-27b
+    require_kubectl
+    check_cluster_access
+    stop_qwen38_27b
+    ;;
   start-qwen38-flash-next | start-qwen3.8-flash-next)
     ## start-qwen38-flash-next
     # @command start-qwen38-flash-next
     # @command start-qwen3.8-flash-next
+    # Exclusive Qwen3.8-Flash-Next NVFP4 (spark1). Optional --with-litellm.
     require_kubectl
     check_cluster_access
-    start_qwen38_flash_next
+    start_qwen38_flash_next "${@:2}"
     ;;
   start-glm53-flash | start-glm-5.3-flash)
     ## start-glm53-flash
     # @command start-glm53-flash
     # @command start-glm-5.3-flash
-    # Exclusive Mode B TP=3 on the 3-node QSFP ring.
+    # Exclusive Mode B TP=3 on the 3-node QSFP ring. Optional --with-litellm.
     require_kubectl
     check_cluster_access
-    start_glm53_flash
+    start_glm53_flash "${@:2}"
     ;;
   stop-glm53-flash | stop-glm-5.3-flash)
     ## stop-glm53-flash
@@ -635,10 +653,10 @@ case "${1:-help}" in
     ## start-dsv41-flash
     # @command start-dsv41-flash
     # @command start-deepseek-v4.1-flash
-    # Exclusive Mode C TP=3 DeepSeek-V4.1-Flash on the 3-node QSFP ring.
+    # Exclusive Mode C TP=3 DeepSeek-V4.1-Flash on the 3-node QSFP ring. Optional --with-litellm.
     require_kubectl
     check_cluster_access
-    start_dsv41_flash
+    start_dsv41_flash "${@:2}"
     ;;
   stop-dsv41-flash | stop-deepseek-v4.1-flash)
     ## stop-dsv41-flash
@@ -651,9 +669,10 @@ case "${1:-help}" in
   start-litellm)
     ## start-litellm
     # @command start-litellm
+    # LAN OpenAI proxy. Optional --backend <id> selects a single-stack profile.
     require_kubectl
     check_cluster_access
-    start_litellm
+    start_litellm "${@:2}"
     ;;
   stop-litellm)
     ## stop-litellm
@@ -1032,10 +1051,13 @@ Commands:
   start-stack-rounded [--quality]  Mode A 3-node fleet + LiteLLM (refuses Mode B and C)
   stop-stack-rounded Stop Mode A inference Jobs (LiteLLM stays up)
   start-medgemma / stop-medgemma  spark2 MedGemma 27B (not a medical device)
-  start-qwen38-flash-next  spark1 Qwen3.8-Flash-Next NVFP4
+  start-qwen38-27b [--with-litellm]  1-node Qwen3.8-27B NVFP4 (refuses Mode B and C)
+  stop-qwen38-27b   Stop the Qwen3.8-27B Job (LiteLLM stays up)
+  start-qwen38-flash-next [--with-litellm]  spark1 Qwen3.8-Flash-Next NVFP4
   start-glm53-flash / stop-glm53-flash  Mode B TP=3 on the QSFP ring (refuses Mode A and C)
   start-dsv41-flash / stop-dsv41-flash  Mode C DeepSeek-V4.1-Flash TP=3 (refuses Mode A and B)
-  start-litellm / stop-litellm  LAN OpenAI proxy
+  start-litellm [--backend <id>] / stop-litellm  LAN OpenAI proxy (lab-auto)
+  --with-litellm   Attach LiteLLM with the matching backend profile after start
   status-stack     Mode A/B/C Jobs + LiteLLM aliases + fabric hint
   doctor-fabric    Warn if the 3-node QSFP ring looks down
   start-open-webui Deploy Open WebUI chat UI (Hermes gateway backend)

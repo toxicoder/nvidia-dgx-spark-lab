@@ -1,0 +1,13 @@
+"""Package purpose: LiteLLM kustomize overlay for exclusive DeepSeek-V4.1-Flash."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "litellm_dsv41_flash",
+    srcs = glob(["**/*"]),
+    visibility = [
+        "//k8s:__subpackages__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)

@@ -19,6 +19,7 @@
 # qwen3.6-27b-nvfp4: 1-node Qwen3.6 27B dense NVFP4 (quality)
 # qwen3.6-35b-a3b-nvfp4: 1-node Qwen3.6 35B-A3B MoE NVFP4-Fast (speed)
 # qwen36-dual-spark-1: concurrent both on 1× Spark (GPU time-slicing)
+# qwen3.8-27b-nvfp4: 1-node Qwen3.8-27B dense NVFP4 (quality, MTP)
 # qwen3.8-flash-next-nvfp4: 1-node Qwen3.8-Flash-Next NVFP4 (spark1, PLE mmap)
 # medgemma-27b / medgemma-4b: spark2 medical lane + optional sidecar
 # glm-5.3-flash: 3-node TP=3 NVFP4 on the QSFP ring (Mode B)
@@ -52,6 +53,7 @@ get_model_job() {
     qwen3.5-397b-nvfp4-worker-3) echo "k8s/workloads/qwen3.5-397b-nvfp4/qwen3.5-397b-nvfp4-worker-3-job.yaml" ;;
     qwen3.6-27b-nvfp4) echo "k8s/workloads/qwen3.6-27b-nvfp4/qwen3.6-27b-nvfp4-job.yaml" ;;
     qwen3.6-35b-a3b-nvfp4) echo "k8s/workloads/qwen3.6-35b-a3b-nvfp4/qwen3.6-35b-a3b-nvfp4-job.yaml" ;;
+    qwen3.8-27b-nvfp4) echo "k8s/workloads/qwen3.8-27b-nvfp4/qwen3.8-27b-nvfp4-job.yaml" ;;
     qwen3.8-flash-next-nvfp4) echo "k8s/workloads/qwen3.8-flash-next-nvfp4/qwen3.8-flash-next-nvfp4-job.yaml" ;;
     medgemma-27b) echo "k8s/workloads/medgemma-27b/medgemma-27b-job.yaml" ;;
     medgemma-4b) echo "k8s/workloads/medgemma-4b/medgemma-4b-job.yaml" ;;
@@ -111,6 +113,7 @@ get_model_svc() {
     qwen3.5-397b-nvfp4) echo "k8s/workloads/qwen3.5-397b-nvfp4/service.yaml" ;;
     qwen3.6-27b-nvfp4) echo "k8s/workloads/qwen3.6-27b-nvfp4/service.yaml" ;;
     qwen3.6-35b-a3b-nvfp4) echo "k8s/workloads/qwen3.6-35b-a3b-nvfp4/service.yaml" ;;
+    qwen3.8-27b-nvfp4) echo "k8s/workloads/qwen3.8-27b-nvfp4/service.yaml" ;;
     qwen3.8-flash-next-nvfp4) echo "k8s/workloads/qwen3.8-flash-next-nvfp4/service.yaml" ;;
     medgemma-27b) echo "k8s/workloads/medgemma-27b/service.yaml" ;;
     medgemma-4b) echo "k8s/workloads/medgemma-4b/service.yaml" ;;
@@ -666,6 +669,9 @@ start_model() {
     qwen3.6-27b-nvfp4) start_qwen36_27b ;;
     qwen3.6-35b-a3b-nvfp4) start_qwen36_35b_a3b ;;
     qwen36-dual-spark-1 | qwen36-dual) start_qwen36_dual ;;
+    qwen3.8-27b-nvfp4)
+      if type start_qwen38_27b &>/dev/null; then start_qwen38_27b; else start_nemotron_llm "qwen3.8-27b-nvfp4" "Qwen 3.8 27B NVFP4"; fi
+      ;;
     qwen3.8-flash-next-nvfp4)
       if type start_qwen38_flash_next &>/dev/null; then start_qwen38_flash_next; else start_nemotron_llm "qwen3.8-flash-next-nvfp4" "Qwen3.8-Flash-Next NVFP4"; fi
       ;;
@@ -755,7 +761,7 @@ stop_model() {
         qwen3.5-122b-a10b-nvfp4 qwen3.5-397b-spark2 \
         qwen3.5-397b-nvfp4 qwen3.5-397b-nvfp4-worker-1 qwen3.5-397b-nvfp4-worker-2 qwen3.5-397b-nvfp4-worker-3 \
         qwen3.6-27b-nvfp4 qwen3.6-35b-a3b-nvfp4 \
-        qwen3.8-flash-next-nvfp4 medgemma-27b medgemma-4b \
+        qwen3.8-27b-nvfp4 qwen3.8-flash-next-nvfp4 medgemma-27b medgemma-4b \
         glm-5.3-flash glm-5.3-flash-worker-1 glm-5.3-flash-worker-2 \
         deepseek-v4.1-flash deepseek-v4.1-flash-worker-1 deepseek-v4.1-flash-worker-2 \
         ray-head ray-worker \
@@ -771,7 +777,7 @@ stop_model() {
     qwen36 | qwen3.6 | qwen36-dual)
       stop_qwen36
       ;;
-    kimi-test | kimi | nemotron-3-ultra | nemotron-3-nano-30b | nemotron-3-nano-omni-30b | nemotron-3-super-120b | glm-5.2 | glm-5.2-rpc | ray-head | ray-worker | qwen3.5-122b-a10b-nvfp4 | qwen3.5-397b-spark2 | qwen3.5-397b-nvfp4 | qwen3.5-397b-nvfp4-worker-1 | qwen3.5-397b-nvfp4-worker-2 | qwen3.5-397b-nvfp4-worker-3 | qwen3.6-27b-nvfp4 | qwen3.6-35b-a3b-nvfp4 | qwen3.8-flash-next-nvfp4 | medgemma-27b | medgemma-4b | glm-5.3-flash | glm-5.3-flash-worker-1 | glm-5.3-flash-worker-2 | deepseek-v4.1-flash | deepseek-v4.1-flash-worker-1 | deepseek-v4.1-flash-worker-2)
+    kimi-test | kimi | nemotron-3-ultra | nemotron-3-nano-30b | nemotron-3-nano-omni-30b | nemotron-3-super-120b | glm-5.2 | glm-5.2-rpc | ray-head | ray-worker | qwen3.5-122b-a10b-nvfp4 | qwen3.5-397b-spark2 | qwen3.5-397b-nvfp4 | qwen3.5-397b-nvfp4-worker-1 | qwen3.5-397b-nvfp4-worker-2 | qwen3.5-397b-nvfp4-worker-3 | qwen3.6-27b-nvfp4 | qwen3.6-35b-a3b-nvfp4 | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | medgemma-27b | medgemma-4b | glm-5.3-flash | glm-5.3-flash-worker-1 | glm-5.3-flash-worker-2 | deepseek-v4.1-flash | deepseek-v4.1-flash-worker-1 | deepseek-v4.1-flash-worker-2)
       stop_inference_job "$target"
       ;;
     nemotron-retriever-embed | nemotron-retriever-rerank | nemotron-parse | nemotron-safety-guard | nemotron-speech-asr | nemotron-speech-tts | comfy-base | flux-fast | flux-quality | ltx-balanced | ltx-quality | flux-to-ltx | litellm)
