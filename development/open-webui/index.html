@@ -1551,7 +1551,7 @@
 <li>Browser chat UI backed by <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> <abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> orchestration on the lab cluster</li>
 <li>A polished agent surface without bypassing existing safety gates</li>
 </ul>
-<p>Deploy <a href="https://github.com/open-webui/open-webui"><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr></a> as a polished chat surface for lab AI agents. Conversations route through the <strong><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> gateway</strong> (<code>:8642/v1</code>) for <abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> tools (SearXNG, fetch, memory, Context7, etc.), and through <strong>LiteLLM</strong> (<code>http://litellm.ai-inference.svc.cluster.local:4000/v1</code>) for rounded-stack model aliases (<code>lab-fast</code>, <code>lab-smart</code>, <code>lab-med</code>, …). See <a href="../litellm-rounded-stack/">litellm-rounded-stack.md</a>.</p>
+<p>Deploy <a href="https://github.com/open-webui/open-webui"><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr></a> as a polished chat surface for lab AI agents. Conversations route through the <strong><abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> gateway</strong> (<code>:8642/v1</code>) for <abbr title="Model Context Protocol — tool/server interface for agent capabilities.">MCP</abbr> tools (SearXNG, fetch, memory, Context7, etc.), and through <strong>LiteLLM</strong> (<code>http://litellm.ai-inference.svc.cluster.local:4000/v1</code>) for model aliases. The UI default model is <strong><code>lab-auto</code></strong>, which follows whichever LiteLLM backend profile is active (<code>start-qwen38-27b --with-litellm</code>, <abbr title="Daily 3-node mixed fleet (35B + Flash-Next + MedGemma) behind LiteLLM; vLLM util ≤ 0.82.">Mode A</abbr> rounded, <abbr title="Exclusive GLM-5.3-Flash TP=3 on the 3-node QSFP ring; vLLM util ≤ 0.85.">Mode B</abbr>, or <abbr title="Exclusive DeepSeek-V4.1-Flash TP=3 on the QSFP ring; SGLang mem-fraction-static ≤ 0.95.">Mode C</abbr>). See <a href="../litellm-rounded-stack/">litellm-rounded-stack.md</a>.</p>
 <p>Raw vLLM Services (<code>http://&lt;job&gt;.ai-inference.svc.cluster.local:8000/v1</code>) remain a debug bypass — do not point the UI at them for daily use. Do not add a cloud OpenAI medical backup for <code>lab-med</code>.</p>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">¶</a></h2>
 <p>Bring up the agent stack before <abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr>:</p>
@@ -1637,9 +1637,16 @@
 <tr>
 <td>Models empty</td>
 <td>LiteLLM/<abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> empty</td>
-<td>Confirm backends; <abbr title="Daily 3-node mixed fleet (35B + Flash-Next + MedGemma) behind LiteLLM; vLLM util ≤ 0.82.">Mode A</abbr> Jobs running if you expect lab-* aliases</td>
+<td>Confirm backends; start LiteLLM with <code>--backend</code> or <code>--with-litellm</code> if you expect <code>lab-auto</code></td>
 <td><a href="../litellm-rounded-stack/">LiteLLM <abbr title="Mode A overlay: 35B + Flash-Next + MedGemma + LiteLLM on three Sparks.">rounded stack</abbr></a></td>
 <td><code>/v1/models</code></td>
+</tr>
+<tr>
+<td>Default chat 503</td>
+<td>LiteLLM down or profile backend <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr> not Ready</td>
+<td><code>start-litellm --backend …</code> then start the matching <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr></td>
+<td><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> warns if LiteLLM is not Ready; does not hard-fail</td>
+<td><code>/v1/models</code> on <code>:4000</code></td>
 </tr>
 </tbody>
 </table>

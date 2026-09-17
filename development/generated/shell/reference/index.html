@@ -3441,6 +3441,39 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#function-litellm_overlay_for_backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Function litellm_overlay_for_backend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-args_have_with_litellm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Function args_have_with_litellm
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-maybe_attach_litellm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Function maybe_attach_litellm
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#command-start-litellm" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3456,6 +3489,28 @@
     <span class="md-ellipsis">
       
         Command: stop-litellm
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-start-qwen38-27b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command: start-qwen38-27b
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-stop-qwen38-27b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command: stop-qwen38-27b
       
     </span>
   </a>
@@ -8249,6 +8304,39 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#function-litellm_overlay_for_backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Function litellm_overlay_for_backend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-args_have_with_litellm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Function args_have_with_litellm
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-maybe_attach_litellm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Function maybe_attach_litellm
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#command-start-litellm" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -8264,6 +8352,28 @@
     <span class="md-ellipsis">
       
         Command: stop-litellm
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-start-qwen38-27b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command: start-qwen38-27b
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-stop-qwen38-27b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command: stop-qwen38-27b
       
     </span>
   </a>
@@ -10576,6 +10686,7 @@ qwen3.5-397b-nvfp4: 4-node Qwen 397B NVFP4 (SGLang distributed)
 qwen3.6-27b-nvfp4: 1-node Qwen3.6 27B dense NVFP4 (quality)
 qwen3.6-35b-a3b-nvfp4: 1-node Qwen3.6 35B-A3B MoE NVFP4-Fast (speed)
 qwen36-dual-spark-1: concurrent both on 1× Spark (GPU time-slicing)
+qwen3.8-27b-nvfp4: 1-node Qwen3.8-27B dense NVFP4 (quality, MTP)
 qwen3.8-flash-next-nvfp4: 1-node Qwen3.8-Flash-Next NVFP4 (spark1, <abbr title="Memory-map of Qwen3.8-Flash-Next PLE weights; required on Mode A spark1.">PLE mmap</abbr>)
 medgemma-27b / medgemma-4b: spark2 medical lane + optional sidecar
 glm-5.3-flash: 3-node TP=3 NVFP4 on the <abbr title="3-node triangle of 200 Gb/s QSFP links — not the 2-node dual-400G pair.">QSFP ring</abbr> (<abbr title="Exclusive GLM-5.3-Flash TP=3 on the 3-node QSFP ring; vLLM util ≤ 0.85.">Mode B</abbr>)
@@ -11243,8 +11354,21 @@ Does not hard-fail if the live name differs — callers warn via doctor_fabric.<
 <h3 id="function-_require_three_nodes">Function <code>_require_three_nodes</code><a class="headerlink" href="#function-_require_three_nodes" title="Permanent link">¶</a></h3>
 <p>@function _require_three_nodes
 Require ≥3 nodes for rounded / <abbr title="Exclusive GLM-5.3-Flash TP=3 on the 3-node QSFP ring; vLLM util ≤ 0.85.">Mode B</abbr> / <abbr title="Exclusive DeepSeek-V4.1-Flash TP=3 on the QSFP ring; SGLang mem-fraction-static ≤ 0.95.">Mode C</abbr> starts.</p>
+<h3 id="function-litellm_overlay_for_backend">Function <code>litellm_overlay_for_backend</code><a class="headerlink" href="#function-litellm_overlay_for_backend" title="Permanent link">¶</a></h3>
+<p>@function litellm_overlay_for_backend
+Prints the <abbr title="Kubernetes native configuration management (overlays, patches, generators).">kustomize</abbr> path for a LiteLLM backend id.
+@param $1  Backend id (rounded | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | glm-5.3-flash | deepseek-v4.1-flash).</p>
+<h3 id="function-args_have_with_litellm">Function <code>args_have_with_litellm</code><a class="headerlink" href="#function-args_have_with_litellm" title="Permanent link">¶</a></h3>
+<p>@function args_have_with_litellm
+Returns 0 if --with-litellm is among the given args.</p>
+<h3 id="function-maybe_attach_litellm">Function <code>maybe_attach_litellm</code><a class="headerlink" href="#function-maybe_attach_litellm" title="Permanent link">¶</a></h3>
+<p>@function maybe_attach_litellm
+Start LiteLLM with the given backend profile when --with-litellm is present.
+@param $1  Backend id. Remaining args are scanned for --with-litellm.</p>
 <h3 id="command-start-litellm">Command: start-litellm<a class="headerlink" href="#command-start-litellm" title="Permanent link">¶</a></h3>
 <h3 id="command-stop-litellm">Command: stop-litellm<a class="headerlink" href="#command-stop-litellm" title="Permanent link">¶</a></h3>
+<h3 id="command-start-qwen38-27b">Command: start-qwen38-27b<a class="headerlink" href="#command-start-qwen38-27b" title="Permanent link">¶</a></h3>
+<h3 id="command-stop-qwen38-27b">Command: stop-qwen38-27b<a class="headerlink" href="#command-stop-qwen38-27b" title="Permanent link">¶</a></h3>
 <h3 id="command-start-qwen38-flash-next">Command: start-qwen38-flash-next<a class="headerlink" href="#command-start-qwen38-flash-next" title="Permanent link">¶</a></h3>
 <h3 id="command-start-medgemma">Command: start-medgemma<a class="headerlink" href="#command-start-medgemma" title="Permanent link">¶</a></h3>
 <h3 id="command-stop-medgemma">Command: stop-medgemma<a class="headerlink" href="#command-stop-medgemma" title="Permanent link">¶</a></h3>
@@ -11896,7 +12020,8 @@ Kubernetes, <abbr title="Idempotent automation for cluster bootstrap and app ins
   --tier 27b-nvfp4       unsloth/Qwen3.6-27B-NVFP4
   --tier 35b-a3b-nvfp4   unsloth/Qwen3.6-35B-A3B-NVFP4-Fast
   --tier qwen36          Both Qwen3.6 NVFP4 tiers
-  --tier all             All Qwen 3.5 tiers (default; does not include qwen36)</p>
+  --tier 27b-38-nvfp4    unsloth/Qwen3.8-27B-NVFP4
+  --tier all             All Qwen 3.5 tiers (default; does not include qwen36 or 3.8)</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-45-1"><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a>Usage:
 </span><span id="__span-45-2"><a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a><span class="w">  </span>./scripts/utilities/download-qwen-models.sh<span class="w"> </span>status<span class="w"> </span><span class="o">[</span>--tier<span class="w"> </span>...<span class="o">]</span><span class="w"> </span><span class="o">[</span>--json<span class="o">]</span>
 </span><span id="__span-45-3"><a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a><span class="w">  </span>./scripts/utilities/download-qwen-models.sh<span class="w"> </span>run<span class="w"> </span><span class="o">[</span>--tier<span class="w"> </span>...<span class="o">]</span>

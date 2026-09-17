@@ -858,6 +858,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#qwen38-27b-1-spark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Qwen3.8-27B (1× Spark)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#qwen36-dual-stack-1-spark" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1348,6 +1359,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#qwen38-27b-1-spark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Qwen3.8-27B (1× Spark)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#qwen36-dual-stack-1-spark" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1667,6 +1689,14 @@
 <td>1-node dual</td>
 </tr>
 <tr>
+<td>qwen3.8-27b-nvfp4</td>
+<td>1</td>
+<td>48Gi</td>
+<td>Qwen3.8 27B dense NVFP4 (quality + MTP)</td>
+<td>Exclusive util 0.72; 131K first</td>
+<td>1-node</td>
+</tr>
+<tr>
 <td>qwen3.8-flash-next-nvfp4</td>
 <td>1</td>
 <td>92Gi</td>
@@ -1849,23 +1879,29 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>download-qwen-models<span class="w"> </span>run<span class="w"> </span>--tier<span class="w"> </span>all
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>nemotron-stack<span class="w"> </span>start<span class="w"> </span>qwen-agentic-spark-2<span class="w"> </span>--confirm<span class="w"> </span>yes
 </span></code></pre></div>
+<h3 id="qwen38-27b-1-spark">Qwen3.8-27B (1× Spark)<a class="headerlink" href="#qwen38-27b-1-spark" title="Permanent link">¶</a></h3>
+<p>Dense successor to Qwen3.6-27B. Default checkpoint <code>unsloth/Qwen3.8-27B-NVFP4</code> (~23 GB). Exclusive util <strong>0.72</strong>, <code>max-model-len</code> <strong>131072</strong> first. Optional <code>--with-litellm</code> attaches <code>lab-auto</code> to this Service.</p>
+<p>There is <strong>no</strong> official DeepSeek-V4.1 / V4.1-Pro checkpoint. Local DeepSeek on this lab is <strong>V4.1-Flash only</strong> (<abbr title="Exclusive DeepSeek-V4.1-Flash TP=3 on the QSFP ring; SGLang mem-fraction-static ≤ 0.95.">Mode C</abbr>). Do not use <code>nvidia/DeepSeek-V4-Flash-NVFP4</code> (old 284B).</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>download-qwen-models<span class="w"> </span>run<span class="w"> </span>--tier<span class="w"> </span>27b-38-nvfp4
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-qwen38-27b<span class="w"> </span>--with-litellm
+</span></code></pre></div>
 <h3 id="qwen36-dual-stack-1-spark">Qwen3.6 dual stack (1× Spark)<a class="headerlink" href="#qwen36-dual-stack-1-spark" title="Permanent link">¶</a></h3>
 <p>Concurrent dense 27B + MoE 35B-A3B NVFP4 with MTP. Full guide: <a href="../qwen36-dual-stack/">qwen36-dual-stack.md</a>.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>download-qwen-models<span class="w"> </span>run<span class="w"> </span>--tier<span class="w"> </span>qwen36
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-qwen36-dual
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>status-qwen36
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>stop-qwen36
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>download-qwen-models<span class="w"> </span>run<span class="w"> </span>--tier<span class="w"> </span>qwen36
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-qwen36-dual
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>status-qwen36
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>stop-qwen36
 </span></code></pre></div>
 <h3 id="ray-large-models-nemotron-3-ultra-legacy">Ray + Large Models (nemotron-3-ultra legacy)<a class="headerlink" href="#ray-large-models-nemotron-3-ultra-legacy" title="Permanent link">¶</a></h3>
 <p>Nemotron Ultra (legacy profile) requires a healthy Ray cluster first:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>./scripts/manage.sh<span class="w"> </span>start-ray
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>./scripts/manage.sh<span class="w"> </span>start-nemotron-3-ultra
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>./scripts/manage.sh<span class="w"> </span>start-ray
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>./scripts/manage.sh<span class="w"> </span>start-nemotron-3-ultra
 </span></code></pre></div>
 <h3 id="glm-52-1-bit-ud-iq1_m-llamacpp-rpc">GLM-5.2 (1-bit UD-IQ1_M + llama.cpp RPC)<a class="headerlink" href="#glm-52-1-bit-ud-iq1_m-llamacpp-rpc" title="Permanent link">¶</a></h3>
 <p><strong>No Ray required.</strong> Requires 2 nodes (spark0 + spark1) and pre-downloaded GGUF shards:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>download-glm52-gguf<span class="w"> </span>run
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>lab/llama-cpp-gb10:rpc<span class="w"> </span>k8s/workloads/glm-5.2/
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>./scripts/manage.sh<span class="w"> </span>start-glm-5.2
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>download-glm52-gguf<span class="w"> </span>run
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>lab/llama-cpp-gb10:rpc<span class="w"> </span>k8s/workloads/glm-5.2/
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>./scripts/manage.sh<span class="w"> </span>start-glm-5.2
 </span></code></pre></div>
 <p><strong>GLM-5.2 ultra (2-node DGX Spark)</strong>: See <code>k8s/workloads/glm-5.2/</code> for the 1-bit UD-IQ1_M llama.cpp RPC config (~228 GB model, ~8 tok/s @ 256K). Quality trade-off vs nemotron NVFP4 — use when footprint is the constraint.</p>
 <p>The estimator will warn you if free GPUs look insufficient.</p>
@@ -1884,8 +1920,8 @@
 <h2 id="configuration-sources">Configuration sources<a class="headerlink" href="#configuration-sources" title="Permanent link">¶</a></h2>
 <p><code>ansible/inventory/group_vars/all.yml</code> holds <strong>reference defaults</strong> (<code>llm_*</code>, <abbr title="NVIDIA Collective Communications Library for multi-GPU / multi-node training and inference.">NCCL</abbr> templates, dev-tool versions) for <abbr title="Idempotent automation for cluster bootstrap and app install playbooks.">Ansible</abbr> roles and documentation. <strong>Authoritative</strong> values for a running workload are always the committed manifests under <code>k8s/workloads/</code> and the profiles in <code>scripts/lib/models.sh</code> (used by <code>estimate</code> / <code>start-*</code>). Treat <code>group_vars</code> as a starting point — not the sole source of truth for deployed Jobs.</p>
 <h2 id="resource-estimator-usage">Resource Estimator Usage<a class="headerlink" href="#resource-estimator-usage" title="Permanent link">¶</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>./scripts/manage.sh<span class="w"> </span>estimate<span class="w"> </span>kimi
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>./scripts/manage.sh<span class="w"> </span>estimate<span class="w"> </span>nemotron-3-ultra
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>./scripts/manage.sh<span class="w"> </span>estimate<span class="w"> </span>kimi
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>./scripts/manage.sh<span class="w"> </span>estimate<span class="w"> </span>nemotron-3-ultra
 </span></code></pre></div>
 <p>It prints:</p>
 <ul>

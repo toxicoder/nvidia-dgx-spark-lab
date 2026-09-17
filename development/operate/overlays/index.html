@@ -1516,6 +1516,30 @@
 <td>pin 35B spark0, 27B spark2</td>
 <td><abbr title="Daily 3-node mixed fleet (35B + Flash-Next + MedGemma) behind LiteLLM; vLLM util ≤ 0.82.">Mode A</abbr> <code>--quality</code>; <code>lab-med</code> falls back</td>
 </tr>
+<tr>
+<td><code>litellm-qwen38-27b</code></td>
+<td>LiteLLM <abbr title="Kubernetes workload that keeps a desired replica set running continuously.">Deployment</abbr> + Qwen3.8-27B profile</td>
+<td>replace ConfigMap</td>
+<td><code>start-qwen38-27b --with-litellm</code></td>
+</tr>
+<tr>
+<td><code>litellm-qwen38-flash-next</code></td>
+<td>LiteLLM + Flash-Next profile</td>
+<td>replace ConfigMap</td>
+<td><code>start-qwen38-flash-next --with-litellm</code></td>
+</tr>
+<tr>
+<td><code>litellm-glm53-flash</code></td>
+<td>LiteLLM + GLM profile</td>
+<td>replace ConfigMap</td>
+<td><code>start-glm53-flash --with-litellm</code></td>
+</tr>
+<tr>
+<td><code>litellm-dsv41-flash</code></td>
+<td>LiteLLM + DeepSeek-V4.1-Flash profile</td>
+<td>replace ConfigMap</td>
+<td><code>start-dsv41-flash --with-litellm</code></td>
+</tr>
 </tbody>
 </table>
 <p>Inspect:</p>

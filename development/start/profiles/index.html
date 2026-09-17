@@ -1145,6 +1145,12 @@
 <td>Dual needs GPU time-slicing. See <a href="../../qwen36-dual-stack/">Qwen3.6 dual</a>.</td>
 </tr>
 <tr>
+<td><strong>Qwen 3.8 27B</strong></td>
+<td><code>start-qwen38-27b [--with-litellm]</code></td>
+<td>1</td>
+<td>Dense NVFP4. Refuses <abbr title="Exclusive GLM-5.3-Flash TP=3 on the 3-node QSFP ring; vLLM util ≤ 0.85.">Mode B</abbr> and C. <abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> <code>lab-auto</code>.</td>
+</tr>
+<tr>
 <td><strong><abbr title="Daily 3-node mixed fleet (35B + Flash-Next + MedGemma) behind LiteLLM; vLLM util ≤ 0.82.">Mode A</abbr> daily</strong></td>
 <td><code>start-stack-rounded</code> (<code>--quality</code> optional)</td>
 <td><strong>3-node</strong></td>
@@ -1152,15 +1158,15 @@
 </tr>
 <tr>
 <td><strong><abbr title="Exclusive GLM-5.3-Flash TP=3 on the 3-node QSFP ring; vLLM util ≤ 0.85.">Mode B</abbr> exclusive</strong></td>
-<td><code>start-glm-5.3-flash</code></td>
+<td><code>start-glm-5.3-flash [--with-litellm]</code></td>
 <td><strong>3-node ring</strong></td>
 <td>GLM-5.3-Flash TP=3. Refuses A and C.</td>
 </tr>
 <tr>
 <td><strong><abbr title="Exclusive DeepSeek-V4.1-Flash TP=3 on the QSFP ring; SGLang mem-fraction-static ≤ 0.95.">Mode C</abbr> exclusive</strong></td>
-<td><code>start-deepseek-v4.1-flash</code></td>
+<td><code>start-deepseek-v4.1-flash [--with-litellm]</code></td>
 <td><strong>3-node ring</strong></td>
-<td>DeepSeek-V4.1-Flash TP=3. Refuses A and B.</td>
+<td>DeepSeek-V4.1-Flash TP=3. Refuses A and B. V4.1-Pro is not released.</td>
 </tr>
 <tr>
 <td><strong>Visual</strong></td>

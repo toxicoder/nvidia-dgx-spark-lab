@@ -1860,12 +1860,21 @@
 <tbody>
 <tr>
 <td>litellm</td>
-<td><code>start-litellm</code></td>
+<td><code>start-litellm [--backend …]</code></td>
 <td>0</td>
 <td>1Gi</td>
 <td>500m</td>
 <td><abbr title="Kubernetes workload that keeps a desired replica set running continuously.">Deployment</abbr></td>
-<td>LAN OpenAI proxy; <code>Always</code> OK</td>
+<td>LAN OpenAI proxy; <code>Always</code> OK; <code>lab-auto</code></td>
+</tr>
+<tr>
+<td>qwen3.8-27b-nvfp4</td>
+<td><code>start-qwen38-27b [--with-litellm]</code></td>
+<td>1</td>
+<td>48Gi</td>
+<td>8</td>
+<td><abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr></td>
+<td>Exclusive util 0.72; refuses B and C</td>
 </tr>
 <tr>
 <td>rounded-stack</td>

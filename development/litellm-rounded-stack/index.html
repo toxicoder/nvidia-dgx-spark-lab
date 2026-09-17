@@ -958,6 +958,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#exclusive-stacks-litellm-profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exclusive stacks + LiteLLM profiles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#related" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1365,6 +1376,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#exclusive-stacks-litellm-profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exclusive stacks + LiteLLM profiles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#related" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1560,7 +1582,7 @@
 <p><abbr title="Exclusive GLM-5.3-Flash TP=3 on the 3-node QSFP ring; vLLM util ≤ 0.85.">Mode B</abbr> exclusive util is <strong>0.85</strong>. 0.88 is not shipped. First <code>max-model-len</code> is 131072.</p>
 <p>Do not add GLM 753B as a daily driver. Existing <code>glm-5.2</code> 1-bit RPC stays as optional night mode.</p>
 <h2 id="mode-c-exclusive-deepseek-v41-flash-uses-the-ring"><abbr title="Exclusive DeepSeek-V4.1-Flash TP=3 on the QSFP ring; SGLang mem-fraction-static ≤ 0.95.">Mode C</abbr> — exclusive DeepSeek-V4.1-Flash (uses the ring)<a class="headerlink" href="#mode-c-exclusive-deepseek-v41-flash-uses-the-ring" title="Permanent link">¶</a></h2>
-<p>Official <code>deepseek-ai/DeepSeek-V4.1-Flash</code> only (native MXFP4 experts + FP8/MXFP8 dense). <strong>Do not</strong> use <code>nvidia/DeepSeek-V4-Flash-NVFP4</code> (old 284B) or LibertAIDAI requants.</p>
+<p>Official <code>deepseek-ai/DeepSeek-V4.1-Flash</code> only (native MXFP4 experts + FP8/MXFP8 dense). <strong>Do not</strong> use <code>nvidia/DeepSeek-V4-Flash-NVFP4</code> (old 284B) or LibertAIDAI requants. DeepSeek-V4.1 / V4.1-Pro weights are <strong>not published</strong> — do not invent a non-Flash V4.1 <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr>.</p>
 <p>Engine is <strong>SGLang</strong> with the MiaAI-Lab GB10 overlay (<code>dsv41-flash-tp3:local</code>), not stock vLLM. Engram tables live on <strong>each node’s NVMe</strong> at <code>/mnt/models/dsv41-engram</code>. <code>OFFLOAD_MODE=nvme</code> only — RAM offload evicts the model on UMA.</p>
 <p><code>PYTORCH_CUDA_ALLOC_CONF=expandable_segments:False</code> (True NaNs V4.1 prompts &gt;64 tokens). Do not copy the Comfy visual <code>True</code> patch.</p>
 <p>First profile: <code>--mem-fraction-static 0.95</code> (MiaAI measured load for ~101 GiB/rank), <code>--context-length 131072</code>, <code>--max-running-requests 1</code>. Hang line is MemAvailable ~8–12 GiB; MiaAI left ~6 GiB on the head. If MemAvailable drops below 8 GiB, <code>stop-dsv41-flash</code>. <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr> is fail-stop (<code>OnFailure</code> + <code>backoffLimit: 1</code>); nothing auto-starts on reboot.</p>
@@ -1657,7 +1679,52 @@
 </span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>status-stack
 </span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>doctor-fabric
 </span></code></pre></div>
-<p><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> model base URL is LiteLLM. <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> remains the <strong>agent</strong> gateway. Raw Service bypass: <code>kubectl port-forward -n ai-inference svc/&lt;job&gt; 8000:8000</code>.</p>
+<p><abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> model base URL is LiteLLM. Default model is <strong><code>lab-auto</code></strong>. <abbr title="Lab agent runtime (Docker) with gateway, tools, and MCP integration.">Hermes</abbr> remains the <strong>agent</strong> gateway. Raw Service bypass: <code>kubectl port-forward -n ai-inference svc/&lt;job&gt; 8000:8000</code>.</p>
+<h2 id="exclusive-stacks-litellm-profiles">Exclusive stacks + LiteLLM profiles<a class="headerlink" href="#exclusive-stacks-litellm-profiles" title="Permanent link">¶</a></h2>
+<p><abbr title="Daily 3-node mixed fleet (35B + Flash-Next + MedGemma) behind LiteLLM; vLLM util ≤ 0.82.">Mode A</abbr> keeps the mixed-fleet <code>litellm_config.yaml</code>. For a single chosen <abbr title="Kubernetes workload that runs pods to completion (typical for heavy inference).">Job</abbr>, start LiteLLM with a matching profile so <abbr title="Chat frontend used with Hermes / OpenAI-compatible gateways.">Open WebUI</abbr> is not a wall of 503s. Last <code>--backend</code> / <code>--with-litellm</code> wins (ConfigMap replace + rollout).</p>
+<table>
+<thead>
+<tr>
+<th>Start</th>
+<th>LiteLLM</th>
+<th><code>lab-auto</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>start-qwen38-27b --with-litellm</code></td>
+<td>overlay <code>litellm-qwen38-27b</code></td>
+<td>Qwen3.8-27B (<code>lab-quality</code>)</td>
+</tr>
+<tr>
+<td><code>start-qwen38-flash-next --with-litellm</code></td>
+<td>overlay <code>litellm-qwen38-flash-next</code></td>
+<td>Flash-Next (<code>lab-smart</code>)</td>
+</tr>
+<tr>
+<td><code>start-glm53-flash --with-litellm</code></td>
+<td>overlay <code>litellm-glm53-flash</code></td>
+<td>GLM (<code>lab-frontier</code>)</td>
+</tr>
+<tr>
+<td><code>start-dsv41-flash --with-litellm</code></td>
+<td>overlay <code>litellm-dsv41-flash</code></td>
+<td>DeepSeek-V4.1-Flash (<code>lab-frontier-ds</code>)</td>
+</tr>
+<tr>
+<td><code>start-stack-rounded</code></td>
+<td>default rounded config</td>
+<td><code>lab-fast</code> then <code>lab-smart</code></td>
+</tr>
+</tbody>
+</table>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//scripts:run-utility<span class="w"> </span>--<span class="w"> </span>download-qwen-models<span class="w"> </span>run<span class="w"> </span>--tier<span class="w"> </span>27b-38-nvfp4
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-qwen38-27b<span class="w"> </span>--with-litellm
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>bazelisk<span class="w"> </span>run<span class="w"> </span>//:manage<span class="w"> </span>--<span class="w"> </span>start-litellm<span class="w"> </span>--backend<span class="w"> </span>qwen3.8-flash-next-nvfp4
+</span></code></pre></div>
+<p><code>--backend</code> ids: <code>rounded</code> (default) | <code>qwen3.8-27b-nvfp4</code> | <code>qwen3.8-flash-next-nvfp4</code> | <code>glm-5.3-flash</code> | <code>deepseek-v4.1-flash</code>.</p>
+<p><strong>DeepSeek-V4.1 / V4.1-Pro weights are not published.</strong> Do not invent a non-Flash V4.1 stack. Official open weights are <code>deepseek-ai/DeepSeek-V4.1-Flash</code> only. Qwen3.8-Flash-Next stays on <code>RadixArk/Qwen3.8-Flash-Next-NVFP4</code> + <abbr title="Memory-map of Qwen3.8-Flash-Next PLE weights; required on Mode A spark1.">PLE mmap</abbr> in this tree; <code>nvidia/Qwen3.8-Flash-Next-NVFP4</code> is the next on-Spark A/B, not this PR.</p>
+<p>Qwen3.8-27B and Flash-Next standalone starts refuse <abbr title="Exclusive GLM-5.3-Flash TP=3 on the 3-node QSFP ring; vLLM util ≤ 0.85.">Mode B</abbr> and <abbr title="Exclusive DeepSeek-V4.1-Flash TP=3 on the QSFP ring; SGLang mem-fraction-static ≤ 0.95.">Mode C</abbr> (same GPU exclusion as the exclusive TP=3 Jobs).</p>
 <h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">¶</a></h2>
 <ul>
 <li><a href="../qwen36-dual-stack/">Qwen3.6 Dual Stack</a></li>
