@@ -1,0 +1,286 @@
+"""Package purpose: Fumadocs (Next.js App Router) documentation site — npm runners, typecheck, unit and visual gates.
+
+The site renders the markdown/MDX content that lives in the sibling `docs/` package, so the
+content data dependencies below come from `//docs:content`.  Keeping content out of this
+package means the generators (`docs/generate_shell_docs.py`, dashboard TypeDoc) keep writing
+into `docs/generated/` and reviewers keep diffing the same files.
+
+Usage:
+  bazelisk run //docs-site:install       # npm ci from the pinned lockfile
+  bazelisk run //docs-site:dev           # dev server (hot reload)
+  bazelisk run //docs-site:build         # static export into docs-site/out/
+  bazelisk run //docs-site:typecheck     # next typegen + tsc --noEmit
+  bazelisk run //docs-site:unit          # Vitest widget/transform suite
+  bazelisk run //docs-site:visual-linux  # screenshot baselines in the CI image (needs Docker)
+  bazelisk run //docs-site:npm -- <args># escape hatch
+"""
+
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "sources",
+    srcs = glob(
+        [
+            "app/**",
+            "components/**",
+            "lib/**",
+            "scripts/**",
+            "tests/**",
+            "next-env.d.ts",
+            "next.config.ts",
+            "package.json",
+            "package-lock.json",
+            "playwright.config.mjs",
+            "postcss.config.mjs",
+            "source.config.ts",
+            "tsconfig.json",
+            "vitest.config.ts",
+            "test_*.py",
+            "run_python_test.sh",
+        ],
+        allow_empty = True,
+    ) + [
+        "run_npm.sh",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Committed screenshot baselines.  Produced on the CI image (Linux Chromium): font metrics
+# differ per platform, so a golden captured on a laptop will not match CI.
+filegroup(
+    name = "visual-goldens",
+    srcs = glob(
+        [
+            "tests/visual/goldens/*.png",
+            "tests/visual/goldens/**/*.png",
+        ],
+        allow_empty = True,
+    ),
+    visibility = ["//visibility:public"],
+)
+
+exports_files(
+    [
+        "package.json",
+        "package-lock.json",
+        "run_npm.sh",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "install",
+    srcs = ["run_npm.sh"],
+    args = ["install"],
+    data = [
+        ":sources",
+        "//docs:content",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "dev",
+    srcs = ["run_npm.sh"],
+    args = ["dev"],
+    data = [
+        ":sources",
+        "//docs:content",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "build",
+    srcs = ["run_npm.sh"],
+    args = ["build"],
+    data = [
+        ":sources",
+        "//docs:content",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Published aliases keep the URLs the MkDocs site had: /latest/ and /development/ are
+# separate exports built with the matching basePath.
+sh_binary(
+    name = "build-latest",
+    srcs = ["run_npm.sh"],
+    args = ["build-latest"],
+    data = [
+        ":sources",
+        "//docs:content",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "build-development",
+    srcs = ["run_npm.sh"],
+    args = ["build-development"],
+    data = [
+        ":sources",
+        "//docs:content",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "serve",
+    srcs = ["run_npm.sh"],
+    args = ["serve"],
+    data = [
+        ":sources",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sh_test(
+    name = "typecheck",
+    size = "medium",
+    timeout = "moderate",
+    srcs = ["run_npm.sh"],
+    args = ["typecheck"],
+    data = [
+        ":sources",
+        "//docs:content",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Widget + content-transform unit suite (Vitest).  Fast and browser-free, so it belongs to
+# the default test set.
+sh_test(
+    name = "unit",
+    size = "medium",
+    timeout = "moderate",
+    srcs = ["run_npm.sh"],
+    args = ["unit"],
+    data = [
+        ":sources",
+        "//docs:content",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Navigation transcriber tests (python unittest over docs-site/scripts/gen_nav.py).
+sh_test(
+    name = "nav_test",
+    size = "small",
+    srcs = ["run_python_test.sh"],
+    args = ["test_gen_nav.py"],
+    data = [
+        ":sources",
+        "//docs:content",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Codemod tests: prove the MkDocs -> MDX mapping is mechanical and never rewrites prose.
+sh_test(
+    name = "codemod_test",
+    size = "small",
+    srcs = ["run_python_test.sh"],
+    args = ["test_codemod.py"],
+    data = [
+        ":sources",
+        "//docs:content",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Golden-pipeline guards: the Linux capture image stays pinned to the Playwright release the
+# suite imports, the container matches the CI platform, and the spec never invents a baseline
+# under CI.  These are the checks that keep a laptop-captured screenshot from being committed.
+sh_test(
+    name = "visual_tooling_test",
+    size = "small",
+    srcs = ["run_python_test.sh"],
+    args = ["test_visual_tooling.py"],
+    data = [
+        ":sources",
+        "//docs:content",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Playwright visual regression against the committed baselines, on the host browser.
+#
+# The baselines are rendered by the pinned container (see //docs-site:visual-linux), so a host
+# run is only meaningful on a machine whose Chromium matches that image.  These two targets are
+# the escape hatch for debugging a rendering difference inside one environment; `//:validate`
+# and CI use the container path.  Marked manual for the same reason as //dashboard:visual-test:
+# the sandboxed test action cannot install or launch a browser reliably.
+sh_test(
+    name = "visual-test",
+    size = "large",
+    timeout = "long",
+    srcs = ["run_npm.sh"],
+    args = ["visual"],
+    data = [
+        ":sources",
+        ":visual-goldens",
+        "//docs:content",
+    ],
+    tags = [
+        "docs",
+        "manual",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "visual",
+    srcs = ["run_npm.sh"],
+    args = ["visual"],
+    data = [
+        ":sources",
+        ":visual-goldens",
+        "//docs:content",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Rewrite baselines on the host browser.  Debugging aid only: the committed set comes from the
+# container below, so baselines written here would not match CI.  Review any image diff from
+# this target before even considering a commit.
+sh_binary(
+    name = "visual-update",
+    srcs = ["run_npm.sh"],
+    args = ["visual-update"],
+    data = [
+        ":sources",
+        ":visual-goldens",
+        "//docs:content",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Capture baselines in the Linux image that matches the docs CI job.  Committed goldens must
+# come from that environment — a laptop capture differs in font metrics and then reports every
+# page as changed in CI — so this is the supported way to refresh them.  Needs Docker running.
+#   bazelisk run //docs-site:visual-linux            # compare
+#   bazelisk run //docs-site:visual-linux -- --update  # rewrite, then review the diff
+sh_binary(
+    name = "visual-linux",
+    srcs = ["scripts/visual_linux.sh"],
+    data = [
+        ":sources",
+        "//docs:content",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Generic escape hatch: bazelisk run //docs-site:npm -- ci --force
+sh_binary(
+    name = "npm",
+    srcs = ["run_npm.sh"],
+    data = [
+        ":sources",
+        "//docs:content",
+    ],
+    visibility = ["//visibility:public"],
+)

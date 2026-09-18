@@ -1,0 +1,204 @@
+[
+  {
+    "title": "Home",
+    "pages": [
+      {
+        "title": "Home",
+        "path": "index.md"
+      }
+    ]
+  },
+  {
+    "title": "Start",
+    "pages": [
+      {
+        "title": "Overview",
+        "path": "start/index.md"
+      },
+      {
+        "title": "Getting Started",
+        "path": "getting-started.md"
+      },
+      {
+        "title": "Choose topology",
+        "path": "start/choose-topology.md"
+      },
+      {
+        "title": "Profiles",
+        "path": "start/profiles.md"
+      },
+      {
+        "title": "Learn the lab",
+        "path": "learn/index.md"
+      }
+    ]
+  },
+  {
+    "title": "Concepts",
+    "pages": [
+      {
+        "title": "Overview",
+        "path": "concepts/index.md"
+      },
+      {
+        "title": "Architecture",
+        "path": "architecture.md"
+      },
+      {
+        "title": "Interconnect & NCCL",
+        "path": "concepts/interconnect-nccl.md"
+      },
+      {
+        "title": "DGX Spark Notes",
+        "path": "dgx-spark-notes.md"
+      },
+      {
+        "title": "Resource Guard",
+        "path": "resource-guard.md"
+      },
+      {
+        "title": "Reboot Safety",
+        "path": "reboot-safety.md"
+      },
+      {
+        "title": "Models & Resources",
+        "path": "models-catalog.md"
+      },
+      {
+        "title": "Qwen3.6 Dual Stack",
+        "path": "qwen36-dual-stack.md"
+      },
+      {
+        "title": "LiteLLM Rounded Stack",
+        "path": "litellm-rounded-stack.md"
+      },
+      {
+        "title": "Visual Generative AI",
+        "path": "visual-generative-ai.md"
+      },
+      {
+        "title": "Nemotron Agentic Stack",
+        "path": "nemotron-agentic-stack.md"
+      },
+      {
+        "title": "Glossary",
+        "path": "glossary.md"
+      }
+    ]
+  },
+  {
+    "title": "Operate",
+    "pages": [
+      {
+        "title": "Overview",
+        "path": "operate/index.md"
+      },
+      {
+        "title": "Ansible catalog",
+        "path": "operate/ansible-catalog.md"
+      },
+      {
+        "title": "Overlays",
+        "path": "operate/overlays.md"
+      },
+      {
+        "title": "Workload catalog",
+        "path": "operate/workload-catalog.md"
+      },
+      {
+        "title": "Dashboard",
+        "path": "operate/dashboard.md"
+      },
+      {
+        "title": "Secrets",
+        "path": "operate/secrets.md"
+      },
+      {
+        "title": "Capacity planning",
+        "path": "operate/capacity-planning.md"
+      },
+      {
+        "title": "Patch and reboot",
+        "path": "operate/patch-and-reboot.md"
+      },
+      {
+        "title": "Node failure",
+        "path": "operate/node-failure.md"
+      },
+      {
+        "title": "Backup and restore",
+        "path": "operate/backup-restore.md"
+      },
+      {
+        "title": "Monitoring",
+        "path": "monitoring-observability.md"
+      },
+      {
+        "title": "Troubleshooting",
+        "path": "troubleshooting.md"
+      },
+      {
+        "title": "Hermes Agent",
+        "path": "hermes-agent.md"
+      },
+      {
+        "title": "MCP Agent Toolkit",
+        "path": "mcp-agent-toolkit.md"
+      },
+      {
+        "title": "Open WebUI",
+        "path": "open-webui.md"
+      },
+      {
+        "title": "SSO",
+        "path": "sso.md"
+      },
+      {
+        "title": "Dev workspaces (Coder vs Kasm)",
+        "path": "dev-workspaces.md"
+      },
+      {
+        "title": "Gitea CI",
+        "path": "gitea-ci-setup.md"
+      }
+    ]
+  },
+  {
+    "title": "Reference",
+    "pages": [
+      {
+        "title": "Project Conventions",
+        "path": "project-conventions.md"
+      },
+      {
+        "title": "Contributing to Docs",
+        "path": "CONTRIBUTING.md"
+      },
+      {
+        "title": "Shell Commands & Helpers",
+        "path": "generated/shell/reference.md"
+      },
+      {
+        "title": "Dashboard API",
+        "path": "generated/dashboard-api/README.md"
+      }
+    ]
+  },
+  {
+    "title": "Contribute",
+    "pages": [
+      {
+        "title": "Overview",
+        "path": "contribute/index.md"
+      },
+      {
+        "title": "Developer Environment",
+        "path": "dev-environment.md"
+      },
+      {
+        "title": "Building with Bazel",
+        "path": "BUILDING_WITH_BAZEL.md"
+      }
+    ]
+  }
+]

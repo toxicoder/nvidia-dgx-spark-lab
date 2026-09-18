@@ -1,0 +1,154 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+
+/*
+ * Overeazy Voltage palette for the documentation site chrome.
+ *
+ * Replaces the Material-for-MkDocs indigo scheme.  Light values come from the brand
+ * sheet; `@theme` registers the tokens with Tailwind so `bg-fd-background` and friends
+ * resolve, and `.dark` overrides them for the dark scheme that `next-themes` toggles.
+ */
+@theme {
+  --color-fd-background: #f7f3eb;
+  --color-fd-foreground: #161311;
+  --color-fd-muted: #ebe4d6;
+  --color-fd-muted-foreground: #6b6157;
+  --color-fd-popover: #fffbf4;
+  --color-fd-popover-foreground: #161311;
+  --color-fd-card: #fffbf4;
+  --color-fd-card-foreground: #161311;
+  --color-fd-border: #d6cdbb;
+  --color-fd-primary: #c67a0a;
+  --color-fd-primary-foreground: #fffbf4;
+  --color-fd-secondary: #ebe4d6;
+  --color-fd-secondary-foreground: #161311;
+  --color-fd-accent: #e85d28;
+  --color-fd-accent-foreground: #fffbf4;
+  --color-fd-ring: #c67a0a;
+  --color-fd-overlay: rgb(22, 19, 17 / 0.35);
+
+  /* Secondary voice: teal for chips and informational emphasis. */
+  --color-fd-teal: #1b8a84;
+  --color-fd-teal-foreground: #fffbf4;
+}
+
+.dark {
+  --color-fd-background: #12100e;
+  --color-fd-foreground: #f3ede3;
+  --color-fd-muted: #221e1a;
+  --color-fd-muted-foreground: #a89d90;
+  --color-fd-popover: #1a1714;
+  --color-fd-popover-foreground: #f3ede3;
+  --color-fd-card: #1a1714;
+  --color-fd-card-foreground: #f3ede3;
+  --color-fd-border: #3a342c;
+  --color-fd-primary: #e8a317;
+  --color-fd-primary-foreground: #12100e;
+  --color-fd-secondary: #221e1a;
+  --color-fd-secondary-foreground: #f3ede3;
+  --color-fd-accent: #ff7a3d;
+  --color-fd-accent-foreground: #12100e;
+  --color-fd-ring: #e8a317;
+  --color-fd-overlay: rgb(0, 0, 0 / 0.6);
+
+  --color-fd-teal: #3ec4bb;
+  --color-fd-teal-foreground: #12100e;
+}
+
+/*
+ * Callout tints follow the same voice: the theme defaults are a blue/green/red set that
+ * reads as Material.  Info takes the brand teal, warning and idea the amber primary,
+ * error the accent orange, success stays green.
+ */
+@theme static {
+  --color-fd-info: #1b8a84;
+  --color-fd-warning: #c67a0a;
+  --color-fd-error: #e85d28;
+  --color-fd-success: #2f8f4f;
+  --color-fd-idea: #c67a0a;
+}
+
+.dark {
+  --color-fd-info: #3ec4bb;
+  --color-fd-warning: #e8a317;
+  --color-fd-error: #ff7a3d;
+  --color-fd-success: #58b878;
+  --color-fd-idea: #e8a317;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+/* The cluster-variables panel is ported from the MkDocs command-vars widget. */
+.cluster-config {
+  border: 1px solid var(--color-fd-border);
+  border-radius: 0.5rem;
+  background: var(--color-fd-card);
+  padding: 0.875rem 1rem;
+  margin-block: 1rem;
+}
+
+.cluster-config > p {
+  margin-block: 0 0.5rem;
+  font-weight: 600;
+}
+
+.cluster-config label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-inline-end: 1rem;
+  font-size: 0.875rem;
+}
+
+.cluster-config input {
+  border: 1px solid var(--color-fd-border);
+  border-radius: 0.25rem;
+  background: var(--color-fd-background);
+  color: var(--color-fd-foreground);
+  padding: 0.125rem 0.375rem;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.875rem;
+}
+
+.cluster-config input:focus-visible {
+  outline: 2px solid var(--color-fd-ring);
+  outline-offset: 1px;
+}
+
+.cluster-config small {
+  display: inline-block;
+  margin-inline-start: 0.5rem;
+  color: var(--color-fd-muted-foreground);
+}
+
+.md-button {
+  border: 1px solid var(--color-fd-border);
+  border-radius: 0.375rem;
+  background: var(--color-fd-secondary);
+  color: var(--color-fd-secondary-foreground);
+  padding: 0.25rem 0.625rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.md-button:hover {
+  border-color: var(--color-fd-primary);
+}
+
+.md-button--primary {
+  background: var(--color-fd-primary);
+  border-color: var(--color-fd-primary);
+  color: var(--color-fd-primary-foreground);
+  font-weight: 600;
+}
+
+/* Glossary tooltips are injected as <abbr> by lib/remark-glossary.ts. */
+abbr[title] {
+  text-decoration: underline dotted;
+  text-decoration-color: var(--color-fd-teal);
+  text-underline-offset: 3px;
+  cursor: help;
+}
