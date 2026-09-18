@@ -1,9 +1,17 @@
 # Ignore directories that should never be part of the Bazel workspace
 .git
 .github
-# Do NOT ignore docs/ itself because we have docs/BUILD.bazel and content
-# Generated docs site and virtualenv for docs must be ignored
-site/
+# Do NOT ignore docs/ itself because we have docs/BUILD.bazel and content, and do NOT
+# ignore docs-site/ (that is the site package).  Build outputs and the docs virtualenv are
+# regenerated, so they stay out of the workspace: docs-site/out (static export), .next,
+# .source, and node_modules are covered by the node rules below plus .gitignore.
+# out-linux/ and .deps-linux-stamp are the Linux golden-capture container's own build
+# artefacts (see docs-site/scripts/visual_linux.sh) — never host outputs, never committed.
+docs-site/out/
+docs-site/out-linux/
+docs-site/.deps-linux-stamp
+docs-site/.next/
+docs-site/.source/
 .venv-docs/
 __pycache__/
 **/__pycache__/
@@ -24,3 +32,4 @@ tests/bats/tmp
 # Node / frontend (prevent accidental inclusion in Bazel source globs)
 node_modules/
 dashboard/node_modules/
+docs-site/node_modules/

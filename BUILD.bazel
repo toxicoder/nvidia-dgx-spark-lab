@@ -5,11 +5,11 @@ Bazel is the primary entry point: build, test, lint, docs, and operational scrip
 Common entry points:
 
   bazelisk run //:validate              # git-aware build + test + lint + docs/dashboard
-  bazelisk test //:test                 # full hermetic suite (incl. docs render)
+  bazelisk test //:test                 # full hermetic suite (incl. docs gates)
   bazelisk test //:test-fast            # CI core (excludes slow docs Playwright)
   bazelisk test //:lint --test_tag_filters=manual   # all lints (requires host tools)
   bazelisk run //:manage -- status      # cluster management (wraps scripts/manage.sh)
-  bazelisk run //docs:serve             # local docs dev server
+  bazelisk run //docs:serve             # local docs dev server (Fumadocs / Next.js)
   bazelisk run //dashboard:hermetic-test  # Docker-isolated Vitest + build + Playwright
 
 See docs/BUILDING_WITH_BAZEL.md for the full guide.
@@ -24,7 +24,6 @@ exports_files([
     ".prettierignore",
     ".yamllint.yml",
     "fix.sh",
-    "mkdocs.yml",
     "mypy.ini",
     "prettier.config.mjs",
 ])
@@ -79,14 +78,16 @@ alias(
     visibility = ["//visibility:public"],
 )
 
-# Fast hermetic core for CI (bazel-core job). Excludes Playwright-heavy docs render
-# and MkDocs strict build (needs host MkDocs) — both run in docs-and-render via
-# //docs:test_mkdocs_render.
-# Fast hermetic core for CI (bazel-core). Real MkDocs strict build lives in the
-# docs-and-render job (//docs:test_mkdocs_render) — runners without MkDocs skip
-# that build, so keep it out of test-fast for an honest core gate.
+# Fast hermetic core for CI (bazel-core). Browser-free by design: the Playwright visual
+# suite and the Next.js production build need a browser and a full npm install, so they run
+# in the docs-and-render job via //docs-site:visual instead of here.
 _TEST_FAST = [
+    "//docs-site:codemod_test",
+    "//docs-site:nav_test",
+    "//docs-site:typecheck",
+    "//docs-site:unit",
     "//docs:test_command_vars",
+    "//docs:test_docs_site_render",
     "//docs:test_generate_shell_docs",
     "//docs:test_python_coverage",
     "//scripts:manage_help_test",
@@ -104,12 +105,12 @@ test_suite(
     visibility = ["//visibility:public"],
 )
 
-# Full local/validation suite (includes docs visual regression).
+# Full local/validation suite.  //docs-site:visual-test is tagged manual (Chromium cannot
+# launch inside the sandboxed test action); run it with //docs-site:visual or let the CI
+# docs job drive it after installing the browser.
 test_suite(
     name = "test",
-    tests = _TEST_FAST + [
-        "//docs:test_mkdocs_visual",
-    ],
+    tests = _TEST_FAST,
     visibility = ["//visibility:public"],
 )
 
@@ -119,6 +120,7 @@ filegroup(
     srcs = [
         ":manage",
         "//docs",
+        "//docs-site:sources",
     ],
     visibility = ["//visibility:public"],
 )
@@ -164,6 +166,38 @@ alias(
 alias(
     name = "docs-clean",
     actual = "//docs:clean",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "docs-preview",
+    actual = "//docs:preview",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "docs-unit",
+    actual = "//docs-site:unit",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "docs-typecheck",
+    actual = "//docs-site:typecheck",
+    visibility = ["//visibility:public"],
+)
+
+# Screenshot baselines are produced on the CI image; see MIGRATION.md before
+# refreshing them from a workstation.
+alias(
+    name = "docs-visual",
+    actual = "//docs-site:visual",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "docs-visual-update",
+    actual = "//docs-site:visual-update",
     visibility = ["//visibility:public"],
 )
 

@@ -77,12 +77,6 @@ bazel-*
 bazel-out/
 external/
 
-# Generated docs site (MkDocs output; use ./docs/manage-docs.sh for local builds)
-site/
-
-# Temporary dev config created by manage-docs.sh serve
-.mkdocs-serve-*.yml
-
 # Lockfile is committed for Bzlmod, but ensure no user overrides
 # (MODULE.bazel.lock is intentionally tracked)
 
@@ -123,3 +117,16 @@ dashboard/tests/visual/goldens/**/*-snapshots/
 # Pytest coverage data
 .coverage
 **/.coverage
+
+# Fumadocs documentation site (docs-site/) build artefacts.
+# `out/` is the static export the deploy job publishes, `.source/` is written by the
+# defineDocs build-time macro; both are regenerated and must never be committed.
+# `out-linux/` and `.deps-linux-stamp` belong to the Linux golden-capture container
+# (docs-site/scripts/visual_linux.sh) and are host-independent build output.
+docs-site/out/
+docs-site/out-linux/
+docs-site/.deps-linux-stamp
+docs-site/.source/
+docs-site/next-env.d.ts
+docs-site/test-results/
+docs-site/playwright-report/

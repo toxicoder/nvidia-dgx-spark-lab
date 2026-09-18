@@ -86,24 +86,30 @@ else
   python3 -m pip install --user -r docs/requirements.txt
 fi
 
-# Prefer a *usable* docs venv python for playwright (not a host-broken symlink).
-PLAYWRIGHT_PY=python3
-if [[ -x "${REPO_ROOT}/.venv-docs/bin/python" ]] &&
-  "${REPO_ROOT}/.venv-docs/bin/python" -c 'import sys' >/dev/null 2>&1; then
-  PLAYWRIGHT_PY="${REPO_ROOT}/.venv-docs/bin/python"
-elif [[ -d "${REPO_ROOT}/.venv-docs" ]]; then
-  echo "post-create: .venv-docs present but python unusable; using system python3" >&2
+# The docs site is a Next.js app: its visual suite uses the Playwright that npm installed
+# in docs-site/, so the browser has to come from that package (matching its version pin).
+echo "→ docs-site npm ci"
+if [[ -f docs-site/package-lock.json ]]; then
+  (cd docs-site && npm ci --legacy-peer-deps) ||
+    echo "post-create: docs-site npm ci failed; run it manually" >&2
+else
+  echo "post-create: docs-site/package-lock.json missing — skip npm ci" >&2
 fi
 
-echo "→ Playwright Chromium (+ OS deps when available)"
+echo "→ Playwright Chromium for the docs visual suite (+ OS deps when available)"
 # --with-deps needs root on bare systems; in feature-based images it may no-op.
-if [[ "$(id -u)" -eq 0 ]]; then
-  "${PLAYWRIGHT_PY}" -m playwright install --with-deps chromium
-else
-  if ! "${PLAYWRIGHT_PY}" -m playwright install --with-deps chromium 2>/dev/null; then
-    echo "post-create: playwright --with-deps needs privileges; installing browser only" >&2
-    "${PLAYWRIGHT_PY}" -m playwright install chromium
+playwright_cli=("${REPO_ROOT}/docs-site/node_modules/.bin/playwright")
+if [[ -x ${playwright_cli[0]} ]]; then
+  if [[ "$(id -u)" -eq 0 ]]; then
+    "${playwright_cli[0]}" install --with-deps chromium
+  else
+    if ! "${playwright_cli[0]}" install --with-deps chromium 2>/dev/null; then
+      echo "post-create: playwright --with-deps needs privileges; installing browser only" >&2
+      "${playwright_cli[0]}" install chromium
+    fi
   fi
+else
+  echo "post-create: docs-site playwright not installed; skipping browser download" >&2
 fi
 
 # Pre-warm Bazel so vscode-bazel first query does not race the initial download.
@@ -199,7 +205,7 @@ Recommended next steps:
   bazelisk run //:fix
   bazelisk run //:validate
   bazelisk run //:validate -- --all          # before merge
-  bazelisk run //docs:serve -- --port 8080
+  bazelisk run //docs:serve                       # docs site, http://localhost:3005
   cd dashboard && npm run dev                 # http://localhost:3000
   bash .devcontainer/doctor.sh
 

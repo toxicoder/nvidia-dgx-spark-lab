@@ -34,7 +34,6 @@ Thumbs.db
 .vscode/
 *.log
 scripts/tmp/
-.mkdocs-serve-*.yml
 
 # Git and CI (never needed in image)
 .git
