@@ -75,11 +75,10 @@
       }
     }
   },
-  "forwardPorts": [3000, 8000, 8080],
+  "forwardPorts": [3000, 3005],
   "portsAttributes": {
     "3000": { "label": "Dashboard (Next.js)", "onAutoForward": "notify" },
-    "8000": { "label": "MkDocs default", "onAutoForward": "silent" },
-    "8080": { "label": "MkDocs (serve --port 8080)", "onAutoForward": "notify" }
+    "3005": { "label": "Docs site (Fumadocs dev)", "onAutoForward": "silent" }
   },
   // Persist expensive caches + agent auth homes across rebuilds.
   // Auth state (~/.grok, ~/.hermes) stays on Docker volumes — never commit keys.

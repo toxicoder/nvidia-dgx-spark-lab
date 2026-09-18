@@ -2,14 +2,18 @@ name: Deploy Documentation
 
 # Publish only after content lands on a long-lived branch (PR merge → push),
 # or via manual workflow_dispatch. Do not run on pull_request: PR docs
-# validation is CI (docs-and-render); public site uses mike → gh-pages.
+# validation is CI (docs-and-render); the public site is a static Next export.
+#
+# URL compatibility: the MkDocs site published under <base>/latest/ and
+# <base>/development/ with mike. The two exports below are written to those same
+# prefixes, so previously published and bookmarked URLs keep resolving, and a
+# redirect page at the root sends bare <base>/ traffic to /latest/.
 on:
   push:
     branches: [main, master, development]
     paths:
       - "docs/**"
-      - "includes/**"
-      - "mkdocs.yml"
+      - "docs-site/**"
       - "docs/requirements.txt"
       - ".github/workflows/deploy-docs.yml"
   workflow_dispatch:
@@ -40,36 +44,73 @@ jobs:
           cache: pip
           cache-dependency-path: docs/requirements.txt
 
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: docs-site/package-lock.json
+
       - name: Install docs dependencies
         run: |
+          set -euo pipefail
           python -m pip install --upgrade pip
           pip install -r docs/requirements.txt
+          (cd docs-site && npm ci --legacy-peer-deps)
 
-      - name: Build documentation (strict)
+      # Each alias is its own export, built with the matching basePath, because a static
+      # export bakes the prefix into every asset URL. Both come from the same commit, so
+      # /latest/ and /development/ never disagree about content.
+      - name: Build and assemble the Pages tree
         env:
-          # Stamp development banner when building the development version.
-          DGX_DOCS_VERSION: ${{ github.ref_name == 'development' && 'development' || 'latest' }}
-          MIKE_DOCS_VERSION: ${{ github.ref_name == 'development' && 'development' || 'latest' }}
-        run: bazelisk run //docs:docs
-
-      # Multi-version publish via mike → gh-pages (latest + development).
-      # Requires contents:write. Preserves other versions already on gh-pages.
-      - name: Configure git identity for mike
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Deploy with mike (versioned)
-        env:
-          DGX_DOCS_VERSION: ${{ github.ref_name == 'development' && 'development' || 'latest' }}
-          MIKE_DOCS_VERSION: ${{ github.ref_name == 'development' && 'development' || 'latest' }}
+          # Branch-aware "Edit on GitHub" links plus the development banner.
+          DGX_DOCS_VERSION: ${{ github.ref_name == 'development' && 'development' || 'main' }}
         run: |
           set -euo pipefail
-          # site/ is from //docs:docs. Alias tracks the branch that was pushed/dispatched.
-          if [[ "${{ github.ref_name }}" == "development" ]]; then
-            mike deploy --push --update-aliases development
-          else
-            # main/master → latest (default alias for the version selector).
-            mike deploy --push --update-aliases latest
-            mike set-default --push latest
-          fi
+          root="${BUILD_WORKSPACE_DIRECTORY:-$(pwd)}"
+          cd "$root"
+          rm -rf _site
+          mkdir -p _site/latest _site/development
+
+          bazelisk run //docs-site:build-latest
+          cp -r docs-site/out/. _site/latest/
+
+          bazelisk run //docs-site:build-development
+          cp -r docs-site/out/. _site/development/
+
+          # Bare <base> URLs (and old bookmarks to the MkDocs root) keep working: the root
+          # document forwards to the latest alias.
+          cat >_site/index.html <<'HOR'
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8" />
+              <meta name="robots" content="index, follow" />
+              <link rel="canonical" href="https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/" />
+              <meta http-equiv="refresh" content="0; url=https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/" />
+              <title>nvidia-dgx-spark-lab documentation</title>
+            </head>
+            <body>
+              <p>
+                The documentation moved. <a href="https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/">Continue to the latest docs</a>
+                &mdash; or read the <a href="https://toxicoder.github.io/nvidia-dgx-spark-lab/development/">development branch docs</a>.
+              </p>
+            </body>
+          </html>
+          HOR
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+        with:
+          path: _site/
+
+      - name: Report the published URLs
+        run: |
+          {
+            echo "## Documentation published"
+            echo ""
+            echo "| Version | URL |"
+            echo "| --- | --- |"
+            echo "| latest | https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/ |"
+            echo "| development | https://toxicoder.github.io/nvidia-dgx-spark-lab/development/ |"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -121,7 +121,7 @@ path_matches_docs() {
   # Do not fire docs/Playwright for arbitrary scripts — only shell doc sources
   # and docs tree. Mirrors .github/workflows/ci.yml docs filter.
   [[ $path == docs/* ]] && return 0
-  [[ $path == mkdocs.yml ]] && return 0
+  [[ $path == docs-site/* ]] && return 0
   [[ $path == scripts/manage.sh ]] && return 0
   [[ $path == scripts/lib/* ]] && return 0
   [[ $path == scripts/utilities/* ]] && return 0
@@ -340,16 +340,31 @@ run_core_slice() {
 
 run_docs_slice() {
   need_bazel
-  "$BAZEL" run //docs:docs
+  # Fast path: content contract, widget units, typecheck, generators.  Browser work is
+  # deliberately not here — it needs a Chromium and belongs to --all / the CI docs job.
+  "$BAZEL" test //docs:test_docs_site_render //docs-site:unit //docs-site:typecheck \
+    //docs-site:visual_tooling_test
+  # The committed baselines are rendered by the CI image, so comparing against them has to
+  # happen there too: a laptop Chromium differs in font metrics and would report every page as
+  # changed.  Same Docker-preflight shape as the dashboard's hermetic gate.
+  if [[ $RUN_ALL -eq 1 || $UPDATE_GOLDENS -eq 1 ]]; then
+    if ! command -v docker >/dev/null 2>&1; then
+      echo "validate: docker not found; the docs baselines are captured in the CI image" >&2
+      exit 1
+    fi
+    if ! docker info >/dev/null 2>&1; then
+      echo "validate: docker daemon not reachable; start/restart Docker Desktop and retry" >&2
+      exit 1
+    fi
+  fi
   if [[ $UPDATE_GOLDENS -eq 1 ]]; then
-    echo "==> validate: docs (visual golden update)"
-    UPDATE_SNAPSHOTS=1 "$BAZEL" run //docs:visual-update
+    echo "==> validate: docs (visual golden update in the CI image)"
+    "$ROOT/docs-site/scripts/visual_linux.sh" --update
   elif [[ $RUN_ALL -eq 1 ]]; then
-    echo "==> validate: docs (build + visual regression)"
-    "$BAZEL" test //docs:test_mkdocs_render
-  else
-    echo "==> validate: docs (fast build checks; visual on --all)"
-    "$BAZEL" test //docs:test_mkdocs_build
+    echo "==> validate: docs (static export + export checks + visual regression in the CI image)"
+    "$BAZEL" run //docs:docs
+    "$BAZEL" run //docs:render-check
+    "$ROOT/docs-site/scripts/visual_linux.sh"
   fi
 }
 

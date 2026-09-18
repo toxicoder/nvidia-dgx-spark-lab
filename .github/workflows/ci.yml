@@ -43,7 +43,7 @@ jobs:
             # for pure validate/CI orchestration edits).
             docs:
               - 'docs/**'
-              - 'mkdocs.yml'
+              - 'docs-site/**'
               - 'scripts/manage.sh'
               - 'scripts/lib/**'
               - 'scripts/utilities/**'
@@ -171,41 +171,72 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('docs/requirements.txt') }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('docs-site/package-lock.json') }}
           restore-keys: |
             playwright-${{ runner.os }}-
 
-      - name: Install docs dependencies
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: docs-site/package-lock.json
+
+      - name: Install docs site dependencies
         run: |
+          set -euo pipefail
           python -m pip install --upgrade pip
           pip install -r docs/requirements.txt
-          python -m playwright install --with-deps chromium
+          (cd docs-site && npm ci --legacy-peer-deps)
+          (cd docs-site && npx playwright install --with-deps chromium)
 
-      # Single MkDocs build + HTML checks + Playwright (one setUpClass build).
-      - name: Docs build + visual regression (single MkDocs build)
+      # Fast gates: content contract, widget units, typecheck, generators, coverage.
+      # Only the docs slice — bazel-core already ran //:test-fast, so re-running it here
+      # would duplicate every non-docs test on the matrix.
+      - name: Docs gates (no browser)
+        run: |
+          bazelisk test \
+            //docs:test_docs_site_render \
+            //docs:test_command_vars \
+            //docs:test_generate_shell_docs \
+            //docs:test_python_coverage \
+            //docs-site:unit \
+            //docs-site:typecheck \
+            //docs-site:nav_test \
+            //docs-site:codemod_test \
+            //docs-site:visual_tooling_test \
+            --config=ci
+
+      # Static export + what a reader actually gets + screenshot goldens.
+      # The baselines are rendered inside the pinned Playwright container, so the comparison
+      # runs there too: the runner's own Chromium is a different build on a different base image,
+      # and font metrics differing between the two would report every page as changed.  On
+      # ubuntu-latest that container is native, so there is no emulation cost.
+      - name: Docs export + visual regression
         id: docs_visual
         run: |
           set +e
-          bazelisk test //docs:test_mkdocs_render --config=ci
+          bazelisk run //docs:docs --config=ci
+          build_status=$?
+          bazelisk run //docs:render-check --config=ci
+          check_status=$?
+          bash docs-site/scripts/visual_linux.sh
           status=$?
           set -e
-          logs="$(bazelisk info bazel-testlogs --config=ci)"
-          actuals="${logs}/docs/test_mkdocs_render/test.outputs/mkdocs-visual-actuals"
-          mkdir -p mkdocs-visual-actuals
+          actuals="docs-site/tests/visual/actuals"
+          mkdir -p docs-visual-actuals
           if [[ -d $actuals ]]; then
-            cp -v "${actuals}"/*.png mkdocs-visual-actuals/ || true
-          else
-            echo "No MkDocs visual actuals dir at ${actuals}" >&2
-            find "${logs}" -name '*.png' -print >&2 || true
+            cp -rv "${actuals}/." docs-visual-actuals/ || true
           fi
-          exit "$status"
+          for rc in "$build_status" "$check_status" "$status"; do
+            [[ $rc -eq 0 ]] || exit "$rc"
+          done
 
-      - name: Upload MkDocs visual actuals
+      - name: Upload docs visual actuals
         if: failure() && steps.docs_visual.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: mkdocs-visual-actuals
-          path: mkdocs-visual-actuals/
+          name: docs-visual-actuals
+          path: docs-visual-actuals/
           if-no-files-found: warn
 
   validate-gate:

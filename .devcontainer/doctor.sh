@@ -192,7 +192,15 @@ if [[ -f "${REPO_ROOT}/docs/requirements.txt" ]]; then
   log "  OK  docs/requirements.txt present"
 fi
 
-# Soft check: host-created .venv-docs (macOS/Windows) is often broken in Linux.
+# Docs site toolchain: the site is a Next.js app, so the check is the npm install plus the
+# Playwright browser its visual suite drives.  The Python venv only backs the generators.
+if [[ -x "${REPO_ROOT}/docs-site/node_modules/.bin/next" ]]; then
+  log "  OK  docs-site dependencies (npm ci)"
+else
+  log "  --  docs-site/node_modules missing (run: (cd docs-site && npm ci) or docs/setup-docs.sh)"
+  WARNED=$((WARNED + 1))
+fi
+
 if [[ -d "${REPO_ROOT}/.venv-docs" ]]; then
   docs_py="${REPO_ROOT}/.venv-docs/bin/python"
   if [[ -x ${docs_py} ]] && "${docs_py}" -c 'import sys' >/dev/null 2>&1; then
