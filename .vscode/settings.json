@@ -1,16 +1,14 @@
 {
-  // ── Editor defaults (match prettier.config.mjs + ruff.toml) ──────────────
+  // ── Editor defaults (match prettier.config.mjs + ruff.toml) ──
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "editor.rulers": [100, 120],
-  "editor.linkedEditing": true,
-  "editor.guides.bracketPairs": true,
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
   "files.eol": "\n",
 
-  // ── Hide build artifacts, caches, and local venvs ────────────────────────
+  // ── Hide build artifacts, caches, generated docs & golden images ──
   "files.exclude": {
     "**/.git": true,
     "**/.DS_Store": true,
@@ -25,7 +23,13 @@
     "**/bazel-out": true,
     "**/bazel-testlogs": true,
     "**/bazel-lab": true,
-    "site": true
+    "**/coverage": true,
+    "**/test-results": true,
+    "site": true,
+    "docs/generated": true,
+    "dashboard/tests/visual/goldens": true,
+    "**/package-lock.json": true,
+    "**/MODULE.bazel.lock": true
   },
   "search.exclude": {
     "**/node_modules": true,
@@ -41,7 +45,9 @@
     "**/.venv*": true,
     "**/coverage": true,
     "**/test-results": true,
-    "site": true
+    "site": true,
+    "docs/generated": true,
+    "dashboard/tests/visual/goldens": true
   },
   "files.watcherExclude": {
     "**/node_modules/**": true,
@@ -51,10 +57,12 @@
     "**/.venv*/**": true,
     "**/.mypy_cache/**": true,
     "**/.ruff_cache/**": true,
-    "site/**": true
+    "site/**": true,
+    "docs/generated/**": true,
+    "dashboard/tests/visual/goldens/**": true
   },
 
-  // ── File associations ────────────────────────────────────────────────────
+  // ── File associations ──
   "files.associations": {
     "BUILD": "starlark",
     "BUILD.bazel": "starlark",
@@ -64,7 +72,7 @@
     "globals.css": "tailwindcss"
   },
 
-  // ── Per-language formatters (aligned with //:fix and pre-commit) ─────────
+  // ── Per-language formatters (aligned with //:fix and pre-commit) ──
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.formatOnSave": true,
@@ -73,62 +81,36 @@
       "source.organizeImports.ruff": "explicit"
     }
   },
-  "[shellscript]": {
-    "editor.defaultFormatter": "mkhl.shfmt",
-    "editor.formatOnSave": true
-  },
-  "[yaml]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
-  },
+  "[shellscript]": { "editor.defaultFormatter": "mkhl.shfmt", "editor.formatOnSave": true },
+  "[yaml]": { "editor.defaultFormatter": "esbenp.prettier-vscode", "editor.formatOnSave": true },
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": "explicit"
-    }
+    "editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" }
   },
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": "explicit"
-    }
+    "editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" }
   },
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
-  },
-  "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
-  },
-  "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
-  },
+  "[javascript]": { "editor.defaultFormatter": "esbenp.prettier-vscode", "editor.formatOnSave": true },
+  "[json]": { "editor.defaultFormatter": "esbenp.prettier-vscode", "editor.formatOnSave": true },
+  "[jsonc]": { "editor.defaultFormatter": "esbenp.prettier-vscode", "editor.formatOnSave": true },
   "[markdown]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
     "editor.wordWrap": "on"
   },
-  "[starlark]": {
-    "editor.formatOnSave": true
-  },
+  "[starlark]": { "editor.formatOnSave": true },
 
-  // ── Python: Ruff (format + ANN/import lint) + Mypy strict (type ownership) ─
-  // Container interpreter pins live in .devcontainer/devcontainer.json only
-  // (host macOS/Windows paths differ). Do not set defaultInterpreterPath here.
-  //
-  // Type correctness: mypy.ini (strict, disallow_untyped_defs, py311).
-  // Annotation style: ruff.toml select includes ANN + google pydocstyle.
-  // Pylance typeCheckingMode stays "off" so mypy is the single type checker.
+  // ── Python: Ruff + Mypy as the single type checker ──
+  // ⚠ Perf-critical on a large monorepo: openFiles + indexing off avoids full-repo crawl.
+  // Interpreter is pinned in .devcontainer/devcontainer.json (do not set defaultInterpreterPath).
   "python.languageServer": "Pylance",
   "python.analysis.typeCheckingMode": "off",
-  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.diagnosticMode": "openFilesOnly",
   "python.analysis.autoImportCompletions": true,
-  "python.analysis.indexing": true,
-  // Include Pylance default excludes (**/__pycache__, **/.*) plus repo artifacts.
+  "python.analysis.indexing": false,
   "python.analysis.exclude": [
     "**/__pycache__",
     "**/.*",
@@ -139,13 +121,11 @@
     "**/.mypy_cache",
     "**/.ruff_cache",
     "**/coverage",
-    "**/test-results"
+    "**/test-results",
+    "docs/generated",
+    "dashboard/tests/visual/goldens"
   ],
-  // Workload-only third-party imports (fastapi/httpx/…) are ignored by mypy.ini;
-  // do not require them in the contributor base env for Pylance resolution.
-  "python.analysis.diagnosticSeverityOverrides": {
-    "reportMissingImports": "none"
-  },
+  "python.analysis.diagnosticSeverityOverrides": { "reportMissingImports": "none" },
 
   "ruff.configuration": "${workspaceFolder}/ruff.toml",
   "ruff.configurationPreference": "filesystemFirst",
@@ -160,37 +140,36 @@
   "mypy-type-checker.cwd": "${workspaceFolder}",
   "mypy-type-checker.importStrategy": "fromEnvironment",
   "mypy-type-checker.preferDaemon": true,
-  "mypy-type-checker.reportingScope": "workspace",
+  "mypy-type-checker.reportingScope": "filesOnly",
   "mypy-type-checker.ignorePatterns": [
     "**/site/**",
     "**/.venv*/**",
     "**/node_modules/**",
     "**/bazel-*/**",
-    "**/__pycache__/**"
+    "**/__pycache__/**",
+    "docs/generated/**",
+    "dashboard/tests/visual/goldens/**"
   ],
-  "mypy-type-checker.severity": {
-    "error": "Error",
-    "note": "Information"
-  },
+  "mypy-type-checker.severity": { "error": "Error", "note": "Information" },
 
-  // ── Shell (shfmt + shellcheck; warnings = defects) ───────────────────────
+  // ── Shell ──
   "shfmt.executable": "shfmt",
   "shfmt.args": ["-i", "2", "-s", "-ci"],
   "shellcheck.enable": true,
   "shellcheck.run": "onSave",
   "shellcheck.customArgs": ["-x", "--severity=warning"],
 
-  // ── Bazel / Starlark ─────────────────────────────────────────────────────
+  // ── Bazel / Starlark ──
   "bazel.executable": "bazelisk",
   "bazel.buildifierFixOnFormat": true,
   "bazel.enableCodeLens": true,
 
-  // ── Prettier (root config for YAML + dashboard) ──────────────────────────
+  // ── Prettier (root config for YAML + dashboard) ──
   "prettier.configPath": "prettier.config.mjs",
   "prettier.ignorePath": ".prettierignore",
   "prettier.requireConfig": true,
 
-  // ── Dashboard TypeScript / ESLint (js/ts.* keys; typescript.* tsdk deprecated) ─
+  // ── Dashboard TS / ESLint ──
   "js/ts.tsdk.path": "dashboard/node_modules/typescript/lib",
   "js/ts.tsdk.promptToUseWorkspaceVersion": true,
   "js/ts.preferences.importModuleSpecifier": "non-relative",
@@ -199,18 +178,11 @@
   "eslint.workingDirectories": [{ "directory": "dashboard", "changeProcessCWD": true }],
   "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
 
-  // ── Tailwind CSS v4 (dashboard) ──────────────────────────────────────────
+  // ── Tailwind CSS v4 ──
   "tailwindCSS.experimental.configFile": "dashboard/app/globals.css",
-  "tailwindCSS.includeLanguages": {
-    "typescript": "javascript",
-    "typescriptreact": "javascript"
-  },
-  "tailwindCSS.experimental.classRegex": [
-    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
-    ["cn\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
-  ],
+  "tailwindCSS.includeLanguages": { "typescript": "javascript", "typescriptreact": "javascript" },
 
-  // ── YAML / K8s / Ansible ─────────────────────────────────────────────────
+  // ── YAML / K8s / Ansible ──
   "yaml.validate": true,
   "yaml.schemaStore.enable": true,
   "yaml.format.enable": false,
@@ -219,17 +191,14 @@
   "ansible.validation.enabled": true,
   "ansible.lint.enabled": true,
 
-  // ── Vitest (dashboard) ───────────────────────────────────────────────────
+  // ── Vitest ──
   "vitest.enable": true,
   "vitest.rootConfig": "dashboard/vitest.config.ts",
 
-  // ── Terminal (macOS local dev; devcontainer overrides for Linux) ─────────
+  // ── Terminal & Git ──
   "terminal.integrated.defaultProfile.osx": "zsh",
-
-  // ── Git (linear history; prefer rebase merge on protected branches) ──────
   "git.ignoreLimitWarning": true,
   "git.pull.rebase": true,
   "git.rebaseWhenSync": true,
-  "githubPullRequests.defaultMergeMethod": "rebase",
-  "explorer.compactFolders": false
+  "githubPullRequests.defaultMergeMethod": "rebase"
 }
