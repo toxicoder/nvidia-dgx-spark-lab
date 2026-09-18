@@ -8,7 +8,7 @@
 
 > **MachineStateData** = `object`
 
-Defined in: components/MachineStatePanel.tsx:10
+Defined in: [components/MachineStatePanel.tsx:10](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/components/MachineStatePanel.tsx#L10)
 
 Props bundle for machine state panels (pre-fetched at page level).
 
@@ -18,7 +18,7 @@ Props bundle for machine state panels (pre-fetched at page level).
 
 > **identity**: `Awaited`\<`ReturnType`\<*typeof* [`getMachineIdentity`](../../../lib/services/system/functions/getMachineIdentity.md)\>\>
 
-Defined in: components/MachineStatePanel.tsx:11
+Defined in: [components/MachineStatePanel.tsx:11](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/components/MachineStatePanel.tsx#L11)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: components/MachineStatePanel.tsx:11
 
 > **packages**: `Awaited`\<`ReturnType`\<*typeof* [`getPackages`](../../../lib/services/system/functions/getPackages.md)\>\>
 
-Defined in: components/MachineStatePanel.tsx:13
+Defined in: [components/MachineStatePanel.tsx:13](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/components/MachineStatePanel.tsx#L13)
 
 ***
 
@@ -34,4 +34,4 @@ Defined in: components/MachineStatePanel.tsx:13
 
 > **services**: `Awaited`\<`ReturnType`\<*typeof* [`getRunningServices`](../../../lib/services/system/functions/getRunningServices.md)\>\>
 
-Defined in: components/MachineStatePanel.tsx:12
+Defined in: [components/MachineStatePanel.tsx:12](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/components/MachineStatePanel.tsx#L12)

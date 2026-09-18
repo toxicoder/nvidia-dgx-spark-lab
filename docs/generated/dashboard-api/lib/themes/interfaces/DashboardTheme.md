@@ -6,7 +6,7 @@
 
 # Interface: DashboardTheme
 
-Defined in: lib/themes.ts:5
+Defined in: [lib/themes.ts:5](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/themes.ts#L5)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: lib/themes.ts:5
 
 > **description**: `string`
 
-Defined in: lib/themes.ts:8
+Defined in: [lib/themes.ts:8](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/themes.ts#L8)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: lib/themes.ts:8
 
 > **id**: `string`
 
-Defined in: lib/themes.ts:6
+Defined in: [lib/themes.ts:6](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/themes.ts#L6)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: lib/themes.ts:6
 
 > **label**: `string`
 
-Defined in: lib/themes.ts:7
+Defined in: [lib/themes.ts:7](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/themes.ts#L7)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: lib/themes.ts:7
 
 > **mode**: [`ThemeMode`](../type-aliases/ThemeMode.md)
 
-Defined in: lib/themes.ts:9
+Defined in: [lib/themes.ts:9](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/themes.ts#L9)
 
 ***
 
@@ -46,6 +46,6 @@ Defined in: lib/themes.ts:9
 
 > **swatch**: `string`
 
-Defined in: lib/themes.ts:11
+Defined in: [lib/themes.ts:11](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/themes.ts#L11)
 
 Primary swatch for the selector preview

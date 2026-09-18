@@ -8,7 +8,7 @@
 
 > **getUtilityStatusAction**(`name`): `Promise`\<[`UtilityStatus`](../../../lib/types/interfaces/UtilityStatus.md)\>
 
-Defined in: actions/host-actions.ts:142
+Defined in: [actions/host-actions.ts:142](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/actions/host-actions.ts#L142)
 
 Query status JSON for a lab utility script.
 

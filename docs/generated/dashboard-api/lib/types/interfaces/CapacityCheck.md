@@ -6,7 +6,7 @@
 
 # Interface: CapacityCheck
 
-Defined in: lib/types/index.ts:119
+Defined in: [lib/types/index.ts:119](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L119)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: lib/types/index.ts:119
 
 > **action**: `string`
 
-Defined in: lib/types/index.ts:122
+Defined in: [lib/types/index.ts:122](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L122)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: lib/types/index.ts:122
 
 > **available**: [`ResourceAmount`](ResourceAmount.md)
 
-Defined in: lib/types/index.ts:125
+Defined in: [lib/types/index.ts:125](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L125)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: lib/types/index.ts:125
 
 > **deficit**: `Partial`\<[`ResourceAmount`](ResourceAmount.md)\>
 
-Defined in: lib/types/index.ts:126
+Defined in: [lib/types/index.ts:126](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L126)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: lib/types/index.ts:126
 
 > `optional` **heavy?**: `boolean`
 
-Defined in: lib/types/index.ts:123
+Defined in: [lib/types/index.ts:123](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L123)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: lib/types/index.ts:123
 
 > **ok**: `boolean`
 
-Defined in: lib/types/index.ts:120
+Defined in: [lib/types/index.ts:120](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L120)
 
 ***
 
@@ -54,7 +54,7 @@ Defined in: lib/types/index.ts:120
 
 > **required**: [`ResourceAmount`](ResourceAmount.md)
 
-Defined in: lib/types/index.ts:124
+Defined in: [lib/types/index.ts:124](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L124)
 
 ***
 
@@ -62,4 +62,4 @@ Defined in: lib/types/index.ts:124
 
 > **verdict**: `string`
 
-Defined in: lib/types/index.ts:121
+Defined in: [lib/types/index.ts:121](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L121)

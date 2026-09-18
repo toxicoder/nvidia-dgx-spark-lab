@@ -6,7 +6,7 @@
 
 # Interface: K8sSyncTarget
 
-Defined in: lib/types/index.ts:325
+Defined in: [lib/types/index.ts:339](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L339)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: lib/types/index.ts:325
 
 > **key**: `string`
 
-Defined in: lib/types/index.ts:328
+Defined in: [lib/types/index.ts:342](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L342)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: lib/types/index.ts:328
 
 > **namespace**: `"dev"` \| `"ai-inference"`
 
-Defined in: lib/types/index.ts:326
+Defined in: [lib/types/index.ts:340](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L340)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: lib/types/index.ts:326
 
 > **secretName**: `string`
 
-Defined in: lib/types/index.ts:327
+Defined in: [lib/types/index.ts:341](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L341)

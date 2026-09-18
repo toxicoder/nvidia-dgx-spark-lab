@@ -6,7 +6,7 @@
 
 # Interface: NemotronCatalog
 
-Defined in: lib/types/index.ts:198
+Defined in: [lib/types/index.ts:212](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L212)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: lib/types/index.ts:198
 
 > **models**: `Record`\<`string`, [`NemotronCatalogModel`](NemotronCatalogModel.md)\>
 
-Defined in: lib/types/index.ts:199
+Defined in: [lib/types/index.ts:213](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L213)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: lib/types/index.ts:199
 
 > **pillars**: `Record`\<`string`, \{ `icon`: `string`; `label`: `string`; \}\>
 
-Defined in: lib/types/index.ts:200
+Defined in: [lib/types/index.ts:214](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L214)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: lib/types/index.ts:200
 
 > `optional` **qwen\_tiers?**: `object`
 
-Defined in: lib/types/index.ts:202
+Defined in: [lib/types/index.ts:216](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L216)
 
 #### frontier\_target?
 
@@ -54,4 +54,4 @@ Defined in: lib/types/index.ts:202
 
 > **stacks**: `Record`\<`string`, [`NemotronStackPreset`](NemotronStackPreset.md)\>
 
-Defined in: lib/types/index.ts:201
+Defined in: [lib/types/index.ts:215](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L215)

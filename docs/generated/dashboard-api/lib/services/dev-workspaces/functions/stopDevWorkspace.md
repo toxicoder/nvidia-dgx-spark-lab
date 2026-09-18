@@ -8,7 +8,7 @@
 
 > **stopDevWorkspace**(`name`): `Promise`\<\{ `exitCode`: `number`; `stderr`: `string`; `stdout`: `string`; \}\>
 
-Defined in: lib/services/dev-workspaces.ts:145
+Defined in: [lib/services/dev-workspaces.ts:145](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/services/dev-workspaces.ts#L145)
 
 Stop a dev workspace (Coder or Kasm).
 

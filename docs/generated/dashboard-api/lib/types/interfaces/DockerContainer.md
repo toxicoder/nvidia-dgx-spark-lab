@@ -6,7 +6,7 @@
 
 # Interface: DockerContainer
 
-Defined in: lib/types/index.ts:13
+Defined in: [lib/types/index.ts:13](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L13)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: lib/types/index.ts:13
 
 > **ID**: `string`
 
-Defined in: lib/types/index.ts:14
+Defined in: [lib/types/index.ts:14](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L14)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: lib/types/index.ts:14
 
 > **Image**: `string`
 
-Defined in: lib/types/index.ts:17
+Defined in: [lib/types/index.ts:17](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L17)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: lib/types/index.ts:17
 
 > **Names**: `string`
 
-Defined in: lib/types/index.ts:15
+Defined in: [lib/types/index.ts:15](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L15)
 
 ***
 
@@ -38,4 +38,4 @@ Defined in: lib/types/index.ts:15
 
 > **Status**: `string`
 
-Defined in: lib/types/index.ts:16
+Defined in: [lib/types/index.ts:16](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L16)

@@ -8,7 +8,7 @@
 
 > **runUtility**(`name`, `args?`): `Promise`\<[`UtilityRunResult`](../../../types/interfaces/UtilityRunResult.md)\>
 
-Defined in: lib/services/utilities.ts:90
+Defined in: [lib/services/utilities.ts:90](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/services/utilities.ts#L90)
 
 Execute a utility script and persist the run to SQLite.
 

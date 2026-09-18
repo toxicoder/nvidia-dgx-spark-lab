@@ -6,7 +6,7 @@
 
 # Interface: UtilityStatus
 
-Defined in: lib/types/index.ts:50
+Defined in: [lib/types/index.ts:50](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L50)
 
 ## Indexable
 
@@ -18,7 +18,7 @@ Defined in: lib/types/index.ts:50
 
 > `optional` **error?**: `string`
 
-Defined in: lib/types/index.ts:54
+Defined in: [lib/types/index.ts:54](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L54)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: lib/types/index.ts:54
 
 > `optional` **lastRun?**: `string`
 
-Defined in: lib/types/index.ts:53
+Defined in: [lib/types/index.ts:53](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L53)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: lib/types/index.ts:53
 
 > `optional` **name?**: `string`
 
-Defined in: lib/types/index.ts:51
+Defined in: [lib/types/index.ts:51](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L51)
 
 ***
 
@@ -42,4 +42,4 @@ Defined in: lib/types/index.ts:51
 
 > `optional` **status?**: `string`
 
-Defined in: lib/types/index.ts:52
+Defined in: [lib/types/index.ts:52](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L52)

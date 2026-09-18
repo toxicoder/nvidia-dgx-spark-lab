@@ -6,7 +6,7 @@
 
 # Interface: ClusterCapacity
 
-Defined in: lib/types/index.ts:108
+Defined in: [lib/types/index.ts:108](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L108)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: lib/types/index.ts:108
 
 > **allocatable**: [`ResourceAmount`](ResourceAmount.md)
 
-Defined in: lib/types/index.ts:110
+Defined in: [lib/types/index.ts:110](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L110)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: lib/types/index.ts:110
 
 > **available**: [`ResourceAmount`](ResourceAmount.md)
 
-Defined in: lib/types/index.ts:114
+Defined in: [lib/types/index.ts:114](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L114)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: lib/types/index.ts:114
 
 > `optional` **error?**: `string`
 
-Defined in: lib/types/index.ts:116
+Defined in: [lib/types/index.ts:116](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L116)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: lib/types/index.ts:116
 
 > **free**: [`ResourceAmount`](ResourceAmount.md)
 
-Defined in: lib/types/index.ts:113
+Defined in: [lib/types/index.ts:113](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L113)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: lib/types/index.ts:113
 
 > **headroom**: `object`
 
-Defined in: lib/types/index.ts:112
+Defined in: [lib/types/index.ts:112](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L112)
 
 #### cpu
 
@@ -62,7 +62,7 @@ Defined in: lib/types/index.ts:112
 
 > **node\_count**: `number`
 
-Defined in: lib/types/index.ts:109
+Defined in: [lib/types/index.ts:109](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L109)
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: lib/types/index.ts:109
 
 > **requested**: [`ResourceAmount`](ResourceAmount.md)
 
-Defined in: lib/types/index.ts:111
+Defined in: [lib/types/index.ts:111](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L111)
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: lib/types/index.ts:111
 
 > **utilization**: `object`
 
-Defined in: lib/types/index.ts:115
+Defined in: [lib/types/index.ts:115](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L115)
 
 #### cpu\_pct
 

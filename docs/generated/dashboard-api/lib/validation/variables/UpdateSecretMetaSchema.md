@@ -6,8 +6,8 @@
 
 # Variable: UpdateSecretMetaSchema
 
-> `const` **UpdateSecretMetaSchema**: `ZodObject`\<\{ `description`: `ZodOptional`\<`ZodNullable`\<`ZodString`\>\>; `id`: `ZodString`; `k8sSync`: `ZodOptional`\<`ZodNullable`\<`ZodObject`\<\{ `key`: `ZodString`; `namespace`: `ZodEnum`\<\[`"dev"`, `"ai-inference"`\]\>; `secretName`: `ZodString`; \}, `"strip"`, `ZodTypeAny`, \{ `key`: `string`; `namespace`: `"dev"` \| `"ai-inference"`; `secretName`: `string`; \}, \{ `key`: `string`; `namespace`: `"dev"` \| `"ai-inference"`; `secretName`: `string`; \}\>\>\>; \}, `"strip"`, `ZodTypeAny`, \{ `description?`: `string` \| `null`; `id`: `string`; `k8sSync?`: \{ `key`: `string`; `namespace`: `"dev"` \| `"ai-inference"`; `secretName`: `string`; \} \| `null`; \}, \{ `description?`: `string` \| `null`; `id`: `string`; `k8sSync?`: \{ `key`: `string`; `namespace`: `"dev"` \| `"ai-inference"`; `secretName`: `string`; \} \| `null`; \}\>
+> `const` **UpdateSecretMetaSchema**: `ZodObject`\<\{ `description`: `ZodOptional`\<`ZodNullable`\<`ZodString`\>\>; `id`: `ZodString`; `k8sSync`: `ZodOptional`\<`ZodNullable`\<`ZodObject`\<\{ `key`: `ZodString`; `namespace`: `ZodEnum`\<\{ `ai-inference`: `"ai-inference"`; `dev`: `"dev"`; \}\>; `secretName`: `ZodString`; \}, `$strip`\>\>\>; \}, `$strip`\>
 
-Defined in: lib/validation.ts:109
+Defined in: [lib/validation.ts:123](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/validation.ts#L123)
 
 Payload for updating secret metadata (description, K8s sync).

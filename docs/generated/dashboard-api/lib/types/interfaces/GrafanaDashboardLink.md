@@ -6,7 +6,7 @@
 
 # Interface: GrafanaDashboardLink
 
-Defined in: lib/types/index.ts:300
+Defined in: [lib/types/index.ts:314](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L314)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: lib/types/index.ts:300
 
 > `optional` **localUrl?**: `string`
 
-Defined in: lib/types/index.ts:305
+Defined in: [lib/types/index.ts:319](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L319)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: lib/types/index.ts:305
 
 > **nodeportUrl**: `string`
 
-Defined in: lib/types/index.ts:304
+Defined in: [lib/types/index.ts:318](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L318)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: lib/types/index.ts:304
 
 > `optional` **publicUrl?**: `string` \| `null`
 
-Defined in: lib/types/index.ts:306
+Defined in: [lib/types/index.ts:320](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L320)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: lib/types/index.ts:306
 
 > **title**: `string`
 
-Defined in: lib/types/index.ts:302
+Defined in: [lib/types/index.ts:316](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L316)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: lib/types/index.ts:302
 
 > **uid**: `string`
 
-Defined in: lib/types/index.ts:301
+Defined in: [lib/types/index.ts:315](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L315)
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: lib/types/index.ts:301
 
 > **url**: `string`
 
-Defined in: lib/types/index.ts:303
+Defined in: [lib/types/index.ts:317](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L317)
