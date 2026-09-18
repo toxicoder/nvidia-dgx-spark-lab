@@ -18,7 +18,7 @@ tags: [models, inference, safety, resources, vllm]
 
 - Picking the right (safe) starting workload based on current free GPUs
 - Always beginning with `kimi-test` for validation before scaling up
-- Using live `estimate <model>` (with {{PLACEHOLDER}} support) to get a ready-to-run command
+- Using live `estimate <model>` (with \{\{PLACEHOLDER\}\} support) to get a ready-to-run command
 - Understanding safety and multi-node requirements before launching heavy jobs
 
 > Use `bazelisk run //:manage -- estimate <model>` (or the classic `./scripts/manage.sh estimate <model>`) for a live recommendation based on current cluster capacity.

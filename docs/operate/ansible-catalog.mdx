@@ -18,7 +18,7 @@ tags: [ansible, bazel, k3s, operate]
 - Running bootstrap and GPU Operator without inventing playbook names
 - Avoiding `full-lab-setup` when you need a prompted, stepwise bring-up
 
---8<-- "docs/includes/cluster-config.md"
+<ClusterConfigPanel />
 
 Inventory: copy `ansible/inventory/hosts.ini.example` → `ansible/inventory/hosts.ini` (gitignored). Group vars: `ansible/inventory/group_vars/all.yml` (**reference**; deployed Jobs override NCCL/resources).
 
@@ -48,10 +48,9 @@ Wrappers default to the **example** inventory for safety. Do not point them at p
 - They do **not** weaken `restartPolicy` or Resource Guard
 - `full-lab-setup.yml` still leaves inference off — use `manage.sh start-test` yourself
 
-!!! danger "cloud-init apply_now"
-
-    `apply_now=true` writes user-data on the node and can reboot it. Only with OOB console and empty inference.
-
+<Callout type="error" title="cloud-init apply_now">
+  `apply_now=true` writes user-data on the node and can reboot it. Only with OOB console and empty inference.
+</Callout>
 ## Roles (not playbooks)
 
 `ansible/roles/` implements k3s_common, highspeed_network, labels, gpu_operator, coder, kasm, monitoring, traefik, sso, cloud_init. Do not invoke roles except through the playbooks above.

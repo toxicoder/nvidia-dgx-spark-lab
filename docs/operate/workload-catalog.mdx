@@ -17,7 +17,7 @@ tags: [workloads, inference, safety, kubernetes]
 - Starting the right Job without guessing GPU counts
 - Seeing which stacks are mutually exclusive
 
---8<-- "docs/includes/cluster-config.md"
+<ClusterConfigPanel />
 
 Numbers below are **requests** (capacity math). Limits may be higher in YAML (e.g. kimi-test limits 16 CPU / 64Gi). Do not invent values — change YAML + policy together. Comparison view: [Models catalog](../models-catalog.md).
 
@@ -96,10 +96,9 @@ Single-node Compose sibling: [ez-comfy-stack](https://github.com/toxicoder/ez-co
 - Heavy confirm + Resource Guard
 - Mode A util ≤ 0.82; Mode B ≤ 0.85; Mode C SGLang ≤ 0.95
 
-!!! danger "Do not set restartPolicy Always on large models"
-
-    That would auto-start after reboot and can wedge the host.
-
+<Callout type="error" title="Do not set restartPolicy Always on large models">
+  That would auto-start after reboot and can wedge the host.
+</Callout>
 ## Verify after any start
 
 ```bash

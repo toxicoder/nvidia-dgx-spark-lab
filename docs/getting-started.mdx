@@ -6,7 +6,7 @@ tags: [getting-started, bazel, k3s, ansible, safety]
 
 # Getting Started
 
---8<-- "docs/includes/cluster-config.md"
+<ClusterConfigPanel />
 
 **What's on this page**
 
@@ -31,10 +31,9 @@ Topology choice: [Choose topology](start/choose-topology.md). Profiles after thi
 - **Out-of-band console** (IPMI/iDRAC) — heavy Jobs can still wedge SSH if you skip Guard
 - Workstation: Ansible ≥ 2.14, kubectl, helm, **bazelisk** (Makefile is a shim)
 
-!!! warning "Safety"
-
-    Never proceed without inventory ping and OOB access. Do not start kimi / Mode B/C until `start-test` succeeds.
-
+<Callout type="warning" title="Safety">
+  Never proceed without inventory ping and OOB access. Do not start kimi / Mode B/C until `start-test` succeeds.
+</Callout>
 ## Step 1 — Inventory
 
 ```bash
@@ -43,8 +42,8 @@ cp ansible/inventory/hosts.ini.example ansible/inventory/hosts.ini
 
 Edit IPs. The example file uses `10.0.0.10` placeholders — not a live lab.
 
-=== "1-node"
-
+<Tabs groupId="1-node-2-node-4-node" items={["1-node", "2-node", "4-node"]} persist>
+  <Tab value="1-node">
     ```ini
     [spark0]
     spark0 ansible_host=10.0.0.10 ansible_user=ubuntu
@@ -59,15 +58,14 @@ Edit IPs. The example file uses `10.0.0.10` placeholders — not a live lab.
     ```
 
     High-speed group is ignored. Local NCCL only.
-
-=== "2-node"
-
+  </Tab>
+  <Tab value="2-node">
     Uncomment spark1 in `hosts.ini.example`. Dual QSFP between nodes. `group_vars` `highspeed_*` is the **pair** NCCL reference.
-
-=== "4-node"
-
+  </Tab>
+  <Tab value="4-node">
     Add spark2 and spark3 under `k3s_agent` and `k3s_cluster` the same way. Do **not** paste 2-node `NCCL_SOCKET_IFNAME` onto extra hops without reading [Interconnect & NCCL](concepts/interconnect-nccl.md).
-
+  </Tab>
+</Tabs>
 **3-node QSFP ring** (Mode A/B/C) is not “2-node plus spark2 with pair env.” Cabling and Job env: [LiteLLM rounded stack](litellm-rounded-stack.md).
 
 Verify:
@@ -89,27 +87,26 @@ bazelisk run //ansible:playbook -- apply-cloud-init-prep.yml
 
 Templates: `ansible/cloud-init/example-user-data-1node.yaml`, `example-user-data-2node.yaml`. Feed rendered YAML via vendor BMC, or apply manually and reboot.
 
-!!! danger "apply_now=true"
-
-    Extra-var `apply_now=true` writes user-data on the node and can reboot it. Inference must already be stopped. Default is render-only.
-
+<Callout type="error" title="apply_now=true">
+  Extra-var `apply_now=true` writes user-data on the node and can reboot it. Inference must already be stopped. Default is render-only.
+</Callout>
 To import prep from bootstrap: `--extra-vars run_cloud_init_prep=true`.
 
 ## Step 3 — Bootstrap K3s
 
-=== "Bazel"
-
+<Tabs groupId="bazel-classic" items={["Bazel", "Classic"]} persist>
+  <Tab value="Bazel">
     ```bash
     bazelisk run //ansible:bootstrap -- -i inventory/hosts.ini
     ```
-
-=== "Classic"
-
+  </Tab>
+  <Tab value="Classic">
     ```bash
     cd ansible
     ansible-playbook -i inventory/hosts.ini playbooks/bootstrap-cluster.yml
     ```
-
+  </Tab>
+</Tabs>
 The playbook installs prereqs, highspeed netplan on 2+ nodes, K3s server on spark0, agents, labels, kubeconfig.
 
 Verify:
@@ -131,18 +128,18 @@ If NotReady: `journalctl -u k3s` on the node; re-run bootstrap. Guided printout:
 
 ## Step 4 — GPU Operator
 
-=== "Bazel"
-
+<Tabs groupId="bazel-classic" items={["Bazel", "Classic"]} persist>
+  <Tab value="Bazel">
     ```bash
     bazelisk run //ansible:gpu-operator -- -i inventory/hosts.ini
     ```
-
-=== "Classic"
-
+  </Tab>
+  <Tab value="Classic">
     ```bash
     ansible-playbook -i inventory/hosts.ini playbooks/install-gpu-operator.yml
     ```
-
+  </Tab>
+</Tabs>
 Wait until GPU Operator pods are Running (5–15+ minutes first time):
 
 ```bash
@@ -189,15 +186,14 @@ Dashboard NodePort default: `http://{{SPARK0_IP}}:{{DASHBOARD_PORT}}` (32082). J
 
 ## Step 8 — Reboot reminder
 
-!!! danger "Stop before reboot"
+<Callout type="error" title="Stop before reboot">
+  ```bash
+  bazelisk run //:manage -- stop
+  bazelisk run //:manage -- status
+  ```
 
-    ```bash
-    bazelisk run //:manage -- stop
-    bazelisk run //:manage -- status
-    ```
-
-    Then reboot workers, then spark0. Jobs will **not** come back. Full sequence: [Reboot safety](reboot-safety.md) · [Patch and reboot](operate/patch-and-reboot.md).
-
+  Then reboot workers, then spark0. Jobs will **not** come back. Full sequence: [Reboot safety](reboot-safety.md) · [Patch and reboot](operate/patch-and-reboot.md).
+</Callout>
 ## Next
 
 - [Profiles](start/profiles.md) — only after kimi-test

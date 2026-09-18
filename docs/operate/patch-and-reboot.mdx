@@ -18,36 +18,35 @@ tags: [reboot, safety, operate, kubernetes]
 - Patching Ubuntu or the GPU Operator without pinning unified memory on the way down
 - Coming back with an empty `ai-inference` namespace (by design)
 
---8<-- "docs/includes/cluster-config.md"
+<ClusterConfigPanel />
 
 Full reboot narrative: [Reboot safety](../reboot-safety.md).
 
-!!! danger "Never reboot with inference scheduled"
-
-    Large Jobs can exhaust host memory and make SSH unusable. `restartPolicy: OnFailure` will **not** bring them back — you must start again — but a reboot *during* a 90Gi+ Job can still hang the node.
-
+<Callout type="error" title="Never reboot with inference scheduled">
+  Large Jobs can exhaust host memory and make SSH unusable. `restartPolicy: OnFailure` will **not** bring them back — you must start again — but a reboot *during* a 90Gi+ Job can still hang the node.
+</Callout>
 ## Sequence
 
 1. From the workstation:
 
-    === "Bazel"
-
-        ```bash
-        bazelisk run //:manage -- stop
-        bazelisk run //:manage -- stop-visual
-        bazelisk run //:manage -- stop-stack-rounded
-        bazelisk run //:manage -- status
-        ```
-
-    === "Classic"
-
-        ```bash
-        ./scripts/manage.sh stop
-        ./scripts/manage.sh stop-visual
-        ./scripts/manage.sh stop-stack-rounded
-        ./scripts/manage.sh status
-        ```
-
+    <Tabs groupId="bazel-classic" items={["Bazel", "Classic"]} persist>
+      <Tab value="Bazel">
+    ```bash
+    bazelisk run //:manage -- stop
+    bazelisk run //:manage -- stop-visual
+    bazelisk run //:manage -- stop-stack-rounded
+    bazelisk run //:manage -- status
+    ```
+      </Tab>
+      <Tab value="Classic">
+    ```bash
+    ./scripts/manage.sh stop
+    ./scripts/manage.sh stop-visual
+    ./scripts/manage.sh stop-stack-rounded
+    ./scripts/manage.sh status
+    ```
+      </Tab>
+    </Tabs>
 2. Confirm `kubectl get pods -n {{NAMESPACE}}` is empty (or Completed and deleted).
 3. Optional: `kubectl drain <node> --ignore-daemonsets --delete-emptydir-data` for worker OS patches. Drain does **not** replace step 1 for Jobs that already occupy unified memory.
 4. Patch OS packages on the node (vendor docs). For GPU Operator, re-run `bazelisk run //ansible:gpu-operator -- -i inventory/hosts.ini` **after** nodes are up, not during a hung driver compile with inference running.
@@ -64,6 +63,6 @@ bazelisk run //:manage -- start-test
 
 Heavy profiles stay off until you start them. That is the safety property.
 
-!!! warning "GPU Operator first boot"
-
-    Driver containers can take 5–15+ minutes. Watch `kubectl get pods -n gpu-operator -w` before starting Jobs.
+<Callout type="warning" title="GPU Operator first boot">
+  Driver containers can take 5–15+ minutes. Watch `kubectl get pods -n gpu-operator -w` before starting Jobs.
+</Callout>

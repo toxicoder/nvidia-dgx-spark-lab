@@ -70,10 +70,9 @@ NCCL_IB_SUBNET_AWARE_ROUTING=1
 
 Plus `hostNetwork: true` and `hostIPC: true`. If 10GbE is not `enP7s7`, set `LAB_MGMT_IFNAME`. Mode C also cuts `NCCL_BUFFSIZE=1MiB`.
 
-!!! danger "Do not copy the 2-node pair block onto ring Jobs"
-
-    `highspeed_interfaces: enp1s0f0np0,enp1s0f1np1` is the pair reference. Ring Jobs in `k8s/workloads/glm-5.3-flash/` and `deepseek-v4.1-flash/` already have the ring block.
-
+<Callout type="error" title="Do not copy the 2-node pair block onto ring Jobs">
+  `highspeed_interfaces: enp1s0f0np0,enp1s0f1np1` is the pair reference. Ring Jobs in `k8s/workloads/glm-5.3-flash/` and `deepseek-v4.1-flash/` already have the ring block.
+</Callout>
 Full cabling, aliases, and util caps: [LiteLLM rounded stack](../litellm-rounded-stack.md).
 
 ## 4 nodes
@@ -88,20 +87,20 @@ ibdev2netdev
 ip -br link
 ```
 
-=== "Bazel"
-
+<Tabs groupId="bazel-classic" items={["Bazel", "Classic"]} persist>
+  <Tab value="Bazel">
     ```bash
     bazelisk run //:manage -- doctor
     bazelisk run //:manage -- doctor-fabric
     ```
-
-=== "Classic"
-
+  </Tab>
+  <Tab value="Classic">
     ```bash
     ./scripts/manage.sh doctor
     ./scripts/manage.sh doctor-fabric
     ```
-
+  </Tab>
+</Tabs>
 After `start-test` on a pair:
 
 ```bash
@@ -110,6 +109,6 @@ kubectl logs -n {{NAMESPACE}} -l app=kimi-test --tail=100 | grep -i nccl
 
 Expect the high-speed IFNAME in the NCCL init lines, not the management NIC as payload.
 
-!!! warning "Mis-iface"
-
-    If logs show fallback to `eth0` / 10GbE for all-reduce, stop the Job (`bazelisk run //:manage -- stop`) and fix netplan / Job env before retrying a heavy TP Job.
+<Callout type="warning" title="Mis-iface">
+  If logs show fallback to `eth0` / 10GbE for all-reduce, stop the Job (`bazelisk run //:manage -- stop`) and fix netplan / Job env before retrying a heavy TP Job.
+</Callout>

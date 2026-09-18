@@ -18,7 +18,7 @@ tags: [dashboard, operate, safety]
 - Using the portal the same way `manage.sh` gates starts
 - Knowing when to drop to kubectl / `manage.sh` instead
 
---8<-- "docs/includes/cluster-config.md"
+<ClusterConfigPanel />
 
 Generated API: [Dashboard API](../generated/dashboard-api/README.md). Chart: `helm/lab-dashboard/` (NodePort **32082** by default).
 
@@ -58,10 +58,9 @@ Layout: `app/(dashboard)/page.tsx` loads all panel data in one `Promise.all`. Mu
 
 Install is Ansible (`install-dev-workspaces.yml`). Journeys: [Dev workspaces](../dev-workspaces.md).
 
-!!! warning "docker.sock blast radius"
-
-    The dashboard Deployment may mount the host Docker socket and `/mnt/models` so Tasks/Storage work. Anyone who can log in can stop containers and delete allow-listed files. Keep auth on; never set `AUTH_BYPASS` outside tests. SSO: [SSO](../sso.md).
-
+<Callout type="warning" title="docker.sock blast radius">
+  The dashboard Deployment may mount the host Docker socket and `/mnt/models` so Tasks/Storage work. Anyone who can log in can stop containers and delete allow-listed files. Keep auth on; never set `AUTH_BYPASS` outside tests. SSO: [SSO](../sso.md).
+</Callout>
 ## Verify
 
 ```bash

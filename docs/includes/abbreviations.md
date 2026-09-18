@@ -1,6 +1,6 @@
 <!--
-  Project-wide glossary abbreviations (Material tooltips).
-  Auto-appended to every page via pymdownx.snippets in mkdocs.yml.
+  Project-wide glossary abbreviations (hover tooltips).
+  Auto-appended to every page by the docs-site remark plugin (lib/remark-glossary.ts).
   Keep definitions short (tooltip-sized). Longer prose lives in docs/glossary.md.
 -->
 
@@ -29,8 +29,7 @@
 *[headroom]: Reserved free capacity Resource Guard keeps free so SSH and control plane stay responsive.
 *[cloud-init]: Early OS bootstrap configuration applied on first boot (network, packages, users).
 *[Ansible]: Idempotent automation for cluster bootstrap and app install playbooks.
-*[MkDocs]: Static site generator used for this documentation.
-*[Material]: Material for MkDocs theme powering search, tabs, and tooltips on this site.
+*[Fumadocs]: Documentation site framework (Next.js App Router) that renders this documentation.
 *[Mode A]: Daily 3-node mixed fleet (35B + Flash-Next + MedGemma) behind LiteLLM; vLLM util ≤ 0.82.
 *[Mode B]: Exclusive GLM-5.3-Flash TP=3 on the 3-node QSFP ring; vLLM util ≤ 0.85.
 *[Mode C]: Exclusive DeepSeek-V4.1-Flash TP=3 on the QSFP ring; SGLang mem-fraction-static ≤ 0.95.

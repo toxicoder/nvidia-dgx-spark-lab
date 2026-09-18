@@ -17,12 +17,11 @@ tags: [backup, secrets, operate, safety]
 - Rebuilding a node without committing live inventory or keys
 - Not treating `/mnt/models` as optional if you care about download time
 
---8<-- "docs/includes/cluster-config.md"
+<ClusterConfigPanel />
 
-!!! danger "Do not check backups into git"
-
-    Inventory IPs, kubeconfig, Authelia secrets, and `LAB_SECRETS_MASTER_KEY` stay in an operator secret store.
-
+<Callout type="error" title="Do not check backups into git">
+  Inventory IPs, kubeconfig, Authelia secrets, and `LAB_SECRETS_MASTER_KEY` stay in an operator secret store.
+</Callout>
 ## What to copy
 
 | Item | Path (typical) | Notes |

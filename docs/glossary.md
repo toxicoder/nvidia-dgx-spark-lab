@@ -81,7 +81,7 @@ Hover any dotted abbreviation in the docs (for example K3s or Resource Guard) fo
 | Term | Definition | Learn more |
 | --- | --- | --- |
 | **Bazel** / **Bazelisk** | Hermetic builds, tests, and docs entry points (`bazelisk run //:validate`). | [Building with Bazel](BUILDING_WITH_BAZEL.md) |
-| **MkDocs** / **Material** | Documentation generator and theme for this site. | [Contributing to docs](CONTRIBUTING.md) |
+| **Fumadocs** | Documentation site framework (Next.js) that renders this site. | [Contributing to docs](CONTRIBUTING.md) |
 
 ## Maintaining the glossary
 
