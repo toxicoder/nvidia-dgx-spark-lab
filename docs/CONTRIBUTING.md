@@ -1,7 +1,7 @@
 ---
 title: Contributing to the Documentation
-description: Guidelines for hand-written docs, structured shell comments, rich formatting rules, and the PR checklist for the MkDocs site.
-tags: [documentation, contributing, mkdocs, bazel]
+description: Guidelines for hand-written docs, structured shell comments, rich formatting rules, and the PR checklist for the documentation site.
+tags: [documentation, contributing, fumadocs, nextjs, bazel]
 ---
 
 # Contributing to the Documentation
@@ -28,26 +28,35 @@ All changes to documentation must follow the same rigor as code changes.
 Bazel (primary):
 
 ```bash
-bazel run //docs:serve                    # Live preview (auto-opens browser)
-bazel run //docs:serve -- --port 8080 --no-browser
+bazelisk run //docs:serve                     # Dev server with hot reload (opens a browser)
+bazelisk run //docs:serve -- --port 3007 --no-browser
 # Make edits...
-bazel run //docs:docs                     # Strict production build
-bazel run //docs:preview                  # Strict build + static serve (final check)
+bazelisk run //docs:docs                      # Static export into docs-site/out/
+bazelisk run //docs:preview                   # Export + serve it (final check)
+bazelisk run //docs-site:unit                 # Widget + content-transform unit suite
+bazelisk run //docs-site:typecheck            # next typegen + tsc
 ```
 
-Classic scripts (the `manage-docs.sh` wrapper auto-provisions the venv):
+Classic scripts (the `manage-docs.sh` wrapper installs npm dependencies when missing):
 
 ```bash
 ./docs/manage-docs.sh serve
-./docs/manage-docs.sh build --strict
+./docs/manage-docs.sh build
 ./docs/manage-docs.sh preview
 ```
 
-See `bazel run //docs:status` or the `--help` output for all options.
+Inside `docs-site/` the same things are npm scripts: `npm run dev`, `npm run build`,
+`npm run visual`, `npm run nav:check`.  Screenshot baselines are refreshed with
+`bazelisk run //docs-site:visual-linux -- --update` (needs Docker), which renders them in the
+Linux image that matches the docs CI job — never on a laptop.  See `bazelisk run //docs:status`
+or the `--help` output for all options.
 
 ## Information Architecture
 
-Diátaxis tabs (see `mkdocs.yml`):
+Sidebar groups live in `docs-site/lib/nav.json`, transcribed once from the former
+`mkdocs.yml` nav.  That file is gone, so `nav.json` is the source of truth: edit it by hand
+and verify with `npm run nav:check` (which fails if an entry has no page on disk).  The
+groups are:
 
 - **Home** — path cards, default stack, safety table
 - **Start** — gold path, topology, profiles, learn-the-lab
@@ -56,7 +65,14 @@ Diátaxis tabs (see `mkdocs.yml`):
 - **Reference** — project conventions, docs contributing, generated shell + dashboard API
 - **Contribute** — dev environment, Bazel
 
-Every major section has an `index.md`. Keep existing published slugs (`getting-started.md`, `architecture.md`, …); put **new** pages under `start/`, `learn/`, `concepts/`, `operate/`, `contribute/`.
+Every major section has an `index.md`. Keep existing published slugs (`getting-started`,
+`architecture`, …): the route is the file path without its extension, so renaming a file
+breaks every bookmark and README link to it. Put **new** pages under `start/`, `learn/`,
+`concepts/`, `operate/`, `contribute/`.
+
+A new page needs three things or it will not appear in the sidebar and the coverage gate
+fails: the file under `docs/`, an entry in the nav (see above), and a listing in
+`_HAND_WRITTEN_MD` in `docs/BUILD.bazel` so Bazel ships it as a runfile.
 
 Use the right-hand ToC for long pages. Keep navigation focused.
 
@@ -80,7 +96,14 @@ tags: [bazel, k3s, nvidia, safety]
 - Write for humans. Be concise. Remove filler.
 - Include copy-pasteable examples.
 - Use Mermaid for diagrams (supported).
-- Prefer admonitions (`!!! note`, `!!! warning`) and tabs for alternatives.
+- Prefer `<Callout type="info|warning|error" title="…">` for asides and `<Tabs>`/`<Tab>` for
+  alternatives. The `!!!` and `=== "Title"` syntax is **not** parsed any more — the migration
+  rewrote existing uses, and new content uses the components directly (see
+  `docs-site/components/mdx-components.tsx` for what is importable).
+- Pages that need those components are `.mdx`; pages that do not can stay `.md`. Both are
+  valid MDX, so plain Markdown keeps working unchanged.
+- Escape what MDX would otherwise read as JSX: a literal `<` in prose or code needs `&lt;`,
+  and `{`/`}` outside a code fence must be `&#123;`/`&#125;`.
 - Always link to source code or exact commands when possible.
 - **Human review required**: All AI-assisted drafts must be reviewed and edited by a human before merging.
 
@@ -146,16 +169,24 @@ The devcontainer image already includes these CLIs; on the host, install them or
 
 ## Before Submitting a PR
 
-- [ ] `./docs/manage-docs.sh build --strict` passes with zero warnings.
-- [ ] All links work (the build checks them in strict mode).
-- [ ] Navigation (tabs, sections, breadcrumbs) feels logical.
+- [ ] `bazelisk run //:validate` is green (it runs the docs gates when `docs/**` or
+      `docs-site/**` changed; add `-- --all` before a merge that touches the site).
+- [ ] `bazelisk run //docs:docs` builds the export with no errors and no broken links.
+- [ ] `bazelisk run //docs-site:visual` passes, or the golden diff is intentional and was
+      refreshed with `bazelisk run //docs-site:visual-linux -- --update` (never on a laptop —
+      see `MIGRATION.md` in the repo root).
+- [ ] Navigation (sidebar groups, ToC, breadcrumbs) feels logical.
 - [ ] New or changed behavior is documented.
 - [ ] Frontmatter present and accurate.
 - [ ] Spell-checked (run codespell or manual review).
 
 ## Editing This Site
 
-Click **Edit this page** on the live site. Hooks stamp `edit_uri` from the published alias (`main` for **latest**, `development` for **development**), so the link opens the matching long-lived branch. In-page GitHub `blob`/`tree` source links are rewritten the same way at build time (see `docs/hooks.py`).
+Click **Edit this page** on the live site. The link is stamped from the published alias
+(`main` for **latest**, `development` for **development**), so it opens the matching long-lived
+branch rather than a stale default. The same ref drives in-page GitHub `blob`/`tree` source
+links; override it locally with `DGX_DOCS_GIT_REF=development` (or `main`) when you need to
+check where a link lands.
 
 ## Questions?
 

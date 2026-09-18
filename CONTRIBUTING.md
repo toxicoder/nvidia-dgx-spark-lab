@@ -188,7 +188,7 @@ CI runs path-filtered jobs with the same Bazel targets. See [docs/BUILDING_WITH_
 | Topic | Document |
 | --- | --- |
 | **All stacks (canonical)** | [docs/project-conventions.md](docs/project-conventions.md) |
-| MkDocs prose and page formatting | [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) |
+| Documentation site prose and page formatting | [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) |
 | Shell scripts and utilities | [scripts/README.md](scripts/README.md) |
 | Testing philosophy and targets | [tests/README.md](tests/README.md) |
 | Dashboard (Next.js) specifics | [dashboard/AGENTS.md](dashboard/AGENTS.md) |
@@ -209,11 +209,12 @@ Full checklist: [docs/project-conventions.md § Change discipline](docs/project-
 
 ## Documentation changes
 
-Hand-written docs use MkDocs Material. Follow [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for frontmatter, page structure, and generated reference workflow.
+Hand-written docs are rendered by Fumadocs (Next.js App Router) from the content in `docs/`. Follow [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for frontmatter, page structure, and generated reference workflow.
 
 ```bash
 bazelisk run //docs:serve     # live preview
-bazelisk run //docs:docs       # strict production build
+bazelisk run //docs:docs       # static export into docs-site/out/
+bazelisk test //docs-site:unit //docs-site:typecheck   # widgets + types
 ```
 
 Shell command reference is **generated** from structured comments in `scripts/` — do not edit `docs/generated/shell/reference.md` by hand.

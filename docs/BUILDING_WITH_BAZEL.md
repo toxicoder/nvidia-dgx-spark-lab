@@ -58,7 +58,11 @@ bazelisk run //docs:serve
 bazelisk run //ansible:bootstrap
 
 # Specific targets
-bazelisk run //docs:docs          # strict production build of the docs site
+bazelisk run //docs:docs           # static export of the docs site into docs-site/out/
+bazelisk run //docs:render-check   # checks against that export (run //docs:docs first)
+bazelisk run //docs-site:unit      # Vitest suite for the site widgets
+bazelisk run //docs-site:typecheck # next typegen + tsc
+bazelisk run //docs-site:visual-linux # screenshot baselines in the CI image (needs Docker)
 bazelisk run //dashboard:dev
 bazelisk run //ansible:verify -- -i inventory/hosts.ini
 
@@ -103,6 +107,11 @@ The output is at `docs/generated/shell/reference.md` and appears in the site und
 
 Because `//docs:docs` and `//docs:serve` list the script sources as data dependencies (via `//scripts:doc_sources`), Bazel only re-runs generation when comments actually change.
 
+The generated trees are ordinary content to the site: `//docs-site:*` targets depend on
+`//docs:content`, which globs `docs/generated/**` alongside the hand-written pages, so a
+regenerated reference invalidates the build and the sidebar picks the new headings up with no
+extra wiring.
+
 ### Dashboard API reference
 
 Produced by TypeDoc from JSDoc in the Next.js/TypeScript code:
@@ -115,55 +124,83 @@ See `dashboard/typedoc.json` and the package.json `docs:generate` script.
 
 ### Visual regression tests for the rendered docs site (goldens + approval)
 
-Docs render tests are split for speed:
+Docs checks are split by what they need, so a one-line edit does not pay for a browser:
 
-- `//docs:test_mkdocs_build` — mkdocs strict build + HTML/source checks (local fail-fast; **not** in `//:test-fast` — needs MkDocs installed)
-- `//docs:test_mkdocs_visual` — Playwright screenshots vs goldens only
-- `//docs:test_mkdocs_render` — combined (one MkDocs build + visual); **CI docs job** and `bazel test //:test`
+- `//docs:test_docs_site_render` — source contract of every navigable page: frontmatter,
+  the two overview sections, fenced languages, Mermaid label quoting, prose/list separation,
+  and the navigation covering the pages the old site published (no browser, in `//:test-fast`)
+- `//docs:render-check` — the same file run against the **exported** HTML: search index and
+  tags, Mermaid/callout elements, the edit-on-GitHub link, and the cluster-variables panel
+  keeping its tokens editable. A `run` target, because it reads `docs-site/out/`
+- `//docs-site:unit` — Vitest over the ported widgets and the content transforms
+- `//docs-site:typecheck` — `next typegen` + `tsc --noEmit`
+- `//docs-site:visual-linux` — screenshot baselines rendered inside the pinned Playwright
+  container, i.e. the same renderer the `docs-and-render` job compares against (needs Docker)
+- `//docs-site:visual` — the same suite on the host browser; a debugging aid for one
+  environment, not how baselines are produced (`manual`-tagged: a browser cannot launch inside
+  a sandboxed test action)
+- `//docs-site:visual_tooling_test` — guards that the container image stays pinned to the
+  Playwright release the suite imports, that it matches the CI platform, and that the spec never
+  invents a baseline under CI
 
-CI runs build + visual as separate steps in **docs-and-render**; `//:test-fast` covers the fast build path without Playwright.
+The visual suite serves the export itself (`playwright.config.mjs` `webServer` runs
+`scripts/serve_static.mjs`), so nothing has to be started by hand. It captures the ten pages
+whose rendering carries risk — index, getting-started, architecture, models-catalog,
+troubleshooting, reboot-safety, dgx-spark-notes, monitoring-observability, dev-workspaces,
+gitea-ci-setup — at both desktop and mobile widths, waits for hydration plus the client-side
+Mermaid SVGs, and drives every animation and transition to its end state before capturing so
+baselines are reproducible.
 
-- mkdocs build --strict (to temp)
-- Start an in-process static HTTP server over the output (CSS/JS assets served)
-- Playwright (chromium, headless) loads many key pages (index + getting-started + architecture + models-catalog + troubleshooting + reboot-safety + dgx-spark-notes + monitoring-observability + dev-workspaces + gitea-ci-setup, ...)
-- Fixed viewport + strong waits: domcontentloaded + networkidle + Material CSS elements (`.md-header`, `.md-content`) + custom command-vars / cluster panel + Mermaid SVG + fonts.ready + settle. CSS is always applied in the captured image; JS is waited for where it affects rendering (Mermaid, panels).
-- `page.screenshot(full_page=True, animations="disabled")` compared byte-for-byte to committed goldens in `docs/tests/visual/goldens/`.
-- Actual/current screenshots are **always generated** (written to test outputs/actuals dir) whenever the test runs.
+- Any change to Markdown, MDX, components, CSS, or generated content that moves pixels fails
+  the suite with a diff, rather than being noticed by a reader.
+- **Baselines come from the CI image, not from a laptop.** Font metrics differ per platform, so
+  a macOS golden will not match Linux CI Chromium and fails `docs-and-render`. The launcher
+  builds the export inside the container as well, because the Next production bundle carries
+  platform-specific native code, and the container refuses to render unless it reports the CI
+  architecture. Refresh and review:
 
-This ensures that **rendering the dgx spark lab site (with CSS + JS) and taking screenshots (goldens + actuals) is part of the main test suite**.
-
-- Any change to Markdown, templates, JS, CSS, or generated content that affects the final pixels will cause the test to fail with a message guiding approval.
-- To accept an intentional change (e.g. new section, style tweak, new generated reference text):
   ```bash
-  UPDATE_SNAPSHOTS=1 bazel run //docs:visual-update
+  bazelisk run //docs-site:visual-linux -- --update   # or: npm run visual:linux:update
   ```
-  This reruns the build + browser captures and writes the new .png baselines into your source tree.
-- Commit the updated goldens and open a PR. The visual diff is part of review (humans must approve pixel changes just like code).
 
-The test gracefully skips the browser portion if playwright or browsers are missing (source + HTML checks still run). Full enforcement requires the browsers (installed automatically by the test runner on first use, or via `python -m playwright install chromium`).
+  Under CI a page with no baseline is a hard failure rather than a silent self-capture, so no
+  unreviewed screenshot can be committed. Pixel changes are reviewed like code.
 
-See also the top of `docs/test_mkdocs_render.py` and `test_mkdocs_render.sh`.
+`//:test-fast` deliberately excludes the browser work: it stays runnable without a Chromium
+download, which is what makes it the cheap default in `bazel-core`.
 
 ### Multi-version public docs (latest + development)
 
-GitHub Pages is published with **[mike](https://github.com/jimporter/mike)** so both long-lived branches have a docs site:
+The MkDocs site published two aliases with **mike**; Fumadocs has no mike equivalent, so the
+same URLs are produced by building the static export twice with different `basePath` values:
 
-| Alias | Branch | URL |
-| --- | --- | --- |
-| `latest` (default) | `main` | `…/latest/` (and site root default) |
-| `development` | `development` | `…/development/` |
+| Alias | Branch | Build target | URL |
+| --- | --- | --- | --- |
+| `latest` (default) | `main` | `//docs-site:build-latest` (`NEXT_BASE_PATH=/latest`) | `…/latest/` |
+| `development` | `development` | `//docs-site:build-development` (`NEXT_BASE_PATH=/development`) | `…/development/` |
 
-Workflow: `.github/workflows/deploy-docs.yml` runs **only on push** to `main`/`master`/`development` (docs paths) or `workflow_dispatch` — not on `pull_request`. Merging a PR into those branches is what publishes. After `//docs:docs` generates content, `mike deploy --push` updates the version alias on the `gh-pages` branch. PR-time docs validation is CI (`docs-and-render`), not this workflow.
+Both come from the same commit, so the two aliases never disagree about content, and each is a
+complete export (assets and the search index are baked with their prefix, so they are not
+shared between prefixes). A root `index.html` forwards bare URLs to `/latest/`, which keeps
+every previously published and bookmarked address working — no redirect service required.
 
-**Repo setting:** GitHub Pages source should be the **`gh-pages` branch** (not “GitHub Actions” artifact-only) once mike has published. Development builds set `DGX_DOCS_VERSION=development` so hooks:
+Workflow: `.github/workflows/deploy-docs.yml` runs **only on push** to `main`/`master`/`development`
+(docs paths) or `workflow_dispatch` — not on `pull_request`. Merging a PR into those branches is
+what publishes; PR-time docs validation is the `docs-and-render` CI job, not this workflow. The
+job assembles `_site/{latest,development}` and deploys it as a Pages artifact, so the Pages source
+is the **GitHub Actions** deployment (the old `gh-pages` branch is no longer written to).
 
-- inject a non-production banner
-- stamp Material **Edit this page** to `edit/development/docs/` (latest → `edit/main/docs/`)
-- rewrite this-repo GitHub `blob`/`tree` source links to the same long-lived ref
+`DGX_DOCS_VERSION` is the branch-aware knob the MkDocs hooks used, now read by the app:
 
-Optional local override: `DGX_DOCS_GIT_REF=development` (or `main`). Feature-branch names are not auto-mapped (unpublished edit links would 404).
+- `development` renders the non-production banner
+- “Edit on GitHub” points at `edit/development/docs/…` (otherwise `edit/main/docs/…`)
+- in-repo GitHub source links resolve against the same long-lived ref
 
-Local single-version builds (`bazelisk run //docs:serve`) do not need mike; the version selector simply has no alternate aliases offline. Default git ref for links is `main` unless the env vars above are set.
+Optional local override: `DGX_DOCS_GIT_REF=development` (or `main`). Feature-branch names are not
+auto-mapped, since an edit link into an unpublished branch would 404.
+
+Local dev (`bazelisk run //docs:serve`) builds neither alias: it serves at the root with hot
+reload, which is the right thing for authoring.
 
 ### Why this design?
 
@@ -186,7 +223,7 @@ bazelisk run //:validate -- --update-goldens  # regenerate visual baselines (rev
 bazelisk run //:fix                         # formatters + auto-fix linters (trusted tools)
 ```
 
-`//:validate` always runs core checks (`build //... --nobuild`, `//:test-fast`, `//:lint`, key builds). When docs-relevant paths change (`docs/**`, shell doc sources under `scripts/manage.sh` / `lib` / `utilities`) it also runs `//docs:docs` + `//docs:test_mkdocs_build` (fast). Use `--all` for `//docs:test_mkdocs_render` (visual) and `//dashboard:hermetic-test` (Docker + Playwright). Default dashboard slice uses `//dashboard:fast-test` (host Vitest + lint + typecheck).
+`//:validate` always runs core checks (`build //... --nobuild`, `//:test-fast`, `//:lint`, key builds). When docs-relevant paths change (`docs/**`, `docs-site/**`, shell doc sources under `scripts/manage.sh` / `lib` / `utilities`) it also runs `//docs:test_docs_site_render` + `//docs-site:unit` + `//docs-site:typecheck` + `//docs-site:visual_tooling_test` (fast, no browser). Use `--all` to add the static export, the export-backed `//docs:render-check`, the screenshot comparison in the CI container (`//docs-site:visual-linux`, needs Docker), and `//dashboard:hermetic-test` (Docker + Playwright). `--update-goldens` captures fresh baselines in that same container instead of comparing. Default dashboard slice uses `//dashboard:fast-test` (host Vitest + lint + typecheck).
 
 `//:fix` uses only well-trusted software (buildifier, shfmt, ruff, prettier) and is the recommended one-command way to programmatically clean the tree.
 
@@ -197,7 +234,7 @@ CI uses path-filtered parallel jobs (optimized for wall time):
 | **bazel-core** | scripts/k8s/… or CI graph/workflow | `//:test-fast` + `//:lint` + key builds |
 | **dashboard-unit** | dashboard/** or CI graph | Host Vitest + lint + tsc |
 | **dashboard-hermetic** | after unit success | Docker build + Playwright (`DASHBOARD_TEST_MODE=visual` skips re-Vitest) |
-| **docs-and-render** | docs/**, shell doc sources, or CI graph | **Single** `//docs:test_mkdocs_render` (one MkDocs build) |
+| **docs-and-render** | docs/**, docs-site/**, shell doc sources, or CI graph | Docs gates without a browser, then the export + `//docs:render-check` + the screenshot comparison in the CI container |
 | **validate-gate** | always | Pure bash `scripts/ci_check_only.sh` (no Bazel cold start) |
 
 **Path filter notes:** `scripts/**` no longer always runs docs — only `scripts/manage.sh`, `scripts/lib/**`, and `scripts/utilities/**` (shell doc sources). Editing only `.github/workflows/*` runs bazel-core (and gate), not hermetic/docs. Shared setup: `.github/actions/setup-bazel` (pinned Bazelisk + disk/repo + lint-tool caches). See `.github/workflows/ci.yml`, `.gitea/workflows/ci.yml`, and `.bazelrc` (`--config=ci`).
@@ -239,8 +276,10 @@ The following are modeled with first-class Bazel targets:
 - `scripts/manage.sh` as `sh_binary` (`//:manage`)
 - Full hermetic BATS suite (vendored bats-core)
 - Kubernetes manifests and overlays as `filegroup` data
-- Documentation site (`//docs:serve`, `//docs:docs`, etc.)
-  - Includes `test_generate_shell_docs` + `test_mkdocs_render` (full build + HTML/mermaid/asset validation + **real browser screenshots + goldens** of the rendered site; visual diffs fail the test and require explicit approval via `UPDATE_SNAPSHOTS=1 bazel run //docs:visual-update` + PR review).
+- Documentation site (`//docs:serve`, `//docs:docs`, `//docs-site:*`)
+  - Includes `//docs:test_generate_shell_docs`, the docs gates in `//:test-fast`, and the export +
+    **real browser screenshots vs goldens** in the docs job (visual diffs fail the job and require
+    explicit approval via `//docs-site:visual-linux -- --update` + PR review).
 - Ansible validation + convenient playbook launchers (`//ansible:*`)
 - Dashboard dev / build / test wrappers (`//dashboard:*`)
 - Comprehensive root aliases and test suites
@@ -292,6 +331,6 @@ After changing comments in `scripts/` or JSDoc in `dashboard/`:
 bazelisk run //docs:docs
 ```
 
-Generated content lands in `docs/generated/` and is part of the MkDocs site (Reference).
+Generated content lands in `docs/generated/` and is served by the docs site (Reference).
 
 See `AGENTS.md` for AI coding assistant workflow.

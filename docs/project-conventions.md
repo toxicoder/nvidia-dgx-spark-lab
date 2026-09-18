@@ -26,7 +26,7 @@ This document is the **canonical reference** for human contributors. Stack-speci
 - [scripts/README.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/scripts/README.md) — `manage.sh` and utility scripts
 - [tests/README.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/tests/README.md) — test targets and mocks
 - [CONTRIBUTING.md (repo root)](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md) — contribution hub and full branching / PR / promotion model
-- [CONTRIBUTING.md](CONTRIBUTING.md) — MkDocs prose and formatting rules
+- [CONTRIBUTING.md](CONTRIBUTING.md) — documentation site prose and formatting rules
 
 AI coding agents should also read [AGENTS.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md) for workflow-specific guidance.
 
@@ -805,7 +805,7 @@ Every tracked source file must have stack-appropriate documentation. This is enf
 | **TypeScript** (`.ts` / `.tsx`) | File-level module comment for services/actions; JSDoc on every exported function/class/component with `@param`, `@returns`, `@throws` | `strict: true`; explicit return types on exports |
 | **YAML/YML** (K8s, Ansible, Helm, config) | Top-of-file `#` header: Purpose, Source of truth, Regenerate (or `n/a`), Safety | N/A |
 | **BUILD.bazel** | Package-purpose `"""Package purpose: ..."""` docstring at top | N/A |
-| **Markdown** (`docs/`) | YAML frontmatter + "What's on this page" / "What this enables" (see below); **every** page listed in `mkdocs.yml` `nav` must also be in `docs/BUILD.bazel` data (`//docs:serve`, `//docs:docs`, `_RENDER_TEST_DATA`) | N/A |
+| **Markdown / MDX** (`docs/`) | YAML frontmatter + "What's on this page" / "What this enables" (see below); **every** page in the nav (`docs-site/lib/nav.json`) must also be listed in `docs/BUILD.bazel` `_HAND_WRITTEN_MD` so it ships as a runfile | N/A |
 | **ConfigMap language content** | Real files + `configMapGenerator` `files:` only — never multi-line embeds of scripts, JSON, nested YAML, or `*_JSON` blobs | N/A |
 
 **Exceptions:**
@@ -820,7 +820,7 @@ Every tracked source file must have stack-appropriate documentation. This is enf
 
 | Gate | Enforces |
 | --- | --- |
-| `//tests:doc_coverage` | `@command` / `@function` / YAML headers / no inline ConfigMap language embeds / no multi-line shell in mcp manifests / mkdocs↔Bazel page lists / BUILD package purpose / dashboard JSDoc |
+| `//tests:doc_coverage` | `@command` / `@function` / YAML headers / no inline ConfigMap language embeds / no multi-line shell in mcp manifests / nav↔Bazel page lists / BUILD package purpose / dashboard JSDoc |
 | `//tests:doc_coverage_unit` | Unit tests for the pure helpers behind those rules |
 | `//lints:shell` (manual lint suite) | ShellCheck on real `.sh` files (warnings fail; another reason not to embed scripts in YAML) |
 | `//lints:shfmt` (manual lint suite) | Format drift check (`shfmt -d -s -i 2 -ci`) |
@@ -832,7 +832,7 @@ bazelisk run //docs:docs          # shell reference
 bazelisk run //dashboard:docs     # dashboard API
 ```
 
-Hand-written docs live in `docs/` and are built with MkDocs Material. **Full prose rules** are in [CONTRIBUTING.md](CONTRIBUTING.md). Summary:
+Hand-written docs live in `docs/` as markdown/MDX and are rendered by the Fumadocs (Next.js) app in `docs-site/`. **Full prose rules** are in [CONTRIBUTING.md](CONTRIBUTING.md). Summary:
 
 ### Page structure (required)
 
@@ -854,8 +854,9 @@ Every `.md` page needs YAML frontmatter (`title`, `description`, `tags`) and two
 - **All code fences must specify a language** (`bash`, `yaml`, `text`, `mermaid`, etc.)
 - Blank line before list items that follow prose ending in `:`
 - Mermaid: quote node labels with `{{...}}`; prefer `flowchart TD`
-- Use admonitions (`!!! warning`, `!!! info`) and tabs for alternatives
-- **Links to repo-root files** (outside `docs/`): use full GitHub URLs — MkDocs `--strict` rejects `../` paths to non-doc files
+- Use `<Callout type="info|warning|error">` for asides and `<Tabs>`/`<Tab>` for alternatives; the old `!!!` and `=== "Tab"` syntax is no longer parsed
+- MDX escapes: a literal `<` in prose needs `&lt;`, and braces outside a code fence need `&#123;` / `&#125;`; pages that use components are `.mdx`, the rest stay `.md`
+- **Links to repo-root files** (outside `docs/`): use full GitHub URLs — the site build resolves relative links inside the content root only
 
 ### Generated reference
 
@@ -904,7 +905,7 @@ Default workflow for non-trivial changes:
 | Kubernetes | yamllint + kubeconform + safety greps | `//lints:k8s`, `//tests:safety_invariants` |
 | Ansible | ansible-lint + syntax | `//ansible:validate` |
 | Dashboard | Vitest + Playwright (Docker) | `//dashboard:hermetic-test` |
-| Docs | mkdocs strict + visual goldens | `//docs:test_mkdocs_render` |
+| Docs | content contract + widgets + typecheck + visual goldens | `//docs:test_docs_site_render`, `//docs-site:unit`, `//docs-site:typecheck`, `//docs-site:visual_tooling_test`, `//docs-site:visual` |
 
 ### Efficiency (local + CI)
 
@@ -915,7 +916,7 @@ Keep feedback fast without skipping safety:
 | Targeted BATS / Vitest / docs unit (`//docs:test_command_vars`) | Broad refactor or merge readiness |
 | Path-aware `bazelisk run //:validate` | Unsure which paths changed → `--all` |
 | `//dashboard:fast-test` | Full hermetic Docker + Playwright (`//dashboard:hermetic-test`) |
-| `//docs:test_mkdocs_build` | Visual goldens (`//docs:test_mkdocs_render`) |
+| `//docs-site:unit`, `//docs-site:typecheck`, `//docs-site:visual_tooling_test` | Static export + visual goldens (`//docs:docs` then `//docs-site:visual`) |
 
 CI path filters (`.github/workflows/ci.yml` / `.gitea/workflows/ci.yml`) intentionally skip expensive jobs when unrelated paths change. New tests must not force Playwright or hermetic Docker into `//:test-fast` without a strong reason. AI agents: see [AGENTS.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md) efficiency + end-of-session reflection sections.
 
@@ -1039,16 +1040,17 @@ Management script confirmations and Resource Guard gates must not be bypassed in
 ### Adding a docs page
 
 1. Create `docs/<name>.md` with frontmatter and required overview sections
-2. Add to `mkdocs.yml` nav under the right section
-3. Use language-tagged fences; blank line before lists
-4. Run `bazelisk test //docs:test_mkdocs_render`
+2. Register the page in the nav: hand-edit `docs-site/lib/nav.json`, then verify with `npm run nav:check` in `docs-site/` (the former `mkdocs.yml` nav is retired, so there is nothing to regenerate from)
+3. List the file in `_HAND_WRITTEN_MD` in `docs/BUILD.bazel` (the coverage gate fails otherwise)
+4. Use language-tagged fences; blank line before lists
+5. Run `bazelisk test //docs:test_docs_site_render //docs-site:unit`, then `bazelisk run //docs:docs` for the export
 
 ---
 
 ## Related links
 
 - [CONTRIBUTING.md (repo root)](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md) — contribution hub and full branching / PR / promotion model
-- [CONTRIBUTING.md (docs)](CONTRIBUTING.md) — MkDocs prose rules
+- [CONTRIBUTING.md (docs)](CONTRIBUTING.md) — documentation site prose rules
 - [AGENTS.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md) — AI agent workflow
 - [BUILDING_WITH_BAZEL.md](BUILDING_WITH_BAZEL.md) — Bazel targets and CI
 - [resource-guard.md](resource-guard.md) — capacity policy deep dive
