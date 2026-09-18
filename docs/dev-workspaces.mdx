@@ -6,7 +6,7 @@ tags: [coder, kasm, dashboard, devcontainer, helm]
 
 # Remote Developer Workspaces & Dashboard
 
---8<-- "docs/includes/cluster-config.md"
+<ClusterConfigPanel />
 
 **What's on this page**
 
@@ -88,8 +88,8 @@ ansible-playbook -i inventory/hosts.ini playbooks/install-dev-workspaces.yml
 ```
 
 3. Access:
-   - Coder: http://<node-ip>:32080 (first run creates admin; set ACCESS_URL in values if needed for workspace agent comms).
-   - Custom dashboard + links: http://<node-ip>:32082
+   - Coder: http://\<node-ip>:32080 (first run creates admin; set ACCESS_URL in values if needed for workspace agent comms).
+   - Custom dashboard + links: http://\<node-ip>:32082
    - Grafana: :32083 (default admin/admin or per values)
    - Headlamp: :32084
 

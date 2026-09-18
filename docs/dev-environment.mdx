@@ -21,10 +21,10 @@ tags: [devcontainer, contributing, bazel, onboarding, multi-arch]
 - Contributing to scripts, Kubernetes YAML, dashboard, and docs without a GPU cluster
 - Avoiding “works on my machine” version skew
 
-!!! note "Software contribution vs cluster ops"
-    This page is for **writing and testing code** in this repository.  
-    Bringing up K3s on DGX Spark nodes is covered in [Getting Started](getting-started.md).
-
+<Callout type="info" title="Software contribution vs cluster ops">
+  This page is for **writing and testing code** in this repository.  
+  Bringing up K3s on DGX Spark nodes is covered in [Getting Started](getting-started.md).
+</Callout>
 ## Branching model
 
 - **Primary integration branch:** `development` (protected, PR-required).
@@ -91,7 +91,7 @@ bazelisk run //:validate
 | --- | --- |
 | Build / test | Bazelisk (Bazel from `.bazelversion`), buildifier |
 | Shell | shellcheck, shfmt, bats, kcov |
-| Python | 3.11, ruff, mypy, pytest, MkDocs deps |
+| Python | 3.11, ruff, mypy, pytest |
 | Node | 22 (dashboard), prettier |
 | K8s | kubectl (pinned), helm, kubeconform |
 | Ansible | ansible, ansible-lint |
@@ -110,12 +110,12 @@ grok login          # interactive auth → volume ~/.grok (not git)
 hermes setup        # only when you use Hermes → volume ~/.hermes (not git)
 ```
 
-!!! warning "Never commit agent credentials"
-    Do not put `GROK_DEPLOYMENT_KEY`, OpenRouter/OpenAI/etc. keys, or Hermes
-    auth files in the repo, in `devcontainer.json` env blocks, or in screenshots
-    of create logs. Auth lives only on Docker volumes or your host home dir.
-    See [SECURITY.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/SECURITY.md).
-
+<Callout type="warning" title="Never commit agent credentials">
+  Do not put `GROK_DEPLOYMENT_KEY`, OpenRouter/OpenAI/etc. keys, or Hermes
+  auth files in the repo, in `devcontainer.json` env blocks, or in screenshots
+  of create logs. Auth lives only on Docker volumes or your host home dir.
+  See [SECURITY.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/SECURITY.md).
+</Callout>
 Hermes **on the Spark host** (Docker gateway stacks) is documented separately in
 [hermes-agent.md](hermes-agent.md).
 
@@ -181,7 +181,7 @@ Linux CI-style lint install (amd64 **and** arm64):
 bash scripts/ci/install-lint-tools.sh
 ```
 
-Then install **Node 22+**, run `cd dashboard && npm ci`, and `docs/setup-docs.sh` for MkDocs.
+Then install **Node 22+** and run `cd dashboard && npm ci`, plus `docs/setup-docs.sh` for the docs site.
 
 On **Windows**, use WSL2 Ubuntu and either the devcontainer or the Linux host path above—not native PowerShell for Bazel/lint.
 

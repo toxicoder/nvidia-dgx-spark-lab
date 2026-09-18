@@ -108,10 +108,9 @@ flowchart TD
 
 Helm chart `helm/lab-dashboard/` NodePort 32082. Operator journey: [Dashboard](operate/dashboard.md).
 
-!!! warning "docker.sock"
-
-    Login to the dashboard implies Tasks/Storage power on the node. Keep auth; no `AUTH_BYPASS` in production.
-
+<Callout type="warning" title="docker.sock">
+  Login to the dashboard implies Tasks/Storage power on the node. Keep auth; no `AUTH_BYPASS` in production.
+</Callout>
 ## Cross-stack map
 
 ```mermaid

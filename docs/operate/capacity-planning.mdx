@@ -18,7 +18,7 @@ tags: [resources, safety, bazel, capacity]
 - Knowing whether kimi-test or a 3-node exclusive Job will fit **before** you confirm
 - Editing YAML policy first, JSON twin second, prose last
 
---8<-- "docs/includes/cluster-config.md"
+<ClusterConfigPanel />
 
 ## Floor
 
@@ -40,8 +40,8 @@ Model **requests** in the same file must match `k8s/workloads/*` manifests.
 
 ## Commands
 
-=== "Bazel"
-
+<Tabs groupId="bazel-classic" items={["Bazel", "Classic"]} persist>
+  <Tab value="Bazel">
     ```bash
     bazelisk run //:manage -- doctor
     bazelisk run //:manage -- estimate kimi-test
@@ -50,9 +50,8 @@ Model **requests** in the same file must match `k8s/workloads/*` manifests.
     bazelisk run //:manage -- resources suggest model:kimi
     bazelisk run //:manage -- resources apply-policy
     ```
-
-=== "Classic"
-
+  </Tab>
+  <Tab value="Classic">
     ```bash
     ./scripts/manage.sh doctor
     ./scripts/manage.sh estimate kimi-test
@@ -60,7 +59,8 @@ Model **requests** in the same file must match `k8s/workloads/*` manifests.
     ./scripts/manage.sh resources suggest model:kimi
     ./scripts/manage.sh resources apply-policy
     ```
-
+  </Tab>
+</Tabs>
 `estimate` prints free GPUs, the profile, and a copy-pasteable start command. Placeholders such as `{{SPARK0_IP}}` stay editable in this docs panel.
 
 ## Util matrix (do not flatten)

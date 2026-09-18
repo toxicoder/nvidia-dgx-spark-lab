@@ -17,7 +17,7 @@ tags: [kustomize, overlays, kubernetes, safety]
 - Choosing test vs prod vs single-node without editing base Jobs
 - Understanding Mode A rounded overlays vs exclusive Mode B/C workload dirs
 
---8<-- "docs/includes/cluster-config.md"
+<ClusterConfigPanel />
 
 ## Matrix
 
@@ -50,10 +50,9 @@ Base workloads under `k8s/workloads/<id>/` are the source of truth for CPU/GPU/m
 
 `manage.sh start-test` applies the test/kimi-test path. `start-kimi` applies production kimi. `start-stack-rounded` applies the rounded overlay. Exclusive Mode B/C are **workload directories** (`glm-5.3-flash`, `deepseek-v4.1-flash`), not the rounded overlay.
 
-!!! warning "Exclusive modes"
-
-    Rounded overlay (Mode A) is mutually exclusive with GLM-5.3-Flash and DeepSeek-V4.1-Flash starts. The CLI refuses collisions.
-
+<Callout type="warning" title="Exclusive modes">
+  Rounded overlay (Mode A) is mutually exclusive with GLM-5.3-Flash and DeepSeek-V4.1-Flash starts. The CLI refuses collisions.
+</Callout>
 ## Verify
 
 ```bash

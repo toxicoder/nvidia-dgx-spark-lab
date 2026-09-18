@@ -6,7 +6,7 @@ tags: [safety, resources, kubernetes, bazel, nvidia]
 
 # Resource Guard
 
---8<-- "docs/includes/cluster-config.md"
+<ClusterConfigPanel />
 
 **What's on this page**
 
@@ -79,8 +79,8 @@ Requests must match `k8s/workloads/<id>/`. Capacity math: [Capacity planning](op
 
 ## CLI
 
-=== "Bazel"
-
+<Tabs groupId="bazel-classic" items={["Bazel", "Classic"]} persist>
+  <Tab value="Bazel">
     ```bash
     bazelisk run //:manage -- resources
     bazelisk run //:manage -- resources check model:kimi --json
@@ -89,9 +89,8 @@ Requests must match `k8s/workloads/<id>/`. Capacity math: [Capacity planning](op
     bazelisk run //:manage -- doctor
     bazelisk run //:manage -- estimate kimi-test
     ```
-
-=== "Classic"
-
+  </Tab>
+  <Tab value="Classic">
     ```bash
     ./scripts/manage.sh resources
     ./scripts/manage.sh resources check model:kimi --json
@@ -100,7 +99,8 @@ Requests must match `k8s/workloads/<id>/`. Capacity math: [Capacity planning](op
     ./scripts/manage.sh doctor
     ./scripts/manage.sh estimate kimi-test
     ```
-
+  </Tab>
+</Tabs>
 ## Dashboard
 
 - **Resource Guard** panel — GPU/CPU/memory available vs allocatable (30s refresh)

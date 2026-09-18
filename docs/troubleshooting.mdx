@@ -17,17 +17,16 @@ tags: [troubleshooting, safety, bazel, kubernetes, nvidia]
 - Recovering a remote Spark without guessing
 - Preventing the same hang on the next start
 
---8<-- "docs/includes/cluster-config.md"
+<ClusterConfigPanel />
 
-!!! tip "Try this first"
+<Callout type="info" title="Try this first">
+  ```bash
+  bazelisk run //:manage -- doctor
+  bazelisk run //:manage -- estimate kimi-test
+  ```
 
-    ```bash
-    bazelisk run //:manage -- doctor
-    bazelisk run //:manage -- estimate kimi-test
-    ```
-
-    Classic: `./scripts/manage.sh doctor`. Many rows below are hard failures doctor already reports.
-
+  Classic: `./scripts/manage.sh doctor`. Many rows below are hard failures doctor already reports.
+</Callout>
 ## Decision tree
 
 ```mermaid
@@ -54,8 +53,7 @@ Generated flags: [Shell reference](generated/shell/reference.md).
 | SSH hangs, node otherwise powered | Inference consumed unified memory | OOB console: `./scripts/manage.sh stop` or `kubectl delete job --all -n {{NAMESPACE}}` | `start-test` first; Guard 15%/24Gi; util caps | SSH works; `kubectl get pods -n {{NAMESPACE}}` empty |
 | Still dead after stop | Kernel OOM / GPU driver wedged | BMC power cycle **after** accepting Jobs are gone | Never reboot *with* Jobs still scheduled | `doctor` after boot |
 
-!!! danger "Do not start another heavy Job to “test” a hung node"
-
+<Callout type="error" title="Do not start another heavy Job to “test” a hung node" />
 ## Scheduler / no resources
 
 | Symptom | Likely cause | Action | Prevention | Verify |

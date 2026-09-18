@@ -53,14 +53,12 @@ flowchart TD
 
 Classic equivalent: `./scripts/manage.sh <verb>`.
 
-!!! warning "Modes collide"
-
-    `start-stack-rounded`, `start-glm53-flash`, and `start-dsv41-flash` **refuse each other**. Recover: stop the running mode, `doctor`, then start the one you want. Details: [LiteLLM rounded stack](../litellm-rounded-stack.md).
-
-!!! warning "Visual occupancy"
-
-    Only one `workload: visual` Deployment. Compose learners should use [ez-comfy-stack](https://github.com/toxicoder/ez-comfy-stack), not this K3s path.
-
+<Callout type="warning" title="Modes collide">
+  `start-stack-rounded`, `start-glm53-flash`, and `start-dsv41-flash` **refuse each other**. Recover: stop the running mode, `doctor`, then start the one you want. Details: [LiteLLM rounded stack](../litellm-rounded-stack.md).
+</Callout>
+<Callout type="warning" title="Visual occupancy">
+  Only one `workload: visual` Deployment. Compose learners should use [ez-comfy-stack](https://github.com/toxicoder/ez-comfy-stack), not this K3s path.
+</Callout>
 ## Always
 
 1. `bazelisk run //:manage -- doctor`

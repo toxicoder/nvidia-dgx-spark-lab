@@ -17,7 +17,7 @@ tags: [operate, bazel, kubernetes, safety]
 - Finding the playbook, overlay, or `manage.sh` verb without grepping the tree
 - Keeping Resource Guard and reboot rules in view during ops
 
---8<-- "docs/includes/cluster-config.md"
+<ClusterConfigPanel />
 
 ## Catalogs
 
@@ -44,8 +44,7 @@ tags: [operate, bazel, kubernetes, safety]
 
 [Hermes](../hermes-agent.md) · [MCP](../mcp-agent-toolkit.md) · [Open WebUI](../open-webui.md) · [SSO](../sso.md) · [Coder vs Kasm](../dev-workspaces.md) · [Gitea CI](../gitea-ci-setup.md)
 
-!!! danger "Mutations"
-
-    Heavy starts require confirmation. `cleanup` requires typing `DELETE`. Never reboot with inference scheduled.
-
+<Callout type="error" title="Mutations">
+  Heavy starts require confirmation. `cleanup` requires typing `DELETE`. Never reboot with inference scheduled.
+</Callout>
 Generated command reference: [Shell Commands & Helpers](../generated/shell/reference.md).

@@ -40,7 +40,7 @@ Do **not** replace it with a minimal single-job workflow. The mirror includes:
 | `bazel-core` | `//:test-fast` + `//:lint` + key builds |
 | `dashboard-unit` | Host Vitest / lint / typecheck via `//dashboard:fast-test` |
 | `dashboard-hermetic` | Dockerized production build + Playwright |
-| `docs-and-render` | Single MkDocs build + visual regression (`//docs:test_mkdocs_render`) |
+| `docs-and-render` | Docs gates without a browser, then the static export, its HTML checks, and the Playwright goldens (`//docs-site:visual`) |
 | `validate-gate` | Path-filter consistency via `scripts/ci_check_only.sh` |
 
 Shared composite setup lives under **`.github/actions/setup-bazel`** (Gitea references it; do not fork under `.gitea/`).
@@ -90,4 +90,4 @@ See also `.github/workflows/ci.yml` and `.bazelrc` for cache/parallel flags.
 - Non-hermetic: separate npm cache (`setup-node`), Python (`setup-python` cache).
 - Parallel: jobs run concurrently; self-hosted can run multiple in parallel (configure runner capacity).
 - For visuals/goldens: pre-install Playwright browsers in the runner image or cache `~/.cache/ms-playwright`.
-- Docs **build** in CI: `bazelisk test //docs:test_mkdocs_render --config=ci` (same as GitHub). Publish remains GitHub-only today.
+- Docs **build** in CI: `bazelisk run //docs:docs --config=ci` then `bazelisk run //docs-site:visual --config=ci` (same as GitHub); the visual job needs the Chromium that `npx playwright install` provides in the runner image or cache. Publish remains GitHub-only today.

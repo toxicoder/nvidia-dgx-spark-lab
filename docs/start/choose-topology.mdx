@@ -56,10 +56,9 @@ spark0 is always the K3s server. Agents join `k3s_agent`. Inventory: `ansible/in
 - Payload on all four CX-7 RoCE devices per node
 - Jobs use `hostNetwork: true` and `hostIPC: true`
 
-!!! danger "Do not copy 2-node NCCL env onto a 3-node ring"
-
-    Wrong polarity or pair `NCCL_SOCKET_IFNAME` on a ring looks half-alive and dies in NCCL. See [Interconnect & NCCL](../concepts/interconnect-nccl.md) and [LiteLLM rounded stack](../litellm-rounded-stack.md).
-
+<Callout type="error" title="Do not copy 2-node NCCL env onto a 3-node ring">
+  Wrong polarity or pair `NCCL_SOCKET_IFNAME` on a ring looks half-alive and dies in NCCL. See [Interconnect & NCCL](../concepts/interconnect-nccl.md) and [LiteLLM rounded stack](../litellm-rounded-stack.md).
+</Callout>
 **1 node:** ignore `highspeed` inventory; NCCL uses SHM/P2P on the local GPU.
 
 ## When not to multi-node

@@ -113,7 +113,7 @@ Official `deepseek-ai/DeepSeek-V4.1-Flash` only (native MXFP4 experts + FP8/MXFP
 
 Engine is **SGLang** with the MiaAI-Lab GB10 overlay (`dsv41-flash-tp3:local`), not stock vLLM. Engram tables live on **each node’s NVMe** at `/mnt/models/dsv41-engram`. `OFFLOAD_MODE=nvme` only — RAM offload evicts the model on UMA.
 
-`PYTORCH_CUDA_ALLOC_CONF=expandable_segments:False` (True NaNs V4.1 prompts &gt;64 tokens). Do not copy the Comfy visual `True` patch.
+`PYTORCH_CUDA_ALLOC_CONF=expandable_segments:False` (True NaNs V4.1 prompts >64 tokens). Do not copy the Comfy visual `True` patch.
 
 First profile: `--mem-fraction-static 0.95` (MiaAI measured load for ~101 GiB/rank), `--context-length 131072`, `--max-running-requests 1`. Hang line is MemAvailable ~8–12 GiB; MiaAI left ~6 GiB on the head. If MemAvailable drops below 8 GiB, `stop-dsv41-flash`. Job is fail-stop (`OnFailure` + `backoffLimit: 1`); nothing auto-starts on reboot.
 
