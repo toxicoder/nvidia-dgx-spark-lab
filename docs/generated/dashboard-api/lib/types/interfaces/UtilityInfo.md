@@ -6,7 +6,7 @@
 
 # Interface: UtilityInfo
 
-Defined in: lib/types/index.ts:45
+Defined in: [lib/types/index.ts:45](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L45)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: lib/types/index.ts:45
 
 > **name**: `string`
 
-Defined in: lib/types/index.ts:46
+Defined in: [lib/types/index.ts:46](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L46)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: lib/types/index.ts:46
 
 > **path**: `string`
 
-Defined in: lib/types/index.ts:47
+Defined in: [lib/types/index.ts:47](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L47)

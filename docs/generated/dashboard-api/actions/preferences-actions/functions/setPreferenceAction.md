@@ -8,7 +8,7 @@
 
 > **setPreferenceAction**(`key`, `value`): `Promise`\<`void`\>
 
-Defined in: actions/preferences-actions.ts:30
+Defined in: [actions/preferences-actions.ts:30](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/actions/preferences-actions.ts#L30)
 
 Persist a user preference value.
 

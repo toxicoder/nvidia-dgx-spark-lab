@@ -6,7 +6,7 @@
 
 # Interface: OpenWebUIStatus
 
-Defined in: lib/types/index.ts:253
+Defined in: [lib/types/index.ts:267](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L267)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: lib/types/index.ts:253
 
 > **backend**: `object`
 
-Defined in: lib/types/index.ts:265
+Defined in: [lib/types/index.ts:279](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L279)
 
 #### hermes\_gateway
 
@@ -26,7 +26,7 @@ Defined in: lib/types/index.ts:265
 
 > `optional` **error?**: `string`
 
-Defined in: lib/types/index.ts:271
+Defined in: [lib/types/index.ts:285](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L285)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: lib/types/index.ts:271
 
 > **helm\_installed**: `boolean`
 
-Defined in: lib/types/index.ts:257
+Defined in: [lib/types/index.ts:271](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L271)
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: lib/types/index.ts:257
 
 > **namespace**: `string`
 
-Defined in: lib/types/index.ts:255
+Defined in: [lib/types/index.ts:269](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L269)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: lib/types/index.ts:255
 
 > **pod\_ready**: `boolean`
 
-Defined in: lib/types/index.ts:258
+Defined in: [lib/types/index.ts:272](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L272)
 
 ***
 
@@ -58,7 +58,7 @@ Defined in: lib/types/index.ts:258
 
 > **prerequisites**: `object`
 
-Defined in: lib/types/index.ts:268
+Defined in: [lib/types/index.ts:282](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L282)
 
 #### hermes\_stack
 
@@ -70,7 +70,7 @@ Defined in: lib/types/index.ts:268
 
 > **release**: `string`
 
-Defined in: lib/types/index.ts:254
+Defined in: [lib/types/index.ts:268](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L268)
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: lib/types/index.ts:254
 
 > **state**: [`OpenWebUIState`](../type-aliases/OpenWebUIState.md)
 
-Defined in: lib/types/index.ts:256
+Defined in: [lib/types/index.ts:270](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L270)
 
 ***
 
@@ -86,7 +86,7 @@ Defined in: lib/types/index.ts:256
 
 > **urls**: `object`
 
-Defined in: lib/types/index.ts:259
+Defined in: [lib/types/index.ts:273](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L273)
 
 #### local?
 

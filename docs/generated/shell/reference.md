@@ -302,7 +302,7 @@ Extracted for modularity, reusability across scripts/tests.
 
 This file is a primary source for auto-generated documentation.
 Structured comments here are extracted by docs/generate_shell_docs.py
-and appear in the built MkDocs site under Reference → Shell Commands & Helpers.
+and appear in the built documentation site under Reference → Shell Commands & Helpers.
 
 ### Model Profiles (used by estimate + doctor)
 

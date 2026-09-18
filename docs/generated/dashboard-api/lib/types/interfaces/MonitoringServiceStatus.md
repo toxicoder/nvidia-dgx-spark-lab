@@ -6,7 +6,7 @@
 
 # Interface: MonitoringServiceStatus
 
-Defined in: lib/types/index.ts:291
+Defined in: [lib/types/index.ts:305](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L305)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: lib/types/index.ts:291
 
 > **helmInstalled**: `boolean`
 
-Defined in: lib/types/index.ts:296
+Defined in: [lib/types/index.ts:310](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L310)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: lib/types/index.ts:296
 
 > **name**: `string`
 
-Defined in: lib/types/index.ts:292
+Defined in: [lib/types/index.ts:306](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L306)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: lib/types/index.ts:292
 
 > **readyPods**: `number`
 
-Defined in: lib/types/index.ts:294
+Defined in: [lib/types/index.ts:308](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L308)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: lib/types/index.ts:294
 
 > **state**: [`MonitoringServiceState`](../type-aliases/MonitoringServiceState.md)
 
-Defined in: lib/types/index.ts:293
+Defined in: [lib/types/index.ts:307](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L307)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: lib/types/index.ts:293
 
 > **totalPods**: `number`
 
-Defined in: lib/types/index.ts:295
+Defined in: [lib/types/index.ts:309](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L309)
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: lib/types/index.ts:295
 
 > `optional` **urls?**: [`MonitoringServiceUrls`](MonitoringServiceUrls.md)
 
-Defined in: lib/types/index.ts:297
+Defined in: [lib/types/index.ts:311](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L311)

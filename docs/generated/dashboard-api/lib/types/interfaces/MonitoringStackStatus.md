@@ -6,7 +6,7 @@
 
 # Interface: MonitoringStackStatus
 
-Defined in: lib/types/index.ts:309
+Defined in: [lib/types/index.ts:323](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L323)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: lib/types/index.ts:309
 
 > **blackboxExporter**: [`MonitoringServiceStatus`](MonitoringServiceStatus.md)
 
-Defined in: lib/types/index.ts:315
+Defined in: [lib/types/index.ts:329](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L329)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: lib/types/index.ts:315
 
 > **dashboards**: [`GrafanaDashboardLink`](GrafanaDashboardLink.md)[]
 
-Defined in: lib/types/index.ts:317
+Defined in: [lib/types/index.ts:331](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L331)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: lib/types/index.ts:317
 
 > **dcgmExporter**: [`MonitoringServiceStatus`](MonitoringServiceStatus.md)
 
-Defined in: lib/types/index.ts:316
+Defined in: [lib/types/index.ts:330](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L330)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: lib/types/index.ts:316
 
 > `optional` **error?**: `string`
 
-Defined in: lib/types/index.ts:318
+Defined in: [lib/types/index.ts:332](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L332)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: lib/types/index.ts:318
 
 > **grafana**: [`MonitoringServiceStatus`](MonitoringServiceStatus.md)
 
-Defined in: lib/types/index.ts:310
+Defined in: [lib/types/index.ts:324](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L324)
 
 ***
 
@@ -54,7 +54,7 @@ Defined in: lib/types/index.ts:310
 
 > **headlamp**: [`MonitoringServiceStatus`](MonitoringServiceStatus.md)
 
-Defined in: lib/types/index.ts:311
+Defined in: [lib/types/index.ts:325](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L325)
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: lib/types/index.ts:311
 
 > **kubeStateMetrics**: [`MonitoringServiceStatus`](MonitoringServiceStatus.md)
 
-Defined in: lib/types/index.ts:314
+Defined in: [lib/types/index.ts:328](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L328)
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: lib/types/index.ts:314
 
 > **nodeExporter**: [`MonitoringServiceStatus`](MonitoringServiceStatus.md)
 
-Defined in: lib/types/index.ts:313
+Defined in: [lib/types/index.ts:327](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L327)
 
 ***
 
@@ -78,4 +78,4 @@ Defined in: lib/types/index.ts:313
 
 > **prometheus**: [`MonitoringServiceStatus`](MonitoringServiceStatus.md)
 
-Defined in: lib/types/index.ts:312
+Defined in: [lib/types/index.ts:326](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L326)

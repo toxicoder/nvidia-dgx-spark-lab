@@ -8,7 +8,7 @@
 
 > **syncSecretToK8sAction**(`input`): `Promise`\<\{ `error?`: `string`; `ok`: `boolean`; \}\>
 
-Defined in: actions/secrets-actions.ts:160
+Defined in: [actions/secrets-actions.ts:160](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/actions/secrets-actions.ts#L160)
 
 Manually sync a secret's current value to its configured K8s target.
 

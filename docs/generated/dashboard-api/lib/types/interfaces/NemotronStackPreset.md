@@ -6,7 +6,7 @@
 
 # Interface: NemotronStackPreset
 
-Defined in: lib/types/index.ts:169
+Defined in: [lib/types/index.ts:183](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L183)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: lib/types/index.ts:169
 
 > `optional` **description?**: `string`
 
-Defined in: lib/types/index.ts:175
+Defined in: [lib/types/index.ts:189](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L189)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: lib/types/index.ts:175
 
 > `optional` **heavy?**: `boolean`
 
-Defined in: lib/types/index.ts:173
+Defined in: [lib/types/index.ts:187](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L187)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: lib/types/index.ts:173
 
 > **label**: `string`
 
-Defined in: lib/types/index.ts:170
+Defined in: [lib/types/index.ts:184](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L184)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: lib/types/index.ts:170
 
 > `optional` **max\_nodes?**: `number`
 
-Defined in: lib/types/index.ts:172
+Defined in: [lib/types/index.ts:186](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L186)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: lib/types/index.ts:172
 
 > `optional` **min\_nodes?**: `number`
 
-Defined in: lib/types/index.ts:171
+Defined in: [lib/types/index.ts:185](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L185)
 
 ***
 
@@ -54,7 +54,7 @@ Defined in: lib/types/index.ts:171
 
 > `optional` **pillars?**: `string`[]
 
-Defined in: lib/types/index.ts:178
+Defined in: [lib/types/index.ts:192](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L192)
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: lib/types/index.ts:178
 
 > `optional` **quality\_notes?**: `string`
 
-Defined in: lib/types/index.ts:179
+Defined in: [lib/types/index.ts:193](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L193)
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: lib/types/index.ts:179
 
 > `optional` **stack\_with?**: `string`[]
 
-Defined in: lib/types/index.ts:176
+Defined in: [lib/types/index.ts:190](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L190)
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: lib/types/index.ts:176
 
 > `optional` **startup\_order?**: `string`[]
 
-Defined in: lib/types/index.ts:177
+Defined in: [lib/types/index.ts:191](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L191)
 
 ***
 
@@ -86,4 +86,4 @@ Defined in: lib/types/index.ts:177
 
 > `optional` **tier?**: `string`
 
-Defined in: lib/types/index.ts:174
+Defined in: [lib/types/index.ts:188](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L188)

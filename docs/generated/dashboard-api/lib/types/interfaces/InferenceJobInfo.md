@@ -6,7 +6,7 @@
 
 # Interface: InferenceJobInfo
 
-Defined in: lib/types/index.ts:229
+Defined in: [lib/types/index.ts:243](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L243)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: lib/types/index.ts:229
 
 > `optional` **active?**: `number`
 
-Defined in: lib/types/index.ts:232
+Defined in: [lib/types/index.ts:246](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L246)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: lib/types/index.ts:232
 
 > `optional` **error?**: `string`
 
-Defined in: lib/types/index.ts:236
+Defined in: [lib/types/index.ts:250](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L250)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: lib/types/index.ts:236
 
 > `optional` **failed?**: `number`
 
-Defined in: lib/types/index.ts:234
+Defined in: [lib/types/index.ts:248](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L248)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: lib/types/index.ts:234
 
 > **job**: `string`
 
-Defined in: lib/types/index.ts:231
+Defined in: [lib/types/index.ts:245](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L245)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: lib/types/index.ts:231
 
 > **model**: `string`
 
-Defined in: lib/types/index.ts:230
+Defined in: [lib/types/index.ts:244](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L244)
 
 ***
 
@@ -54,7 +54,7 @@ Defined in: lib/types/index.ts:230
 
 > **state**: [`InferenceJobState`](../type-aliases/InferenceJobState.md)
 
-Defined in: lib/types/index.ts:235
+Defined in: [lib/types/index.ts:249](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L249)
 
 ***
 
@@ -62,4 +62,4 @@ Defined in: lib/types/index.ts:235
 
 > `optional` **succeeded?**: `number`
 
-Defined in: lib/types/index.ts:233
+Defined in: [lib/types/index.ts:247](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L247)

@@ -8,4 +8,4 @@
 
 > **SecretAuditAction** = `"create"` \| `"update_value"` \| `"update_meta"` \| `"delete"` \| `"reveal"` \| `"k8s_sync"`
 
-Defined in: lib/types/index.ts:323
+Defined in: [lib/types/index.ts:337](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L337)

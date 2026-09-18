@@ -8,7 +8,7 @@
 
 > **findDuplicates**(`targetPath?`, `minSize?`, `options?`): `Promise`\<[`DuplicateFindResult`](../../../types/interfaces/DuplicateFindResult.md)\>
 
-Defined in: lib/services/storage.ts:107
+Defined in: [lib/services/storage.ts:107](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/services/storage.ts#L107)
 
 Scan for duplicate files grouped by exact byte size.
 

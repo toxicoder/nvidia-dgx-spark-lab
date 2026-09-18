@@ -6,7 +6,7 @@
 
 # Interface: ButtonProps
 
-Defined in: components/ui/button.tsx:61
+Defined in: [components/ui/button.tsx:61](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/components/ui/button.tsx#L61)
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: components/ui/button.tsx:61
 
 > `optional` **asChild?**: `boolean`
 
-Defined in: components/ui/button.tsx:63
+Defined in: [components/ui/button.tsx:63](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/components/ui/button.tsx#L63)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: components/ui/button.tsx:63
 
 > `optional` **size?**: `"default"` \| `"icon"` \| `"sm"` \| `"lg"` \| `null`
 
-Defined in: components/ui/button.tsx:47
+Defined in: [components/ui/button.tsx:47](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/components/ui/button.tsx#L47)
 
 #### Inherited from
 
@@ -38,7 +38,7 @@ Defined in: components/ui/button.tsx:47
 
 > `optional` **variant?**: `"default"` \| `"link"` \| `"text"` \| `"filled"` \| `"secondary"` \| `"tonal"` \| `"outline"` \| `"ghost"` \| `"destructive"` \| `null`
 
-Defined in: components/ui/button.tsx:21
+Defined in: [components/ui/button.tsx:21](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/components/ui/button.tsx#L21)
 
 #### Inherited from
 

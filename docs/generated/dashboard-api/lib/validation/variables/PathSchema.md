@@ -6,8 +6,8 @@
 
 # Variable: PathSchema
 
-> `const` **PathSchema**: `ZodEffects`\<`ZodObject`\<\{ `path`: `ZodString`; \}, `"strip"`, `ZodTypeAny`, \{ `path`: `string`; \}, \{ `path`: `string`; \}\>, \{ `path`: `string`; \}, \{ `path`: `string`; \}\>
+> `const` **PathSchema**: `ZodObject`\<\{ `path`: `ZodString`; \}, `$strip`\>
 
-Defined in: lib/validation.ts:16
+Defined in: [lib/validation.ts:16](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/validation.ts#L16)
 
 Filesystem path constrained to lab whitelist bases.

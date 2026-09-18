@@ -6,7 +6,7 @@
 
 # Interface: DuplicateFindResult
 
-Defined in: lib/types/index.ts:69
+Defined in: [lib/types/index.ts:69](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L69)
 
 ## Properties
 
@@ -14,4 +14,4 @@ Defined in: lib/types/index.ts:69
 
 > **groups**: [`DuplicateGroup`](DuplicateGroup.md)[]
 
-Defined in: lib/types/index.ts:70
+Defined in: [lib/types/index.ts:70](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L70)

@@ -6,7 +6,7 @@
 
 # Interface: MonitoringServiceUrls
 
-Defined in: lib/types/index.ts:284
+Defined in: [lib/types/index.ts:298](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L298)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: lib/types/index.ts:284
 
 > `optional` **local?**: `string`
 
-Defined in: lib/types/index.ts:287
+Defined in: [lib/types/index.ts:301](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L301)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: lib/types/index.ts:287
 
 > **nodeport**: `string`
 
-Defined in: lib/types/index.ts:286
+Defined in: [lib/types/index.ts:300](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L300)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: lib/types/index.ts:286
 
 > `optional` **public?**: `string` \| `null`
 
-Defined in: lib/types/index.ts:288
+Defined in: [lib/types/index.ts:302](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L302)
 
 ***
 
@@ -38,4 +38,4 @@ Defined in: lib/types/index.ts:288
 
 > **sso**: `string`
 
-Defined in: lib/types/index.ts:285
+Defined in: [lib/types/index.ts:299](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L299)

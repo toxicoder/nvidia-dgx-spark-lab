@@ -8,7 +8,7 @@
 
 > **updateSecretValueAction**(`input`): `Promise`\<\{ `meta`: [`LabSecretMeta`](../../../lib/types/interfaces/LabSecretMeta.md); `syncError?`: `string`; \}\>
 
-Defined in: actions/secrets-actions.ts:82
+Defined in: [actions/secrets-actions.ts:82](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/actions/secrets-actions.ts#L82)
 
 Update a secret's plaintext value (re-encrypts and optionally re-syncs to K8s).
 

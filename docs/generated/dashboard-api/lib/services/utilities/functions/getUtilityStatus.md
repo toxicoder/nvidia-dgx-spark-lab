@@ -8,7 +8,7 @@
 
 > **getUtilityStatus**(`name`): `Promise`\<[`UtilityStatus`](../../../types/interfaces/UtilityStatus.md)\>
 
-Defined in: lib/services/utilities.ts:65
+Defined in: [lib/services/utilities.ts:65](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/services/utilities.ts#L65)
 
 Query a utility's `status --json` output.
 

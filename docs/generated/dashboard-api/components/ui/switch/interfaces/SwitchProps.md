@@ -6,7 +6,7 @@
 
 # Interface: SwitchProps
 
-Defined in: components/ui/switch.tsx:6
+Defined in: [components/ui/switch.tsx:6](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/components/ui/switch.tsx#L6)
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: components/ui/switch.tsx:6
 
 > `optional` **checked?**: `boolean`
 
-Defined in: components/ui/switch.tsx:7
+Defined in: [components/ui/switch.tsx:7](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/components/ui/switch.tsx#L7)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: components/ui/switch.tsx:7
 
 > `optional` **onCheckedChange?**: (`checked`) => `void`
 
-Defined in: components/ui/switch.tsx:8
+Defined in: [components/ui/switch.tsx:8](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/components/ui/switch.tsx#L8)
 
 #### Parameters
 

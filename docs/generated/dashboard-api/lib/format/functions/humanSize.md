@@ -8,7 +8,7 @@
 
 > **humanSize**(`bytes`, `gbDecimals?`): `string`
 
-Defined in: lib/format.ts:4
+Defined in: [lib/format.ts:4](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/format.ts#L4)
 
 Format byte counts for human-readable panel display.
 

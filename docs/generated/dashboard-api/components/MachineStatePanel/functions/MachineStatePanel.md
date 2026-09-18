@@ -8,7 +8,7 @@
 
 > **MachineStatePanel**(`__namedParameters`): `Element`
 
-Defined in: components/MachineStatePanel.tsx:21
+Defined in: [components/MachineStatePanel.tsx:21](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/components/MachineStatePanel.tsx#L21)
 
 Server wrapper that renders [MachineStateClient](../../MachineStateClient/functions/MachineStateClient.md) with initial data.
 

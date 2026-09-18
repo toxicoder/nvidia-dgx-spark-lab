@@ -6,7 +6,7 @@
 
 # Interface: NemotronCatalogModel
 
-Defined in: lib/types/index.ts:182
+Defined in: [lib/types/index.ts:196](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L196)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: lib/types/index.ts:182
 
 > `optional` **agent\_roles?**: `string`[]
 
-Defined in: lib/types/index.ts:186
+Defined in: [lib/types/index.ts:200](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L200)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: lib/types/index.ts:186
 
 > `optional` **cpu\_only?**: `boolean`
 
-Defined in: lib/types/index.ts:189
+Defined in: [lib/types/index.ts:203](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L203)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: lib/types/index.ts:189
 
 > **display\_name**: `string`
 
-Defined in: lib/types/index.ts:183
+Defined in: [lib/types/index.ts:197](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L197)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: lib/types/index.ts:183
 
 > **family**: `string`
 
-Defined in: lib/types/index.ts:184
+Defined in: [lib/types/index.ts:198](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L198)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: lib/types/index.ts:184
 
 > `optional` **openai\_svc?**: `string`
 
-Defined in: lib/types/index.ts:187
+Defined in: [lib/types/index.ts:201](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L201)
 
 ***
 
@@ -54,7 +54,7 @@ Defined in: lib/types/index.ts:187
 
 > `optional` **port?**: `number`
 
-Defined in: lib/types/index.ts:188
+Defined in: [lib/types/index.ts:202](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L202)
 
 ***
 
@@ -62,4 +62,4 @@ Defined in: lib/types/index.ts:188
 
 > **runtime**: `string`
 
-Defined in: lib/types/index.ts:185
+Defined in: [lib/types/index.ts:199](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L199)
