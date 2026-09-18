@@ -5,137 +5,56 @@
       "label": "Dev: Doctor",
       "type": "shell",
       "command": "bash .devcontainer/doctor.sh",
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared",
-        "focus": true
-      },
+      "options": { "cwd": "${workspaceFolder}" },
+      "presentation": { "reveal": "always", "panel": "shared", "focus": true },
       "problemMatcher": []
     },
     {
-      "label": "Bazel: Validate (git-aware)",
+      "label": "Bazel: Validate",
       "type": "shell",
       "command": "bazelisk run //:validate",
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
-      "group": {
-        "kind": "test",
-        "isDefault": true
-      },
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared",
-        "focus": true
-      },
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": { "kind": "test", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "shared", "focus": true },
       "problemMatcher": []
     },
     {
       "label": "Bazel: Validate (full)",
       "type": "shell",
       "command": "bazelisk run //:validate -- --all",
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
+      "options": { "cwd": "${workspaceFolder}" },
       "group": "test",
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      },
+      "presentation": { "reveal": "always", "panel": "shared" },
       "problemMatcher": []
     },
     {
       "label": "Bazel: Fix (formatters)",
       "type": "shell",
       "command": "bazelisk run //:fix",
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      },
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "shared" },
       "problemMatcher": []
     },
     {
       "label": "Bazel: Test Fast",
       "type": "shell",
       "command": "bazelisk test //:test-fast",
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
+      "options": { "cwd": "${workspaceFolder}" },
       "group": "test",
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Bazel: Test Fast (CI config)",
-      "type": "shell",
-      "command": "bazelisk test //:test-fast --config=ci",
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
-      "group": "test",
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Bazel: Lint (manual)",
-      "type": "shell",
-      "command": "bazelisk test //:lint --test_tag_filters=manual",
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
-      "group": "test",
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Bazel: Manage Status",
-      "type": "shell",
-      "command": "bazelisk run //:manage -- status",
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      },
+      "presentation": { "reveal": "always", "panel": "shared" },
       "problemMatcher": []
     },
     {
       "label": "Docs: Serve",
       "type": "shell",
       "command": "bazelisk run //docs:serve",
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
+      "options": { "cwd": "${workspaceFolder}" },
       "isBackground": true,
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      },
+      "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": {
         "owner": "mkdocs",
-        "pattern": {
-          "regexp": "^.*$"
-        },
+        "pattern": { "regexp": "^.*$" },
         "background": {
           "activeOnStart": true,
           "beginsPattern": ".",
@@ -147,19 +66,12 @@
       "label": "Dashboard: Dev Server",
       "type": "shell",
       "command": "npm run dev",
-      "options": {
-        "cwd": "${workspaceFolder}/dashboard"
-      },
+      "options": { "cwd": "${workspaceFolder}/dashboard" },
       "isBackground": true,
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      },
+      "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": {
         "owner": "nextjs",
-        "pattern": {
-          "regexp": "^.*$"
-        },
+        "pattern": { "regexp": "^.*$" },
         "background": {
           "activeOnStart": true,
           "beginsPattern": ".",
@@ -171,14 +83,9 @@
       "label": "Dashboard: Fast Test",
       "type": "shell",
       "command": "bazelisk run //dashboard:fast-test",
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
+      "options": { "cwd": "${workspaceFolder}" },
       "group": "test",
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      },
+      "presentation": { "reveal": "always", "panel": "shared" },
       "problemMatcher": []
     }
   ]

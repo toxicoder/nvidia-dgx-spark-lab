@@ -32,20 +32,7 @@
       "runtimeArgs": ["vitest", "run", "${relativeFile}"],
       "cwd": "${workspaceFolder}/dashboard",
       "console": "integratedTerminal",
-      "env": {
-        "USE_MOCKS": "1"
-      }
-    }
-  ],
-  "compounds": [
-    {
-      "name": "Dashboard: Next.js + Chrome",
-      "configurations": ["Dashboard: Next.js"],
-      "presentation": {
-        "hidden": false,
-        "group": "dashboard",
-        "order": 1
-      }
+      "env": { "USE_MOCKS": "1" }
     }
   ]
 }
