@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import ast
 import os
+import json
 import pathlib
 import re
 import subprocess
@@ -44,10 +45,8 @@ _MULTILINE_SH_ARGS_RE = re.compile(
     r"[ \t]+-\s*\|",
     re.MULTILINE,
 )
-# MkDocs nav entries pointing at markdown under docs/ (not URLs).
-_MKDOCS_NAV_MD_RE = re.compile(r"(?m)^[ \t]*-[ \t]+[^:\n]+:[ \t]+([A-Za-z0-9_./-]+\.md)\s*$")
-# Quoted or bare .md paths listed in docs/BUILD.bazel data arrays.
-_BAZEL_MD_STRING_RE = re.compile(r'["\']([A-Za-z0-9_./-]+\.md)["\']')
+# Markdown pages listed in docs/BUILD.bazel data arrays (.md content plus .mdx pages).
+_BAZEL_MD_STRING_RE = re.compile(r'["\']([A-Za-z0-9_./-]+\.(?:md|mdx))["\']')
 _YAML_HEADER_FIELDS = (
     "Purpose:",
     "Source of truth:",
@@ -359,20 +358,29 @@ def _check_no_multiline_shell_in_mcp_manifests(root: pathlib.Path) -> list[str]:
     return violations
 
 
-def mkdocs_nav_md_pages(mkdocs_text: str) -> list[str]:
-    """Extract relative markdown paths from an MkDocs nav tree.
+def nav_json_pages(nav_json_text: str) -> list[str]:
+    """Extract page paths from the Fumadocs navigation tree.
 
     Args:
-        mkdocs_text: Contents of ``mkdocs.yml``.
+        nav_json_text: Contents of ``docs-site/lib/nav.json``.
 
     Returns:
-        Sorted unique paths as written in nav (e.g. ``visual-generative-ai.md``).
+        Sorted unique paths as written in the tree (e.g. ``visual-generative-ai.mdx``).
     """
-    pages = {
-        match.group(1)
-        for match in _MKDOCS_NAV_MD_RE.finditer(mkdocs_text)
-        if not match.group(1).startswith("http")
-    }
+    pages: set[str] = set()
+
+    def walk(node: object) -> None:
+        if isinstance(node, dict):
+            path = node.get("path")
+            if isinstance(path, str) and not path.startswith("http"):
+                pages.add(path)
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, list):
+            for item in node:
+                walk(item)
+
+    walk(json.loads(nav_json_text))
     return sorted(pages)
 
 
@@ -388,11 +396,47 @@ def bazel_listed_md_files(build_text: str) -> set[str]:
     return set(_BAZEL_MD_STRING_RE.findall(build_text))
 
 
-def _check_mkdocs_pages_in_docs_bazel(root: pathlib.Path) -> list[str]:
-    """Require every MkDocs nav page under docs/ to be listed in docs/BUILD.bazel.
+def _mdx_aliases(path: str) -> tuple[str, ...]:
+    """Return the same path spelled with the other markdown extension.
 
-    Prevents strict mkdocs failures when a page is added to ``mkdocs.yml`` but
-    omitted from Bazel ``data`` / ``_RENDER_TEST_DATA`` (runfiles).
+    Args:
+        path: Page path as written in the nav tree or a Bazel data array.
+
+    Returns:
+        The one or two extra spellings that should count as listing the same page.
+    """
+    if path.endswith(".mdx"):
+        return (path[: -len(".mdx")] + ".md",)
+    if path.endswith(".md"):
+        return (path[: -len(".md")] + ".mdx",)
+    return ()
+
+
+def _globs_generated_tree(build_text: str, page: str) -> bool:
+    """Report whether a Bazel package ships a generated page via a glob.
+
+    Args:
+        build_text: Contents of ``docs/BUILD.bazel``.
+        page: Generated page path as written in the nav, e.g.
+            ``generated/shell/reference.md``.
+
+    Returns:
+        ``True`` when the file lists the page directly or globs its tree.
+    """
+    if page in build_text:
+        return True
+    tree = "/".join(page.split("/")[:-1])
+    if not tree:
+        return False
+    return f'"{tree}/**"' in build_text or f"'{tree}/**'" in build_text
+
+
+def _check_nav_pages_in_docs_bazel(root: pathlib.Path) -> list[str]:
+    """Require every nav page under docs/ to be listed in docs/BUILD.bazel.
+
+    The Fumadocs app reads its content straight out of ``docs/`` through Bazel runfiles, so a
+    page that is in the sidebar but missing from the package ``data`` arrays renders locally
+    and 404s in the hermetic build.
 
     Args:
         root: Repository root.
@@ -400,32 +444,44 @@ def _check_mkdocs_pages_in_docs_bazel(root: pathlib.Path) -> list[str]:
     Returns:
         Violation messages.
     """
-    mkdocs_path = root / "mkdocs.yml"
+    nav_path = root / "docs-site" / "lib" / "nav.json"
     build_path = root / "docs" / "BUILD.bazel"
-    if not mkdocs_path.is_file() or not build_path.is_file():
-        return ["mkdocs.yml or docs/BUILD.bazel missing"]
+    if not nav_path.is_file() or not build_path.is_file():
+        return ["docs-site/lib/nav.json or docs/BUILD.bazel missing"]
 
-    nav_pages = mkdocs_nav_md_pages(mkdocs_path.read_text(encoding="utf-8"))
+    nav_pages = nav_json_pages(nav_path.read_text(encoding="utf-8"))
     build_text = build_path.read_text(encoding="utf-8")
     listed = bazel_listed_md_files(build_text)
-    # Nav uses bare names (index.md) or generated/... paths; Bazel lists basenames
-    # under docs/ and sometimes "generated" as a tree. Accept basename match.
+    # Nav uses paths relative to docs/; Bazel lists the same relative paths.
     listed_basenames = {pathlib.Path(p).name for p in listed}
     listed_basenames.update(listed)
-    has_generated_tree = '"generated"' in build_text or "'generated'" in build_text
 
     violations: list[str] = []
     for page in nav_pages:
         base = pathlib.Path(page).name
-        # Generated reference trees are covered by "generated" data entry.
+        # Generated reference trees are shipped by globbing them (docs/BUILD.bazel
+        # _RENDER_GENERATED); the page itself is never listed by name.
         if page.startswith("generated/"):
-            if not has_generated_tree:
-                violations.append(f"mkdocs nav '{page}': docs/BUILD.bazel missing generated data")
+            if not _globs_generated_tree(build_text, page):
+                violations.append(
+                    f"nav '{page}': glob it in docs/BUILD.bazel _RENDER_GENERATED "
+                    '(e.g. "generated/shell/**")'
+                )
             continue
-        if page not in listed and base not in listed_basenames:
+        # nav.json keeps the paths as the old mkdocs.yml nav spelled them (.md); a page that
+        # needed JSX was renamed to .mdx, so accept either spelling on the Bazel side.
+        siblings = {page, base, *_mdx_aliases(page), *_mdx_aliases(base)}
+        if not siblings & listed_basenames:
+            on_disk = next(
+                (
+                    candidate
+                    for candidate in (page, *_mdx_aliases(page))
+                    if (root / "docs" / candidate).is_file()
+                ),
+                page,
+            )
             violations.append(
-                f"mkdocs nav '{page}': add \"{base}\" to docs/BUILD.bazel "
-                "(//docs:serve, //docs:docs, and _RENDER_TEST_DATA)"
+                f"nav '{page}': add \"{on_disk}\" to docs/BUILD.bazel _HAND_WRITTEN_MD"
             )
     return violations
 
@@ -618,7 +674,7 @@ def main() -> int:
             "no multi-line shell in mcp manifests",
             _check_no_multiline_shell_in_mcp_manifests,
         ),
-        ("mkdocs pages in docs/BUILD.bazel", _check_mkdocs_pages_in_docs_bazel),
+        ("nav pages in docs/BUILD.bazel", _check_nav_pages_in_docs_bazel),
         ("BUILD.bazel Package purpose", _check_build_bazel),
         ("dashboard export JSDoc", _check_dashboard_ts),
     ]

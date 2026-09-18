@@ -2,7 +2,7 @@
 """Robust shell documentation extractor for nvidia-dgx-spark-lab.
 
 Scans Bash files for structured comments and generates **beautiful, human-readable**
-Markdown reference suitable for MkDocs.
+Markdown reference consumed by the documentation site.
 
 Supported markers (use these for docs that will appear in the reference):
   # ## Section Title
