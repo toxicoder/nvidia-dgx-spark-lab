@@ -4,7 +4,7 @@ Guidelines for AI coding agents working in the `nvidia-dgx-spark-lab` repository
 
 **Shared conventions** (naming, patterns, formatting, safety, testing, change discipline) live in [docs/project-conventions.md](docs/project-conventions.md). Read that document first. This file covers **AI-agent workflow** only.
 
-Operator docs (MkDocs): Start / Concepts / Operate / Reference / Contribute — begin at [docs/index.md](docs/index.md) and [docs/getting-started.md](docs/getting-started.md). Single-node Compose Comfy is **not** this repo; point learners at [ez-comfy-stack](https://github.com/toxicoder/ez-comfy-stack). Visual here stays `k8s/workloads/comfy-*` + `scripts/lib/visual.sh`.
+Operator docs (Fumadocs site, content in `docs/`, app in `docs-site/`): Start / Concepts / Operate / Reference / Contribute — begin at [docs/index.mdx](docs/index.mdx) and [docs/getting-started.mdx](docs/getting-started.mdx). Single-node Compose Comfy is **not** this repo; point learners at [ez-comfy-stack](https://github.com/toxicoder/ez-comfy-stack). Visual here stays `k8s/workloads/comfy-*` + `scripts/lib/visual.sh`.
 
 Subdirectory addenda extend the conventions doc:
 
@@ -181,7 +181,7 @@ These are **defaults on every task**, not optional follow-ups. `//:validate` / `
 | Shell tooling | `//lints:shell` (ShellCheck) + `//lints:shfmt`; format with `//:fix` |
 | Utility scripts | `status` / `run` contract; `# @command` entrypoint; main source guard when defining `main()` |
 | YAML manifests | `# Purpose` / `Source of truth` / `Regenerate` / `Safety` headers |
-| New MkDocs pages | Add to `mkdocs.yml` **and** `docs/BUILD.bazel` (`//docs:serve`, `//docs:docs`, `_RENDER_TEST_DATA`) |
+| New docs pages | Add the file under `docs/`, register it in the nav (hand-edit `docs-site/lib/nav.json`, then `npm run nav:check` in `docs-site/`), **and** list it in `_HAND_WRITTEN_MD` in `docs/BUILD.bazel` — `//tests:doc_coverage` fails otherwise |
 | Docs regen | After shell/API comment changes: `bazelisk run //docs:docs` (or dashboard docs) and commit generated deltas that belong |
 | TDD + validate | Red–green–refactor; finish with `bazelisk run //:validate` |
 
@@ -195,7 +195,8 @@ Finish relevant changes by updating documentation. See [docs/project-conventions
 - Update structured comments (`# ##` / `# @command` or JSDoc) for new/changed public APIs.
 - Regenerate: `bazelisk run //docs:docs` (shell) or `bazelisk run //dashboard:docs` (API).
 - Update workload READMEs and affected `docs/*.md` pages.
-- New pages: wire `mkdocs.yml` nav **and** list the file in `docs/BUILD.bazel` data arrays.
+- New pages: register them in the nav **and** list the file in `docs/BUILD.bazel` data arrays.
+- MDX rules: pages needing JSX (callouts, tabs, includes) are `.mdx`; escape literal `<`, `{`, `}` outside code fences. Plain pages stay `.md`.
 - Update this `AGENTS.md` when AI-specific workflow evolves; update `docs/project-conventions.md` when shared patterns evolve.
 
 ### Communication
@@ -213,15 +214,15 @@ Agents must **optimize for feedback speed** without weakening safety gates. Pref
 | Cost | Prefer | Avoid as a first step |
 | --- | --- | --- |
 | Cheap | Targeted Bazel tests (`//tests:bats_*`, `//docs:test_command_vars`, `//docs:test_python_coverage`), `//dashboard:fast-test`, path-aware `//:validate` | Full `--all` on every edit |
-| Medium | `//:test-fast`, `//:lint --test_tag_filters=manual`, `//docs:test_mkdocs_build` | Rebuilding hermetic dashboard Docker for pure docs/shell changes |
-| Expensive | `//docs:test_mkdocs_render` (Playwright), `//dashboard:hermetic-test`, `//:validate -- --all` | Running these after every one-line change when a unit test would catch the bug |
+| Medium | `//:test-fast`, `//:lint --test_tag_filters=manual`, `//docs-site:unit`, `//docs-site:typecheck`, `//docs-site:visual_tooling_test` | Rebuilding hermetic dashboard Docker for pure docs/shell changes |
+| Expensive | `//docs-site:visual-linux` (browser in the CI image; needs Docker), `//docs:render-check` (needs the export), `//dashboard:hermetic-test`, `//:validate -- --all` | Running these after every one-line change when a unit test would catch the bug |
 
 **Rules:**
 
 1. **Path-aware by default** — `bazelisk run //:validate` (no `--all`) mirrors CI path filters. Use `--all` before merge, after broad refactors, or when unsure.
 2. **Red–green on the smallest target** — fail a unit/BATS/docs unit test first; only then widen to render/hermetic suites.
-3. **Do not duplicate work** — one MkDocs build per test class (already shared); do not re-run hermetic dashboard when only `docs/**` or CI YAML changed.
-4. **When adding tests or CI** — prefer pure unit over e2e; keep `//:test-fast` free of host-MkDocs/Playwright; preserve GHA cache keys and path filters; never force every push on `development` to run the full matrix.
+3. **Do not duplicate work** — one Next export per gate set (`//docs:docs` feeds `//docs:render-check` and `//docs-site:visual`); do not re-run hermetic dashboard when only `docs/**` or CI YAML changed.
+4. **When adding tests or CI** — prefer pure unit over e2e; keep `//:test-fast` free of the browser and the npm build; preserve GHA cache keys and path filters; never force every push on `development` to run the full matrix.
 5. **Commands** — Bazel entry points (`bazelisk run //:manage`, `//:validate`, `//docs:docs`); avoid ad-hoc loops of format+lint+full validate after each keystroke.
 6. **Safety is not optional latency** — never skip `//tests:safety_invariants`, Resource Guard checks, or capacity gates “to go faster.”
 

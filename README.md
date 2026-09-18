@@ -1,16 +1,16 @@
 # nvidia-dgx-spark-lab
 
-[![Docs (latest)](https://img.shields.io/badge/docs-latest-indigo?style=for-the-badge&logo=materialformkdocs&logoColor=white)](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/)
-[![Docs (development)](https://img.shields.io/badge/docs-development-blueviolet?style=for-the-badge&logo=materialformkdocs&logoColor=white)](https://toxicoder.github.io/nvidia-dgx-spark-lab/development/)
+[![Docs (latest)](https://img.shields.io/badge/docs-latest-orange?style=for-the-badge&logo=nextjs&logoColor=white)](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/)
+[![Docs (development)](https://img.shields.io/badge/docs-development-teal?style=for-the-badge&logo=nextjs&logoColor=white)](https://toxicoder.github.io/nvidia-dgx-spark-lab/development/)
 [![CI](https://img.shields.io/github/actions/workflow/status/toxicoder/nvidia-dgx-spark-lab/ci.yml?branch=development&style=for-the-badge&logo=github&label=CI%20development)](https://github.com/toxicoder/nvidia-dgx-spark-lab/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/toxicoder/nvidia-dgx-spark-lab?style=for-the-badge)](LICENSE)
 [![Bazel](https://img.shields.io/badge/build-Bazel-green?style=for-the-badge&logo=bazel&logoColor=white)](docs/BUILDING_WITH_BAZEL.md)
 
 ![nvidia-dgx-spark-lab banner](docs/nvidia-dgx-spark-lab-banner.jpeg)
 
-**Documentation:** [latest](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/) (from `main`) · [development](https://toxicoder.github.io/nvidia-dgx-spark-lab/development/) (from `development`) — MkDocs Material with search, glossary tooltips, and live editable command variables.
+**Documentation:** [latest](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/) (from `main`) · [development](https://toxicoder.github.io/nvidia-dgx-spark-lab/development/) (from `development`) — Fumadocs (Next.js) with Orama search, glossary tooltips, Mermaid, and live editable command variables.
 
-**Suggested GitHub topics** (set in repo Settings → General → Topics): `k3s`, `nvidia`, `dgx`, `bazel`, `mkdocs`, `gpu`, `inference`, `ansible`, `kubernetes`.
+**Suggested GitHub topics** (set in repo Settings → General → Topics): `k3s`, `nvidia`, `dgx`, `bazel`, `fumadocs`, `gpu`, `inference`, `ansible`, `kubernetes`.
 
 **What's on this page**
 
@@ -76,7 +76,8 @@ nvidia-dgx-spark-lab/
 ├── ansible/          # Cluster bootstrap (playbooks, roles, cloud-init examples)
 ├── config/           # Resource Guard policy, lab-domains, Nemotron catalog
 ├── dashboard/        # Next.js lab portal (panels, secrets vault, visual goldens)
-├── docs/             # MkDocs site, project-conventions.md, generators
+├── docs/             # Documentation content, project-conventions.md, generators
+├── docs-site/        # Fumadocs (Next.js) site that renders docs/
 ├── helm/             # lab-dashboard Helm chart
 ├── hermes/           # Host Docker agent (profiles, docker-compose)
 ├── k8s/
@@ -255,23 +256,25 @@ See [tests/README.md](tests/README.md) and the BUILD.bazel files.
 
 ### Documentation
 
-Full documentation is published at [https://toxicoder.github.io/nvidia-dgx-spark-lab](https://toxicoder.github.io/nvidia-dgx-spark-lab) (Material for MkDocs).
+The documentation site is **Fumadocs** on the Next.js App Router, published at [https://toxicoder.github.io/nvidia-dgx-spark-lab](https://toxicoder.github.io/nvidia-dgx-spark-lab)
 
 - **Read online:** [Documentation site](https://toxicoder.github.io/nvidia-dgx-spark-lab)
-- **Serve locally:** `./docs/manage-docs.sh serve` (auto-opens browser; `bazelisk run //docs:serve`)
-- **Build (strict by default):** `./docs/manage-docs.sh build`
-- **Preview final static site:** `./docs/manage-docs.sh preview`
-- **Options:** `--port`, `--no-browser`, `--no-strict`
-- **Contributor guide:** see `docs/BUILDING_WITH_BAZEL.md`, `docs/CONTRIBUTING.md`, and `docs/setup-docs.sh`
+- **Serve locally:** `bazelisk run //docs:serve` (hot reload; `./docs/manage-docs.sh serve` is the same thing)
+- **Static export:** `bazelisk run //docs:docs` → `docs-site/out/`
+- **Preview the export:** `bazelisk run //docs:preview`
+- **Checks:** `bazelisk test //docs:test_docs_site_render //docs-site:unit //docs-site:typecheck`
+- **Screenshots:** `bazelisk run //docs-site:visual-linux` (baselines render in the CI image; needs Docker — add `-- --update` to refresh them)
+- **Options:** `--port`, `--no-browser`, `--version latest|development`
+- **Contributor guide:** `docs/CONTRIBUTING.md`, `docs/BUILDING_WITH_BAZEL.md`, migration notes in `MIGRATION.md`
 - Doc generation is incremental (shell reference skips writes when unchanged) and driven from source comments.
 
-The site includes navigation tabs/sections, breadcrumbs (`navigation.path`), instant loading, Mermaid, admonitions, etc.
+Content lives in `docs/`; `docs-site/` is the app that renders it. The site keeps the sidebar
+groups, breadcrumbs, Mermaid diagrams, callouts, tabs, glossary tooltips, Orama search, and the
+live editable command-variables panel the previous site had.
 
-CI deploys docs via `.github/workflows/deploy-docs.yml` **after merge** (push to `main` / `development` with changes under `docs/**` or `mkdocs.yml`), or via manual `workflow_dispatch` — not when a PR is opened. PR docs checks run in the main CI suite (`docs-and-render`).
+CI deploys docs via `.github/workflows/deploy-docs.yml` **after merge** (push to `main` / `development` with changes under `docs/**` or `docs-site/**`), or via manual `workflow_dispatch` — not when a PR is opened. PR docs checks run in the main CI suite (`docs-and-render`).
 
 See `docs/CONTRIBUTING.md` (if present) or `AGENTS.md` for contribution guidelines.
-
-CI runs the full suite on every push and pull request (`.github/workflows/ci.yml`). Note that Bazel jobs can be added alongside.
 
 ### Local tool installation (example)
 

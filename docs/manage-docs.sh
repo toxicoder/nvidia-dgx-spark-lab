@@ -1,189 +1,114 @@
 #!/usr/bin/env bash
-set -euo pipefail
-
-# Quality-of-life improved docs management script
-# Works with bash and zsh. Compatible with previous instructions.
+# ##
+# Purpose: Entry point for the Fumadocs documentation site (serve, build, preview, status, clean).
+# Source of truth: docs-site/ is the Next.js app; docs/ holds its markdown/MDX content.
+# Regenerate: n/a (hand-maintained).
+# Safety: Runs npm in the repository checkout; never publishes. Deployment is CI-only.
 #
-# Bazel note: This script is the primary interface for local docs work.
-# You can also create a docs/BUILD.bazel target that calls this script
-# or mkdocs directly if you want `bazel run //docs:serve`.
+# The site was migrated from Material for MkDocs to Fumadocs on the Next.js App Router.
+# Content stays in docs/ so the shell/dashboard generators keep writing into docs/generated/
+# and Bazel data dependencies keep listing the same files.
+#
+# Bazel note: this script is the primary interface for local docs work and is also what
+# //docs:serve, //docs:docs, //docs:preview and //docs:status execute.
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [[ -n ${BUILD_WORKSPACE_DIRECTORY:-} ]]; then
-  # When invoked via `bazel run`, use the real source workspace so that
-  # side effects (venv, .bazelignore updates, generated docs, temp configs)
-  # land in the user's checkout instead of a bazel-out/ tree. This also
-  # lets us exec sibling scripts like setup-docs.sh from their real location.
+  # `bazel run` executes from bazel-out; operate on the real checkout so generated docs,
+  # node_modules and the static export land where a developer can see and commit them.
   REPO_ROOT="${BUILD_WORKSPACE_DIRECTORY}"
   SCRIPT_DIR="${REPO_ROOT}/docs"
 else
   REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 fi
-VENV_DIR="$REPO_ROOT/.venv-docs"
-MKDOCS_YML="$REPO_ROOT/mkdocs.yml"
-DEFAULT_PORT=8000
+SITE_DIR="$REPO_ROOT/docs-site"
+DEFAULT_PORT=3005
 PORT=${PORT:-$DEFAULT_PORT}
 AUTO_OPEN_BROWSER=true
 
-# Set AUTO_SETUP_DOCS=false to disable automatic venv creation/installation
+# Set AUTO_SETUP_DOCS=false to skip the automatic npm ci on first use.
 : "${AUTO_SETUP_DOCS:=true}"
 
-# Simple colored output helpers
 info() { echo -e "\033[1;34m[INFO]\033[0m $*"; }
 success() { echo -e "\033[1;32m[SUCCESS]\033[0m $*"; }
 warn() { echo -e "\033[1;33m[WARN]\033[0m $*"; }
 error() { echo -e "\033[1;31m[ERROR]\033[0m $*" >&2; }
 
-ensure_supporting_files() {
-  # Auto-ensure supporting files that setup-docs.sh normally creates
-  # (quietly, so users can just run `serve`)
-  if [[ -f "$REPO_ROOT/.bazelignore" ]]; then
-    if ! grep -q "site/" "$REPO_ROOT/.bazelignore" 2>/dev/null; then
-      cat >>"$REPO_ROOT/.bazelignore" <<'EOG'
-
-# MkDocs generated output and venv (Bazel should ignore)
-site/
-.venv-docs/
-__pycache__/
-EOG
-    fi
-  fi
-
-  if [[ ! -f "$SCRIPT_DIR/BUILD.bazel" ]]; then
-    cat >"$SCRIPT_DIR/BUILD.bazel" <<'EOG'
-"""Bazel targets for documentation site (Material for MkDocs)."""
-
-load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
-
-sh_binary(
-    name = "serve",
-    srcs = ["manage-docs.sh"],
-    args = ["serve"],
-    data = [
-        "//:mkdocs.yml",
-        "assets",
-        "generate_shell_docs.py",
-        "hooks.py",
-        "requirements.txt",
-        "setup-docs.sh",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-sh_binary(
-    name = "docs",
-    srcs = ["manage-docs.sh"],
-    args = ["build"],
-    data = [
-        "//:mkdocs.yml",
-        "assets",
-        "generate_shell_docs.py",
-        "hooks.py",
-        "requirements.txt",
-        "setup-docs.sh",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-sh_binary(
-    name = "status",
-    srcs = ["manage-docs.sh"],
-    args = ["status"],
-    visibility = ["//visibility:public"],
-)
-EOG
-  fi
-}
-
-ensure_docs_env() {
-  # Official automation: always delegate venv + dependency + supporting file
-  # creation to the canonical setup-docs.sh in quiet mode.
-  # This ensures 100% consistent logic in one official place.
-  QUIET=true "$SCRIPT_DIR/setup-docs.sh" || {
-    error "Failed to ensure docs environment via official setup-docs.sh"
-    exit 1
-  }
-
-  # shellcheck disable=SC1091
-  source "$VENV_DIR/bin/activate"
-
-  # Verify activation
-  if [[ ${VIRTUAL_ENV:-} != *".venv-docs" ]]; then
-    error "Failed to activate the docs virtualenv at $VENV_DIR after official setup."
+# @function docs_node_is_ready
+# Ensure Node is available and the docs-site dependencies are installed.
+#
+# Args:
+#   $1 — "install" to force an install even when node_modules looks present.
+# Returns:
+#   Shell status; exits the script when the toolchain cannot satisfy the build.
+docs_node_is_ready() {
+  local force="${1:-}"
+  if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
+    error "Node.js 22+ and npm are required for the documentation site."
+    error "In the devcontainer they are preinstalled; on a host: brew install node@22."
     exit 1
   fi
 
-  # Sanity checks
-  if ! command -v mkdocs >/dev/null 2>&1; then
-    error "mkdocs not available after official setup."
+  # process.versions.node is like "22.14.0" with no "v" prefix: take the first dotted part.
+  local node_major
+  node_major="$(node -p 'Number.parseInt(process.versions.node.split(".")[0], 10)' 2>/dev/null || echo 0)"
+  if [[ ! ${node_major:-0} =~ ^[0-9]+$ ]] || [[ ${node_major:-0} -lt 20 ]]; then
+    error "Node ${node:-unknown} is too old for Next 16 (need 20+, 22 recommended)."
     exit 1
   fi
 
-}
-
-# Legacy name kept for any external callers.
-# Respects AUTO_SETUP_DOCS when possible.
-activate_venv() {
-  if [[ $AUTO_SETUP_DOCS == "true" ]]; then
-    ensure_docs_env
-  else
-    # original strict behavior
-    if [[ ! -d $VENV_DIR ]]; then
-      error "Virtual environment not found at $VENV_DIR"
-      error "Run './docs/setup-docs.sh' first."
-      exit 1
-    fi
-    source "$VENV_DIR/bin/activate"
-    if [[ ${VIRTUAL_ENV:-} != *".venv-docs" ]]; then
-      error "Failed to activate the docs virtualenv at $VENV_DIR"
+  if [[ $force == "install" || ! -x "$SITE_DIR/node_modules/.bin/next" ]]; then
+    if [[ $AUTO_SETUP_DOCS == "true" ]]; then
+      info "Installing documentation site dependencies (npm ci)"
+      "$SCRIPT_DIR/setup-docs.sh" || {
+        error "Failed to prepare the docs site via docs/setup-docs.sh"
+        exit 1
+      }
+    elif [[ ! -x "$SITE_DIR/node_modules/.bin/next" ]]; then
+      error "docs-site/node_modules is missing. Run ./docs/setup-docs.sh first."
       exit 1
     fi
   fi
 }
 
 generate_code_docs() {
-  info "Ensuring generated docs are up to date (shell + TypeScript)..."
+  info "Ensuring generated docs are up to date (shell + dashboard API)..."
 
-  # Shell reference (Python extractor - always available in venv)
   if command -v python3 >/dev/null 2>&1; then
     python3 "$SCRIPT_DIR/generate_shell_docs.py" || warn "Shell doc generation had issues (non-fatal)"
   else
     warn "python3 not found - skipping shell docs generation"
   fi
 
-  # Dashboard TypeScript docs (best effort)
-  DASH_DIR="$REPO_ROOT/dashboard"
-  GENERATED_DASH="$REPO_ROOT/docs/generated/dashboard-api"
-  if [[ -d $DASH_DIR && -f "$DASH_DIR/package.json" ]]; then
-    if command -v npm >/dev/null 2>&1 && [[ -d "$DASH_DIR/node_modules" ]]; then
-      # Only run (expensive) TypeDoc if TS/JS sources are newer than generated output.
-      # This keeps repeated `serve` fast and avoids unnecessary watcher noise / unresponsiveness.
-      need_dash=false
-      if [[ ! -d $GENERATED_DASH ]]; then
+  local dash_dir="$REPO_ROOT/dashboard"
+  local generated_dash="$REPO_ROOT/docs/generated/dashboard-api"
+  if [[ -d $dash_dir && -f "$dash_dir/package.json" ]]; then
+    if command -v npm >/dev/null 2>&1 && [[ -d "$dash_dir/node_modules" ]]; then
+      # TypeDoc is expensive; only re-run it when a source is newer than the generated tree.
+      local need_dash=false
+      if [[ ! -d $generated_dash ]]; then
         need_dash=true
-      else
-        # Find any source file newer than the generated dir
-        if find "$DASH_DIR" -path '*/node_modules' -prune -o \
-          \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.json' \) -newer "$GENERATED_DASH" -print -quit | grep -q .; then
-          need_dash=true
-        fi
+      elif find "$dash_dir" -path '*/node_modules' -prune -o \
+        \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.json' \) -newer "$generated_dash" -print -quit | grep -q .; then
+        need_dash=true
       fi
 
       if [[ $need_dash == true ]]; then
         (
-          cd "$DASH_DIR" || exit 1
-          npm run docs:generate 2>/dev/null || warn "TypeDoc generation skipped or failed (run 'cd dashboard && npm ci' if needed)"
+          cd "$dash_dir" || exit 1
+          npm run docs:generate 2>/dev/null || warn "TypeDoc generation skipped (run 'cd dashboard && npm ci' if needed)"
         )
       fi
     else
-      warn "Dashboard node_modules missing - TypeDoc docs not generated (run npm ci in dashboard/)"
+      warn "Dashboard node_modules missing - API docs not generated (run npm ci in dashboard/)"
     fi
   fi
 }
 
-check_config() {
-  if [[ ! -f $MKDOCS_YML ]]; then
-    error "mkdocs.yml not found at $MKDOCS_YML"
+check_content() {
+  if [[ ! -f "$SITE_DIR/source.config.ts" ]]; then
+    error "docs-site/source.config.ts not found - the docs app is incomplete."
     exit 1
   fi
 }
@@ -199,6 +124,14 @@ open_browser() {
       xdg-open "$url" 2>/dev/null || true
     fi
   fi
+}
+
+run_site_script() {
+  local script="$1"
+  shift
+  check_content
+  docs_node_is_ready
+  (cd "$SITE_DIR" && npm run "$script" -- "$@")
 }
 
 case "${1:-help}" in
@@ -221,46 +154,39 @@ case "${1:-help}" in
       esac
     done
 
-    if [[ $AUTO_SETUP_DOCS == "true" ]]; then
-      ensure_docs_env
-    else
-      activate_venv
-    fi
-    check_config
+    docs_node_is_ready
     generate_code_docs
+    check_content
 
-    info "Starting Material for MkDocs dev server on port ${PORT}..."
-    if [[ $AUTO_OPEN_BROWSER == "true" ]]; then
-      info "Browser will open automatically (use --no-browser to disable)"
-    fi
+    info "Starting the Fumadocs dev server on port ${PORT}..."
+    [[ $AUTO_OPEN_BROWSER == "true" ]] && info "Browser will open automatically (use --no-browser to disable)"
     open_browser
 
-    # Create a temporary config with site_url overridden so that `mkdocs serve`
-    # runs at the root (http://127.0.0.1:PORT/) instead of the GitHub Pages subpath.
-    # We place the temp file inside the repo root so that relative paths like
-    # docs_dir: docs continue to resolve correctly.
-    TMP_SERVE_CONFIG="$(mktemp "$REPO_ROOT/.mkdocs-serve-XXXXXX.yml")"
-    sed "s|^site_url:.*|site_url: \"http://127.0.0.1:${PORT}/\"|" "$MKDOCS_YML" >"$TMP_SERVE_CONFIG"
-
-    # Clean up temp config on exit or interrupt
-    trap 'rm -f "$TMP_SERVE_CONFIG" 2>/dev/null || true' EXIT INT TERM
-
-    mkdocs serve -f "$TMP_SERVE_CONFIG" --dev-addr "127.0.0.1:${PORT}"
+    # The dev server must be reached over localhost: Next rejects cross-origin dev
+    # resources requested via 127.0.0.1, which breaks hydration.
+    (cd "$SITE_DIR" && exec npm run dev -- --port "$PORT" --hostname localhost)
     ;;
 
   build)
     shift
-    STRICT="--strict"
+    # Empty means the plain root export: what //docs:render-check, the visual suite, and
+    # a developer's preview consume.  The published aliases need a basePath and are asked
+    # for explicitly with --version.
+    VERSION=""
     while [[ $# -gt 0 ]]; do
       case "$1" in
-        --no-strict)
-          STRICT=""
+        --strict)
+          # Kept for compatibility: strictness is the default (next build fails on errors).
           shift
           ;;
-        --strict)
-          STRICT="--strict"
+        --no-strict)
+          warn "--no-strict is obsolete; the Next build has no non-strict mode."
           shift
-          ;; # legacy support, already default
+          ;;
+        --version)
+          VERSION="$2"
+          shift 2
+          ;;
         *)
           error "Unknown option for build: $1"
           exit 1
@@ -268,92 +194,112 @@ case "${1:-help}" in
       esac
     done
 
-    if [[ $AUTO_SETUP_DOCS == "true" ]]; then
-      ensure_docs_env
-    else
-      activate_venv
-    fi
-    check_config
+    docs_node_is_ready
     generate_code_docs
+    check_content
 
-    info "Building documentation (strict mode: ${STRICT:+enabled})..."
-    mkdocs build -f "$MKDOCS_YML" $STRICT
-    success "Build complete. Output is in site/"
+    # The published site keeps the MkDocs URL layout: /latest/ and /development/ are
+    # separate exports built with a matching basePath.
+    build_script="build"
+    case "$VERSION" in
+      "") ;;
+      latest) build_script="build:latest" ;;
+      development) build_script="build:development" ;;
+      *)
+        error "--version must be latest or development, got $VERSION"
+        exit 1
+        ;;
+    esac
+
+    info "Building the documentation site${VERSION:+ as $VERSION (basePath set)}..."
+    (cd "$SITE_DIR" && npm run "$build_script")
+    success "Build complete. Output is in docs-site/out/"
     ;;
 
   preview)
-    if [[ $AUTO_SETUP_DOCS == "true" ]]; then
-      ensure_docs_env
-    else
-      activate_venv
-    fi
-    check_config
+    docs_node_is_ready
     generate_code_docs
+    check_content
 
-    info "Building strict production preview..."
-    mkdocs build -f "$MKDOCS_YML" --strict
-    success "Serving static site from site/ on port ${PORT}..."
-    python3 -m http.server --directory site "$PORT"
+    info "Building production preview..."
+    (cd "$SITE_DIR" && npm run build)
+    success "Serving the static export from docs-site/out/ on port ${PORT}..."
+    # scripts/serve_static.mjs takes positional [port] [root].
+    (cd "$SITE_DIR" && npm run serve -- "$PORT" out)
     ;;
 
-  deploy)
-    if [[ $AUTO_SETUP_DOCS == "true" ]]; then
-      ensure_docs_env
-    else
-      activate_venv
-    fi
-    check_config
-    info "Deploying to GitHub Pages..."
-    mkdocs gh-deploy -f "$MKDOCS_YML" --force
-    success "Deployment complete."
+  typecheck)
+    shift
+    run_site_script typecheck "$@"
+    ;;
+
+  test)
+    shift
+    docs_node_is_ready
+    (cd "$SITE_DIR" && npm run unit -- "$@")
+    ;;
+
+  visual)
+    shift
+    # The committed baselines are drawn by the CI image, so the comparison runs there too;
+    # a laptop Chromium differs in font metrics and would report every page as changed.
+    bash "$SITE_DIR/scripts/visual_linux.sh" "$@"
+    ;;
+
+  visual-update)
+    shift
+    bash "$SITE_DIR/scripts/visual_linux.sh" --update "$@"
     ;;
 
   status)
     echo "=== Documentation Status ==="
-    echo "mkdocs.yml:          $([ -f "$MKDOCS_YML" ] && echo 'present' || echo 'MISSING')"
-    if [[ -x "${VENV_DIR}/bin/python" ]] && "${VENV_DIR}/bin/python" -c 'import sys' >/dev/null 2>&1; then
-      echo "Virtualenv:          usable (${VENV_DIR})"
-    elif [[ -d $VENV_DIR ]]; then
-      echo "Virtualenv:          present but unusable (run docs/setup-docs.sh to recreate)"
+    echo "Content root:          $([ -d "$REPO_ROOT/docs" ] && echo 'docs/' || echo 'MISSING')"
+    echo "Navigation tree:       $([ -f "$SITE_DIR/lib/nav.json" ] && echo 'docs-site/lib/nav.json' || echo 'MISSING (hand-edit docs-site/lib/nav.json, then npm run nav:check)')"
+    echo "source.config.ts:      $([ -f "$SITE_DIR/source.config.ts" ] && echo 'present' || echo 'MISSING')"
+    if [[ -x "$SITE_DIR/node_modules/.bin/next" ]]; then
+      echo "Dependencies:          installed ($(node -p "require('$SITE_DIR/node_modules/next/package.json').version" 2>/dev/null || echo '?'))"
     else
-      echo "Virtualenv:          will be auto-provisioned via official setup-docs.sh"
+      echo "Dependencies:          not installed (run ./docs/setup-docs.sh)"
     fi
-    echo "Default port:        $DEFAULT_PORT"
-    echo "Auto-open browser:   $AUTO_OPEN_BROWSER"
-    if command -v mkdocs &>/dev/null; then
-      echo "mkdocs version:      $(mkdocs --version 2>/dev/null || echo 'not in PATH')"
+    if command -v node >/dev/null 2>&1; then
+      echo "Node:                  $(node --version 2>/dev/null || echo 'not in PATH')"
     else
-      echo "mkdocs version:      will be provisioned automatically via official setup-docs.sh"
+      echo "Node:                  not in PATH"
     fi
+    echo "Static export:         $([ -f "$SITE_DIR/out/index.html" ] && echo 'docs-site/out/' || echo 'not built (npm run build)')"
+    echo "Default port:          $DEFAULT_PORT"
+    echo "Auto-open browser:     $AUTO_OPEN_BROWSER"
     ;;
 
   clean)
     info "Cleaning build artifacts..."
-    rm -rf "$REPO_ROOT/site"
+    rm -rf "$SITE_DIR/out" "$SITE_DIR/out-linux" "$SITE_DIR/.deps-linux-stamp" \
+      "$SITE_DIR/.next" "$SITE_DIR/.source"
     success "Clean complete."
     ;;
 
   help | *)
     cat <<EOF
-Usage: $0 {serve|build|preview|deploy|status|clean} [options]
+Usage: $0 {serve|build|preview|typecheck|test|visual|visual-update|status|clean} [options]
 
 Commands:
-  serve     Start live development server with hot reload
-            Options: --port 8080    Set custom port
-                     --no-browser   Do not auto-open browser
-            The docs environment is automatically provisioned by calling
-            the official ./docs/setup-docs.sh (quietly) when needed.
-  build     Build the documentation site (strict mode by default)
-            Options: --no-strict    Disable strict mode
-  preview   Build + serve the static site (good final check before commit)
-  deploy    Deploy to GitHub Pages
-  status    Show current documentation environment status
-  clean     Remove the site/ build directory
+  serve          Start the Next dev server with hot reload
+                 Options: --port 3005      Set custom port
+                          --no-browser     Do not auto-open a browser
+  build          Build the static export into docs-site/out/
+                 Options: --version latest|development   Build with that basePath
+  preview        Build + serve the static export (final check before commit)
+  typecheck      next typegen + tsc --noEmit
+  test           Run the Vitest unit suite (widgets and content transforms)
+  visual         Run the visual regression suite in the CI image (needs Docker)
+  visual-update  Refresh the visual baselines in the CI image (needs Docker; review the diff)
+  status         Show the state of the docs toolchain
+  clean          Remove docs-site/out, out-linux, .next and .source
 
 Examples:
   ./docs/manage-docs.sh serve
-  ./docs/manage-docs.sh serve --port 8080 --no-browser
-  ./docs/manage-docs.sh build
+  ./docs/manage-docs.sh serve --port 3007 --no-browser
+  ./docs/manage-docs.sh build --version development
   ./docs/manage-docs.sh preview
 EOF
     ;;

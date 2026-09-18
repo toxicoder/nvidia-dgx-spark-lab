@@ -72,7 +72,7 @@ else
   echo "   (ruff not in PATH - skipping)"
 fi
 
-# 4. YAML (repo-wide: k8s, ansible, helm, CI workflows, mkdocs, etc.)
+# 4. YAML (repo-wide: k8s, ansible, helm, CI workflows, etc.)
 if [ -f "$ROOT/scripts/yaml_format.sh" ]; then
   echo "   prettier --write (YAML, repo-wide)"
   bash "$ROOT/scripts/yaml_format.sh" --write 2>/dev/null || true # keep: fix step (formatter, not real lint/check); tolerate no-op or tool quirks for ops

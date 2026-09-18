@@ -15,7 +15,7 @@ tags: [contributing, bazel, documentation]
 **What this enables**
 
 - Changing this repo without weakening safety gates
-- Keeping MkDocs, shell reference, and dashboard API in sync with source
+- Keeping the docs site, shell reference, and dashboard API in sync with source
 
 ## Setup
 
@@ -43,7 +43,7 @@ Prose rules: [Contributing to docs](../CONTRIBUTING.md). Shared patterns: [Proje
 
 - Frontmatter `title` / `description` / `tags`
 - **What's on this page** and **What this enables**
-- New MkDocs pages in **both** `mkdocs.yml` and `docs/BUILD.bazel`
+- New pages in **both** `docs-site/lib/nav.json` (hand-edited, then `npm run nav:check`) and `docs/BUILD.bazel`
 - Shell: `# ##` / `# @command` / `# @function` then `bazelisk run //docs:docs`
 - Dashboard JSDoc then `bazelisk run //dashboard:docs`
 - Do not hand-edit `docs/generated/**`
