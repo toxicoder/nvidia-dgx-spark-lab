@@ -37,11 +37,12 @@ make test-all
 | Dashboard (local) | `bazelisk run //dashboard:visual`  | Local Playwright only; `//dashboard:visual-test` is `manual` in Bazel |
 | Kubernetes YAML   | `//lints:k8s` + Makefile `test-k8s` | syntax, schema (kubeconform), critical fields (resources, restartPolicy, NCCL) |
 | Ansible playbooks | `//ansible:validate` + ansible-lint | all playbooks + group vars + modular roles    |
-| Docs (fast)       | `//docs:test_mkdocs_build` (local / docs job; not in `//:test-fast`) | mkdocs strict build, frontmatter, HTML/mermaid/asset checks (no Playwright) |
-| Docs (visual)     | `//docs:test_mkdocs_visual`        | Playwright screenshots vs goldens only |
-| Docs (combined)   | `//docs:test_mkdocs_render`        | build + visual (same as fast + visual) |
+| Docs (fast)       | `//docs:test_docs_site_render` (in `//:test-fast`) | Source contract of every navigable page: frontmatter, overview sections, fenced languages, Mermaid label quoting (no browser) |
+| Docs (export)     | `bazelisk run //docs:render-check` (after `//docs:docs`) | Same file against the exported HTML: search index + tags, Mermaid/callout elements, edit link, editable command tokens |
+| Docs (widgets)    | `//docs-site:unit` + `//docs-site:typecheck` | Vitest over the ported widgets/content transforms; `next typegen` + `tsc` |
+| Docs (visual)     | `bazelisk run //docs-site:visual` (`manual`) | Playwright screenshots of key pages vs goldens, desktop + mobile |
 | Safety invariants | `//tests:safety_invariants` + BATS + `make test-k8s` | No `Always` restart, low backoff, NCCL vars, GPU requests on ray, probes/securityContext on kimi, resource-policy registry sync |
-| Documentation coverage | `//tests:doc_coverage` + `//tests:doc_coverage_unit` (in `//:test-fast` / suite) | `manage.sh` `# @command`, shell `# @function` (incl. `k8s/workloads/**/*.sh`), Python docstrings, YAML headers, **no inline ConfigMap language embeds**, **no multi-line shell in mcp manifests**, mkdocs nav pages listed in `docs/BUILD.bazel`, BUILD `Package purpose:`, dashboard export JSDoc |
+| Documentation coverage | `//tests:doc_coverage` + `//tests:doc_coverage_unit` (in `//:test-fast` / suite) | `manage.sh` `# @command`, shell `# @function` (incl. `k8s/workloads/**/*.sh`), Python docstrings, YAML headers, **no inline ConfigMap language embeds**, **no multi-line shell in mcp manifests**, nav pages listed in `docs/BUILD.bazel`, BUILD `Package purpose:`, dashboard export JSDoc |
 
 ## Safety invariants
 
@@ -87,7 +88,7 @@ Uses `dashboard/Dockerfile.test` + `dashboard/scripts/run-hermetic-tests.sh`. Lo
 
 Every push and PR runs the complete suite via GitHub Actions (see `.github/workflows/ci.yml`).
 
-Path-filtered parallel jobs: `bazel-core` (`//:test-fast` + lint), `dashboard-unit` (host fast tests), `dashboard-hermetic` (Docker + Playwright; skips re-Vitest when unit passed), `docs-and-render` (single `//docs:test_mkdocs_render`). Safety greps live in `//tests:safety_invariants` inside `//:test-fast`. See `docs/BUILDING_WITH_BAZEL.md` for path-filter details.
+Path-filtered parallel jobs: `bazel-core` (`//:test-fast` + lint), `dashboard-unit` (host fast tests), `dashboard-hermetic` (Docker + Playwright; skips re-Vitest when unit passed), `docs-and-render` (docs gates without a browser, then export + `//docs:render-check` + `//docs-site:visual`). Safety greps live in `//tests:safety_invariants` inside `//:test-fast`. See `docs/BUILDING_WITH_BAZEL.md` for path-filter details.
 
 ## Adding New Tests
 
@@ -96,7 +97,7 @@ Path-filtered parallel jobs: `bazel-core` (`//:test-fast` + lint), `dashboard-un
 - Add new static checks in the Makefile `test-k8s` or `test-ansible` targets (or future `//lints:safety_invariants`)
 - New linter rules go in `.yamllint.yml` or `.ansible-lint`
 - After modular changes, expand to cover extracted modules (e.g. lib/models.sh functions)
-- Docs formatting: extend `docs/test_mkdocs_render.py` when adding new nav pages
+- Docs formatting: extend `docs/test_docs_site_render.py` when adding new nav pages; widget behavior goes in `docs-site/tests/unit/`
 
 ## Philosophy
 

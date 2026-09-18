@@ -1,263 +1,135 @@
 #!/usr/bin/env python3
-"""Unit + Playwright contract tests for interactive command-vars panel.
+"""Contract checks for the interactive cluster-variables panel.
 
-Pure logic tests document the seed/merge/profile contract without a browser.
-Playwright tests (when MkDocs site + Chromium are available) assert first-paint
-substitution and profile button sync on getting-started.
+The panel lets a reader edit `SPARK0_IP`, `NAMESPACE` and `DASHBOARD_PORT` and have every
+`{{TOKEN}}` in the page's code examples re-resolve live, with the Copy buttons handing out
+the substituted text.  It used to be a hand-written widget (`command-vars.js`) injected by
+MkDocs; it is now `docs-site/components/cluster-config-panel.tsx`.
+
+The seed/merge/profile/substitute arithmetic itself is pinned by the Vitest suite in
+`docs-site/tests/unit/cluster-config-panel.test.ts`, which imports the shipped component.
+What is checked here is the wiring around it, which no unit test can see:
+
+  * the pages that are supposed to mount the panel still do,
+  * the panel keeps the storage key returning readers expect,
+  * the build leaves the tokens editable rather than frozen into literals, so a later
+    reader can still change the address.
+
+Run via the accompanying shell wrapper as a Bazel sh_test, or directly:
+    python3 docs/test_command_vars.py
 """
 
 from __future__ import annotations
 
-import http.server
-import os
-import socket
-import socketserver
-import subprocess
-import sys
-import tempfile
-import threading
+import json
+import re
 import unittest
 from pathlib import Path
 
-try:
-    from playwright.sync_api import sync_playwright
-except Exception:  # pragma: no cover - optional in minimal envs
-    sync_playwright = None
-
 SCRIPT_DIR = Path(__file__).parent
 REPO_ROOT = SCRIPT_DIR.parent
-JS_PATH = SCRIPT_DIR / "assets" / "javascripts" / "command-vars.js"
-GETTING_STARTED = SCRIPT_DIR / "getting-started.md"
-CLUSTER_CONFIG_SNIPPET = SCRIPT_DIR / "includes" / "cluster-config.md"
+DOCS_DIR = SCRIPT_DIR
+SITE_DIR = REPO_ROOT / "docs-site"
+EXPORT_DIR = SITE_DIR / "out"
+PANEL_COMPONENT = SITE_DIR / "components" / "cluster-config-panel.tsx"
+NAV_JSON = SITE_DIR / "lib" / "nav.json"
+
+#: Storage key shared with the previous MkDocs widget, so a returning reader keeps values.
+STORAGE_KEY = "dgx-lab-docs-cluster-vars"
+
+#: Pages that must offer the panel because they publish copy-pastable cluster commands.
+REQUIRED_PANEL_PAGES = (
+    "getting-started",
+    "operate/capacity-planning",
+    "troubleshooting",
+)
 
 
-# --- Pure contract (mirrored from command-vars.js; keep in sync) -------------
+def read_content(stem: str) -> str:
+    """Read a documentation page by path without the extension.
+
+    Args:
+        stem: Path relative to `docs/`, e.g. ``getting-started`` or ``operate/index``.
+
+    Returns:
+        The page source.
+
+    Raises:
+        AssertionError: If neither the `.mdx` nor the `.md` form exists.
+    """
+    for suffix in (".mdx", ".md"):
+        candidate = DOCS_DIR / f"{stem}{suffix}"
+        if candidate.is_file():
+            return candidate.read_text(encoding="utf-8", errors="replace")
+    raise AssertionError(f"documentation page not found: {stem} (.mdx/.md)")
 
 
-def merge_vars(defaults: dict[str, str], stored: dict[str, str]) -> dict[str, str]:
-    """Seed from defaults, then overlay non-empty stored values."""
-    out = dict(defaults)
-    for key, val in stored.items():
-        if val is not None and str(val) != "":
-            out[key] = str(val)
-    return out
+class TestPanelWiring(unittest.TestCase):
+    """Checks that the panel is mounted where it is needed and stays interactive."""
 
+    def test_component_is_mounted_on_pages_that_need_it(self) -> None:
+        """Each command-heavy page includes the panel component."""
+        for stem in REQUIRED_PANEL_PAGES:
+            text = read_content(stem)
+            self.assertIn(
+                "<ClusterConfigPanel />",
+                text,
+                f"{stem} must mount <ClusterConfigPanel /> so its examples stay editable",
+            )
 
-def profile_for_vars(vars_: dict[str, str]) -> str | None:
-    """Return profile id for known SPARK0_IP values."""
-    ip = (vars_.get("SPARK0_IP") or "").strip()
-    if ip in ("localhost", "127.0.0.1"):
-        return "1node"
-    if ip == "192.168.1.10":
-        return "2node"
-    return None
+    def test_component_declares_the_editable_contract(self) -> None:
+        """The shipped component declares the attributes the substitution relies on."""
+        self.assertTrue(PANEL_COMPONENT.is_file(), f"missing {PANEL_COMPONENT}")
+        source = PANEL_COMPONENT.read_text(encoding="utf-8")
+        for marker in ("data-var", "data-profile", "originalText", "MutationObserver"):
+            self.assertIn(marker, source, f"panel component lost its {marker!r} wiring")
+        self.assertIn(STORAGE_KEY, source, "panel changed its storage key; readers lose saved values")
 
+    def test_tokens_are_not_frozen_into_literals(self) -> None:
+        """Page sources keep `{{TOKEN}}` placeholders rather than baked-in addresses."""
+        for stem in REQUIRED_PANEL_PAGES:
+            text = re.sub(r"^```.*?^```", "", read_content(stem), flags=re.S | re.M)
+            found = set(re.findall(r"\{\{([A-Z][A-Z0-9_]+)\}\}", text))
+            self.assertTrue(
+                bool(found),
+                f"{stem} has no {{{{TOKEN}}}} placeholders left in prose, so edits would do nothing",
+            )
 
-def substitute_placeholders(text: str, vars_: dict[str, str]) -> str:
-    """Replace {{KEY}} using vars; empty values leave the placeholder."""
-    out = text
-    for key, val in vars_.items():
-        token = "{{" + key + "}}"
-        if val is None or val == "":
-            continue
-        out = out.replace(token, str(val))
-    return out
+    def test_export_keeps_the_panel_and_unfrozen_tokens(self) -> None:
+        """The published page mounts the panel and still carries live tokens.
 
+        The token is expected to survive into the exported HTML: the server renders the
+        `{{TOKEN}}}` text and the client resolves it after hydration, which is what keeps it
+        editable.  A build that resolved the token at compile time would freeze a lab
+        address into the page and leave the reader's edits with nothing to act on, so this
+        asserts the token is still there.  That the reader ends up seeing the resolved value
+        is a post-hydration property and is asserted in the browser suite
+        (`docs-site/scripts/verify_site.mjs`).
+        """
+        page = EXPORT_DIR / "getting-started" / "index.html"
+        if not page.is_file():
+            self.skipTest("No documentation export present; run the docs-site build first.")
+        html = page.read_text(encoding="utf-8")
+        self.assertIn("cluster-config", html)
+        self.assertIn("data-profile", html)
+        self.assertIn("1node", html)
+        self.assertIn("{{SPARK0_IP}}", html, "token was frozen into a literal at build time")
+        self.assertIn("localhost", html, "the default profile value should be pre-filled")
 
-class TestCommandVarsLogic(unittest.TestCase):
-    """Hermetic pure-logic tests (no browser, no MkDocs)."""
-
-    def test_merge_empty_storage_keeps_defaults(self) -> None:
-        """Empty localStorage must not wipe HTML input defaults."""
-        defaults = {"SPARK0_IP": "localhost", "NAMESPACE": "ai-inference"}
-        merged = merge_vars(defaults, {})
-        self.assertEqual(merged["SPARK0_IP"], "localhost")
-        self.assertEqual(merged["NAMESPACE"], "ai-inference")
-
-    def test_merge_storage_overrides_defaults(self) -> None:
-        """Saved user values win over HTML defaults."""
-        defaults = {"SPARK0_IP": "localhost"}
-        stored = {"SPARK0_IP": "192.168.1.10"}
-        self.assertEqual(merge_vars(defaults, stored)["SPARK0_IP"], "192.168.1.10")
-
-    def test_merge_ignores_empty_storage_values(self) -> None:
-        """Blank storage values must not clobber defaults."""
-        defaults = {"SPARK0_IP": "localhost"}
-        self.assertEqual(merge_vars(defaults, {"SPARK0_IP": ""})["SPARK0_IP"], "localhost")
-
-    def test_profile_mapping(self) -> None:
-        """Known IPs map to profile buttons; custom IPs map to none."""
-        self.assertEqual(profile_for_vars({"SPARK0_IP": "localhost"}), "1node")
-        self.assertEqual(profile_for_vars({"SPARK0_IP": "127.0.0.1"}), "1node")
-        self.assertEqual(profile_for_vars({"SPARK0_IP": "192.168.1.10"}), "2node")
-        self.assertIsNone(profile_for_vars({"SPARK0_IP": "10.0.0.5"}))
-
-    def test_substitute_uses_merged_vars(self) -> None:
-        """Substitution after merge must not leave raw {{SPARK0_IP}}."""
-        defaults = {"SPARK0_IP": "localhost", "DASHBOARD_PORT": "32082"}
-        merged = merge_vars(defaults, {})
-        text = "http://{{SPARK0_IP}}:{{DASHBOARD_PORT}}"
-        self.assertEqual(substitute_placeholders(text, merged), "http://localhost:32082")
-        self.assertNotIn("{{", substitute_placeholders(text, merged))
-
-    def test_getting_started_defaults_match_primary_profile(self) -> None:
-        """Source panel: primary 1node and default SPARK0_IP=localhost stay aligned."""
-        self.assertTrue(CLUSTER_CONFIG_SNIPPET.is_file(), f"missing {CLUSTER_CONFIG_SNIPPET}")
-        snippet = CLUSTER_CONFIG_SNIPPET.read_text(encoding="utf-8")
-        self.assertIn('data-profile="1node" class="md-button md-button--primary"', snippet)
-        self.assertIn('data-var="SPARK0_IP" value="localhost"', snippet)
-        gs = GETTING_STARTED.read_text(encoding="utf-8")
-        self.assertTrue(
-            "cluster-config.md" in gs or "cluster-config" in gs,
-            "getting-started.md must include the cluster-config snippet or widget",
-        )
-        self.assertTrue(JS_PATH.is_file(), f"missing {JS_PATH}")
-        self.assertIn("dgx-lab-docs-cluster-vars", JS_PATH.read_text(encoding="utf-8"))
-
-    def test_js_exposes_helpers_and_seeds_on_init(self) -> None:
-        """command-vars.js must seed from inputs and expose contract helpers."""
-        js = JS_PATH.read_text(encoding="utf-8")
-        self.assertIn("seedDefaultsFromInputs", js)
-        self.assertIn("mergeVars", js)
-        self.assertIn("syncProfileButtons", js)
-        self.assertIn("window.__dgxCommandVars", js)
-        # Must not apply empty loadVars() alone without defaults.
-        self.assertIn("mergeVars(defaults, loadVars())", js)
-
-
-class TestCommandVarsPlaywright(unittest.TestCase):
-    """Browser integration against a built MkDocs site (skipped when unavailable)."""
-
-    site_dir: Path
-    server_base: str | None
-    httpd: socketserver.TCPServer | None
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        """Build docs once and serve for Playwright when tools exist."""
-        cls.site_dir = Path(tempfile.mkdtemp(prefix="mkdocs-cmdvars-"))
-        cls.server_base = None
-        cls.httpd = None
-        if sync_playwright is None:
-            return
-        # Prefer reuse when CI already built the site.
-        reuse = os.environ.get("MKDOCS_SITE_DIR", "").strip()
-        if reuse and (Path(reuse) / "getting-started" / "index.html").exists():
-            cls.site_dir = Path(reuse)
-        else:
-            env = os.environ.copy()
-            cmd = [
-                sys.executable,
-                "-m",
-                "mkdocs",
-                "build",
-                "--strict",
-                "-f",
-                str(REPO_ROOT / "mkdocs.yml"),
-                "-d",
-                str(cls.site_dir),
-            ]
-            try:
-                subprocess.run(cmd, check=True, cwd=str(REPO_ROOT), env=env, capture_output=True)
-            except (subprocess.CalledProcessError, FileNotFoundError) as exc:
-                print(f"command-vars playwright: mkdocs build skipped: {exc}", file=sys.stderr)
-                return
-
-        if not (cls.site_dir / "getting-started" / "index.html").exists():
-            return
-
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(("127.0.0.1", 0))
-            port = s.getsockname()[1]
-
-        site_root = str(cls.site_dir)
-
-        class _Quiet(http.server.SimpleHTTPRequestHandler):
-            def log_message(self, format: str, *args: object) -> None:  # noqa: A003
-                """Suppress request logging noise during Playwright tests."""
-                return
-
-        def make_handler(
-            request: socket.socket,
-            client_address: tuple[str, int],
-            server: socketserver.BaseServer,
-        ) -> http.server.SimpleHTTPRequestHandler:
-            """Build a quiet static handler rooted at the MkDocs site directory."""
-            return _Quiet(request, client_address, server, directory=site_root)
-
-        httpd = socketserver.TCPServer(("127.0.0.1", port), make_handler)
-        thr = threading.Thread(target=httpd.serve_forever, daemon=True)
-        thr.start()
-        cls.httpd = httpd
-        cls.server_base = f"http://127.0.0.1:{port}"
-
-    @classmethod
-    def tearDownClass(cls) -> None:
-        """Stop the static server if started."""
-        if cls.httpd is not None:
-            try:
-                cls.httpd.shutdown()
-            except Exception:
-                pass
-
-    def test_first_paint_substitutes_without_toggle(self) -> None:
-        """After load (cleared storage), code blocks show localhost, 1node is primary."""
-        if self.server_base is None or sync_playwright is None:
-            self.skipTest("Playwright/MkDocs site not available")
-
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            context = browser.new_context()
-            page = context.new_page()
-            try:
-                page.goto(self.server_base + "/getting-started/")
-                page.evaluate("() => localStorage.removeItem('dgx-lab-docs-cluster-vars')")
-                page.reload()
-                page.wait_for_selector(".cluster-config input[data-var='SPARK0_IP']", timeout=10000)
-                # Allow command-vars init to run after DOMContentLoaded.
-                page.wait_for_function(
-                    """() => {
-                      const code = document.body.innerText;
-                      return code.includes('localhost') && !code.includes('{{SPARK0_IP}}');
-                    }""",
-                    timeout=10000,
-                )
-                ip = page.input_value(".cluster-config input[data-var='SPARK0_IP']")
-                self.assertEqual(ip, "localhost")
-                primary = page.locator(".cluster-config [data-profile].md-button--primary")
-                self.assertEqual(primary.get_attribute("data-profile"), "1node")
-                body = page.inner_text("main")
-                self.assertNotIn("{{SPARK0_IP}}", body)
-                self.assertIn("localhost", body)
-
-                # Toggle to 2-node and back — content and primary must track.
-                page.click('.cluster-config [data-profile="2node"]')
-                page.wait_for_function(
-                    """() => document.body.innerText.includes('192.168.1.10')
-                        && !document.body.innerText.includes('{{SPARK0_IP}}')""",
-                    timeout=5000,
-                )
-                self.assertEqual(
-                    page.locator(".cluster-config [data-profile].md-button--primary").get_attribute(
-                        "data-profile"
-                    ),
-                    "2node",
-                )
-                page.click('.cluster-config [data-profile="1node"]')
-                page.wait_for_function(
-                    """() => document.body.innerText.includes('localhost')""",
-                    timeout=5000,
-                )
-                self.assertEqual(
-                    page.locator(".cluster-config [data-profile].md-button--primary").get_attribute(
-                        "data-profile"
-                    ),
-                    "1node",
-                )
-            finally:
-                page.close()
-                context.close()
-                browser.close()
+    def test_search_index_covers_the_panel_pages(self) -> None:
+        """Every panel page is reachable through the generated search index."""
+        index = EXPORT_DIR / "api" / "search"
+        if not index.is_file():
+            self.skipTest("No exported search index present; run the docs-site build first.")
+        data = json.loads(index.read_text(encoding="utf-8"))
+        records = (data.get("docs") or {}).get("docs") or {}
+        urls = {str(record.get("url", "")) for record in records.values()}
+        for stem in REQUIRED_PANEL_PAGES:
+            slug = stem.rsplit("/", 1)[-1]
+            self.assertTrue(
+                any(url.rstrip("/").endswith(f"/{slug}") for url in urls),
+                f"{stem} is missing from the search index",
+            )
 
 
 if __name__ == "__main__":

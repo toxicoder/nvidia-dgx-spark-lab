@@ -1,84 +1,111 @@
-"""Package purpose: MkDocs site serve/build binaries and docs generator/render test targets."""
+"""Package purpose: Documentation content package — markdown/MDX pages, generators, and the Bazel entry points that drive the Fumadocs site in docs-site/.
 
-"""Bazel integration for the Material for MkDocs documentation site.
+The site itself is the Next.js app in `docs-site/` (see that package for the npm runners).
+This package owns the *content*: the pages under `docs/`, the generators that fill
+`docs/generated/`, and the Python gates around them.
 
-This provides first-class Bazel targets while keeping the shell scripts
-(docs/setup-docs.sh and docs/manage-docs.sh) as the primary, simple
-interface that works everywhere (including without Bazel installed).
+Content deliberately stays here rather than moving into `docs-site/` so that:
+
+- the generators keep writing into `docs/generated/` unchanged,
+- Bazel data dependencies keep listing the same files reviewers diff, and
+- links from the README, the published GitHub Pages aliases, and the dashboard point at the
+  same paths they always did.
 
 Usage:
-  bazel run //docs:serve
-  bazel run //docs:docs   # builds the site
-  bazel run //docs:preview  # strict build + static serve
-  bazel run //docs:status
-  bazel run //docs:visual-update   # approve visual changes to site (see test_mkdocs_render)
+  bazelisk run //docs:serve            # dev server with hot reload
+  bazelisk run //docs:docs             # static export into docs-site/out/
+  bazelisk run //docs:preview          # build + serve the export (final check)
+  bazelisk run //docs:status           # toolchain / content status
+  bazelisk run //docs:render-check         # checks against the export (run //docs:docs first)
+  bazelisk run //docs-site:visual-update   # refresh Playwright goldens (review the diff!)
 
-See .bazelignore for generated output exclusions (site/, .venv-docs/).
+See docs/BUILDING_WITH_BAZEL.md for the target map and MIGRATION.md (repo root) for the port from
+Material for MkDocs.
 """
 
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
-# Keep in sync with mkdocs.yml nav (enforced by //tests:doc_coverage).
+# Keep in sync with docs-site/lib/nav.json (enforced by //tests:doc_coverage).
 # Subdir pages must be listed by path so runfiles and the coverage gate both see them.
+# Names are the on-disk spellings: pages that needed JSX are .mdx, the rest are .md.
 _HAND_WRITTEN_MD = [
     "BUILDING_WITH_BAZEL.md",
     "CONTRIBUTING.md",
-    "architecture.md",
+    "architecture.mdx",
     "concepts/index.md",
-    "concepts/interconnect-nccl.md",
+    "concepts/interconnect-nccl.mdx",
     "contribute/index.md",
-    "dev-environment.md",
-    "dev-workspaces.md",
+    "dev-environment.mdx",
+    "dev-workspaces.mdx",
     "dgx-spark-notes.md",
-    "getting-started.md",
+    "getting-started.mdx",
     "gitea-ci-setup.md",
     "glossary.md",
-    "hermes-agent.md",
-    "index.md",
+    "hermes-agent.mdx",
+    "index.mdx",
     "learn/index.md",
     "litellm-rounded-stack.md",
-    "mcp-agent-toolkit.md",
+    "mcp-agent-toolkit.mdx",
     "models-catalog.md",
-    "monitoring-observability.md",
+    "monitoring-observability.mdx",
     "nemotron-agentic-stack.md",
-    "open-webui.md",
-    "operate/ansible-catalog.md",
-    "operate/backup-restore.md",
-    "operate/capacity-planning.md",
-    "operate/dashboard.md",
-    "operate/index.md",
-    "operate/node-failure.md",
-    "operate/overlays.md",
-    "operate/patch-and-reboot.md",
-    "operate/secrets.md",
-    "operate/workload-catalog.md",
+    "open-webui.mdx",
+    "operate/ansible-catalog.mdx",
+    "operate/backup-restore.mdx",
+    "operate/capacity-planning.mdx",
+    "operate/dashboard.mdx",
+    "operate/index.mdx",
+    "operate/node-failure.mdx",
+    "operate/overlays.mdx",
+    "operate/patch-and-reboot.mdx",
+    "operate/secrets.mdx",
+    "operate/workload-catalog.mdx",
     "project-conventions.md",
     "qwen36-dual-stack.md",
-    "reboot-safety.md",
-    "resource-guard.md",
-    "sso.md",
-    "start/choose-topology.md",
-    "start/index.md",
-    "start/profiles.md",
-    "troubleshooting.md",
-    "visual-generative-ai.md",
+    "reboot-safety.mdx",
+    "resource-guard.mdx",
+    "sso.mdx",
+    "start/choose-topology.mdx",
+    "start/index.mdx",
+    "start/profiles.mdx",
+    "troubleshooting.mdx",
+    "visual-generative-ai.mdx",
 ]
 
+# Generated reference trees: emitted by the generators, never hand-edited.
+_RENDER_GENERATED = glob(
+    [
+        "generated/shell/**",
+        "generated/dashboard-api/**",
+    ],
+    allow_empty = True,
+)
+
+# Everything the Next.js app reads out of this directory at build time.
+filegroup(
+    name = "content",
+    srcs = _HAND_WRITTEN_MD + [
+        "nvidia-dgx-spark-lab-banner.jpeg",
+    ] + glob(
+        ["includes/**"],
+        allow_empty = True,
+    ) + _RENDER_GENERATED,
+    visibility = ["//visibility:public"],
+)
+
 _DOCS_COMMON_DATA = [
-    "assets",
     "generate_shell_docs.py",
-    "generated",
-    "hooks.py",
-    "includes",
     "requirements.txt",
     "setup-docs.sh",
-    "//:mkdocs.yml",
+    ":content",
     # Script sources that feed the code generators (so Bazel correctly
     # invalidates docs targets when structured comments or sources change).
     "//scripts:doc_sources",
-] + _HAND_WRITTEN_MD
+]
 
+# The site is a Next.js app; these binaries delegate to docs/manage-docs.sh, which in turn
+# runs npm inside docs-site/.  The npm runners live in //docs-site for the fast paths.
 sh_binary(
     name = "serve",
     srcs = ["manage-docs.sh"],
@@ -117,8 +144,23 @@ sh_binary(
     visibility = ["//visibility:public"],
 )
 
+# Export-backed render checks.  A run target (not an sh_test) because it inspects the real
+# docs-site/out/ that //docs:docs produced in the checkout: a sandboxed test action has no
+# export to read, which is why //docs:test_docs_site_render covers sources only.
+# Usage: bazelisk run //docs:docs && bazelisk run //docs:render-check
+sh_binary(
+    name = "render-check",
+    srcs = ["test_docs_site_render.sh"],
+    data = [
+        "test_docs_site_render.py",
+        "test_docs_site_render.sh",
+        ":content",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # Test for docs production code (generator that emits {{PLACEHOLDER}} content
-# consumed by the interactive command-vars.js panel).
+# consumed by the interactive cluster-variables panel).
 sh_test(
     name = "test_generate_shell_docs",
     srcs = ["test_generate_shell_docs.sh"],
@@ -135,99 +177,39 @@ sh_test(
     srcs = ["test_python_coverage.sh"],
     data = [
         "generate_shell_docs.py",
-        "hooks.py",
         "test_generate_shell_docs.py",
-        "test_hooks.py",
         "test_python_coverage.sh",
+        # The docs-site python tooling (nav transcriber + codemod) is covered here too.
+        "//docs-site:sources",
     ],
     visibility = ["//visibility:public"],
 )
 
-# Interactive cluster-vars panel (seed/merge/profile contract + optional Playwright).
+# Interactive cluster-vars panel (seed/merge/profile contract + export token fidelity).
 sh_test(
     name = "test_command_vars",
     srcs = ["test_command_vars.sh"],
     data = [
-        "assets",
-        "getting-started.md",
-        "hooks.py",
-        "includes",
-        "requirements.txt",
         "test_command_vars.py",
         "test_command_vars.sh",
-        "//:mkdocs.yml",
+        ":content",
+        "//docs-site:sources",
     ],
     visibility = ["//visibility:public"],
 )
 
-# Render test data (shared). Includes goldens so the test (and update) can
-# read committed screenshots for visual diff enforcement.
-# Generated nav pages: shell reference + dashboard-api README tree (strict mkdocs).
-_RENDER_GENERATED = glob(
-    [
-        "generated/shell/**",
-        "generated/dashboard-api/**",
-    ],
-    allow_empty = True,
-)
-
-_RENDER_TEST_DATA = [
-    "manage-docs.sh",
-    "test_mkdocs_render.py",
-    "test_mkdocs_render.sh",
-    "tests",
-    "tests/visual",
-    "tests/visual/goldens",
-] + _DOCS_COMMON_DATA + _RENDER_GENERATED
-
-# Render test: actually runs mkdocs build (the server-side render of the
-# full site) and then inspects the produced HTML + source for elements
-# and patterns that would only fail when the pages are opened in a browser
-# (Mermaid JS parse errors, missing interactive panel divs, JS asset wiring,
-# etc.).
-#
-# NOW ALSO: real browser screenshots (via Playwright + local static server)
-# of key rendered pages are compared to goldens. This makes site rendering
-# + visual regression first-class in the test suite. Tests fail on diffs.
-# Use the :visual-update binary + UPDATE_SNAPSHOTS=1 to approve changes
-# (followed by PR review of the golden diffs).
+# Render checks: source-level contract of every navigable page (frontmatter, fences,
+# mermaid labels, prose lists) plus the exported HTML when a build is present.
 sh_test(
-    name = "test_mkdocs_build",
+    name = "test_docs_site_render",
     size = "medium",
     timeout = "moderate",
-    srcs = ["test_mkdocs_build.sh"],
-    data = _RENDER_TEST_DATA,
-    visibility = ["//visibility:public"],
-)
-
-sh_test(
-    name = "test_mkdocs_visual",
-    size = "large",
-    timeout = "long",
-    srcs = ["test_mkdocs_visual.sh"],
-    data = _RENDER_TEST_DATA,
-    visibility = ["//visibility:public"],
-)
-
-sh_test(
-    name = "test_mkdocs_render",
-    size = "large",
-    timeout = "long",
-    srcs = ["test_mkdocs_render.sh"],
-    data = _RENDER_TEST_DATA,
-    visibility = ["//visibility:public"],
-)
-
-# Update runner for visual goldens (real browser render of the MkDocs site).
-# Usage (from repo root):
-#   UPDATE_SNAPSHOTS=1 bazel run //docs:visual-update
-# This builds the site in temp, serves it, screenshots in real chromium,
-# and overwrites goldens under docs/tests/visual/goldens/ using the
-# real workspace path (so the new baselines are saved in your checkout).
-# Always review the resulting image diffs before committing + PR.
-sh_binary(
-    name = "visual-update",
-    srcs = ["test_mkdocs_render.sh"],
-    data = _RENDER_TEST_DATA,
+    srcs = ["test_docs_site_render.sh"],
+    data = [
+        "test_docs_site_render.py",
+        "test_docs_site_render.sh",
+        ":content",
+        "//docs-site:sources",
+    ],
     visibility = ["//visibility:public"],
 )

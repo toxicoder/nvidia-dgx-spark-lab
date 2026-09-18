@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
-"""Unit tests for documentation coverage pure helpers (inline embeds, mkdocs/Bazel)."""
+"""Unit tests for documentation coverage pure helpers (inline embeds, nav/Bazel)."""
 
 from __future__ import annotations
 
+import json
+import pathlib
+import shutil
+import tempfile
 import unittest
 
 from doc_coverage import (
+    _check_nav_pages_in_docs_bazel,
     bazel_listed_md_files,
     find_inline_configmap_language_keys,
     find_inline_script_keys,
     has_multiline_shell_args,
-    mkdocs_nav_md_pages,
+    nav_json_pages,
 )
 
 
@@ -98,40 +103,110 @@ class TestMultilineShellArgs(unittest.TestCase):
         self.assertFalse(has_multiline_shell_args(text))
 
 
-class TestMkdocsBazel(unittest.TestCase):
-    """mkdocs nav ↔ docs/BUILD.bazel listing helpers."""
+class TestDocsSiteNav(unittest.TestCase):
+    """nav.json ↔ docs/BUILD.bazel listing helpers."""
 
     def test_nav_extraction(self) -> None:
-        """Nav tree yields bare markdown paths."""
-        yml = """
-nav:
-  - Home: index.md
-  - Concepts:
-      - Visual: visual-generative-ai.md
-      - Generated: generated/shell/reference.md
+        """Every leaf path in the nav tree is reported, groups included."""
+        payload = """
+[
+  { "title": "Home", "pages": [ { "title": "Home", "path": "index.md" } ] },
+  { "title": "Operate", "pages": [
+      { "title": "Overview", "path": "operate/index.md" },
+      { "title": "Deep", "path": "operate/deep.mdx" },
+      { "title": "Group", "pages": [ { "title": "Gen", "path": "generated/shell/reference.md" } ] }
+  ] }
+]
 """
         self.assertEqual(
-            mkdocs_nav_md_pages(yml),
+            nav_json_pages(payload),
             [
                 "generated/shell/reference.md",
                 "index.md",
-                "visual-generative-ai.md",
+                "operate/deep.mdx",
+                "operate/index.md",
             ],
         )
 
     def test_bazel_md_listing(self) -> None:
-        """BUILD data strings are collected."""
+        """BUILD data strings are collected, both markdown extensions."""
         build = """
 data = [
     "index.md",
-    "visual-generative-ai.md",
+    "visual-generative-ai.mdx",
     "generated",
 ]
 """
         self.assertEqual(
             bazel_listed_md_files(build),
-            {"index.md", "visual-generative-ai.md"},
+            {"index.md", "visual-generative-ai.mdx"},
         )
+
+    def test_generated_tree_must_be_globbed(self) -> None:
+        """A generated nav page is covered only when its tree is shipped as data.
+
+        The content filegroup globs each generated reference tree; a page whose tree is not
+        globbed would never reach the site's runfiles.
+        """
+        root = pathlib.Path(tempfile.mkdtemp())
+        try:
+            (root / "docs-site" / "lib").mkdir(parents=True)
+            (root / "docs").mkdir()
+            nav = [
+                {
+                    "title": "Reference",
+                    "pages": [{"title": "Shell", "path": "generated/shell/reference.md"}],
+                }
+            ]
+            (root / "docs-site" / "lib" / "nav.json").write_text(
+                json.dumps(nav), encoding="utf-8"
+            )
+
+            (root / "docs" / "BUILD.bazel").write_text(
+                '_RENDER_GENERATED = glob(\n    ["generated/shell/**"],\n)\n',
+                encoding="utf-8",
+            )
+            self.assertEqual(_check_nav_pages_in_docs_bazel(root), [])
+
+            (root / "docs" / "BUILD.bazel").write_text(
+                '_RENDER_GENERATED = glob(\n    ["generated/dashboard-api/**"],\n)\n',
+                encoding="utf-8",
+            )
+            violations = _check_nav_pages_in_docs_bazel(root)
+            self.assertEqual(len(violations), 1)
+            self.assertIn("generated/shell/reference.md", violations[0])
+        finally:
+            shutil.rmtree(root, ignore_errors=True)
+
+    def test_nav_page_may_be_listed_under_either_extension(self) -> None:
+        """A nav entry written as .md is satisfied by the .mdx file on disk.
+
+        nav.json keeps the paths as mkdocs.yml spelled them; the codemod renamed pages that
+        needed JSX to .mdx.  The Bazel data array lists the real file names.
+        """
+        root = pathlib.Path(tempfile.mkdtemp())
+        try:
+            (root / "docs-site" / "lib").mkdir(parents=True)
+            (root / "docs").mkdir()
+            nav = [{"title": "Home", "pages": [{"title": "Home", "path": "index.md"}]}]
+            (root / "docs-site" / "lib" / "nav.json").write_text(
+                json.dumps(nav), encoding="utf-8"
+            )
+            # The page itself lives on disk under its renamed extension.
+            (root / "docs" / "index.mdx").write_text("# Home\n", encoding="utf-8")
+            (root / "docs" / "BUILD.bazel").write_text(
+                '_HAND_WRITTEN_MD = [\n    "index.mdx",\n]\n', encoding="utf-8"
+            )
+            self.assertEqual(_check_nav_pages_in_docs_bazel(root), [])
+
+            (root / "docs" / "BUILD.bazel").write_text(
+                '_HAND_WRITTEN_MD = [\n    "other.md",\n]\n', encoding="utf-8"
+            )
+            violations = _check_nav_pages_in_docs_bazel(root)
+            self.assertEqual(len(violations), 1)
+            self.assertIn("index.mdx", violations[0])
+        finally:
+            shutil.rmtree(root, ignore_errors=True)
 
 
 if __name__ == "__main__":

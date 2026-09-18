@@ -1,10 +1,11 @@
-mkdocs==1.6.1
-mkdocs-material==9.7.7
-mkdocs-glightbox==0.5.2
-# Multi-version docs (latest from main, development from development branch).
-mike==2.2.0
-# Pin Playwright for reproducible visual goldens across local/CI Chromium builds.
-playwright==1.61.0
-# Soft pixel-diff comparison for screenshots (exact PNG bytes are flaky across runners).
+# Python tooling for the documentation pipeline.
+#
+# The site itself is the Node app in docs-site/ (see docs-site/package.json); these are the
+# Python tools the docs generators and Bazel gates still run:
+#   - pytest + pytest-cov: //docs:test_python_coverage enforces 100% coverage on the
+#     generator modules.
+#   - Pillow: pixel comparison used when triaging a visual-regression failure in
+#     docs-site/tests/visual.
+pytest>=8.0.0
+pytest-cov>=6.0.0
 Pillow>=10.0.0
-# mkdocs-git-revision-date-localized==1.2.9  # Add when network allows; provides "Last updated" dates

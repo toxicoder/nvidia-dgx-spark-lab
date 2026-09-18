@@ -88,7 +88,8 @@ _ci_action_pins() {
     '//dashboard:fast-test' \
     'DASHBOARD_TEST_MODE=visual' \
     'DASHBOARD_TEST_MODE=full' \
-    '//docs:test_mkdocs_render' \
+    'docs-site/scripts/visual_linux.sh' \
+    '//docs-site:visual_tooling_test' \
     'scripts/ci_check_only.sh'; do
     grep -qF "$cmd" "$gh"
     grep -qF "$cmd" "$gitea"
@@ -153,9 +154,10 @@ _ci_action_pins() {
 }
 
 @test "Deploy Documentation workflow publishes only after merge (not on PR)" {
-  # Public docs go live via mike on push to long-lived branches (PR merge)
-  # or workflow_dispatch. Opening a PR must not deploy-pages or trigger a
-  # pull_request publish path (PR validation is //docs in CI).
+  # Public docs go live on push to long-lived branches (PR merge) or
+  # workflow_dispatch, by publishing the two static exports. Opening a PR must
+  # not deploy-pages or trigger a pull_request publish path (PR validation is
+  # the docs-and-render CI job).
   local deploy="${REPO_ROOT}/.github/workflows/deploy-docs.yml"
   [[ -f $deploy ]]
   # No PR trigger for this workflow.
@@ -164,20 +166,25 @@ _ci_action_pins() {
     grep -nE '^[[:space:]]*pull_request:' "$deploy" >&2 || true
     return 1
   fi
-  # No GitHub Actions Pages deploy from this workflow (mike → gh-pages only).
-  if grep -qF 'actions/deploy-pages' "$deploy"; then
-    echo "deploy-docs.yml must not use actions/deploy-pages:" >&2
-    grep -nF 'actions/deploy-pages' "$deploy" >&2 || true
+  # Publishing goes through the Pages artifact deployment, which is only reachable from
+  # the push/dispatch triggers above.  A PR-time deploy would let an unreviewed branch
+  # overwrite the public site, so the checks below are the ones that keep it safe.
+  if grep -qE 'preview-branch|allow-preview-deployment|pages-deployment-branch' "$deploy"; then
+    echo "deploy-docs.yml must not publish a PR preview deployment:" >&2
+    grep -nE 'preview-branch|allow-preview-deployment|pages-deployment-branch' "$deploy" >&2 || true
     return 1
   fi
-  if grep -qF 'upload-pages-artifact' "$deploy"; then
-    echo "deploy-docs.yml must not upload Pages artifacts for PR preview:" >&2
-    grep -nF 'upload-pages-artifact' "$deploy" >&2 || true
-    return 1
-  fi
-  # Positive controls: merge/push + manual republish + mike publish.
+  # Positive controls: merge/push + manual republish + both version aliases published.
   grep -qE '^[[:space:]]*push:' "$deploy"
   grep -qF 'workflow_dispatch' "$deploy"
   grep -qE 'branches:[[:space:]]*\[.*development' "$deploy"
-  grep -qF 'mike deploy' "$deploy"
+  grep -qF '//docs-site:build-latest' "$deploy"
+  grep -qF '//docs-site:build-development' "$deploy"
+  grep -qF 'actions/deploy-pages' "$deploy"
+  # mike is gone: nothing may shell out to it any more.
+  if grep -qF 'mike ' "$deploy"; then
+    echo "deploy-docs.yml still invokes mike:" >&2
+    grep -nF 'mike ' "$deploy" >&2 || true
+    return 1
+  fi
 }
