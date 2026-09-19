@@ -560,3 +560,115 @@ teardown_file() {
   [ "$status" -eq 0 ]
   [[ "$output" == *"DGX Spark GPU Clock Status"* ]]
 }
+
+# @function _mock_tool
+# Write a mock executable named $2 that echoes $3; $1 = bin dir.
+_mock_tool() {
+  printf '#!/usr/bin/env bash\necho "%s"\n' "$3" > "$1/$2"
+  chmod +x "$1/$2"
+}
+
+# @function _operator_client_mocks
+# Put a full operator toolchain (git/ssh/python3/ansible/kubectl/helm/bazelisk/jq)
+# on PATH in a fresh mock bin dir; $1 = bin dir.
+_operator_client_mocks() {
+  local bin="$1"
+  _mock_tool "$bin" git "git version 2.44.0"
+  _mock_tool "$bin" ssh "OpenSSH_9.6"
+  _mock_tool "$bin" python3 "Python 3.12.3"
+  _mock_tool "$bin" ansible "ansible [core 2.17.1]"
+  _mock_tool "$bin" kubectl "v1.31.0"
+  _mock_tool "$bin" helm "v3.15.2+g071fa8f"
+  _mock_tool "$bin" bazelisk "bazelisk 1.19.0"
+  _mock_tool "$bin" jq "jq-1.7"
+}
+
+@test "install-operator-client.sh status exits 0 and reports ready with a full toolchain" {
+  local bin
+  bin="$(mktemp -d)/bin"
+  mkdir -p "$bin"
+  _operator_client_mocks "$bin"
+  run env PATH="$bin:$PATH" LAB_OPERATOR_CLIENT_OS=Linux \
+    bash "${REPO_ROOT}/scripts/utilities/install-operator-client.sh" status
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Operator Client Status"* ]]
+  [[ "$output" == *"OK  ansible"* ]]
+  [[ "$output" == *"Operator client is ready"* ]]
+}
+
+@test "install-operator-client.sh status flags missing tools" {
+  # PATH with only the bare basics (bash, uname) and none of the operator
+  # tools — status must still work on a machine before anything is installed.
+  local stripped
+  stripped="$(mktemp -d)"
+  ln -s "$(command -v bash)" "$stripped/bash"
+  ln -s "$(command -v uname)" "$stripped/uname"
+  run env PATH="$stripped" LAB_OPERATOR_CLIENT_OS=Linux \
+    bash "${REPO_ROOT}/scripts/utilities/install-operator-client.sh" status
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"--  ansible"* ]]
+  [[ "$output" == *"missing"* ]]
+}
+
+@test "install-operator-client.sh status flags an old ansible version" {
+  local bin
+  bin="$(mktemp -d)/bin"
+  mkdir -p "$bin"
+  _operator_client_mocks "$bin"
+  _mock_tool "$bin" ansible "ansible [core 2.9.1]"
+  run env PATH="$bin:$PATH" LAB_OPERATOR_CLIENT_OS=Linux \
+    bash "${REPO_ROOT}/scripts/utilities/install-operator-client.sh" status
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"older than 2.14"* ]]
+  [[ "$output" == *"missing"* ]]
+}
+
+@test "install-operator-client.sh run is a verified no-op when all tools are present" {
+  local bin
+  bin="$(mktemp -d)/bin"
+  mkdir -p "$bin"
+  _operator_client_mocks "$bin"
+  # Mock the package manager path too: CI runners ship real sudo/apt-get, and
+  # the unmocked host tools would otherwise satisfy the `command -v` gate and
+  # let the script run a live `sudo apt-get update`.
+  _mock_tool "$bin" sudo "sudo (mock)"
+  _mock_tool "$bin" apt-get "apt-get (mock)"
+  run env PATH="$bin:$PATH" LAB_OPERATOR_CLIENT_OS=Linux \
+    bash "${REPO_ROOT}/scripts/utilities/install-operator-client.sh" run
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Operator client install (Linux)"* ]]
+  [[ "$output" == *"Operator client is ready"* ]]
+  [[ "$output" == *"manage -- setup"* ]]
+}
+
+@test "install-operator-client.sh run attempts to install stale ansible (Linux)" {
+  # Regression: the version gate must run as a command, not a constant word
+  # inside [[ ]] (SC2078) — a stale ansible must trigger an install attempt.
+  # (Stale mock, not absent: the host's real ansible would otherwise satisfy
+  # the check through the unstripped PATH tail.)
+  local bin
+  bin="$(mktemp -d)/bin"
+  mkdir -p "$bin"
+  _operator_client_mocks "$bin"
+  _mock_tool "$bin" ansible "ansible [core 2.9.1]"
+  _mock_tool "$bin" sudo "sudo (mock)"
+  _mock_tool "$bin" apt-get "apt-get (mock)"
+  run env PATH="$bin:$PATH" LAB_OPERATOR_CLIENT_OS=Linux \
+    bash "${REPO_ROOT}/scripts/utilities/install-operator-client.sh" run
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"→ install ansible"* ]]
+  [[ "$output" == *"Operator client not ready"* ]]
+}
+
+@test "install-operator-client.sh run on Windows points at the WSL2 bootstrap" {
+  run env LAB_OPERATOR_CLIENT_OS=Windows \
+    bash "${REPO_ROOT}/scripts/utilities/install-operator-client.sh" run
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"install-operator-client.ps1"* ]]
+}
+
+@test "install-operator-client.sh rejects unknown subcommand" {
+  run bash "${REPO_ROOT}/scripts/utilities/install-operator-client.sh" bogus
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"Usage:"* ]]
+}
