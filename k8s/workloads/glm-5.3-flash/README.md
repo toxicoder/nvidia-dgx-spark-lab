@@ -1,6 +1,6 @@
 # GLM-5.3-Flash NVFP4 TP=3 (Mode B, 3-node QSFP ring)
 
-Exclusive frontier lane. Uses the **ConnectX-7 200 Gb/s triangle**, not the 2-node dual-400G pair vars.
+Exclusive frontier lane. Uses the **ConnectX-7 200 Gb/s triangle**, not the 2-node pair NCCL vars.
 
 ## Cabling (NVIDIA polarity)
 

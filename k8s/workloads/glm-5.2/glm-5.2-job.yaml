@@ -44,7 +44,7 @@ spec:
       containers:
         - name: inference
           # Ultra-optimized 2-node GLM-5.2: unsloth UD-IQ1_M (1-bit dynamic quant) + llama.cpp RPC.
-          # spark0 primary OpenAI endpoint; spark1 RPC backend over dual-400G highspeed link.
+          # spark0 primary OpenAI endpoint; spark1 RPC backend over the 200 Gb/s QSFP link.
           image: lab/llama-cpp-gb10:rpc
           imagePullPolicy: IfNotPresent
 

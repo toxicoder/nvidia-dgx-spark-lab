@@ -33,7 +33,7 @@
 *[Mode A]: Daily 3-node mixed fleet (35B + Flash-Next + MedGemma) behind LiteLLM; vLLM util ≤ 0.82.
 *[Mode B]: Exclusive GLM-5.3-Flash TP=3 on the 3-node QSFP ring; vLLM util ≤ 0.85.
 *[Mode C]: Exclusive DeepSeek-V4.1-Flash TP=3 on the QSFP ring; SGLang mem-fraction-static ≤ 0.95.
-*[QSFP ring]: 3-node triangle of 200 Gb/s QSFP links — not the 2-node dual-400G pair.
+*[QSFP ring]: 3-node triangle of 200 Gb/s QSFP links — not the 2-node pair NCCL env.
 *[PLE mmap]: Memory-map of Qwen3.8-Flash-Next PLE weights; required on Mode A spark1.
 *[hostNetwork]: Pod uses the node's network namespace (fabric-visible NICs).
 *[hostIPC]: Pod uses the node's IPC namespace (needed for some TP/RPC Jobs).

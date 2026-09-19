@@ -342,7 +342,7 @@ kimi-test: lighter safe first step (2 GPUs)
 kimi: full production (8 GPUs, heavy confirmation)
 ray-head / ray-worker: distributed orchestration
 nemotron-3-ultra: large model (requires Ray + capacity check)
-glm-5.2 / glm-5.2-rpc: 1-bit UD-IQ1_M llama.cpp RPC (2-node dual-400G; no Ray)
+glm-5.2 / glm-5.2-rpc: 1-bit UD-IQ1_M llama.cpp RPC (2-node 200G QSFP; no Ray)
 qwen3.5-122b-a10b-nvfp4: 1-node Qwen 122B NVFP4 substitute for 397B NVFP4
 qwen3.5-397b-spark2: 2-node Qwen 397B int4-AutoRound (vLLM TP=2 + Ray)
 qwen3.5-397b-nvfp4: 4-node Qwen 397B NVFP4 (SGLang distributed)

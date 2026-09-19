@@ -225,7 +225,7 @@ get_model_profile() {
     nemotron-safety-guard) echo "0 4Gi NeMo Guard (CPU)" ;;
     nemotron-speech-asr) echo "0 6Gi NIM ASR" ;;
     nemotron-speech-tts) echo "0 6Gi NIM TTS" ;;
-    glm-5.2) echo "2 110Gi+ 1-bit UD-IQ1_M llama.cpp RPC (2-node dual-400G; no Ray)" ;;
+    glm-5.2) echo "2 110Gi+ 1-bit UD-IQ1_M llama.cpp RPC (2-node 200G QSFP; no Ray)" ;;
     qwen3.5-122b-a10b-nvfp4) echo "1 95Gi Qwen 122B NVFP4 (1-node 397B substitute)" ;;
     qwen3.5-397b-spark2) echo "2 220Gi Qwen 397B int4-AutoRound (2-node; Ray + vLLM)" ;;
     qwen3.5-397b-nvfp4) echo "4 460Gi+ Qwen 397B NVFP4 SGLang (4-node frontier)" ;;

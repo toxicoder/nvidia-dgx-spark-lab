@@ -80,7 +80,7 @@ Closes #87
 ```
 
 ```
-fix: correct NCCL_SOCKET_IFNAME for dual 400G links on Spark
+fix: correct NCCL_SOCKET_IFNAME for 200G QSFP links on Spark
 
 The interface names were hardcoded to an older netplan layout.
 ```

@@ -46,7 +46,7 @@ re-assigning it moves the control plane without re-cabling.
 | Nodes | Fabric (`lab.yaml` `fabric:`) | Role configuration | High-speed interconnect |
 |-------|-------------------------------|--------------------|-------------------------|
 | 1 | `none` | control-plane + worker (all-in-one) | none — local NCCL (SHM/P2P) |
-| 2 | `pair` | control-plane + worker; 1 worker | dual QSFP ~400G direct |
+| 2 | `pair` | control-plane + worker; 1 worker | one QSFP cable, 200 Gb/s |
 | 3 | `ring` | control-plane + worker; 2 workers | QSFP triangle, 200 Gb/s per pair |
 | 4 | `switch` | control-plane + worker; 3 workers | Mikrotik CRS804-4DDQ-hRM, full ports |
 | 5 | `switch` | control-plane + worker; 4 workers | CRS804, one 400G port split to two 200G breakout lanes |
@@ -65,7 +65,7 @@ Multi-node NCCL / tensor-parallel ride the fabric's high-speed links. Do **not**
 
 ## High-Speed Interconnect (for 2+ nodes)
 
-**2-node pair (reference):** dual QSFP, ~400G aggregate. Existing 1-node / 2-node Jobs use:
+**2-node pair (reference):** one 200 Gb/s QSFP cable. Existing 1-node / 2-node Jobs use:
 
 - `NCCL_SOCKET_IFNAME=enp1s0f0np0,enp1s0f1np1`
 - `NCCL_IB_HCA=mlx5_0,mlx5_1` (or equivalent)

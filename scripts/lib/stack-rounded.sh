@@ -98,7 +98,7 @@ doctor_fabric() {
   mgmt=$(lab_mgmt_ifname)
   log "=== Fabric doctor (3-node QSFP ring) ==="
   warn "Cabling: Node1 Port0→Node2 Port1; Node2 Port0→Node3 Port1; Node3 Port0→Node1 Port1."
-  warn "Triangle mesh at 200 Gb/s per pair. Not NVLink. Not the 2-node dual-400G pair vars."
+  warn "Triangle mesh at 200 Gb/s per pair. Not NVLink. Not the 2-node pair NCCL vars."
   log "NCCL OOB/Gloo on mgmt iface '${mgmt}' (override LAB_MGMT_IFNAME)."
   log "NCCL_IB_HCA default: rocep1s0f0,roceP2p1s0f0,rocep1s0f1,roceP2p1s0f1 (override LAB_NCCL_IB_HCA)."
   log "Confirm live names with ibdev2netdev on every node. MTU 9000 on CX-7."
@@ -364,7 +364,7 @@ stop_stack_rounded() {
 # @command start-glm53-flash
 start_glm53_flash() {
   warn "=== GLM-5.3-Flash NVFP4 TP=3 (Mode B, USES THE RING) ==="
-  warn "Exclusive: refuses Mode A rounded Jobs and Mode C DeepSeek-V4.1-Flash. hostNetwork + 3-node NCCL (not 2-node 400G vars)."
+  warn "Exclusive: refuses Mode A rounded Jobs and Mode C DeepSeek-V4.1-Flash. hostNetwork + 3-node NCCL (not 2-node pair vars)."
   warn "Image glm53-flash-tp3:local must be built on Spark (see k8s/workloads/glm-5.3-flash/README.md)."
 
   if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then

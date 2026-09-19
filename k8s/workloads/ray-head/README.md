@@ -27,7 +27,7 @@ Must usually be started before heavy multi-node inference jobs.
 
 ## NCCL High-Speed Settings
 
-The Ray head Job sets the same NCCL environment block as kimi (dual-400G interconnect):
+The Ray head Job sets the same NCCL environment block as kimi (high-speed interconnect):
 
 - `NCCL_SOCKET_IFNAME=enp1s0f0np0,enp1s0f1np1`
 - `NCCL_IB_HCA=mlx5_0,mlx5_1`

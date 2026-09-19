@@ -47,7 +47,7 @@ Large models (70B+, MoE like Kimi-K2.6) can quickly exhaust host memory and make
     inventory group is ignored.
   </Tab>
   <Tab value="2-node">
-    **2-node pair (dual ~400G aggregate):** existing Jobs and `group_vars` `highspeed_*` /
+    **2-node pair (one 200 Gb/s QSFP cable):** existing Jobs and `group_vars` `highspeed_*` /
     `nccl_env` are **reference for a pair**. Typical env:
 
     ```yaml
@@ -68,8 +68,8 @@ Large models (70B+, MoE like Kimi-K2.6) can quickly exhaust host memory and make
   </Tab>
   <Tab value="4/5-node switch">
     **4 / 5-node CRS804 switch:** each node sees **one** RoCE link — one full port per node
-    (400G) for 4 nodes, or three full ports plus one port split into `sfpplus4a` / `sfpplus4b`
-    (two 200G lanes) for 5. Every link is its own /24 (192.168.110–114, MTU 9000) from the
+    (Spark CX-7 at 200 Gb/s) for 4 nodes, or three full ports plus one 400G QSFP-DD port split
+    into `sfpplus4a` / `sfpplus4b` (two 200G lanes) for 5. Every link is its own /24 (192.168.110–114, MTU 9000) from the
     generated per-node netplan. `NCCL_SOCKET_IFNAME` stays the management NIC; the payload
     rides the single RoCE HCA (`NCCL_IB_HCA` from live `ibdev2netdev` names per node). Heavy
     Jobs use `hostNetwork: true` — do not assume the 2-node pair `NCCL_SOCKET_IFNAME` list is

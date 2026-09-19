@@ -1,6 +1,6 @@
 # DeepSeek-V4.1-Flash official MXFP4 TP=3 (Mode C, 3-node QSFP ring)
 
-Exclusive frontier lane. Official checkpoint only. Uses the **ConnectX-7 200 Gb/s triangle**, not the 2-node dual-400G pair vars.
+Exclusive frontier lane. Official checkpoint only. Uses the **ConnectX-7 200 Gb/s triangle**, not the 2-node pair NCCL vars.
 
 ## What this is (and is not)
 

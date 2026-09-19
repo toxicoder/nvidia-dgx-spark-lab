@@ -1,7 +1,7 @@
 # Purpose: DeepSeek-V4.1-Flash official MXFP4 TP=3 leader Job on spark0 (Mode C, QSFP ring)
 # Source of truth: k8s/workloads/deepseek-v4.1-flash/
 # Regenerate: n/a
-# Safety: exclusive Mode C; hostNetwork + ring NCCL; mem-fraction-static 0.95; Engram NVMe; expandable_segments False; no 2-node 400G vars
+# Safety: exclusive Mode C; hostNetwork + ring NCCL; mem-fraction-static 0.95; Engram NVMe; expandable_segments False; no 2-node pair vars
 
 apiVersion: batch/v1
 kind: Job
@@ -61,7 +61,7 @@ spec:
               nvidia.com/gpu: "1"
           env:
             # 3-node QSFP ring (same block as GLM Mode B). OOB on 10GbE; payload on CX-7 RoCE.
-            # Override LAB_MGMT_IFNAME / NCCL_IB_HCA if ibdev2netdev differs. Do not copy 2-node 400G vars.
+            # Override LAB_MGMT_IFNAME / NCCL_IB_HCA if ibdev2netdev differs. Do not copy 2-node pair vars.
             - name: NCCL_SOCKET_IFNAME
               value: "enP7s7"
             - name: UCX_NET_DEVICES

@@ -12,7 +12,7 @@
 # kimi: full production (8 GPUs, heavy confirmation)
 # ray-head / ray-worker: distributed orchestration
 # nemotron-3-ultra: large model (requires Ray + capacity check)
-# glm-5.2 / glm-5.2-rpc: 1-bit UD-IQ1_M llama.cpp RPC (2-node dual-400G; no Ray)
+# glm-5.2 / glm-5.2-rpc: 1-bit UD-IQ1_M llama.cpp RPC (2-node 200G QSFP; no Ray)
 # qwen3.5-122b-a10b-nvfp4: 1-node Qwen 122B NVFP4 substitute for 397B NVFP4
 # qwen3.5-397b-spark2: 2-node Qwen 397B int4-AutoRound (vLLM TP=2 + Ray)
 # qwen3.5-397b-nvfp4: 4-node Qwen 397B NVFP4 (SGLang distributed)
@@ -280,7 +280,7 @@ start_glm() {
   local models_dir="${MODELS_DIR:-/mnt/models}"
   local shard_dir="${models_dir}/GLM-5.2-GGUF/UD-IQ1_M"
 
-  warn "=== GLM-5.2 ULTRA 2-NODE (1-bit UD-IQ1_M, llama.cpp RPC across dual-400G) ==="
+  warn "=== GLM-5.2 ULTRA 2-NODE (1-bit UD-IQ1_M, llama.cpp RPC across 200G QSFP) ==="
   warn "Quality trade-off: ~76% top-1 retention vs higher quants. 2 nodes required (spark0 + spark1)."
   warn "Model ~228 GB; first load/repack may take 15-30+ minutes. No Ray dependency."
 

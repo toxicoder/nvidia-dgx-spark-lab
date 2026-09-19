@@ -117,7 +117,7 @@ JSON
   echo "Drift (dry-run one way):"
   echo "$drift"
   echo "------------------------------------------------"
-  echo "Tip: set REMOTE_HOST to the peer's highspeed IP (192.168.100.x or .101.x) for full 400G speed."
+  echo "Tip: set REMOTE_HOST to the peer's highspeed IP (192.168.100.x or .101.x) for full 200G speed."
 }
 
 # @function run

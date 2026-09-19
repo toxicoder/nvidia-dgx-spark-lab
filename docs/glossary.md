@@ -52,7 +52,7 @@ Hover any dotted abbreviation in the docs (for example K3s or Resource Guard) fo
 | **Job** | Run-to-completion Kubernetes workload (typical for heavy model starts). | [Architecture](architecture.md) |
 | **Deployment** | Long-running replica set (dashboard, ComfyUI, gateways). | [Visual generative AI](visual-generative-ai.md) |
 | **NCCL** | Collective communications for multi-GPU / multi-node; lab multi-node jobs set high-speed `NCCL_*` env. | [Interconnect & NCCL](concepts/interconnect-nccl.md) |
-| **QSFP ring** | 3-node triangle at 200 Gb/s per pair. Not the 2-node dual-400G pair; do not copy pair env. | [Interconnect & NCCL](concepts/interconnect-nccl.md) |
+| **QSFP ring** | 3-node triangle at 200 Gb/s per link. Not the 2-node pair env; do not copy pair vars onto the ring. | [Interconnect & NCCL](concepts/interconnect-nccl.md) |
 | **hostNetwork** / **hostIPC** | Pod uses node net/IPC namespaces. Required on some TP/RPC Jobs; omitted on kimi-test. | [DGX Spark notes](dgx-spark-notes.md) |
 | **PLE mmap** | Qwen3.8-Flash-Next weight mapping; mandatory on Mode A spark1. | [LiteLLM rounded stack](litellm-rounded-stack.md) |
 | **tensor parallel** | Shard model layers across GPUs to fit large models. | [Models catalog](models-catalog.md) |

@@ -56,6 +56,12 @@ _ASSET_REF_RE = re.compile(
     r'''(?:"|')((?:/[A-Za-z0-9._@~-][A-Za-z0-9._@~+/%-]*|_next/[A-Za-z0-9._@~+/%-]+))'''
     r'''(?:"|')'''
 )
+# Spark CX-7 is 200 Gb/s per QSFP port. This lab uses one 200G cable or a 200G ring.
+# CRS804 "400G QSFP-DD" switch-port language is allowed (no dual- / ~400G / "400G each").
+FORBIDDEN_400G_RE = re.compile(
+    r"(?:dual[\s-]*~?400\s*[Gg]|~400G|400G\s+aggregate|400G\s+each|2-node\s+400G)",
+    re.IGNORECASE,
+)
 
 
 def load_nav_pages() -> list[str]:
@@ -191,6 +197,37 @@ def hand_written_doc_paths() -> list[Path]:
             continue
         paths.append(path)
     return paths
+
+
+def wording_scan_paths() -> list[Path]:
+    """Return markdown files that must not claim a dual-400G Spark interconnect.
+
+    Always includes the published ``docs/`` tree (hand-written, includes, generated).
+    Also includes the repo README, root CONTRIBUTING, and workload READMEs when those
+    files are present next to the test (full checkout or extra Bazel data).
+    """
+    paths: list[Path] = [
+        path for path in DOCS_DIR.rglob("*") if path.suffix in {".md", ".mdx"} and path.is_file()
+    ]
+    for extra in (REPO_ROOT / "README.md", REPO_ROOT / "CONTRIBUTING.md"):
+        if extra.is_file():
+            paths.append(extra)
+    workloads = REPO_ROOT / "k8s" / "workloads"
+    if workloads.is_dir():
+        paths.extend(path for path in workloads.rglob("README.md") if path.is_file())
+    return paths
+
+
+def forbidden_400g_hits(text: str) -> list[str]:
+    """Return each dual-400G / ~400G-aggregate match in ``text``.
+
+    Args:
+        text: Markdown or other operator-facing prose.
+
+    Returns:
+        The matched substrings, in appearance order.
+    """
+    return [match.group(0) for match in FORBIDDEN_400G_RE.finditer(text)]
 
 
 def is_directory_tree(body: str) -> bool:
@@ -347,6 +384,30 @@ class TestDocsSiteRender(unittest.TestCase):
             [],
             "Architecture heading without a mermaid fence: " + ", ".join(sorted(missing)),
         )
+
+    def test_forbidden_400g_hits_allows_switch_hardware(self) -> None:
+        """CRS804 400G QSFP-DD port language is switch hardware, not a Spark dual-400G pair."""
+        self.assertEqual(forbidden_400g_hits("managed 4-port 400G QSFP-DD device"), [])
+        self.assertEqual(forbidden_400g_hits("one 400G port split into two 200G breakout lanes"), [])
+        self.assertIn("~400G", forbidden_400g_hits("dual QSFP ~400G aggregate"))
+        self.assertEqual(forbidden_400g_hits("400G aggregate"), ["400G aggregate"])
+        self.assertTrue(forbidden_400g_hits("dual-400G pair"))
+        self.assertTrue(forbidden_400g_hits("2-node 400G NCCL vars"))
+        self.assertTrue(forbidden_400g_hits("400G each"))
+
+    def test_docs_do_not_claim_dual_400g_interconnect(self) -> None:
+        """Operator docs describe 200 Gb/s links or a QSFP ring, not a dual-400G pair."""
+        scanned = 0
+        offenders: list[str] = []
+        for path in wording_scan_paths():
+            scanned += 1
+            text = path.read_text(encoding="utf-8", errors="replace")
+            hits = forbidden_400g_hits(text)
+            if hits:
+                rel = path.relative_to(REPO_ROOT).as_posix() if path.is_relative_to(REPO_ROOT) else str(path)
+                offenders.append(f"{rel}: {', '.join(hits[:4])}")
+        self.assertGreater(scanned, 20, "wording scan found too few markdown files")
+        self.assertEqual(offenders, [], "dual-400G Spark interconnect wording: " + "; ".join(offenders))
 
     def test_no_ascii_flow_diagrams(self) -> None:
         """Arrow flows and box-drawing trees in ```text fences must be Mermaid instead.

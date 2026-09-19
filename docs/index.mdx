@@ -19,7 +19,7 @@ tags: [bazel, kubernetes, ansible, nvidia, dgx, inference]
 - Bringing up a 1–5 node DGX Spark K3s lab without auto-starting heavy jobs
 - Knowing when to stay here versus using the Compose Comfy sibling
 
-This is a **K3s lab** for 1–5 [NVIDIA DGX Spark](https://docs.nvidia.com/dgx/dgx-spark/hardware.html) nodes — single node, dual-QSFP pair, QSFP ring, or a Mikrotik CRS804 switch fabric (4–5 nodes). Workloads are Kubernetes Jobs and Deployments with explicit resources. Nothing heavy starts on reboot. Any of the Sparks can run the control plane.
+This is a **K3s lab** for 1–5 [NVIDIA DGX Spark](https://docs.nvidia.com/dgx/dgx-spark/hardware.html) nodes — single node, 200 Gb/s QSFP pair, QSFP ring, or a Mikrotik CRS804 switch fabric (4–5 nodes). Workloads are Kubernetes Jobs and Deployments with explicit resources. Nothing heavy starts on reboot. Any of the Sparks can run the control plane.
 
 Single-node **Compose** ComfyUI lives in [ez-comfy-stack](https://github.com/toxicoder/ez-comfy-stack). Visual generative AI **in this repo** is `k8s/workloads/comfy-*` plus `scripts/lib/visual.sh` — see [Visual generative AI](visual-generative-ai.md).
 

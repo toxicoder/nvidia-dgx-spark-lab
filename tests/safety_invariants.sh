@@ -259,7 +259,7 @@ for job in \
   fi
 done
 
-echo "Checking GLM-5.3-Flash Mode B Jobs use ring NCCL (not 2-node 400G vars)..."
+echo "Checking GLM-5.3-Flash Mode B Jobs use ring NCCL (not 2-node pair vars)..."
 for job in \
   k8s/workloads/glm-5.3-flash/glm-5.3-flash-job.yaml \
   k8s/workloads/glm-5.3-flash/glm-5.3-flash-worker-1-job.yaml \

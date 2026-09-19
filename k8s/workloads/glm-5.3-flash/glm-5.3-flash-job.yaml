@@ -1,7 +1,7 @@
 # Purpose: GLM-5.3-Flash NVFP4 TP=3 leader Job on spark0 (Mode B, QSFP ring)
 # Source of truth: k8s/workloads/glm-5.3-flash/
 # Regenerate: n/a
-# Safety: exclusive frontier; hostNetwork + ring NCCL; gpu-mem-util 0.85 exclusive; no 2-node 400G vars
+# Safety: exclusive frontier; hostNetwork + ring NCCL; gpu-mem-util 0.85 exclusive; no 2-node pair vars
 
 apiVersion: batch/v1
 kind: Job
@@ -61,7 +61,7 @@ spec:
               nvidia.com/gpu: "1"
           env:
             # 3-node QSFP ring (NVIDIA/eugr). OOB on 10GbE; payload on all four CX-7 RoCE devices.
-            # Override LAB_MGMT_IFNAME / NCCL_IB_HCA if ibdev2netdev differs. Do not copy 2-node 400G vars.
+            # Override LAB_MGMT_IFNAME / NCCL_IB_HCA if ibdev2netdev differs. Do not copy 2-node pair vars.
             - name: NCCL_SOCKET_IFNAME
               value: "enP7s7"
             - name: UCX_NET_DEVICES

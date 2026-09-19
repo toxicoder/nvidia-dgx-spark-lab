@@ -21,7 +21,7 @@ See ray-head/README.md and the generated Shell reference for usage and safety no
 
 ## NCCL High-Speed Settings
 
-Inherits the same NCCL environment block as ray-head/kimi (see ray-head/README.md). Workers join the head over `ray-head:6379` with `hostNetwork: true` for dual-400G visibility.
+Inherits the same NCCL environment block as ray-head/kimi (see ray-head/README.md). Workers join the head over `ray-head:6379` with `hostNetwork: true` for high-speed NIC visibility.
 
 ## Safety notes (inherited from ray-head flow)
 - restartPolicy OnFailure + low backoff.
