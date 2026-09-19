@@ -1,6 +1,6 @@
 # kimi (Full Production) Workload
 
-Heavy production version for very large models (Kimi-K2.6 and similar). Scalable for 1-4 nodes (use inter-node parallelism for 2+).
+Heavy production version for very large models (Kimi-K2.6 and similar). Scalable for 1-5 nodes (use inter-node parallelism for 2+).
 
 Deployed by `./scripts/manage.sh start-kimi` (or `start-full`).
 
@@ -9,14 +9,14 @@ See the auto-generated [Shell reference](../../../docs/generated/shell/reference
 **What's on this page**
 
 - Full production Job + Service manifests for 8-GPU Kimi-scale inference with strict resources.requests/limits, backoffLimit:1, restartPolicy: OnFailure
-- Complete NCCL dual-400G high-speed interconnect settings, affinity rules, vLLM args, model volume mounts
+- Complete NCCL high-speed interconnect settings, affinity rules, vLLM args, model volume mounts
 - Safety warnings, differences from kimi-test, deploy/stop instructions via manage.sh
 
 **What this enables**
 
 - Running the heavy production inference workload reliably after lighter validation
 - Explicit control over GPU/memory so the host and SSH stay responsive
-- Multi-node tensor/pipeline parallelism over the dual 400G links
+- Multi-node tensor/pipeline parallelism over the fabric's high-speed links
 
 ## WARNING — Heavy workload
 
@@ -30,7 +30,7 @@ This workload requests a large number of GPUs and host memory.
 
 ## NCCL / Multi-node
 
-On 2+ nodes the workload is configured (via the Job manifest + manage.sh environment) to prefer the dual 400G high-speed interfaces for NCCL.
+On 2+ nodes the workload is configured (via the Job manifest + manage.sh environment) to prefer the high-speed interconnect interfaces for NCCL.
 
 **Unified image**: v0.8.5 across kimi/kimi-test/nemotron/glm-5.2 (MoE/FP8/aarch64 support; see models-catalog.md). NCCL blocks kept aligned (SOCKET_NTHREADS etc to kimi-test baseline). hostNetwork decision: omitted here (see k8s yaml comments + catalog).
 
@@ -47,7 +47,7 @@ On 2+ nodes the workload is configured (via the Job manifest + manage.sh environ
 
 ## NCCL High-Speed Settings
 
-The critical variables are set in the pod spec (for 2-4 nodes):
+The critical variables are set in the pod spec (for 2-5 nodes):
 
 - `NCCL_SOCKET_IFNAME=enp1s0f0np0,enp1s0f1np1`
 - `NCCL_IB_HCA=mlx5_0,mlx5_1`

@@ -2,12 +2,12 @@
 #
 # ## nvidia-dgx-spark-lab management script
 #
-# Simple, safe wrapper for operating heavy inference workloads on 1-4 DGX Spark nodes.
+# Simple, safe wrapper for operating heavy inference workloads on 1-5 DGX Spark nodes.
 #
-# SCALABLE for 1-4 DGX Spark nodes (high-speed linked for 2+).
+# SCALABLE for 1-5 DGX Spark nodes (high-speed linked for 2+).
 #
 # - Works with 1 node (single control-plane + worker, local multi-GPU NCCL).
-# - Scales to 2-4 nodes with inter-node NCCL over dual 400G links.
+# - Scales to 2-5 nodes with inter-node NCCL over the fabric's high-speed links.
 # - Tailored for small clusters; for larger see notes in docs.
 #
 # Core safety philosophy (enforced by this script and the workloads):

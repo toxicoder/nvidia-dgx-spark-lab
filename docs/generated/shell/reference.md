@@ -13,13 +13,13 @@ This reference documents every command, helper, and profile exposed by the scrip
 
 ## nvidia-dgx-spark-lab management script
 
-Simple, safe wrapper for operating heavy inference workloads on 1-4 DGX Spark nodes.
+Simple, safe wrapper for operating heavy inference workloads on 1-5 DGX Spark nodes.
 
-SCALABLE for 1-4 DGX Spark nodes (high-speed linked for 2+).
+SCALABLE for 1-5 DGX Spark nodes (high-speed linked for 2+).
 
 - Works with 1 node (single control-plane + worker, local multi-GPU NCCL).
 
-- Scales to 2-4 nodes with inter-node NCCL over dual 400G links.
+- Scales to 2-5 nodes with inter-node NCCL over the fabric's high-speed links.
 
 - Tailored for small clusters; for larger see notes in docs.
 
@@ -1362,7 +1362,7 @@ Dashboard can trigger download and show status.
 Bidirectional (or directed) sync of Ollama models between DGX Spark nodes using the high-speed interconnect.
 
 **Intent**: Keep ~/.ollama/models in sync across the two nodes for dev/experiments
-without re-downloading large models. Uses the dual 400G links when possible.
+without re-downloading large models. Uses the high-speed interconnect links when possible.
 
 **Idempotency**:
 

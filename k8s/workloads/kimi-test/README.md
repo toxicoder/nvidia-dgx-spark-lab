@@ -1,6 +1,6 @@
 # kimi-test Workload
 
-Lighter, safer version of the Kimi inference workload (scalable for 1-4 nodes).
+Lighter, safer version of the Kimi inference workload (scalable for 1-5 nodes).
 
 Deployed by `./scripts/manage.sh start-test`.
 

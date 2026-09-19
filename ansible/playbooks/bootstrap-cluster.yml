@@ -1,4 +1,4 @@
-# Purpose: Primary K3s cluster bootstrap for 1-4 DGX Spark nodes
+# Purpose: Primary K3s cluster bootstrap for 1-5 DGX Spark nodes
 # Source of truth: this file
 # Regenerate: n/a
 # Safety: installs control plane; review inventory before running
@@ -6,11 +6,11 @@
 ---
 # ## bootstrap-cluster.yml
 #
-# Primary playbook to bring up a K3s cluster on DGX Spark (1-4 nodes).
+# Primary playbook to bring up a K3s cluster on DGX Spark (1-5 nodes).
 #
 # Scalable design:
 # - k3s_server group (spark0): control-plane + worker
-# - k3s_agent group (spark1+): workers using high-speed links (2-4 nodes)
+# - k3s_agent group (spark1+): workers using high-speed links (2-5 nodes)
 #
 # This playbook is usually the first thing you run after preparing inventory.
 # See docs/getting-started.md Step 2 for the full recommended sequence.

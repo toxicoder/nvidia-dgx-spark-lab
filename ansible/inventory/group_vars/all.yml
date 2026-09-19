@@ -13,17 +13,17 @@
 #   - scripts/lib/models.sh (model profiles used by manage.sh estimate/start-*)
 # Override per-environment in inventory or host_vars; do not assume group_vars
 # alone defines what a deployed Job will use.
-# SCALABLE for 1-4 DGX Spark nodes (tailored; supports 1 node minimum, up to 4 with high-speed links).
+# SCALABLE for 1-5 DGX Spark nodes (tailored; supports 1 node minimum, up to 5 with high-speed links).
 # - 1 node: Single all-in-one (control-plane + worker). Simplified single-node NCCL (local GPUs).
-# - 2-4 nodes: 1 control-plane (spark0), remaining workers. Uses high-speed for inter-node NCCL.
-# - For >4 or infinite scale: Extend groups, use K3s HA control-plane, advanced networking (e.g. Flannel + WireGuard).
+# - 2-5 nodes: 1 control-plane (the orchestrator), remaining workers. Uses high-speed for inter-node NCCL.
+# - Beyond 5 nodes: outside the supported topologies; plan a separate design (K3s HA control-plane, advanced networking).
 # - Set k3s_control_plane in inventory or override for custom naming.
 
 # K3s configuration
 k3s_version: "v1.30.3+k3s1"
 k3s_channel: "stable"
 
-# Control plane node (always 1 for 1-4 node setups; customize if using different naming)
+# Control plane node (the orchestrator; default spark0 — re-assign via role: orchestrator in lab.yaml)
 k3s_control_plane: "spark0"
 k3s_server_ip: "{{ hostvars[k3s_control_plane].ansible_host | default('127.0.0.1') }}"
 
@@ -42,7 +42,7 @@ highspeed_ip_prefix2: "192.168.101"
 # For template, suffix computed in role based on inventory_hostname
 
 # NCCL settings
-# For multi-node (2-4): Use high-speed interfaces for inter-node comms.
+# For multi-node (2-5): Use high-speed interfaces for inter-node comms.
 # For single node (1): Simplified; NCCL uses shared memory / P2P locally. Override if needed.
 nccl_env:
   NCCL_SOCKET_IFNAME: "{{ highspeed_interfaces }}"
@@ -64,7 +64,7 @@ gpu_time_slicing_replicas: 2
 
 # Resource defaults for heavy workloads (adjust per node count / total GPUs)
 # For 1 node: e.g. request/limit 8 (or whatever your single DGX has)
-# For 2-4 nodes: scale tensor-parallel across nodes (e.g. 8-16+ total)
+# For 2-5 nodes: scale tensor-parallel across nodes (e.g. 8-16+ total)
 default_gpu_request: "8"
 default_gpu_limit: "8"
 
@@ -86,7 +86,7 @@ k3s_kubelet_reserved_args: >-
   --kubelet-arg=kube-reserved=cpu=2,memory=8Gi
   --kubelet-arg=eviction-hard=memory.available<10%
 
-# K3s extra args for server (single control-plane recommended for 1-4 nodes)
+# K3s extra args for server (single control-plane recommended for 1-5 nodes)
 # Bundled Traefik is disabled; production Traefik v3 is installed separately via Helm (ansible/roles/traefik).
 k3s_server_extra_args: "--disable traefik --disable servicelb --flannel-backend=host-gw {{ k3s_kubelet_reserved_args }}"
 

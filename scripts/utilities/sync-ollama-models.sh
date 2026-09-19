@@ -5,7 +5,7 @@
 # Bidirectional (or directed) sync of Ollama models between DGX Spark nodes using the high-speed interconnect.
 #
 # **Intent**: Keep ~/.ollama/models in sync across the two nodes for dev/experiments
-# without re-downloading large models. Uses the dual 400G links when possible.
+# without re-downloading large models. Uses the high-speed interconnect links when possible.
 #
 # **Idempotency**:
 # - status reports drift (via rsync --dry-run).
@@ -54,7 +54,7 @@ check_tool() {
 # Config (override via env or group_vars style)
 OLLAMA_MODELS_DIR=${OLLAMA_MODELS_DIR:-"$HOME/.ollama/models"}
 
-# Highspeed config from lab (use the dual 400G)
+# Highspeed config from lab (pair-fabric defaults; override HIGHSPEED_IFS for ring/switch)
 HIGHSPEED_IFS=${HIGHSPEED_IFS:-"enp1s0f0np0,enp1s0f1np1"}
 # Assume remote is the other node; use highspeed IP prefix if set
 # No default host — set REMOTE_HOST to the peer's highspeed IP (e.g. 192.168.100.2).
