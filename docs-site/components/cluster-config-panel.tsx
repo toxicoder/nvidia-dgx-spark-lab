@@ -25,9 +25,30 @@ export const DEFAULT_VARS: Record<string, string> = {
   DASHBOARD_PORT: "32082"
 };
 
+/**
+ * One profile per supported lab topology (`start/choose-topology.mdx`): 1-node
+ * `none`, 2-node `pair`, 3-node `ring`, and the 4/5-node CRS804 `switch`.
+ * The multi-node profiles all pre-fill the reference orchestrator address
+ * (spark0 on 10.0.0.0/24, `role: orchestrator` in `ansible/inventory/lab.yaml`).
+ */
 const PROFILE_VARS: Record<string, Record<string, string>> = {
   "1node": { SPARK0_IP: "localhost", NAMESPACE: "ai-inference", DASHBOARD_PORT: "32082" },
-  "2node": { SPARK0_IP: "192.168.1.10", NAMESPACE: "ai-inference", DASHBOARD_PORT: "32082" }
+  "2node": { SPARK0_IP: "192.168.1.10", NAMESPACE: "ai-inference", DASHBOARD_PORT: "32082" },
+  "3node": { SPARK0_IP: "10.0.0.10", NAMESPACE: "ai-inference", DASHBOARD_PORT: "32082" },
+  "4node": { SPARK0_IP: "10.0.0.10", NAMESPACE: "ai-inference", DASHBOARD_PORT: "32082" },
+  "5node": { SPARK0_IP: "10.0.0.10", NAMESPACE: "ai-inference", DASHBOARD_PORT: "32082" }
+};
+
+/** Profile ids in display order — one button per supported topology. */
+export const PROFILE_IDS = Object.keys(PROFILE_VARS);
+
+/** Button labels matching the topology tab vocabulary used across the docs. */
+const PROFILE_LABELS: Record<string, string> = {
+  "1node": "1-node / localhost profile",
+  "2node": "2-node typical profile",
+  "3node": "3-node ring profile",
+  "4node": "4-node switch profile",
+  "5node": "5-node switch profile"
 };
 
 /**
@@ -184,6 +205,12 @@ export function ClusterConfigPanel() {
   const [vars, setVars] = useState<Record<string, string>>(() => mergeVars(DEFAULT_VARS, loadVars()));
   const varsRef = useRef(vars);
   varsRef.current = vars;
+  // The multi-node profiles share one reference address, so the active button is tracked
+  // from the click (or from a fully-recognizable address on load) rather than back-derived
+  // from the variables alone.
+  const [activeProfile, setActiveProfile] = useState<string | undefined>(() =>
+    profileForVars(mergeVars(DEFAULT_VARS, loadVars()))
+  );
 
   const commit = useCallback((next: Record<string, string>) => {
     varsRef.current = next;
@@ -207,8 +234,6 @@ export function ClusterConfigPanel() {
     return () => observer.disconnect();
   }, []);
 
-  const active = profileForVars(vars);
-
   return (
     <div ref={root} className="cluster-config" data-vars="SPARK0_IP,NAMESPACE,DASHBOARD_PORT">
       <p className="mt-0 font-semibold">
@@ -222,28 +247,30 @@ export function ClusterConfigPanel() {
               data-var={key}
               value={vars[key] ?? DEFAULT_VARS[key]}
               placeholder={key.toLowerCase()}
-              onChange={(event) => commit({ ...varsRef.current, [key]: event.target.value.trim() })}
+              onChange={(event) => {
+                const next = { ...varsRef.current, [key]: event.target.value.trim() };
+                commit(next);
+                setActiveProfile(profileForVars(next));
+              }}
             />
           </label>
         ))}
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          data-profile="1node"
-          className={`md-button${active === "1node" ? " md-button--primary" : ""}`}
-          onClick={() => commit(applyProfile("1node", { ...varsRef.current }))}
-        >
-          1-node / localhost profile
-        </button>
-        <button
-          type="button"
-          data-profile="2node"
-          className={`md-button${active === "2node" ? " md-button--primary" : ""}`}
-          onClick={() => commit(applyProfile("2node", { ...varsRef.current }))}
-        >
-          2-node typical profile
-        </button>
+        {PROFILE_IDS.map((id) => (
+          <button
+            key={id}
+            type="button"
+            data-profile={id}
+            className={`md-button${activeProfile === id ? " md-button--primary" : ""}`}
+            onClick={() => {
+              commit(applyProfile(id, { ...varsRef.current }));
+              setActiveProfile(id);
+            }}
+          >
+            {PROFILE_LABELS[id]}
+          </button>
+        ))}
         <small>(live updates + copy buttons respect current values)</small>
       </div>
     </div>
