@@ -8,34 +8,19 @@
 # - Tailored for small clusters (1-4). For larger, consider K3s HA and different networking.
 # - Node names are conventional; customize hostnames/IPs as needed.
 #
-# Example for 1 node:
-# [spark0]
-# spark0 ansible_host=10.0.0.10 ansible_user=ubuntu
-#
-# Example for 2 nodes (default):
-# [spark0]
-# spark0 ansible_host=10.0.0.10 ansible_user=ubuntu
-# [spark1]
-# spark1 ansible_host=10.0.0.11 ansible_user=ubuntu
-#
-# For 3-4 nodes, add [spark2], [spark3] etc. under [k3s_agent] and [k3s_cluster].
+# This file is normally replaced by the GENERATED ansible/inventory/hosts.ini
+# (`manage.sh setup` or `manage.sh topology render`, from lab.yaml). Use it
+# only for manual labs. Node lines are commented out beyond node 1.
 
-[spark0]
+# Example for 1 node: uncomment only the spark0 lines.
+# Example for 2-4 nodes: uncomment the spark1+ lines in [k3s_cluster] and
+# [k3s_agent] (host lines carry the vars; no per-node groups needed).
+
+[k3s_cluster]
 spark0 ansible_host=10.0.0.10 ansible_user=ubuntu
-
-# Uncomment and add for 2+ nodes
-# [spark1]
 # spark1 ansible_host=10.0.0.11 ansible_user=ubuntu
-# [spark2]
 # spark2 ansible_host=10.0.0.12 ansible_user=ubuntu
-# [spark3]
 # spark3 ansible_host=10.0.0.13 ansible_user=ubuntu
-
-[k3s_cluster:children]
-spark0
-# spark1
-# spark2
-# spark3
 
 [k3s_server]
 spark0

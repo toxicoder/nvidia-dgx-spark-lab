@@ -6,14 +6,23 @@
 ---
 # ## highspeed_network role
 #
-# Configures the dual 400G high-speed links between nodes.
-# Uses ibdev2netdev detection + netplan template.
+# Configures the high-speed interconnect netplan on every node.
+# Prefers the per-node netplan generated from ansible/inventory/lab.yaml
+# (fabric: pair/ring/switch); falls back to the legacy dual-400G pair
+# template + ibdev2netdev detection for hand-made hosts.ini labs.
 #
 # Critical for good NCCL performance on 2+ node setups.
 # Ignored (or harmless) on 1-node.
 #
 # Safety: Only touches high-speed interfaces, never the management network.
 # See also cloud-init for early-boot equivalent.
+
+- name: Check for generated per-node highspeed netplan (from lab.yaml)
+  stat:
+    path: "{{ playbook_dir }}/../{{ lab_highspeed_netplan_dir | default('files/generated/netplan') }}/{{ inventory_hostname }}-99-highspeed.yaml"
+  delegate_to: localhost
+  become: false
+  register: generated_netplan
 
 - name: Detect high-speed IB net devices using ibdev2netdev
   shell: |
@@ -26,16 +35,28 @@
     hs_if0: "{{ hs_nets.stdout_lines[0] | default('') }}"
     hs_if1: "{{ hs_nets.stdout_lines[1] | default(hs_nets.stdout_lines[0] | default('')) }}"
 
+# In generated mode the interfaces come from lab.yaml (validated by
+# 'manage.sh topology validate'), so live detection failures are not fatal.
 - name: Fail if no high speed interfaces detected (for 2+ nodes)
   fail:
     msg: "No high-speed interfaces detected."
   when:
     - groups['k3s_cluster'] | default([]) | length > 1
     - hs_if0 == ''
+    - not generated_netplan.stat.exists
 
 - name: Set IP suffix based on node (spark0=1, others=2)
   set_fact:
     ip_suffix: "{{ '1' if inventory_hostname == k3s_control_plane else '2' }}"
+
+- name: Deploy generated per-node netplan (lab.yaml source of truth)
+  copy:
+    src: "{{ playbook_dir }}/../{{ lab_highspeed_netplan_dir | default('files/generated/netplan') }}/{{ inventory_hostname }}-99-highspeed.yaml"
+    dest: /etc/netplan/99-highspeed.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  when: generated_netplan.stat.exists
 
 - name: Deploy netplan config for highspeed interfaces (persistent)
   template:
@@ -44,11 +65,14 @@
     owner: root
     group: root
     mode: "0644"
-  when: hs_if0 != ''
+  when:
+    - hs_if0 != ''
+    - not generated_netplan.stat.exists
 
 - name: Apply netplan
   shell: netplan apply || true
-  when: hs_if0 != ''
+  when:
+    - hs_if0 != '' or generated_netplan.stat.exists
 
 - name: Generate SSH key if not present (ed25519 for modern)
   shell: |
@@ -84,6 +108,9 @@
     - hs_if0 != ''
     - hostvars[peer].ssh_pub_key is defined
 
+# Pair-fabric peer checks only: the dual-400G scheme pins both nodes to
+# 192.168.10x.1/.2. Ring/switch labs use the generated per-node /24s instead,
+# so verify those with 'manage.sh topology check' + 'doctor-fabric'.
 - name: Validate highspeed connectivity (ping and basic)
   shell: |
     set -e
@@ -91,14 +118,18 @@
     PEER_IP="{{ highspeed_ip_prefix }}.{{ '2' if inventory_hostname == k3s_control_plane else '1' }}"
     ping -c 3 -W 2 $PEER_IP
     echo "Highspeed ping OK to $PEER_IP"
-  when: groups['k3s_cluster'] | default([]) | length > 1
+  when:
+    - groups['k3s_cluster'] | default([]) | length > 1
+    - not generated_netplan.stat.exists
   delegate_to: "{{ inventory_hostname }}"
 
 - name: Validate passwordless SSH on highspeed (if configured)
   shell: |
     PEER_IP="{{ highspeed_ip_prefix }}.{{ '2' if inventory_hostname == k3s_control_plane else '1' }}"
     ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 {{ ansible_user | default('ubuntu') }}@$PEER_IP 'echo OK'
-  when: groups['k3s_cluster'] | default([]) | length > 1
+  when:
+    - groups['k3s_cluster'] | default([]) | length > 1
+    - not generated_netplan.stat.exists
   delegate_to: "{{ inventory_hostname }}"
 
 - name: Basic NCCL/IB test hint
