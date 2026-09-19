@@ -34,13 +34,18 @@ exports_files([
 filegroup(
     name = "devcontainer",
     srcs = [
+        ".devcontainer/.dockerignore",
         ".devcontainer/Dockerfile",
         ".devcontainer/README.md",
         ".devcontainer/devcontainer.json",
         ".devcontainer/devcontainer-lock.json",
+        ".devcontainer/docker-bake.hcl",
         ".devcontainer/doctor.sh",
+        ".devcontainer/grok-managed.toml",
+        ".devcontainer/host-llm.example.toml",
         ".devcontainer/install-agent-clis.sh",
         ".devcontainer/post-create.sh",
+        ".devcontainer/sandbox.toml",
         ".devcontainer/tool-versions.env",
     ],
     visibility = ["//visibility:public"],
@@ -55,6 +60,7 @@ filegroup(
         ".github/dependabot.yml",
         ".github/workflows/ci.yml",
         ".github/workflows/deploy-docs.yml",
+        ".github/workflows/devcontainer-image.yml",
     ],
     visibility = ["//visibility:public"],
 )

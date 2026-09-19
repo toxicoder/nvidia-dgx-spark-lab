@@ -15,6 +15,10 @@ definition from any of:
 | **Linux workstation** | amd64 or arm64 | Docker Engine or Podman |
 | **NVIDIA DGX Spark** | arm64 (Grace) | Docker/Podman on the Spark; same arm64 image |
 
+The **container is always Linux**. We do not ship Windows containers (Bazel,
+kcov, and kubeconform are Linux-native). On Windows, clone on the WSL2
+filesystem (`\\wsl$\…`), not `/mnt/c`.
+
 You do **not** need NVIDIA drivers or a GPU for code contribution (shell, k8s
 YAML, dashboard unit tests, docs). Cluster ops remain separate
 ([getting-started](../docs/getting-started.md)).
@@ -41,13 +45,17 @@ Full guide: [docs/dev-environment.md](../docs/dev-environment.md).
 
 | File | Role |
 | --- | --- |
-| `tool-versions.env` | **SSOT** tool pins (CI + image + doctor) |
-| `Dockerfile` | Pinned CLIs, multi-arch binaries |
-| `devcontainer.json` | Features (Node 22, Python 3.11, docker-outside-of-docker), caches, lifecycle |
-| `devcontainer-lock.json` | **Committed** feature digests (reproducible Feature installs; like a lockfile) |
-| `post-create.sh` | Workspace deps (`npm ci`, docs, Playwright) |
-| `install-agent-clis.sh` | Optional Grok + Hermes CLIs (fixes `~/.grok` / `~/.hermes` volume ownership) |
-| `doctor.sh` | Verify required tools |
+| `tool-versions.env` | **SSOT** tool pins + checksums (CI + image + doctor) |
+| `Dockerfile` | Independent fetch stages (one pin ≠ rebuild everything) |
+| `.dockerignore` | Tiny build context (README/lockfile edits do not bust COPY) |
+| `devcontainer.json` | DooD Feature, caches, `host.docker.internal`, Grok sandbox env |
+| `devcontainer-lock.json` | **Committed** Feature digest (docker-outside-of-docker only) |
+| `grok-managed.toml` / `sandbox.toml` | Baked Grok auto-update off + `lab` sandbox profile |
+| `host-llm.example.toml` | Example `http://host.docker.internal:4000/v1` model |
+| `post-create.sh` | Workspace deps (`npm ci`, docs, Playwright) — not image layers |
+| `install-agent-clis.sh` | Skips grok when `/usr/local/bin/grok` matches the pin; Hermes optional |
+| `doctor.sh` | Verify required tools (`grok` required inside the container) |
+| `docker-bake.hcl` | Local `docker buildx bake` for linux/amd64+arm64 |
 
 ### Feature lockfile
 
@@ -58,13 +66,23 @@ in `devcontainer.json`, then commit the new lock.
 
 ## Agent CLIs (Grok Build + Hermes)
 
-Post-create installs official CLIs on PATH only (optional if network is blocked).
-Hermes is installed with `--skip-setup --non-interactive` — no Blank Slate wizard
-during create. Auth/setup runs only when **you** use the tools:
+**Grok Build** is baked into the image at `/usr/local/bin/grok` (pinned in
+`tool-versions.env`). The named volume on `~/.grok` holds auth/sessions only —
+it does **not** overlay the binary. Default sandbox is `GROK_SANDBOX=lab`
+(workspace writes, kernel-deny of the host Docker socket and typical secret
+files). Auto-update is off so the pin sticks.
+
+The container uses the default bridge network plus
+`--add-host=host.docker.internal:host-gateway` (portable on Docker Desktop and
+Linux Engine). Point Grok at a host LiteLLM/vLLM with
+`http://host.docker.internal:4000/v1` (see `host-llm.example.toml`). Do **not**
+use `--network=host` (Linux-only, breaks macOS/Windows).
+
+**Hermes** is still optional post-create (`--skip-setup --non-interactive`).
 
 | CLI | Upstream | Auth (never commit; user-initiated) |
 | --- | --- | --- |
-| `grok` | [xai-org/grok-build](https://github.com/xai-org/grok-build) | `grok login` → volume `~/.grok` |
+| `grok` | [xai-org/grok-build](https://github.com/xai-org/grok-build) | `grok login --device-auth` → volume `~/.grok` |
 | `hermes` | [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) | `hermes setup` when needed → volume `~/.hermes` |
 
 ```bash
@@ -89,7 +107,14 @@ this CLI install — see [docs/hermes-agent.md](../docs/hermes-agent.md).
 
 ## Design choices
 
-- **docker-outside-of-docker** — uses the host Docker socket (fast on macOS; works with Desktop/WSL2). Needed for `//dashboard:hermetic-test`.
+- **Independent fetch stages** — kubectl, helm, bazelisk, Node, Grok, … each have
+  their own BuildKit cache. CI publishes
+  `ghcr.io/toxicoder/nvidia-dgx-spark-lab/devcontainer` for `build.cacheFrom`.
+- **Node 22 + Python 3.11 baked** — not Dev Container Features (those re-run
+  whenever the image id changes). Only **docker-outside-of-docker** remains a
+  Feature (it needs the live host socket).
+- **docker-outside-of-docker** — host Docker socket for `//dashboard:hermetic-test`.
+  Grok's `lab` profile cannot use that socket; humans still can.
 - **No full-suite gate on create** — optional `DEVCONTAINER_SMOKE=1` only.
 - **Named volumes** for Bazel disk/repo, npm, pip, Playwright caches and agent homes (`~/.grok`, `~/.hermes`) across rebuilds.
 - **`REQUIRE_LINT_TOOLS=1`** — missing linters fail like CI (no silent skips).

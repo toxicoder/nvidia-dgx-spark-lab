@@ -41,6 +41,7 @@ jobs:
               - 'tests/**'
               - 'lints/**'
               - 'helm/**'
+              - '.devcontainer/**'
             dashboard:
               - 'dashboard/**'
               - 'scripts/utilities/**'

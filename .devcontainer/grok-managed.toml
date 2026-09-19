@@ -1,0 +1,4 @@
+# Managed Grok Build defaults for the nvidia-dgx-spark-lab dev container.
+# Copied to /etc/grok/managed_config.toml in the image. Do not put secrets here.
+[cli]
+auto_update = false

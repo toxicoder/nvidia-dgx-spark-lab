@@ -1,0 +1,7 @@
+# Keep the build context tiny so README/lockfile edits do not bust COPY layers.
+*
+!Dockerfile
+!tool-versions.env
+!grok-managed.toml
+!sandbox.toml
+!host-llm.example.toml
