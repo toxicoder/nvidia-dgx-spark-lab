@@ -68,6 +68,7 @@ _HAND_WRITTEN_MD = [
     "sso.mdx",
     "start/choose-topology.mdx",
     "start/index.mdx",
+    "start/lab-topology.mdx",
     "start/profiles.mdx",
     "troubleshooting.mdx",
     "visual-generative-ai.mdx",

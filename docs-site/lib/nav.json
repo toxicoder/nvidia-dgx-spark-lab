@@ -24,6 +24,10 @@
         "path": "start/choose-topology.md"
       },
       {
+        "title": "Lab topology",
+        "path": "start/lab-topology.md"
+      },
+      {
         "title": "Profiles",
         "path": "start/profiles.md"
       },

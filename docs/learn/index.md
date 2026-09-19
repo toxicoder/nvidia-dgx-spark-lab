@@ -51,6 +51,7 @@ Multi-GPU **inside one node** uses SHM/P2P. Multi-node uses the QSFP fabric:
 | --- | --- |
 | 2-node pair | `group_vars` `highspeed_*` / `nccl_env` (dual ~400G) |
 | 3-node ring | Overlay Jobs only — OOB 10GbE + four RoCE HCAs. **Not** the pair env |
+| 4/5-node switch | Generated per-node netplan (one RoCE /24 per node, CRS804). **Not** the pair env |
 
 [Interconnect & NCCL](../concepts/interconnect-nccl.md)
 

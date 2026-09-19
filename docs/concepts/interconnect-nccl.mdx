@@ -1,23 +1,24 @@
 ---
 title: Interconnect and NCCL
-description: DGX Spark high-speed fabrics — 2-node dual-400G pair vs 3-node QSFP ring, interface names, HCAs, and verification.
-tags: [nccl, interconnect, qsfp, safety, nvidia]
+description: DGX Spark high-speed fabrics — 2-node pair, 3-node QSFP ring, and 4/5-node CRS804 switch, interface names, HCAs, and verification.
+tags: [nccl, interconnect, qsfp, mikrotik, safety, nvidia]
 ---
 
 # Interconnect and NCCL
 
 **What's on this page**
 
-- Two fabrics this lab actually ships: 2-node pair and 3-node QSFP ring
+- Three fabrics this lab actually ships: 2-node pair, 3-node QSFP ring, 4/5-node CRS804 switch
 - Which env vars belong to which Jobs
 - How to verify with `ibdev2netdev`, ping, logs, and `doctor-fabric`
 
 **What this enables**
 
 - Setting `NCCL_SOCKET_IFNAME` and `NCCL_IB_HCA` from live devices, not folklore
-- Not copying `group_vars` pair env onto Mode B/C ring Jobs
+- Not copying `group_vars` pair env onto Mode B/C ring Jobs or switch labs
 
 Authoritative **runtime** values are in `k8s/workloads/*` Job YAML. `ansible/inventory/group_vars/all.yml` `highspeed_*` / `nccl_env` is **reference for a 2-node pair only**.
+The 3/4/5-node netplans come from the declarative topology: [Lab topology](../start/lab-topology.md).
 
 ## Planes
 
@@ -75,9 +76,24 @@ Plus `hostNetwork: true` and `hostIPC: true`. If 10GbE is not `enP7s7`, set `LAB
 </Callout>
 Full cabling, aliases, and util caps: [LiteLLM rounded stack](../litellm-rounded-stack.md).
 
-## 4 nodes
+## 4 / 5 nodes — Mikrotik CRS804-4DDQ-hRM switch
 
-Qwen 3.5 397B NVFP4 uses TP=4 Jobs with `hostNetwork: true`. Treat each hop as its own wiring plan. Do not assume the 2-node pair `NCCL_SOCKET_IFNAME` list is complete.
+The switch fabric is a managed 4× 400G QSFP-DD device; each node sees **one** RoCE link:
+
+- **4 nodes:** one full port per node (`sfpplus1`…`sfpplus4`), 400G each.
+- **5 nodes:** three full ports + one port split with a breakout cable into
+  `sfpplus4a` / `sfpplus4b` (two 200G lanes). Both lanes must be declared in the
+  `switch.port_map` — the topology validator rejects a lone lane.
+- Each link is its own /24 (192.168.110–114, MTU 9000) from the generated per-node
+  netplan — one node per subnet, so there is no shared-suffix IP scheme to get wrong.
+- `NCCL_SOCKET_IFNAME` stays the management NIC; the payload rides the single RoCE HCA
+  (`NCCL_IB_HCA` from live `ibdev2netdev` names per node).
+- Heavy Jobs use `hostNetwork: true`. Do not assume the 2-node pair
+  `NCCL_SOCKET_IFNAME` list is complete — it is not, on a switch.
+
+The switch block (host, read-only user, `port_map`) lives in `lab.yaml`; the password is
+`LAB_SWITCH_PASSWORD` in the operator's environment only. Qwen 3.5 397B NVFP4 is the
+canonical TP=4 Job here. Cabling and port map: [Choose topology](../start/choose-topology.md).
 
 ## Verify
 

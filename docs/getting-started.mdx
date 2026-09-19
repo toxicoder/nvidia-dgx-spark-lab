@@ -1,6 +1,6 @@
 ---
 title: Getting Started
-description: Gold path — inventory, cloud-init, Ansible, GPU Operator, doctor, kimi-test, dashboard URL, and reboot reminder on 1-4 DGX Spark nodes.
+description: Gold path — operator client, topology file, cloud-init, Ansible, GPU Operator, doctor, kimi-test, dashboard URL, and reboot reminder on 1-5 DGX Spark nodes.
 tags: [getting-started, bazel, k3s, ansible, safety]
 ---
 
@@ -10,8 +10,8 @@ tags: [getting-started, bazel, k3s, ansible, safety]
 
 **What's on this page**
 
-- Prerequisites and out-of-band console
-- Inventory tabs for 1 / 2 / 4 nodes (3-node ring is a separate path)
+- Prerequisites (including the one-command operator-client setup) and out-of-band console
+- The `lab.yaml` topology file for all five configurations (1 / 2 / 3 / 4 / 5 nodes)
 - cloud-init, Ansible bootstrap, GPU Operator
 - `doctor`, first verify, first safe workload (`kimi-test`)
 - Dashboard URL and reboot reminder
@@ -25,57 +25,90 @@ Topology choice: [Choose topology](start/choose-topology.md). Profiles after thi
 
 ## Prerequisites
 
-- 1–4 DGX Spark nodes, Ubuntu 22.04 or 24.04
+- 1–5 DGX Spark nodes, Ubuntu 22.04 or 24.04 (fabric per node count: [Choose topology](start/choose-topology.md))
 - `nvidia-smi` works on the node
-- SSH key + sudo from your workstation
+- SSH key + sudo from your workstation (operator client)
 - **Out-of-band console** (IPMI/iDRAC) — heavy Jobs can still wedge SSH if you skip Guard
-- Workstation: Ansible ≥ 2.14, kubectl, helm, **bazelisk** (Makefile is a shim)
+- Operator client (the machine that runs Ansible and `manage.sh`): Ansible ≥ 2.14, kubectl, helm, **bazelisk**
+
+<Tabs groupId="operator-client-os" items={["macOS", "Linux", "Windows"]} persist>
+  <Tab value="macOS">
+    One command installs and verifies everything (Homebrew, no sudo):
+
+    ```bash
+    ./scripts/utilities/install-operator-client.sh run
+    ```
+  </Tab>
+  <Tab value="Linux">
+    Same script, apt/dnf based:
+
+    ```bash
+    ./scripts/utilities/install-operator-client.sh run
+    ```
+  </Tab>
+  <Tab value="Windows">
+    Install WSL2 + Ubuntu once (PowerShell), then the same script inside WSL:
+
+    ```powershell
+    powershell -ExecutionPolicy Bypass -File .\scripts\utilities\install-operator-client.ps1
+    ```
+  </Tab>
+</Tabs>
+`status` subcommand reports what is already present; see [Shell reference](generated/shell/reference.md) for the full contract.
 
 <Callout type="warning" title="Safety">
   Never proceed without inventory ping and OOB access. Do not start kimi / Mode B/C until `start-test` succeeds.
 </Callout>
-## Step 1 — Inventory
+## Step 1 — Topology file (inventory)
+
+The declarative topology `ansible/inventory/lab.yaml` is the single source of truth for
+**all five configurations** — node names/IPs, fabric, switch port map, and which Spark is
+the orchestrator. Edit it, then render:
 
 ```bash
-cp ansible/inventory/hosts.ini.example ansible/inventory/hosts.ini
+bazelisk run //:manage -- setup        # wizard: prompts, then writes + renders
+# or, non-interactive:
+bazelisk run //:manage -- topology render
 ```
 
-Edit IPs. The example file uses `10.0.0.10` placeholders — not a live lab.
+Rendering produces the Ansible inventory (`ansible/inventory/hosts.ini`, gitignored),
+fabric group vars, per-node netplan, and per-node cloud-init user-data — all from the
+topology file. Full model: [Lab topology](start/lab-topology.md).
 
-<Tabs groupId="1-node-2-node-4-node" items={["1-node", "2-node", "4-node"]} persist>
+<Tabs groupId="1-node-2-node-5-node" items={["1-node", "2-node", "3-node ring", "4/5-node switch"]} persist>
   <Tab value="1-node">
-    ```ini
-    [spark0]
-    spark0 ansible_host=10.0.0.10 ansible_user=ubuntu
-
-    [k3s_cluster:children]
-    spark0
-
-    [k3s_server]
-    spark0
-
-    [k3s_agent]
-    ```
-
-    High-speed group is ignored. Local NCCL only.
+    `fabric: none`, one node with `role: orchestrator`. No high-speed cabling, local NCCL only.
   </Tab>
   <Tab value="2-node">
-    Uncomment spark1 in `hosts.ini.example`. Dual QSFP between nodes. `group_vars` `highspeed_*` is the **pair** NCCL reference.
+    `fabric: pair`, two nodes with both `hs_ifs` (dual QSFP direct). `group_vars` `highspeed_*`
+    is the **pair** NCCL reference.
   </Tab>
-  <Tab value="4-node">
-    Add spark2 and spark3 under `k3s_agent` and `k3s_cluster` the same way. Do **not** paste 2-node `NCCL_SOCKET_IFNAME` onto extra hops without reading [Interconnect & NCCL](concepts/interconnect-nccl.md).
+  <Tab value="3-node ring">
+    `fabric: ring`, three nodes, QSFP triangle. **Not** “2-node plus spark2 with pair env” —
+    cabling and Job env: [LiteLLM rounded stack](litellm-rounded-stack.md).
+  </Tab>
+  <Tab value="4/5-node switch">
+    `fabric: switch` + `switch:` block (CRS804-4DDQ-hRM `port_map`, one entry per node; 5 nodes
+    use breakout lanes `sfpplus4a`/`sfpplus4b`). Do **not** paste 2-node `NCCL_SOCKET_IFNAME`
+    onto switch hops without reading [Interconnect & NCCL](concepts/interconnect-nccl.md).
   </Tab>
 </Tabs>
-**3-node QSFP ring** (Mode A/B/C) is not “2-node plus spark2 with pair env.” Cabling and Job env: [LiteLLM rounded stack](litellm-rounded-stack.md).
+Any node may be the orchestrator — see [Choose topology → Pick your orchestrator](start/choose-topology.md#pick-your-orchestrator).
 
 Verify:
 
 ```bash
+bazelisk run //:manage -- topology check
 cd ansible
 ansible -i inventory/hosts.ini all -m ping
 ```
 
 Expected: pong on every host. If not: SSH keys, management firewall, console `ip a`.
+
+<Callout type="info" title="Legacy hand-made inventory">
+  Still prefer a manual `hosts.ini`? `cp ansible/inventory/hosts.ini.example ansible/inventory/hosts.ini`
+  and edit it — the classic path still works, it just skips the generated netplan / cloud-init.
+</Callout>
 
 ## Step 2 — cloud-init (physical nodes)
 
@@ -85,7 +118,10 @@ Render early OS / highspeed user-data **before** or as the first part of bootstr
 bazelisk run //ansible:playbook -- apply-cloud-init-prep.yml
 ```
 
-Templates: `ansible/cloud-init/example-user-data-1node.yaml`, `example-user-data-2node.yaml`. Feed rendered YAML via vendor BMC, or apply manually and reboot.
+With a `lab.yaml` in place, user-data is generated per node at
+`ansible/files/generated/cloud-init/user-data-<node>.yaml` (all five fabrics). The static
+examples `ansible/cloud-init/example-user-data-1node.yaml` / `example-user-data-2node.yaml`
+remain for ad-hoc labs. Feed rendered YAML via vendor BMC, or apply manually and reboot.
 
 <Callout type="error" title="apply_now=true">
   Extra-var `apply_now=true` writes user-data on the node and can reboot it. Inference must already be stopped. Default is render-only.
@@ -107,7 +143,9 @@ To import prep from bootstrap: `--extra-vars run_cloud_init_prep=true`.
     ```
   </Tab>
 </Tabs>
-The playbook installs prereqs, highspeed netplan on 2+ nodes, K3s server on spark0, agents, labels, kubeconfig.
+The playbook installs prereqs, highspeed netplan on 2+ nodes (from the generated per-node
+netplan when present), K3s server on the **orchestrator** node (`role: orchestrator` in
+`lab.yaml`), agents, labels, kubeconfig.
 
 Verify:
 

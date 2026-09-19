@@ -1,22 +1,24 @@
 ---
 title: Choose topology
-description: Decide 1, 2, 3, or 4 DGX Spark nodes — NCCL implications and when not to go multi-node.
-tags: [topology, nccl, k3s, safety, nvidia]
+description: Decide 1 to 5 DGX Spark nodes — pair, ring, or CRS804 switch fabric, NCCL implications, and which Spark runs the control plane.
+tags: [topology, nccl, k3s, safety, nvidia, mikrotik]
 ---
 
 # Choose topology
 
 **What's on this page**
 
-- Decision tree for 1 / 2 / 3 / 4 nodes
-- Which interconnect each size uses
+- Decision tree for 1 / 2 / 3 / 4 / 5 nodes
+- Which interconnect each size uses (including the Mikrotik CRS804 switch)
+- How to pick which Spark runs the K3s control plane (the **orchestrator**)
 - When **not** to add nodes
-- Pointers to inventory and NCCL verification
+- Pointers to the declarative topology file, inventory, and NCCL verification
 
 **What this enables**
 
 - Picking a size that matches cables, models, and operational risk
 - Avoiding a 3-node QSFP ring configured with 2-node dual-400G `NCCL_*` env
+- Re-choosing the control plane without re-cabling (any Spark can be it)
 
 ```mermaid
 flowchart TD
@@ -24,23 +26,80 @@ flowchart TD
   B -->|None / learning Comfy| C[1 node]
   B -->|One dual-QSFP pair| D[2 nodes]
   B -->|Triangle QSFP ring| E[3 nodes]
-  B -->|Four nodes + TP=4 Job| F[4 nodes]
-  C --> G[Local SHM/P2P NCCL only]
-  D --> H[2-node pair dual ~400G]
-  E --> I[Ring 200 Gb/s per pair]
-  F --> J[Do not copy pair env onto extra hops]
+  B -->|CRS804 switch + 4 ports| F[4 nodes]
+  B -->|CRS804 switch + breakout| G[5 nodes]
+  C --> H[Local SHM/P2P NCCL only]
+  D --> I[2-node pair dual ~400G]
+  E --> J[Ring 200 Gb/s per pair]
+  F --> K[Switch: one RoCE link per node]
+  G --> L[Switch: 3 full ports + one split port]
 ```
 
-## Roles
+## The five supported configurations
 
-| Nodes | spark0 | spark1… | Fabric | Typical first Job |
-| --- | --- | --- | --- | --- |
-| **1** | control-plane + worker | — | none | `kimi-test` (local GPUs) |
-| **2** | control-plane + worker | worker | dual QSFP ~400G aggregate | `kimi-test` then 2-node models |
-| **3** | control-plane + worker | two workers | QSFP **ring** 200 Gb/s per pair | Mode A daily fleet or exclusive B/C |
-| **4** | control-plane + worker | three workers | do not assume pair env | e.g. Qwen 397B NVFP4 TP=4 |
+| Nodes | Fabric (`lab.yaml` `fabric:`) | Wiring | Typical first Job |
+| --- | --- | --- | --- |
+| **1** | `none` | no high-speed cabling | `kimi-test` (local GPUs) |
+| **2** | `pair` | dual QSFP direct between the two Sparks | `kimi-test`, then 2-node models |
+| **3** | `ring` | QSFP triangle (200 Gb/s per port per pair) | Mode A daily fleet, or exclusive B/C |
+| **4** | `switch` | Mikrotik **CRS804-4DDQ-hRM**, four QSFP-DD ports | e.g. Qwen 397B NVFP4 TP=4 |
+| **5** | `switch` | CRS804: three full ports + one 400G port split into two 200G breakout lanes | full-lab TP=4 + extra worker |
 
-spark0 is always the K3s server. Agents join `k3s_agent`. Inventory: `ansible/inventory/hosts.ini.example`.
+All five are declared in one file — `ansible/inventory/lab.yaml` — and everything else
+(Ansible inventory, netplan, cloud-init user-data, control-plane choice) is **generated from it**.
+See [Lab topology](lab-topology.md).
+
+### 4 / 5 nodes — the Mikrotik CRS804-4DDQ-hRM
+
+The switch is a managed 4-port 400G QSFP-DD device with a 10GbE management port:
+
+- **4-node lab:** each Spark plugs into one of the four `sfpplus1`…`sfpplus4` ports at 400G.
+- **5-node lab:** three Sparks take three full ports; the fourth port uses a **breakout cable**
+  (QSFP-DD to 2× QSFP) and carries two Sparks on lanes `sfpplus4a` and `sfpplus4b` at 200G each.
+  Both lanes must be declared together — the validator rejects a lone breakout lane.
+- Every link is its own /24 (192.168.110–114), MTU 9000. One RoCE device per node —
+  **not** the dual-HCA pair env. Do not paste 2-node `NCCL_SOCKET_IFNAME` onto switch hops.
+- The switch's management IP (e.g. `10.0.0.2`) is declared in the `switch:` block; only a
+  **read-only** API probe may use it. The switch password is read from the
+  `LAB_SWITCH_PASSWORD` environment variable at runtime — never commit it.
+
+Full per-fabric NCCL details: [Interconnect & NCCL](../concepts/interconnect-nccl.md).
+
+## Pick your orchestrator
+
+**Any** of the Sparks can run the K3s server. The declarative topology marks exactly one
+node with `role: orchestrator`, and the generated inventory derives the groups from it:
+
+- `k3s_server` — the orchestrator (control plane + worker)
+- `k3s_agent` — every other node
+- `k3s_cluster` — all nodes
+
+This is a lab, so re-assign the control plane freely — for example, when `spark0` is
+occupied with other experiments, run a 3-node ring on `spark1`, `spark2`, `spark3` with
+`spark1` as orchestrator, or a switch lab with `spark4` in charge. Cabling, netplan
+subnets, and model placement do not care which node is the server; only the group
+membership and the `k3s_control_plane` fact change.
+
+<Callout type="info" title="Moving the control plane on a live lab">
+  Re-pointing `role: orchestrator` changes which node hosts the K3s server. On a running
+  cluster that is a control-plane migration, not a config flip: drain the Jobs
+  (`bazelisk run //:manage -- stop`), bootstrap the new server, then rejoin agents.
+  On a fresh lab it is just one line in `lab.yaml` before first bootstrap.
+</Callout>
+
+## Roles (generated from `role: orchestrator`)
+
+| Nodes | orchestrator | others | Fabric |
+| --- | --- | --- | --- |
+| **1** | control-plane + worker | — | none |
+| **2** | control-plane + worker | worker | dual QSFP ~400G aggregate |
+| **3** | control-plane + worker | two workers | QSFP **ring** 200 Gb/s per pair |
+| **4** | control-plane + worker | three workers | CRS804, full QSFP-DD ports |
+| **5** | control-plane + worker | four workers | CRS804, one port split to two lanes |
+
+The orchestrator name (not "spark0") is what the generated inventory and `group_vars`
+use for `k3s_control_plane`. Inventory: generated from `ansible/inventory/lab.yaml`
+(legacy hand-made example: `ansible/inventory/hosts.ini.example`).
 
 ## Interconnect (do not mix)
 
@@ -56,8 +115,15 @@ spark0 is always the K3s server. Agents join `k3s_agent`. Inventory: `ansible/in
 - Payload on all four CX-7 RoCE devices per node
 - Jobs use `hostNetwork: true` and `hostIPC: true`
 
-<Callout type="error" title="Do not copy 2-node NCCL env onto a 3-node ring">
-  Wrong polarity or pair `NCCL_SOCKET_IFNAME` on a ring looks half-alive and dies in NCCL. See [Interconnect & NCCL](../concepts/interconnect-nccl.md) and [LiteLLM rounded stack](../litellm-rounded-stack.md).
+**4 / 5-node switch** is its own scheme again:
+
+- One RoCE link per node on its own /24 (the generated per-node netplan)
+- `NCCL_SOCKET_IFNAME` stays on the management NIC; payload on the single RoCE HCA
+- Jobs use `hostNetwork: true`; verify with `ibdev2netdev` per node
+
+<Callout type="error" title="Do not copy 2-node NCCL env onto a ring or switch lab">
+  Wrong polarity or pair `NCCL_SOCKET_IFNAME` on a ring or switch looks half-alive and dies in NCCL.
+  See [Interconnect & NCCL](../concepts/interconnect-nccl.md) and [LiteLLM rounded stack](../litellm-rounded-stack.md).
 </Callout>
 **1 node:** ignore `highspeed` inventory; NCCL uses SHM/P2P on the local GPU.
 
@@ -75,6 +141,7 @@ Add nodes only for models that **require** them (`multi_node_only` in `config/re
 ## Verify after you pick
 
 ```bash
+bazelisk run //:manage -- topology check
 ansible -i ansible/inventory/hosts.ini all -m ping
 bazelisk run //ansible:verify -- -i inventory/hosts.ini
 bazelisk run //:manage -- doctor
@@ -86,4 +153,5 @@ On 3-node ring also:
 bazelisk run //:manage -- doctor-fabric
 ```
 
-Inventory tabs and bootstrap: [Getting Started](../getting-started.md).
+Topology file, generated artifacts, and the movable control plane: [Lab topology](lab-topology.md).
+Inventory and bootstrap: [Getting Started](../getting-started.md).

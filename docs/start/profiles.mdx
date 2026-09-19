@@ -36,12 +36,12 @@ flowchart TD
 
 | Profile | Verb (Bazel: `bazelisk run //:manage -- <verb>`) | Topology | Notes |
 | --- | --- | --- | --- |
-| **kimi-test** | `start-test` | 1–4 | First validation. `backoffLimit: 2`. Not heavy. |
+| **kimi-test** | `start-test` | 1–5 | First validation. `backoffLimit: 2`. Not heavy. |
 | **kimi** | `start-kimi` / `start-full` | 2+ typical | Heavy confirm + capacity. Prefer after test. |
 | **Ray** | `start-ray` | 2+ | Head + worker Jobs; required by some large models. |
 | **Nemotron Ultra** | `start-nemotron` | 2-node preferred | Ray + NVFP4. Heavy. |
 | **GLM-5.2** | `start-glm` | **2-node required** | llama.cpp RPC; `hostNetwork` + `hostIPC`. |
-| **Qwen 3.5** | `start-qwen3.5-122b-nvfp4`, `start-qwen3.5-397b-spark2`, `start-qwen3.5-397b-nvfp4` | 1 / 2 / **4** | 397B NVFP4 is four nodes. |
+| **Qwen 3.5** | `start-qwen3.5-122b-nvfp4`, `start-qwen3.5-397b-spark2`, `start-qwen3.5-397b-nvfp4` | 1 / 2 / **4–5** | 397B NVFP4 is four nodes (switch lab, or five). |
 | **Qwen 3.6** | `start-qwen36-27b`, `start-qwen36-35b-a3b`, `start-qwen36-dual` | 1 | Dual needs GPU time-slicing. See [Qwen3.6 dual](../qwen36-dual-stack.md). |
 | **Qwen 3.8 27B** | `start-qwen38-27b [--with-litellm]` | 1 | Dense NVFP4. Refuses Mode B and C. Open WebUI `lab-auto`. |
 | **Mode A daily** | `start-stack-rounded` (`--quality` optional) | **3-node** | 35B + Flash-Next + MedGemma + LiteLLM. Refuses B and C. |

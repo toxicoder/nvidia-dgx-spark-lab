@@ -1,6 +1,6 @@
 ---
 title: nvidia-dgx-spark-lab
-description: Practical K3s lab for large inference on 1-4 NVIDIA DGX Spark nodes — Resource Guard, no auto-start, Bazel-first operations.
+description: Practical K3s lab for large inference on 1-5 NVIDIA DGX Spark nodes — pair, ring, or CRS804 switch fabrics, Resource Guard, no auto-start, Bazel-first operations.
 tags: [bazel, kubernetes, ansible, nvidia, dgx, inference]
 ---
 
@@ -16,10 +16,10 @@ tags: [bazel, kubernetes, ansible, nvidia, dgx, inference]
 **What this enables**
 
 - Finding the right page in one screen instead of scrolling a dump
-- Bringing up a 1–4 node DGX Spark K3s lab without auto-starting heavy jobs
+- Bringing up a 1–5 node DGX Spark K3s lab without auto-starting heavy jobs
 - Knowing when to stay here versus using the Compose Comfy sibling
 
-This is a **K3s lab** for 1–4 [NVIDIA DGX Spark](https://docs.nvidia.com/dgx/dgx-spark/hardware.html) nodes. Workloads are Kubernetes Jobs and Deployments with explicit resources. Nothing heavy starts on reboot.
+This is a **K3s lab** for 1–5 [NVIDIA DGX Spark](https://docs.nvidia.com/dgx/dgx-spark/hardware.html) nodes — single node, dual-QSFP pair, QSFP ring, or a Mikrotik CRS804 switch fabric (4–5 nodes). Workloads are Kubernetes Jobs and Deployments with explicit resources. Nothing heavy starts on reboot. Any of the Sparks can run the control plane.
 
 Single-node **Compose** ComfyUI lives in [ez-comfy-stack](https://github.com/toxicoder/ez-comfy-stack). Visual generative AI **in this repo** is `k8s/workloads/comfy-*` plus `scripts/lib/visual.sh` — see [Visual generative AI](visual-generative-ai.md).
 
@@ -31,7 +31,7 @@ Single-node **Compose** ComfyUI lives in [ez-comfy-stack](https://github.com/tox
   <Card title="First cluster">
     ---
 
-    Inventory → cloud-init → Ansible bootstrap → GPU Operator → `doctor` → `kimi-test`.
+    Topology file → cloud-init → Ansible bootstrap → GPU Operator → `doctor` → `kimi-test`.
 
     [Getting Started](getting-started.md)
   </Card>
@@ -58,7 +58,7 @@ Single-node **Compose** ComfyUI lives in [ez-comfy-stack](https://github.com/tox
   </Card>
 </Cards>
 
-Contributors: [Contribute](contribute/index.md) · [Project conventions](project-conventions.md). Topology (1 vs 2 vs 3 vs 4): [Choose topology](start/choose-topology.md).
+Contributors: [Contribute](contribute/index.md) · [Project conventions](project-conventions.md). Topology (1–5 nodes, fabric, orchestrator): [Choose topology](start/choose-topology.md).
 
 ---
 
