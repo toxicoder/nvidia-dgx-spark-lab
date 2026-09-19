@@ -13,6 +13,9 @@ name: Deploy Documentation
 # the assembled tree is committed on top of that branch and pushed with a plain
 # fast-forward push (the run fetches the branch tip at publish time, and the
 # `pages` concurrency group serializes overlapping runs). No force-push, ever.
+# The publish commit is scoped to the site tree only, and the working tree is
+# restored to the source commit afterwards (post steps of local composite
+# actions re-resolve their action.yml from disk).
 on:
   push:
     branches: [main, master, development]
@@ -112,6 +115,10 @@ jobs:
           # the current remote tip; no force-push).
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Remember the source commit so the working tree can be restored after
+          # the publish: post steps of local composite actions (setup-bazel)
+          # re-resolve their action.yml from disk.
+          SRC_SHA=$(git rev-parse HEAD)
           git fetch origin gh-pages
           if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
             git checkout -B gh-pages origin/gh-pages
@@ -121,9 +128,21 @@ jobs:
           git rm -rf --quiet . 2>/dev/null || true
           cp -r _site/. ./
           rm -rf _site
+          # Restrict the publish commit to the site: after the branch switch the
+          # source .gitignore is gone from the worktree, so a bare `git add -A`
+          # would commit the build workspace (node_modules, .next, bazel
+          # symlinks) into the Pages branch.
+          cat >.gitignore <<'GITIGNORE'
+          /*
+          !/latest
+          !/development
+          !/index.html
+          GITIGNORE
           git add -A
           git commit -m "docs: publish $GITHUB_REF_NAME from $GITHUB_SHA" --allow-empty
           git push origin gh-pages
+          # Restore the source working tree for the post steps.
+          git checkout -f "$SRC_SHA"
 
       - name: Report the published URLs
         run: |
