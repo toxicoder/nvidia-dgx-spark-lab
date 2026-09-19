@@ -18,6 +18,11 @@ filegroup(
 )
 
 filegroup(
+    name = "disk_catalog",
+    srcs = ["disk-catalog.yaml"],
+)
+
+filegroup(
     name = "grafana_dashboards",
     srcs = glob(["grafana/dashboards/*.json"]),
     visibility = ["//tests:__pkg__"],

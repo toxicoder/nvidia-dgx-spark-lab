@@ -554,6 +554,31 @@ teardown_file() {
   [[ "$output" == *"Usage:"* ]]
 }
 
+@test "disk-wizard.sh status --json includes pressure and apply false" {
+  export LAB_HERMETIC=1
+  export MODELS_DIR="${TEST_TMP_DIR}/models"
+  export DISK_WIZARD_HOME="${TEST_TMP_DIR}/home"
+  mkdir -p "$MODELS_DIR" "$DISK_WIZARD_HOME"
+  export LAB_MOCK_DF_JSON='{"size_bytes":1000,"used_bytes":100,"avail_bytes":900,"used_pct":10}'
+  run bash "${UTILITIES_DIR}/disk-wizard.sh" status --json
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"\"pressure\""* ]]
+  [[ "$output" == *"\"apply\": false"* ]]
+}
+
+@test "disk-wizard.sh run is read-only" {
+  export LAB_HERMETIC=1
+  export MODELS_DIR="${TEST_TMP_DIR}/models"
+  export DISK_WIZARD_HOME="${TEST_TMP_DIR}/home"
+  mkdir -p "$MODELS_DIR" "$DISK_WIZARD_HOME"
+  printf 'x' >"${MODELS_DIR}/stay.incomplete"
+  export LAB_MOCK_DF_JSON='{"size_bytes":1000,"used_bytes":100,"avail_bytes":900,"used_pct":10}'
+  run bash "${UTILITIES_DIR}/disk-wizard.sh" run
+  [ "$status" -eq 0 ]
+  [[ -f ${MODELS_DIR}/stay.incomplete ]]
+  [[ ! -d ${MODELS_DIR}/.disk-quarantine ]]
+}
+
 @test "runner.sh dispatches to spark-clock status" {
   export REPO_ROOT="$(bats_canonical_repo_root)"
   run bash "${REPO_ROOT}/scripts/utilities/runner.sh" spark-clock status

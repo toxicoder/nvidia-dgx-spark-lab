@@ -1317,6 +1317,23 @@ case "${1:-help}" in
     check_cluster_access
     cleanup
     ;;
+  disk-wizard)
+    ## disk-wizard
+    # @command disk-wizard
+    # Plan-first Spark NVMe leftover survey. Default is read-only plan/status.
+    # apply requires --yes. run never deletes. Never docker system prune -a --volumes.
+    #
+    # Usage:
+    #   ./scripts/manage.sh disk-wizard status [--json]
+    #   ./scripts/manage.sh disk-wizard plan [--json] [--deep]
+    #   ./scripts/manage.sh disk-wizard recommend --target-gib 50
+    #   ./scripts/manage.sh disk-wizard apply --yes
+    #
+    # Safety:
+    #   Does not start or stop workloads. Keep-set / in-use / k3s server are refused.
+    shift || true
+    exec "${REPO_ROOT}/scripts/utilities/disk-wizard.sh" "$@"
+    ;;
   secrets)
     ## secrets
     # @command secrets
@@ -1397,6 +1414,7 @@ Commands:
   stop           Stop all jobs (kimi, test, new models, ray) + dev
   cleanup        Delete namespace and all managed resources (destructive)
   secrets        Secrets vault status / ensure master key / list names (no values)
+  disk-wizard    Plan-first NVMe leftover survey (read-only default; apply --yes)
   help           This message
 
 Environment:

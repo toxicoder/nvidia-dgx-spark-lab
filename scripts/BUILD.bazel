@@ -142,7 +142,9 @@ filegroup(
     ) + glob(
         ["lib/py/*.py"],
         allow_empty = True,
-    ),
+    ) + [
+        "//config:disk_catalog",
+    ],
     visibility = ["//visibility:public"],
 )
 

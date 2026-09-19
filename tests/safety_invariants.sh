@@ -701,4 +701,30 @@ echo "Checking SSO policy..."
 test -f config/sso-policy.yaml
 grep -q 'authelia' config/sso-policy.yaml
 
+echo "Checking disk-wizard safety..."
+WIZARD="scripts/utilities/disk-wizard.sh"
+test -f "$WIZARD"
+test -f config/disk-catalog.yaml
+test -f scripts/lib/disk_scan.sh
+test -f scripts/lib/py/disk_catalog.py
+grep -q 'Never runs docker system prune -a --volumes' "$WIZARD"
+if grep -nE 'docker[[:space:]]+system[[:space:]]+prune[[:space:]]+-a[[:space:]]+--volumes' \
+  "$WIZARD" scripts/lib/disk_scan.sh scripts/lib/py/disk_catalog.py |
+  grep -vE 'Never|never|# |echo |log |err '; then
+  echo "disk-wizard must not invoke docker system prune -a --volumes"
+  exit 1
+fi
+grep -q -- '--apply requires --yes' "$WIZARD"
+grep -q 'run never deletes' "$WIZARD"
+! grep -q 'rm -rf /' "$WIZARD"
+grep -q 'keep-set-weight:' config/disk-catalog.yaml
+grep -q 'dsv41-engram:' config/disk-catalog.yaml
+python3 -c '
+from pathlib import Path
+text = Path("config/disk-catalog.yaml").read_text()
+assert "risk: dangerous" in text
+assert "reclaim: none" in text
+assert "docker system prune -a --volumes" in text
+'
+
 echo "All critical safety checks passed"

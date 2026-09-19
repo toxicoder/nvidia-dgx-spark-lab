@@ -36,6 +36,16 @@ teardown() {
   [ "$status" -eq 0 ]
 }
 
+@test "disk_catalog unit tests" {
+  run python3 "${REPO_ROOT}/scripts/lib/py/test_disk_catalog.py"
+  [ "$status" -eq 0 ]
+}
+
+@test "disk_inuse unit tests" {
+  run python3 "${REPO_ROOT}/scripts/lib/py/test_disk_inuse.py"
+  [ "$status" -eq 0 ]
+}
+
 @test "CI bazel-core path filter includes the devcontainer" {
   # Dockerfile-only PRs must still run //tests:bats_devcontainer_test.
   local gh="${REPO_ROOT}/.github/workflows/ci.yml"
