@@ -74,7 +74,7 @@ NAMESPACE="ai-inference"
 
 # Source common modular libs. Fail fast if missing in normal use (tests ensure copies).
 SCRIPT_LIB_DIR="${SCRIPT_LIB_DIR:-${SCRIPT_DIR}/lib}"
-for lib in common.sh check_tool.sh domains.sh resources.sh models.sh visual.sh mcp.sh hermes.sh open-webui.sh monitoring.sh dev.sh secrets.sh sso.sh stack-rounded.sh; do
+for lib in common.sh check_tool.sh domains.sh resources.sh models.sh visual.sh mcp.sh hermes.sh open-webui.sh monitoring.sh dev.sh secrets.sh sso.sh stack-rounded.sh topology.sh; do
   if [[ -f "${SCRIPT_LIB_DIR}/$lib" ]]; then
     # shellcheck disable=SC1090
     source "${SCRIPT_LIB_DIR}/$lib"
@@ -87,26 +87,312 @@ done
 
 # ## setup / init
 # Guided first-time setup helper.
-# Prints recommended sequence for inventory, ansible playbooks, and first workload.
+# Topology step (validate + render ansible/inventory/lab.yaml), then the
+# recommended sequence for ansible playbooks and first workload.
+# `setup --interactive` runs the topology wizard (prompts, rewrites lab.yaml,
+# validates, renders). `topology` exposes show/facts/check/validate/render.
 #
 # @command setup
 # @command init
+# @command topology
 # Usage:
 #   bazelisk run //:manage -- setup
-#   ./scripts/manage.sh setup
+#   bazelisk run //:manage -- setup --interactive
+#   bazelisk run //:manage -- topology facts
 #   ./scripts/manage.sh init
 #
 # Safety:
-#   Purely informational + prints URLs. Does not modify cluster.
-#   Gold path remains docs/getting-started.md (inventory, Ansible, doctor, start-test).
+#   Local files + prints only; does not modify the cluster. The wizard writes
+#   lab.yaml only after the candidate passes validation.
+#   Gold path remains docs/getting-started.md (topology, Ansible, doctor, start-test).
+# @function lab_setup_topology_step
+# Validate and render the declarative topology for setup (local files only).
+# Warns and continues when lab.yaml is absent or invalid (classic hosts.ini path).
+
+lab_setup_topology_step() {
+  local lab_file
+  lab_file="$(lab_topology_path)"
+  if [[ ! -f $lab_file ]]; then
+    warn "no lab.yaml found ($lab_file) — run 'manage.sh setup --interactive' to create one, or use the classic hosts.ini.example path"
+    return 0
+  fi
+  if ! topology_validate; then
+    warn "lab.yaml failed validation — fix $lab_file ('manage.sh topology validate' shows errors), skipping render"
+    return 0
+  fi
+  log "Lab topology: $(topology_facts | tr '\n' ' ')"
+  topology_render
+}
+
+# @function _ask
+# Prompt for a value with a default; stores into the variable named in $1.
+# Usage: _ask <varname> <prompt> <default>
+_ask() {
+  local __ans
+  read -r -p "$2 [$3]: " __ans
+  printf -v "$1" '%s' "${__ans:-$3}"
+}
+
+# @function lab_wizard
+# Interactive topology wizard: prompts (current lab.yaml values as defaults),
+# writes a validated lab.yaml, and renders the generated artifacts.
+# Safety: candidate file is validated in a temp path; the existing lab.yaml is
+# only replaced when validation passes. No cluster mutation.
+
+lab_wizard() {
+  log "=== Lab topology wizard ==="
+  local lab_file
+  lab_file="$(lab_topology_path)"
+
+  local fabric="none" subnet="10.0.0.0/24" ansible_user="ubuntu" node_count=1
+  local orchestrator="spark0" names="spark0" ips="10.0.0.10"
+  local switch_model="CRS804-4DDQ-hRM" switch_host="10.0.0.2" switch_user="admin"
+  local port_map=""
+  if [[ -f $lab_file ]]; then
+    local cur
+    cur="$(topology_wizard_vars "$lab_file" 2>/dev/null)" || cur=""
+    if [[ -n $cur ]]; then
+      local kv k
+      # shellcheck disable=SC2086
+      set -- $cur
+      for kv in "$@"; do
+        k="${kv%%=*}"
+        case "$k" in
+          fabric) fabric="${kv#*=}" ;;
+          mgmt_subnet) subnet="${kv#*=}" ;;
+          ansible_user) ansible_user="${kv#*=}" ;;
+          node_count) node_count="${kv#*=}" ;;
+          orchestrator) orchestrator="${kv#*=}" ;;
+          node_names) names="${kv#*=}" ;;
+          node_ips) ips="${kv#*=}" ;;
+          switch_model) switch_model="${kv#*=}" ;;
+          switch_host) switch_host="${kv#*=}" ;;
+          switch_user) switch_user="${kv#*=}" ;;
+          port_map) port_map="${kv#*=}" ;;
+        esac
+      done
+    fi
+  fi
+
+  _ask fabric "Fabric (none|pair|ring|switch)" "$fabric"
+  case "$fabric" in
+    none) node_count=1 ;;
+    pair) node_count=2 ;;
+    ring) node_count=3 ;;
+    switch) : ;;
+    *)
+      err "invalid fabric '$fabric' (none|pair|ring|switch)"
+      return 1
+      ;;
+  esac
+  _ask node_count "Number of nodes (1-5)" "$node_count"
+  case "$node_count" in
+    1 | 2 | 3 | 4 | 5) : ;;
+    *)
+      err "node count must be 1-5 (got '$node_count')"
+      return 1
+      ;;
+  esac
+  if [[ $fabric == "none" && $node_count -ne 1 ]] ||
+    [[ $fabric == "pair" && $node_count -ne 2 ]] ||
+    [[ $fabric == "ring" && $node_count -ne 3 ]] ||
+    { [[ $fabric == "switch" && ($node_count -lt 4 || $node_count -gt 5) ]]; }; then
+    err "fabric '$fabric' does not support $node_count node(s)"
+    return 1
+  fi
+
+  # Defaults that survive a node-count or name change.
+  local -a def_names=() def_ips=() cur_names=() cur_ips=()
+  IFS=' ' read -r -a cur_names <<<"$names"
+  IFS=' ' read -r -a cur_ips <<<"$ips"
+  local i
+  for i in $(seq 0 $((node_count - 1))); do
+    def_names+=("spark$i")
+    def_ips+=("10.0.0.$((10 + i))")
+  done
+  [[ ${#cur_names[@]} -eq $node_count ]] && def_names=("${cur_names[@]}")
+  [[ ${#cur_ips[@]} -eq $node_count ]] && def_ips=("${cur_ips[@]}")
+
+  _ask names "Node names (space separated)" "${def_names[*]}"
+  _ask subnet "Management subnet (CIDR)" "$subnet"
+  # shellcheck disable=SC2206
+  local -a final_names=($names)
+  if [[ ${#final_names[@]} -ne $node_count ]]; then
+    err "expected $node_count node names (got ${#final_names[@]})"
+    return 1
+  fi
+
+  local -a final_ips=()
+  local ip
+  for i in "${!final_names[@]}"; do
+    _ask ip "IP for ${final_names[$i]}" "${def_ips[$i]}"
+    final_ips+=("$ip")
+  done
+
+  local orch_default="$orchestrator"
+  local match=0 n
+  for n in "${final_names[@]}"; do [[ $n == "$orch_default" ]] && match=1; done
+  [[ $match -eq 0 ]] && orch_default="${final_names[0]}"
+  _ask orchestrator "Orchestrator (K3s server / control plane)" "$orch_default"
+  match=0
+  for n in "${final_names[@]}"; do [[ $n == "$orchestrator" ]] && match=1; done
+  if [[ $match -eq 0 ]]; then
+    err "orchestrator '$orchestrator' is not one of the node names"
+    return 1
+  fi
+
+  local -a ports=()
+  if [[ $fabric == "switch" ]]; then
+    _ask switch_model "Switch model" "$switch_model"
+    _ask switch_host "Switch management IP" "$switch_host"
+    _ask switch_user "Switch admin user (read-only probe)" "$switch_user"
+    # Current port_map as "node:port" pairs, used for per-node defaults.
+    local -a cur_ports=()
+    local pair pnode
+    if [[ -n $port_map ]]; then
+      IFS=',' read -r -a cur_ports <<<"$port_map"
+    fi
+    for i in "${!final_names[@]}"; do
+      local def_port=""
+      for pair in "${cur_ports[@]}"; do
+        if [[ ${pair%%:*} == "${final_names[$i]}" ]]; then def_port="${pair#*:}"; fi
+      done
+      if [[ -z $def_port ]]; then
+        if [[ $i -lt 3 ]]; then
+          def_port="sfpplus$((i + 1))"
+        elif [[ $i -eq 3 ]]; then
+          def_port="sfpplus4"
+          [[ $node_count -eq 5 ]] && def_port="sfpplus4a"
+        else
+          def_port="sfpplus4b"
+        fi
+      fi
+      _ask pnode "Switch port for ${final_names[$i]} (breakout lanes: sfpplus4a/sfpplus4b)" "$def_port"
+      ports+=("$pnode")
+    done
+  fi
+
+  local -a hs_ifs=()
+  if [[ $fabric == "none" ]]; then
+    hs_ifs=()
+  elif [[ $fabric == "switch" ]]; then
+    hs_ifs=("enp1s0f0np0")
+  else
+    hs_ifs=("enp1s0f0np0" "enp1s0f1np1")
+  fi
+
+  local tmp
+  tmp="$(mktemp)"
+  {
+    echo "# Generated by 'manage.sh setup --interactive' (topology wizard)."
+    echo "# Single source of truth for inventory, netplan, cloud-init, and fabric facts."
+    echo "lab:"
+    echo "  management:"
+    echo "    subnet: $subnet"
+    echo "  ansible_user: $ansible_user"
+    echo "  fabric: $fabric"
+    if [[ $fabric == "switch" ]]; then
+      echo "  switch:"
+      echo "    brand: mikrotik"
+      echo "    model: $switch_model"
+      echo "    host: $switch_host"
+      echo "    user: $switch_user"
+      echo "    port_map:"
+      for i in "${!final_names[@]}"; do
+        echo "      - node: ${final_names[$i]}"
+        echo "        port: ${ports[$i]}"
+      done
+    fi
+    echo "  nodes:"
+    for i in "${!final_names[@]}"; do
+      echo "    - name: ${final_names[$i]}"
+      echo "      ip: ${final_ips[$i]}"
+      if [[ ${final_names[$i]} == "$orchestrator" ]]; then
+        echo "      role: orchestrator"
+      fi
+      if [[ ${#hs_ifs[@]} -gt 0 ]]; then
+        echo "      hs_ifs:"
+        for hs in "${hs_ifs[@]}"; do
+          echo "        - $hs"
+        done
+      fi
+    done
+  } >"$tmp"
+
+  if ! LAB_TOPOLOGY_FILE="$tmp" topology_validate >/dev/null; then
+    err "wizard result failed validation — previous lab.yaml untouched"
+    rm -f "$tmp"
+    return 1
+  fi
+  mkdir -p "$(dirname "$lab_file")"
+  mv "$tmp" "$lab_file"
+  log "Wrote $lab_file"
+  topology_render
+  topology_facts
+}
+
+# @function topology_cmd
+# @command topology
+# Lab topology helpers: show | facts | check | validate | render [out].
+# Wraps scripts/lib/topology.sh; see docs/start/lab-topology.mdx.
+#
+# Usage:
+#   bazelisk run //:manage -- topology facts
+#   bazelisk run //:manage -- topology render
+#
+# Safety: read-only except 'render', which only writes generated local files.
+
+topology_cmd() {
+  local sub="${1:-show}"
+  local lab_file
+  lab_file="$(lab_topology_path)"
+  case "$sub" in
+    show)
+      if [[ -f $lab_file ]]; then
+        echo "lab.yaml: $lab_file"
+        cat "$lab_file"
+      else
+        err "no lab.yaml at $lab_file (create it with 'manage.sh setup --interactive')"
+        return 1
+      fi
+      ;;
+    facts) topology_facts ;;
+    check) topology_check ;;
+    validate) topology_validate ;;
+    render) topology_render "${2:-}" ;;
+    *)
+      err "Usage: manage.sh topology <show|facts|check|validate|render [out]>"
+      return 1
+      ;;
+  esac
+}
+
 # @function setup
-# Guided first-time setup: prints recommended Ansible and workload sequence.
-# Informational only; does not modify the cluster.
+# Guided first-time setup: topology step (validate + render lab.yaml), then
+# the recommended Ansible and workload sequence.
+# Safety: purely local files + prints; does not modify the cluster.
 
 setup() {
+  local interactive=0
+  local arg
+  for arg in "$@"; do
+    case "$arg" in
+      --interactive | --wizard) interactive=1 ;;
+      *)
+        err "unknown setup flag: $arg (expected --interactive)"
+        return 1
+        ;;
+    esac
+  done
   log "=== Guided first-time setup ==="
-  echo "1. Prepare ansible/inventory/hosts.ini from example (edit IPs)."
-  echo "2. From workstation: ansible -i ... ping"
+  if [[ $interactive -eq 1 ]]; then
+    if ! lab_wizard; then
+      warn "topology wizard aborted — previous lab.yaml (if any) is unchanged"
+    fi
+  fi
+  lab_setup_topology_step
+  echo "1. Review the topology: ansible/inventory/lab.yaml (inventory/netplan/cloud-init are generated from it)."
+  echo "2. From workstation: ansible -i ansible/inventory/hosts.ini all -m ping"
   echo "Typical sequence (will prompt):"
   echo "  ansible ... bootstrap-cluster.yml"
   echo "  ansible ... install-gpu-operator.yml"
@@ -197,6 +483,17 @@ doctor() {
   echo "kubectl: $(command -v kubectl && kubectl version --client --short 2>/dev/null || echo missing)"
   echo "helm: $(command -v helm && helm version --short 2>/dev/null || echo missing)"
   echo "jq: $(command -v jq && jq --version 2>/dev/null || echo missing)"
+  local lab_file
+  lab_file="$(lab_topology_path)"
+  if [[ -f $lab_file ]]; then
+    if topology_validate >/dev/null 2>&1; then
+      echo "Lab topology: $(topology_facts | tr '\n' ' ')"
+    else
+      warn "Lab topology: lab.yaml failed validation — run 'manage.sh topology validate'"
+    fi
+  else
+    echo "Lab topology: no lab.yaml (classic hosts.ini inventory mode)"
+  fi
   require_kubectl && check_cluster_access && echo "Cluster: reachable"
   echo "Free GPUs (approx): $(get_approx_free_gpus 2>/dev/null || echo unknown)"
   if type print_resources_status &>/dev/null; then
@@ -883,9 +1180,17 @@ case "${1:-help}" in
     ## setup
     # @command setup
     # @command init
-    # Guided first-time setup. Prints steps for inventory, ansible, and first workload.
-    # See function definition above for details.
-    setup
+    # Guided first-time setup. Topology step (validate + render lab.yaml) plus
+    # steps for inventory, ansible, and first workload. --interactive runs the
+    # topology wizard. See function definition above for details.
+    setup "${@:2}"
+    ;;
+  topology)
+    ## topology
+    # @command topology
+    # Lab topology helpers (show | facts | check | validate | render [out]).
+    # See topology_cmd definition above.
+    topology_cmd "${@:2}"
     ;;
   start-default | start-safe)
     ## start-default
@@ -1071,7 +1376,9 @@ Commands:
   start-monitoring Deploy Prometheus + exporters + Grafana (provisioned) + Headlamp + lab dashboard (+ SSO if SSO_ENABLED=1)
   monitoring       Observability subcommands: status | verify
   start-default  (or start-safe) Auto choose safe test workload based on free GPUs
-  setup|init     Guided first-time setup prompts (bootstrap + gpu + dev)
+  setup|init     Guided first-time setup (topology validate/render + bootstrap + gpu + dev)
+  setup --interactive  Topology wizard: prompts, rewrites lab.yaml, validates, renders
+  topology       Lab topology: show | facts | check | validate | render [out]
   urls|access    Print browser URLs for dashboard/Coder/etc + optional pf
   wait <job>     Wait for a job to complete
   doctor|check   Preflight checks (tools, cluster, GPUs, access)
