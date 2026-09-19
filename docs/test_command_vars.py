@@ -112,7 +112,8 @@ class TestPanelWiring(unittest.TestCase):
         html = page.read_text(encoding="utf-8")
         self.assertIn("cluster-config", html)
         self.assertIn("data-profile", html)
-        self.assertIn("1node", html)
+        for profile in ("1node", "2node", "3node", "4node", "5node"):
+            self.assertIn(profile, html, f"the panel no longer offers a {profile} profile button")
         self.assertIn("{{SPARK0_IP}}", html, "token was frozen into a literal at build time")
         self.assertIn("localhost", html, "the default profile value should be pre-filled")
 

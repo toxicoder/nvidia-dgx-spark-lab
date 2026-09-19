@@ -15,6 +15,7 @@ import {
   DEFAULT_VARS,
   mergeVars,
   needsSubstitution,
+  PROFILE_IDS,
   profileForVars,
   STORAGE_KEY,
   substitutePlaceholders
@@ -130,6 +131,30 @@ describe("cluster variable contract", () => {
     const vars = applyProfile("2node", { ...DEFAULT_VARS });
     expect(vars.SPARK0_IP).toBe("192.168.1.10");
     expect(profileForVars(vars)).toBe("2node");
+  });
+
+  it("offers one profile per supported lab topology", () => {
+    expect(PROFILE_IDS).toEqual(["1node", "2node", "3node", "4node", "5node"]);
+  });
+
+  it("applies the three-node ring profile over the defaults", () => {
+    const vars = applyProfile("3node", { ...DEFAULT_VARS });
+    expect(vars.SPARK0_IP).toBe("10.0.0.10");
+    expect(vars.NAMESPACE).toBe("ai-inference");
+    expect(vars.DASHBOARD_PORT).toBe("32082");
+  });
+
+  it("applies the four- and five-node switch profiles over the defaults", () => {
+    for (const profile of ["4node", "5node"]) {
+      const vars = applyProfile(profile, { ...DEFAULT_VARS });
+      expect(vars.SPARK0_IP).toBe("10.0.0.10");
+    }
+  });
+
+  it("still maps a custom multi-node address to no profile", () => {
+    // The shared 10.0.0.x orchestrator subnet must not light up a specific
+    // fabric by IP alone; only 1node/2node keep their IP reverse-mapping.
+    expect(profileForVars({ SPARK0_IP: "10.0.0.10" })).toBeUndefined();
   });
 
   it("keeps the storage key the MkDocs widget used so returning readers keep their values", () => {
