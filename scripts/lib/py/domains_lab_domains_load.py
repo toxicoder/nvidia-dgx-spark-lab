@@ -9,6 +9,8 @@ import json, os, sys
 from pathlib import Path
 
 def _load_yaml(path: Path) -> dict:
+    if not path.exists():
+        return {}  # config is optional — defaults + env overrides still apply
     try:
         import yaml  # type: ignore
         return yaml.safe_load(path.read_text()) or {}

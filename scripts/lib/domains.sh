@@ -10,6 +10,12 @@ if ! declare -F lab_repo_root >/dev/null 2>&1; then
   source "$(dirname "${BASH_SOURCE[0]:-${0}}")/paths.sh"
 fi
 
+# Directory of this file, resolved once at source time (BASH_SOURCE is
+# caller-relative inside functions, so it must not be read there).
+# Python helpers live next to this file — a REPO_ROOT override (tests) must
+# still find them in the real repo.
+_DOMAINS_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-${0}}")" && pwd)"
+
 # @function lab_domains_path
 lab_domains_path() {
   echo "$(lab_repo_root)/config/lab-domains.yaml"
@@ -18,7 +24,7 @@ lab_domains_path() {
 # @function _lab_domains_load
 # Emit key=value lines for domain config (env overrides file).
 _lab_domains_load() {
-  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/domains_lab_domains_load.py" "$(lab_domains_path)"
+  python3 "${_DOMAINS_LIB_DIR}/py/domains_lab_domains_load.py" "$(lab_domains_path)"
 }
 
 # @function _lab_domains_get
@@ -127,14 +133,14 @@ lab_service_url() {
 # @function lab_hosts_file_line
 lab_hosts_file_line() {
   local ip="${1:-<node-ip>}"
-  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/domains_lab_hosts_file_line.py" "$ip" "$(lab_domains_path)"
+  python3 "${_DOMAINS_LIB_DIR}/py/domains_lab_hosts_file_line.py" "$ip" "$(lab_domains_path)"
 }
 
 # @function lab_domain_urls_json
 # Emit JSON with local/public URL maps for a service host.
 lab_domain_urls_json() {
   local host="${1:-}"
-  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/domains_lab_domain_urls_json.py" "$host"
+  python3 "${_DOMAINS_LIB_DIR}/py/domains_lab_domain_urls_json.py" "$host"
 }
 
 # @function lab_ansible_values_file
@@ -228,7 +234,7 @@ domains_set() {
         ;;
     esac
   done
-  python3 "${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/scripts/lib/py/domains_domains_set.py" "$(lab_domains_path)" "$local_d" "$public_d" "$primary" "$email" "$acme_email"
+  python3 "${_DOMAINS_LIB_DIR}/py/domains_domains_set.py" "$(lab_domains_path)" "$local_d" "$public_d" "$primary" "$email" "$acme_email"
   domains_render
 }
 
