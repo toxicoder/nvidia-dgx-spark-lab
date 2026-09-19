@@ -38,9 +38,7 @@ spec:
               preference:
                 matchExpressions:
                   - key: nvidia-dgx-spark/highspeed
-                    operator: In
-                    values:
-                      - "dual-400g"
+                    operator: Exists
       containers:
         - name: inference
           # Ultra-optimized 2-node GLM-5.2: unsloth UD-IQ1_M (1-bit dynamic quant) + llama.cpp RPC.

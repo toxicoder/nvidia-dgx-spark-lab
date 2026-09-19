@@ -40,9 +40,7 @@ spec:
               preference:
                 matchExpressions:
                   - key: nvidia-dgx-spark/highspeed
-                    operator: In
-                    values:
-                      - "dual-400g"
+                    operator: Exists
       containers:
         - name: rpc
           # Ultra-optimized llama.cpp RPC backend for 2-node GLM-5.2 UD-IQ1_M.

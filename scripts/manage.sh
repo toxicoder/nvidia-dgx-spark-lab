@@ -89,8 +89,9 @@ done
 # Guided first-time setup helper.
 # Topology step (validate + render ansible/inventory/lab.yaml), then the
 # recommended sequence for ansible playbooks and first workload.
-# `setup --interactive` runs the topology wizard (prompts, rewrites lab.yaml,
-# validates, renders). `topology` exposes show/facts/check/validate/render.
+# `setup` on a TTY (and `setup --interactive`) runs the topology wizard
+# (prompts, rewrites lab.yaml, validates, renders). Non-TTY `setup` only
+# renders. `topology` exposes show/facts/check/validate/render.
 #
 # @command setup
 # @command init
@@ -163,8 +164,14 @@ lab_wizard() {
           ansible_user) ansible_user="${kv#*=}" ;;
           node_count) node_count="${kv#*=}" ;;
           orchestrator) orchestrator="${kv#*=}" ;;
-          node_names) names="${kv#*=}" ;;
-          node_ips) ips="${kv#*=}" ;;
+          node_names)
+            names="${kv#*=}"
+            names="${names//,/ }"
+            ;;
+          node_ips)
+            ips="${kv#*=}"
+            ips="${ips//,/ }"
+            ;;
           switch_model) switch_model="${kv#*=}" ;;
           switch_host) switch_host="${kv#*=}" ;;
           switch_user) switch_user="${kv#*=}" ;;
@@ -385,7 +392,9 @@ setup() {
     esac
   done
   log "=== Guided first-time setup ==="
-  if [[ $interactive -eq 1 ]]; then
+  # Docs gold path: bare `setup` is the wizard on a TTY. Non-TTY (CI/bats)
+  # keeps render-only. --interactive/--wizard still forces the wizard.
+  if [[ $interactive -eq 1 || -t 0 ]]; then
     if ! lab_wizard; then
       warn "topology wizard aborted — previous lab.yaml (if any) is unchanged"
     fi
@@ -1364,7 +1373,7 @@ Commands:
   start-litellm [--backend <id>] / stop-litellm  LAN OpenAI proxy (lab-auto)
   --with-litellm   Attach LiteLLM with the matching backend profile after start
   status-stack     Mode A/B/C Jobs + LiteLLM aliases + fabric hint
-  doctor-fabric    Warn if the 3-node QSFP ring looks down
+  doctor-fabric    Warn if the lab.yaml fabric looks down
   start-open-webui Deploy Open WebUI chat UI (Hermes gateway backend)
   stop-open-webui  Stop Open WebUI Helm release and Hermes gateway bridge
   stop-coder     Stop Coder only (frees dev resources)
@@ -1376,8 +1385,8 @@ Commands:
   start-monitoring Deploy Prometheus + exporters + Grafana (provisioned) + Headlamp + lab dashboard (+ SSO if SSO_ENABLED=1)
   monitoring       Observability subcommands: status | verify
   start-default  (or start-safe) Auto choose safe test workload based on free GPUs
-  setup|init     Guided first-time setup (topology validate/render + bootstrap + gpu + dev)
-  setup --interactive  Topology wizard: prompts, rewrites lab.yaml, validates, renders
+  setup|init     Guided first-time setup (TTY/interactive wizard + validate/render)
+  setup --interactive  Force topology wizard (also the default on a TTY)
   topology       Lab topology: show | facts | check | validate | render [out]
   urls|access    Print browser URLs for dashboard/Coder/etc + optional pf
   wait <job>     Wait for a job to complete

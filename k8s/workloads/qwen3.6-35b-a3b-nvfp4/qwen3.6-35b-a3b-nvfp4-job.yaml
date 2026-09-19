@@ -36,9 +36,7 @@ spec:
               preference:
                 matchExpressions:
                   - key: nvidia-dgx-spark/highspeed
-                    operator: In
-                    values:
-                      - "dual-400g"
+                    operator: Exists
       containers:
         - name: inference
           # Unsloth W4A4 NVFP4-Fast MoE; DGX Spark requires --moe-backend flashinfer_b12x.

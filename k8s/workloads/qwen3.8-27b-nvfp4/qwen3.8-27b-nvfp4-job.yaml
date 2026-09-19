@@ -36,9 +36,7 @@ spec:
               preference:
                 matchExpressions:
                   - key: nvidia-dgx-spark/highspeed
-                    operator: In
-                    values:
-                      - "dual-400g"
+                    operator: Exists
       containers:
         - name: inference
           # Unsloth dynamic NVFP4 + native MTP; Blackwell GB10 needs CUTE_DSL_ARCH=sm_121a.

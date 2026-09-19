@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ## 3-node rounded stack (Mode A mixed fleet vs Mode B GLM vs Mode C DeepSeek-V4.1-Flash)
 #
-# LiteLLM aliases, Mode A/B/C mutual exclusion, and QSFP-ring fabric doctor.
+# LiteLLM aliases, Mode A/B/C mutual exclusion, and per-fabric interconnect doctor.
 # Heavy Jobs stay manual-start. LiteLLM is a management Deployment.
 
 # @function rounded_mode_a_jobs
@@ -91,27 +91,77 @@ lab_mgmt_ifname() {
 }
 
 # @function doctor_fabric
-# Warn if the 3-node QSFP ring looks unavailable. Does not hard-fail on iface names.
+# Warn if the lab.yaml fabric looks unavailable. Does not hard-fail on iface names.
 # @command doctor-fabric
 doctor_fabric() {
-  local n nodes mgmt
+  local n nodes mgmt fabric node_count facts lab_file min_n max_n
   mgmt=$(lab_mgmt_ifname)
-  log "=== Fabric doctor (3-node QSFP ring) ==="
-  warn "Cabling: Node1 Port0→Node2 Port1; Node2 Port0→Node3 Port1; Node3 Port0→Node1 Port1."
-  warn "Triangle mesh at 200 Gb/s per pair. Not NVLink. Not the 2-node pair NCCL vars."
-  log "NCCL OOB/Gloo on mgmt iface '${mgmt}' (override LAB_MGMT_IFNAME)."
-  log "NCCL_IB_HCA default: rocep1s0f0,roceP2p1s0f0,rocep1s0f1,roceP2p1s0f1 (override LAB_NCCL_IB_HCA)."
+  fabric=""
+  node_count=""
+  if declare -F topology_facts >/dev/null 2>&1 && declare -F lab_topology_path >/dev/null 2>&1; then
+    lab_file="$(lab_topology_path)"
+    if [[ -f $lab_file ]]; then
+      facts="$(topology_facts 2>/dev/null || true)"
+      fabric=$(printf '%s\n' "$facts" | awk -F= '$1 == "fabric" { print $2; exit }')
+      node_count=$(printf '%s\n' "$facts" | awk -F= '$1 == "node_count" { print $2; exit }')
+    fi
+  fi
+  fabric="${fabric:-unknown}"
+
+  log "=== Fabric doctor (${fabric}) ==="
+  case "$fabric" in
+    none)
+      warn "1-node lab: no inter-node NCCL. Ignore highspeed inventory. Local SHM/P2P only."
+      ;;
+    pair)
+      warn "2-node pair: one 200 Gb/s QSFP cable. Pair NCCL is enp1s0f0np0,enp1s0f1np1 + mlx5_0,mlx5_1 (confirm ibdev2netdev)."
+      warn "Each QSFP cage can appear as two netdevs; one cable brings one cage up."
+      ;;
+    ring)
+      warn "Cabling: Node1 Port0→Node2 Port1; Node2 Port0→Node3 Port1; Node3 Port0→Node1 Port1."
+      warn "Triangle mesh at 200 Gb/s per pair. Not NVLink. Not the 2-node pair NCCL vars."
+      log "NCCL OOB/Gloo on mgmt iface '${mgmt}' (override LAB_MGMT_IFNAME)."
+      log "NCCL_IB_HCA default: rocep1s0f0,roceP2p1s0f0,rocep1s0f1,roceP2p1s0f1 (override LAB_NCCL_IB_HCA)."
+      ;;
+    switch)
+      warn "4/5-node CRS804 switch: one RoCE link per node (generated netplan 192.168.110–114, MTU 9000)."
+      warn "NCCL_SOCKET_IFNAME stays the management NIC ('${mgmt}'); payload on a single RoCE HCA. Not the pair env."
+      ;;
+    *)
+      warn "lab.yaml fabric is '${fabric}'. See docs/concepts/interconnect-nccl.mdx."
+      ;;
+  esac
   log "Confirm live names with ibdev2netdev on every node. MTU 9000 on CX-7."
   log "Optional livelock fallback (not default): NCCL_NET_GDR_LEVEL=0"
 
   nodes=$(kubectl get nodes --no-headers 2>/dev/null | wc -l | tr -d ' ' || echo 0)
   n=${nodes:-0}
-  if [[ $n -lt 3 ]]; then
-    warn "Only ${n} Kubernetes node(s) visible; Mode B/C TP=3 expects spark0+spark1+spark2."
+  min_n=1
+  max_n=5
+  case "$fabric" in
+    none)
+      min_n=1
+      max_n=1
+      ;;
+    pair)
+      min_n=2
+      max_n=2
+      ;;
+    ring)
+      min_n=3
+      max_n=3
+      ;;
+    switch)
+      min_n=4
+      max_n=5
+      ;;
+  esac
+  if [[ $n -lt $min_n ]]; then
+    warn "Only ${n} Kubernetes node(s) visible; fabric ${fabric} expects ${min_n}-${max_n}${node_count:+ (lab.yaml node_count=${node_count})}."
     return 1
   fi
-  log "Kubernetes nodes: ${n} (ok for a 3-node ring)."
-  warn "This doctor cannot run ibdev2netdev inside the cluster. If NCCL hangs, check Port0/Port1 polarity and that OOB is on 10GbE not QSFP."
+  log "Kubernetes nodes: ${n} (ok for fabric ${fabric})."
+  warn "This doctor cannot run ibdev2netdev inside the cluster. If NCCL hangs, check polarity and that OOB is on 10GbE not QSFP."
   return 0
 }
 

@@ -55,7 +55,7 @@
 - name: Verify GPU resources
   shell: |
     for i in {1..30}; do
-      if kubectl describe node {{ k3s_control_plane }} | grep -q 'nvidia.com/gpu'; then
+      if kubectl describe node {{ groups['k3s_server'][0] | default(k3s_control_plane) }} | grep -q 'nvidia.com/gpu'; then
         echo "GPU resources detected"
         exit 0
       fi

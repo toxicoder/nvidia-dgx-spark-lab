@@ -35,9 +35,7 @@ spec:
               preference:
                 matchExpressions:
                   - key: nvidia-dgx-spark/highspeed
-                    operator: In
-                    values:
-                      - "dual-400g"
+                    operator: Exists
       containers:
         - name: inference
           image: vllm/vllm-openai:v0.8.5 # unified pin v0.8.5 (MoE/FP8/aarch64 support); see models-catalog

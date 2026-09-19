@@ -549,6 +549,81 @@ if 'hermes-gateway' in values and 'value: "hermes-gateway"' in values:
     sys.exit(1)
 PY
 
+echo "Checking highspeed identifier is not dual-400g..."
+python3 -c "
+from pathlib import Path
+roots = [Path('k8s'), Path('ansible/roles/labels'), Path('ansible/inventory/hosts.ini.example')]
+offenders = []
+for root in roots:
+    paths = [root] if root.is_file() else list(root.rglob('*'))
+    for path in paths:
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding='utf-8', errors='replace')
+        if 'dual-400g' in text or 'dual 400G' in text:
+            offenders.append(str(path))
+if offenders:
+    print('dual-400g leftover in: ' + ', '.join(offenders), file=__import__('sys').stderr)
+    raise SystemExit(1)
+"
+
+echo "Checking highspeed affinity uses Exists (not a speed-specific value)..."
+python3 -c "
+from pathlib import Path
+import re
+pat = re.compile(
+    r'key:\\s*nvidia-dgx-spark/highspeed\\s*\\n\\s*operator:\\s*(\\S+)',
+    re.MULTILINE,
+)
+offenders = []
+for path in Path('k8s').rglob('*.yaml'):
+    text = path.read_text(encoding='utf-8')
+    for op in pat.findall(text):
+        if op != 'Exists':
+            offenders.append(f'{path}:{op}')
+if offenders:
+    print('highspeed affinity must use Exists: ' + ', '.join(offenders), file=__import__('sys').stderr)
+    raise SystemExit(1)
+"
+grep -q 'nvidia-dgx-spark/highspeed=true' ansible/roles/labels/tasks/main.yml
+grep -q 'groups\['\''k3s_cluster'\''\]' ansible/roles/labels/tasks/main.yml
+
+echo "Checking Qwen 397B NVFP4 Jobs use switch NCCL (not 2-node pair vars)..."
+QWEN397_JOBS="
+k8s/workloads/qwen3.5-397b-nvfp4/qwen3.5-397b-nvfp4-job.yaml
+k8s/workloads/qwen3.5-397b-nvfp4/qwen3.5-397b-nvfp4-worker-1-job.yaml
+k8s/workloads/qwen3.5-397b-nvfp4/qwen3.5-397b-nvfp4-worker-2-job.yaml
+k8s/workloads/qwen3.5-397b-nvfp4/qwen3.5-397b-nvfp4-worker-3-job.yaml
+"
+for job in $QWEN397_JOBS; do
+  test -f "$job"
+  grep -q 'hostNetwork: true' "$job"
+  grep -q 'NCCL_SOCKET_IFNAME' "$job"
+  grep -q 'enP7s7' "$job"
+  grep -q 'value: "mlx5_0"' "$job"
+  if grep -q 'enp1s0f0np0,enp1s0f1np1' "$job"; then
+    echo "397B NVFP4 must not copy 2-node pair NCCL_SOCKET_IFNAME: $job" >&2
+    exit 1
+  fi
+  if grep -q 'mlx5_0,mlx5_1' "$job"; then
+    echo "397B NVFP4 must not copy 2-node pair NCCL_IB_HCA: $job" >&2
+    exit 1
+  fi
+done
+
+echo "Checking Grafana high-speed panel title is not 400G..."
+grep -q 'High-Speed Network (QSFP)' config/grafana/dashboards/07-storage-network.json
+if grep -q 'High-Speed Network (400G)' config/grafana/dashboards/07-storage-network.json; then
+  echo "Grafana high-speed panel must not be titled 400G" >&2
+  exit 1
+fi
+
+echo "Checking generated inventory loads fabric group vars..."
+grep -q "groups\['k3s_server'\]\[0\]" ansible/playbooks/bootstrap-cluster.yml
+
+echo "Checking highspeed_network fails closed without generated netplan on 3+ nodes..."
+grep -q 'pair fallback is 2-node only' ansible/roles/highspeed_network/tasks/main.yml
+
 echo "Checking rounded-stack overlays pin Mode A Jobs..."
 test -f k8s/overlays/rounded-stack/kustomization.yaml
 test -f k8s/overlays/rounded-stack-quality/kustomization.yaml

@@ -37,9 +37,7 @@ spec:
               preference:
                 matchExpressions:
                   - key: nvidia-dgx-spark/highspeed
-                    operator: In
-                    values:
-                      - "dual-400g"
+                    operator: Exists
       containers:
         - name: inference
           # Qwen 3.5 397B int4-AutoRound — 2-node substitute for 397B NVFP4 (proven dual-Spark).
