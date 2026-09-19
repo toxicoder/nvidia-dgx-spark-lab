@@ -11,12 +11,24 @@ load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
 package(default_visibility = ["//visibility:private"])
 
+# Declarative lab topology (single source of truth for generated inventory/netplan).
+filegroup(
+    name = "inventory_lab",
+    srcs = ["inventory/lab.yaml"],
+    visibility = [
+        "//tests:__pkg__",
+        "//visibility:public",
+    ],
+)
+
 filegroup(
     name = "all_playbooks",
     srcs = glob(["playbooks/*.yml"]) + glob(["cloud-init/**"]) + glob(["files/**"]) + glob(["roles/**"]) + [
         "ansible.cfg",
         "inventory/group_vars/all.yml",
+        "inventory/group_vars/generated/fabric.yml",
         "inventory/hosts.ini.example",
+        "inventory/lab.yaml",
     ],
     visibility = [
         "//lints:__pkg__",

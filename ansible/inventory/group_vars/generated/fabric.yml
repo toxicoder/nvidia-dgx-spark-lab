@@ -1,0 +1,16 @@
+# Purpose: generated fabric facts for Ansible roles (regenerated from inventory/lab.yaml)
+# Source of truth: ansible/inventory/lab.yaml
+# Regenerate: ./scripts/manage.sh setup or scripts/lib/topology.sh topology_render
+# Safety: reference facts only — workload manifests remain authoritative for NCCL env and resources
+
+# Generated — do not edit.
+k3s_control_plane: "spark0"
+lab_fabric: "switch"
+lab_node_count: 5
+lab_orchestrator_ip: "10.0.0.10"
+lab_mgmt_subnet: "10.0.0.0/24"
+lab_switch_host: "10.0.0.2"
+lab_switch_model: "CRS804-4DDQ-hRM"
+lab_switch_user: "admin"
+lab_highspeed_netplan_dir: "files/generated/netplan"
+highspeed_interfaces: "enp1s0f0np0"
