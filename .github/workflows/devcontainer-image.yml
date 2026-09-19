@@ -31,10 +31,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # platform: docker/buildx (linux/amd64). artifact: upload-artifact
+          # name (slash-free; "digests-linux/amd64" is rejected).
           - runner: ubuntu-latest
             platform: linux/amd64
+            artifact: linux-amd64
           - runner: ubuntu-24.04-arm
             platform: linux/arm64
+            artifact: linux-arm64
     runs-on: ${{ matrix.runner }}
     outputs:
       image: ${{ steps.image.outputs.name }}
@@ -87,7 +91,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: github.event_name != 'pull_request'
         with:
-          name: digests-${{ matrix.platform }}
+          name: digests-${{ matrix.artifact }}
           path: ${{ runner.temp }}/digests/*
           if-no-files-found: error
           retention-days: 1

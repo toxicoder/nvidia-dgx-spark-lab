@@ -109,7 +109,9 @@ this CLI install — see [docs/hermes-agent.md](../docs/hermes-agent.md).
 
 - **Independent fetch stages** — kubectl, helm, bazelisk, Node, Grok, … each have
   their own BuildKit cache. CI publishes
-  `ghcr.io/toxicoder/nvidia-dgx-spark-lab/devcontainer` for `build.cacheFrom`.
+  `ghcr.io/toxicoder/nvidia-dgx-spark-lab/devcontainer` (native amd64 + arm64)
+  for `build.cacheFrom`. After the first successful publish, set that GHCR
+  package **public** so anonymous clones hit the cache.
 - **Node 22 + Python 3.11 baked** — not Dev Container Features (those re-run
   whenever the image id changes). Only **docker-outside-of-docker** remains a
   Feature (it needs the live host socket).
