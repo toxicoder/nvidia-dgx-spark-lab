@@ -198,8 +198,8 @@ case "${1:-help}" in
     generate_code_docs
     check_content
 
-    # The published site keeps the MkDocs URL layout: /latest/ and /development/ are
-    # separate exports built with a matching basePath.
+    # The published site keeps the MkDocs URL layout: /<repo>/latest/ and
+    # /<repo>/development/ are separate exports (DOCS_ALIAS sets Next's basePath).
     build_script="build"
     case "$VERSION" in
       "") ;;

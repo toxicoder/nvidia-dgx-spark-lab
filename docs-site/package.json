@@ -9,8 +9,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:latest": "NEXT_BASE_PATH=/latest next build",
-    "build:development": "NEXT_BASE_PATH=/development DGX_DOCS_VERSION=development next build",
+    "build:latest": "DOCS_ALIAS=latest next build",
+    "build:development": "DOCS_ALIAS=development DGX_DOCS_VERSION=development next build",
     "start": "next start",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "python3 -m unittest discover -s . -p 'test_*.py' -t .",

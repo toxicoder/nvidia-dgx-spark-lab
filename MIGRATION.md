@@ -26,7 +26,7 @@ The content did not move: pages still live in `docs/`, the generators still writ
 | Content | `docs/**/*.md` | unchanged location; pages that need JSX are `.mdx` |
 | Navigation | `mkdocs.yml` `nav:` | `docs-site/lib/nav.json`, transcribed once by `docs-site/scripts/gen_nav.py` and hand-maintained since (`npm run nav:check` verifies it) |
 | Search | Material search | Orama index at `/api/search`, searchable by title **and** `tags` |
-| Publishing | `mike deploy` → `gh-pages` branch | two static exports (`/latest/`, `/development/`) → Pages artifact |
+| Publishing | `mike deploy` → `gh-pages` branch | two static exports (`/<repo>/latest/`, `/<repo>/development/`) → `gh-pages` (with `.nojekyll`) |
 | Version banner | `docs/hooks.py` | `DGX_DOCS_VERSION` read by the app |
 | Edit-on-GitHub | `hooks.py` `on_config` | same behaviour, branch-aware, in `docs-site/lib/site.ts` |
 
@@ -82,12 +82,13 @@ MkDocs.
 ## Stable URLs
 
 The old site published `…/latest/` and `…/development/` through mike. Both aliases are now
-separate exports of the same commit, built with `NEXT_BASE_PATH=/latest` and
-`/development` (`//docs-site:build-latest`, `//docs-site:build-development`), and
-`.github/workflows/deploy-docs.yml` assembles them under `_site/`. Every previously published
-URL keeps resolving; a root `index.html` forwards bare `…/<repo>/` traffic to `/latest/`, so no
-redirect service is needed. The Pages source becomes the Actions deployment rather than a
-`gh-pages` branch.
+separate exports of the same commit, built with `DOCS_ALIAS=latest` and `development`
+(`//docs-site:build-latest`, `//docs-site:build-development`) so Next bakes
+`basePath=/nvidia-dgx-spark-lab/<alias>` into asset URLs. `.github/workflows/deploy-docs.yml`
+assembles them under `_site/`, writes a root `.nojekyll` (legacy GitHub Pages runs Jekyll,
+which would otherwise drop `_next/`), and fast-forwards the `gh-pages` branch. Every previously
+published URL keeps resolving; a root `index.html` forwards bare `…/<repo>/` traffic to
+`/latest/`, so no redirect service is needed.
 
 The development alias renders a banner; the branch used by “Edit on GitHub” and in-page source
 links comes from `DGX_DOCS_VERSION` (override locally with `DGX_DOCS_GIT_REF`).

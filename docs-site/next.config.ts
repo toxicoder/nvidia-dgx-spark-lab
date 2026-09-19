@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 import { createMDX } from "fumadocs-mdx/next";
 import type { NextConfig } from "next";
 
+import { basePath as publishedBasePath } from "./lib/site";
+
 /** Directory of this config file, i.e. the `docs-site/` package. */
 const packageRoot = fileURLToPath(new URL(".", import.meta.url));
 
@@ -12,10 +14,10 @@ const packageRoot = fileURLToPath(new URL(".", import.meta.url));
  *
  * The MkDocs deployment published two aliases under the repository's GitHub Pages root:
  * `/nvidia-dgx-spark-lab/latest/` and `/nvidia-dgx-spark-lab/development/`.  Each alias is
- * produced by its own export so those URLs keep resolving; see the `build:latest` and
- * `build:development` scripts.
+ * produced by its own export (`DOCS_ALIAS=latest|development`) so those URLs keep resolving
+ * and asset hrefs are not host-root `/latest/_next/...` paths that 404 on project Pages.
  */
-const basePath = process.env.NEXT_BASE_PATH ?? "";
+const basePath = publishedBasePath();
 
 /**
  * Where the static export is written.

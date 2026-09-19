@@ -195,6 +195,11 @@ _ci_action_pins() {
   grep -qF '!/latest' "$deploy"
   grep -qF '!/development' "$deploy"
   grep -qF '!/index.html' "$deploy"
+  # GitHub Pages in legacy (Jekyll) mode drops `_next/` unless a root `.nojekyll`
+  # is published.  The scoped gitignore would also drop that file unless it is
+  # explicitly un-ignored.
+  grep -qF '.nojekyll' "$deploy"
+  grep -qF '!/.nojekyll' "$deploy"
   # The working tree is restored to the source commit after the push: local
   # composite actions re-resolve their action.yml from disk in post steps.
   grep -qF 'SRC_SHA=$(git rev-parse HEAD)' "$deploy"
@@ -203,6 +208,23 @@ _ci_action_pins() {
   if grep -qF 'mike ' "$deploy"; then
     echo "deploy-docs.yml still invokes mike:" >&2
     grep -nF 'mike ' "$deploy" >&2 || true
+    return 1
+  fi
+}
+
+@test "Published docs aliases bake the GitHub Pages repo prefix, not a host-root /latest" {
+  # Project Pages lives at /<repo>/{latest,development}/.  A Next basePath of
+  # `/latest` makes the browser request https://<user>.github.io/latest/_next/...
+  # which 404s and leaves the live docs unstyled.  Alias builds must pass
+  # DOCS_ALIAS and must not inject a half-path NEXT_BASE_PATH.
+  local pkg="${REPO_ROOT}/docs-site/package.json"
+  local runner="${REPO_ROOT}/docs-site/run_npm.sh"
+  [[ -f $pkg && -f $runner ]]
+  grep -qF 'DOCS_ALIAS=latest' "$pkg"
+  grep -qF 'DOCS_ALIAS=development' "$pkg"
+  if grep -qE 'NEXT_BASE_PATH=/(latest|development)([[:space:]"]|$)' "$pkg" "$runner"; then
+    echo "alias builds must not set NEXT_BASE_PATH to a host-root /latest or /development:" >&2
+    grep -nE 'NEXT_BASE_PATH=/(latest|development)([[:space:]"]|$)' "$pkg" "$runner" >&2 || true
     return 1
   fi
 }

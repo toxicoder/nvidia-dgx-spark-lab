@@ -104,8 +104,9 @@ sh_binary(
     visibility = ["//visibility:public"],
 )
 
-# Published aliases keep the URLs the MkDocs site had: /latest/ and /development/ are
-# separate exports built with the matching basePath.
+# Published aliases keep the URLs the MkDocs site had: /<repo>/latest/ and
+# /<repo>/development/ are separate exports built with DOCS_ALIAS set so Next
+# bakes the GitHub Pages project prefix into every asset URL.
 sh_binary(
     name = "build-latest",
     srcs = ["run_npm.sh"],
