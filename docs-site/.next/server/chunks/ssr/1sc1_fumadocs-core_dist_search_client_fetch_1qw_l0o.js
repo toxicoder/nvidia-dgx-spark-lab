@@ -1,0 +1,3 @@
+module.exports=[547251,a=>{"use strict";var b=a.i(918123);let c=new Map;a.s(["fetchClient",0,function({api:a=(0,b.n)(b.t,"/api/search"),locale:d,tag:e,cache:f=c}={}){return{deps:[a,d,e],async search(b){let c=new URL(a,window.location.origin);c.searchParams.set("query",b),d&&c.searchParams.set("locale",d),e&&c.searchParams.set("tag",Array.isArray(e)?e.join(","):e);let g=c.toString(),h=f.get(g);if(h)return h;let i=await fetch(c);if(!i.ok)throw Error(await i.text());let j=await i.json();return f.set(g,j),j}}}])}];
+
+//# sourceMappingURL=1sc1_fumadocs-core_dist_search_client_fetch_1qw_l0o.js.map

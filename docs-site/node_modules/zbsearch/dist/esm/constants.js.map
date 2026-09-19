@@ -1,0 +1,1 @@
+{"mappings":"AAAA,OAAO,MAAM,uBAAuB;AACpC,OAAO,MAAM,qBAAqB;AAClC,OAAO,MAAM,qBAAqB;AAElC,OAAO,MAAM,4BAA4B","names":[],"sources":["src/constants.ts"],"version":3,"sourcesContent":["export const MODE_FULLTEXT_SEARCH = 'fulltext'\nexport const MODE_HYBRID_SEARCH = 'hybrid'\nexport const MODE_VECTOR_SEARCH = 'vector'\n\nexport const RESERVED_VECTOR_INDEX_KEY = '__vector'\n"]}
