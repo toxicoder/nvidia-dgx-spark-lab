@@ -78,9 +78,17 @@ def playwright_version() -> str:
     return match.group(0)
 
 
+def mcr_tag(version: str) -> str:
+    """Render a release as the tag MCR publishes it under (versioned tags carry a ``v``).
+
+    ``playwright:1.63.0-jammy`` does not exist in the registry; only ``v1.63.0-jammy`` does.
+    """
+    return version if version.startswith("v") else f"v{version}"
+
+
 def image_reference() -> str:
     """Return the fully-qualified image reference used to capture baselines."""
-    return f"{registry_prefix()}/playwright:{playwright_version()}-{UBUNTU_CODENAME}"
+    return f"{registry_prefix()}/playwright:{mcr_tag(playwright_version())}-{UBUNTU_CODENAME}"
 
 
 def platform_digest(image: str, want: str) -> str:
@@ -130,10 +138,12 @@ def resident_image_ids(repository: str) -> list[str]:
     return identifiers
 
 
-def candidate_references(want: str = PLATFORM) -> list[str]:
+def candidate_references(want: str = PLATFORM.split("/")[-1]) -> list[str]:
     """Return image references to try, best guarantee first.
 
-    The digest-pinned reference names one architecture outright, so it leads.  The plain tag and
+    ``want`` is a bare architecture (``amd64``), matching what a manifest line carries and
+    what the launcher verifies; the default is the architecture of :data:`PLATFORM`.  The
+    digest-pinned reference names one architecture outright, so it leads.  The plain tag and
     then any locally-resident image ID follow for when the manifest cannot be read or the tag
     mapping is unusable; all of them are safe to attempt because the launcher only accepts a
     candidate whose container reports the expected machine.

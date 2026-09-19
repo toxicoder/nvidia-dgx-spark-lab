@@ -103,13 +103,13 @@ class VisualToolingTests(unittest.TestCase):
         )
 
         image = visual_linux_image.image_reference()
-        self.assertRegex(image, r"^[^/]+/playwright:[0-9.]+-[a-z0-9]+$")
+        self.assertRegex(image, r"^[^/]+/playwright:v[0-9.]+-[a-z0-9]+$")
         tag = image.split(":")[-1]
         version, _, codename = tag.partition("-")
         self.assertEqual(
-            visual_linux_image.playwright_version(),
+            visual_linux_image.mcr_tag(visual_linux_image.playwright_version()),
             version,
-            "the container tag is not the resolved Playwright release",
+            "the container tag is not the MCR spelling of the resolved Playwright release",
         )
         self.assertEqual(codename, visual_linux_image.UBUNTU_CODENAME)
         # The resolved release has to satisfy the range the suite depends on.
@@ -254,6 +254,36 @@ class ImageResolutionTests(unittest.TestCase):
             with _package_dir(root):
                 self.assertEqual(visual_linux_image.playwright_version(), "1.63.0")
 
+    def test_image_tag_uses_the_mcr_version_prefix(self) -> None:
+        """MCR publishes versioned Playwright tags with a ``v`` prefix.
+
+        A bare ``1.63.0-jammy`` tag does not exist in the registry, so a fresh runner (no
+        resident image to rescue the probe) cannot pull it and the visual gate dies before
+        comparing a single baseline.
+        """
+        with tempfile.TemporaryDirectory() as workdir:
+            root = pathlib.Path(workdir)
+            (root / "package.json").write_text(
+                json.dumps({"devDependencies": {"@playwright/test": "^1.63.0"}}), encoding="utf-8"
+            )
+            (root / "package-lock.json").write_text(
+                json.dumps(
+                    {"packages": {"node_modules/@playwright/test": {"version": "1.63.0"}}}
+                ),
+                encoding="utf-8",
+            )
+            with _package_dir(root):
+                reference = visual_linux_image.image_reference()
+                self.assertTrue(
+                    reference.endswith(f"playwright:v1.63.0-{visual_linux_image.UBUNTU_CODENAME}"),
+                    f"tag must carry the MCR version prefix, got {reference}",
+                )
+
+    def test_mcr_tag_is_idempotent_for_prefixed_versions(self) -> None:
+        """A version that already carries the prefix must not gain a second one."""
+        self.assertEqual(visual_linux_image.mcr_tag("v1.63.0"), "v1.63.0")
+        self.assertEqual(visual_linux_image.mcr_tag("1.63.0"), "v1.63.0")
+
     def test_playwright_version_without_any_source_is_an_error(self) -> None:
         """Guessing a browser build is what lets a wrong renderer slip in, so it is refused."""
         with tempfile.TemporaryDirectory() as workdir:
@@ -316,6 +346,26 @@ class ImageResolutionTests(unittest.TestCase):
         self.assertEqual(found[0], f"{repository}@sha256:amd")
         self.assertEqual(found.count(image), 1)
         self.assertIn("sha256:aaa", found)
+
+    def test_default_candidates_resolve_the_manifest_for_the_default_platform(self) -> None:
+        """The CLI path (``--print-candidates``) passes no argument at all.
+
+        With a readable registry manifest — which the MCR version prefix now guarantees —
+        the digest must still be found for the default platform.  The default used to be
+        the full ``linux/amd64`` string, which no manifest line carries as its
+        architecture, so the candidate list raised a ``LookupError`` on a fresh runner.
+        """
+        manifest = json.dumps(
+            {"manifests": [
+                {"digest": "sha256:arm", "platform": {"os": "linux", "architecture": "arm64"}},
+                {"digest": "sha256:amd", "platform": {"os": "linux", "architecture": "amd64"}},
+            ]}
+        )
+        image = visual_linux_image.image_reference()
+        repository = image.split(":")[0]
+        self._fake_docker({"manifest": (0, manifest), "images": (0, "")})
+        found = visual_linux_image.candidate_references()
+        self.assertEqual(found[0], f"{repository}@sha256:amd")
 
     def test_unsupported_platform_is_rejected(self) -> None:
         """An architecture with no ``uname`` mapping cannot be verified, so it is refused."""
