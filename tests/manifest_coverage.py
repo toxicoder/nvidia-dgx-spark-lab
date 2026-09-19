@@ -26,7 +26,9 @@ _ANSIBLE_EXERCISED_EXACT = frozenset(
     {
         "ansible/ansible.cfg",
         "ansible/inventory/group_vars/all.yml",
+        "ansible/inventory/group_vars/generated/fabric.yml",
         "ansible/inventory/hosts.ini.example",
+        "ansible/inventory/lab.yaml",
     }
 )
 

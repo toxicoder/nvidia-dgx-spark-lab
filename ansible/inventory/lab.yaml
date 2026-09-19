@@ -1,0 +1,63 @@
+# Purpose: declarative lab topology — single source of truth for inventory, netplan, cloud-init, and fabric facts
+# Source of truth: this file
+# Regenerate: ./scripts/manage.sh setup (discovery wizard rewrites it), or edit by
+#   hand and re-render
+# Safety: derived artifacts (hosts.ini, fabric group vars, netplan, cloud-init) are regenerated from this file; nothing here auto-starts inference
+
+# Reference lab: five DGX Sparks behind a Mikrotik CRS804-4DDQ-hRM switch.
+# The IP values below are placeholders. `manage.sh setup` rewrites this file
+# with discovered values; edit nodes / fabric / switch to match your cabling.
+# Supported fabrics: none (1 node), pair (2 nodes, direct QSFP), ring
+# (3 nodes, QSFP triangle), switch (4-5 nodes, CRS804 — one 400G port may be
+# split into two 200G lanes with a breakout cable, lane suffixes a/b).
+lab:
+  management:
+    subnet: 10.0.0.0/24
+  ansible_user: ubuntu
+  fabric: switch
+  switch:
+    brand: mikrotik
+    model: CRS804-4DDQ-hRM
+    host: 10.0.0.2
+    # Admin user for the read-only RouterOS API probe. The password is read
+    # from the LAB_SWITCH_PASSWORD environment variable at runtime — never
+    # commit it or write it to any file.
+    user: admin
+    port_map:
+      - node: spark0
+        port: sfpplus1
+      - node: spark1
+        port: sfpplus2
+      - node: spark2
+        port: sfpplus3
+      - node: spark3
+        port: sfpplus4a
+      - node: spark4
+        port: sfpplus4b
+  nodes:
+    - name: spark0
+      ip: 10.0.0.10
+      role: orchestrator
+      hs_ifs:
+        - enp1s0f0np0
+        - enp1s0f1np1
+    - name: spark1
+      ip: 10.0.0.11
+      hs_ifs:
+        - enp1s0f0np0
+        - enp1s0f1np1
+    - name: spark2
+      ip: 10.0.0.12
+      hs_ifs:
+        - enp1s0f0np0
+        - enp1s0f1np1
+    - name: spark3
+      ip: 10.0.0.13
+      hs_ifs:
+        - enp1s0f0np0
+        - enp1s0f1np1
+    - name: spark4
+      ip: 10.0.0.14
+      hs_ifs:
+        - enp1s0f0np0
+        - enp1s0f1np1

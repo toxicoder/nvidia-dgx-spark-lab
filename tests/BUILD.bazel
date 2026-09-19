@@ -165,6 +165,20 @@ sh_test(
 )
 
 sh_test(
+    name = "bats_topology_test",
+    size = "small",
+    timeout = "short",
+    srcs = ["bats_runner.sh"],
+    args = ["topology.bats"],
+    data = _BATS_MIN + [
+        "bats/topology.bats",
+        "//ansible:inventory_lab",
+        "//scripts:lib/py/lab_topology.py",
+        "//scripts:lib/topology.sh",
+    ],
+)
+
+sh_test(
     name = "bats_domains_test",
     size = "small",
     timeout = "short",
@@ -230,6 +244,7 @@ test_suite(
         ":bats_domains_test",
         ":bats_manage_test",
         ":bats_tooling_test",
+        ":bats_topology_test",
         ":bats_utilities_test",
         ":bats_visual_test",
     ],
@@ -271,12 +286,12 @@ sh_test(
         "//k8s/cert-manager/generated:generated_certs",
         "//k8s/dev:safety_data",
         "//k8s/dev/dashboard:dashboard_all",
-        "//k8s/overlays/rounded-stack:rounded_stack",
-        "//k8s/overlays/rounded-stack-quality:rounded_stack_quality",
+        "//k8s/overlays/litellm-dsv41-flash:litellm_dsv41_flash",
+        "//k8s/overlays/litellm-glm53-flash:litellm_glm53_flash",
         "//k8s/overlays/litellm-qwen38-27b:litellm_qwen38_27b",
         "//k8s/overlays/litellm-qwen38-flash-next:litellm_qwen38_flash_next",
-        "//k8s/overlays/litellm-glm53-flash:litellm_glm53_flash",
-        "//k8s/overlays/litellm-dsv41-flash:litellm_dsv41_flash",
+        "//k8s/overlays/rounded-stack:rounded_stack",
+        "//k8s/overlays/rounded-stack-quality:rounded_stack_quality",
         "//k8s/workloads/comfy-base:comfy_base",
         "//k8s/workloads/comfy-visual/flux-to-ltx:flux_to_ltx",
         "//k8s/workloads/comfy-visual/flux/fast:flux_fast",
