@@ -5,6 +5,9 @@
 
 ---
 # Cloud-init prep role. Renders user-data for early node OS/highspeed config.
+# Prefers the per-node user-data generated from ansible/inventory/lab.yaml
+# (files/generated/cloud-init/); falls back to the role template for
+# hand-made hosts.ini labs.
 # Strategic layer before full K3s/GPU Ansible. Run early in bootstrap flow.
 # Outputs to ansible/files/cloud-init/rendered/ or prints instructions.
 # Safe: does not touch running nodes unless you apply manually.
@@ -17,6 +20,21 @@
   delegate_to: localhost
   run_once: true
 
+- name: Check for generated per-node user-data (from lab.yaml)
+  stat:
+    path: "{{ playbook_dir }}/../files/generated/cloud-init/user-data-{{ inventory_hostname }}.yaml"
+  delegate_to: localhost
+  become: false
+  register: generated_userdata
+
+- name: Use generated per-node user-data when present (lab.yaml source of truth)
+  copy:
+    src: "{{ playbook_dir }}/../files/generated/cloud-init/user-data-{{ inventory_hostname }}.yaml"
+    dest: "{{ playbook_dir }}/../files/cloud-init/rendered/user-data-{{ inventory_hostname }}.yaml"
+    mode: "0644"
+  delegate_to: localhost
+  when: generated_userdata.stat.exists
+
 - name: Render per-node user-data (templated from role)
   template:
     src: user-data.yaml.j2
@@ -24,6 +42,7 @@
     mode: "0644"
   delegate_to: localhost
   run_once: false # per host for hostname/IP logic
+  when: not generated_userdata.stat.exists
 
 - name: Render example static files (for 1/2-node reference)
   copy:
