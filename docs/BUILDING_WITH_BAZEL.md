@@ -79,6 +79,17 @@ bazelisk query 'deps(//tests:bats_manage_test)'
 
 Documentation for commands, helpers, and internal APIs is generated from source so it **never goes stale**.
 
+```mermaid
+flowchart LR
+  shell["scripts structured comments"] --> gen["generate_shell_docs.py"]
+  jsdoc["dashboard JSDoc"] --> typedoc[TypeDoc]
+  gen --> out1["docs/generated/shell"]
+  typedoc --> out2["docs/generated/dashboard-api"]
+  md["docs markdown and MDX"] --> site["Fumadocs GitHub Pages"]
+  out1 --> site
+  out2 --> site
+```
+
 ### Shell Commands & Helpers (the main auto-generated reference)
 
 `docs/generate_shell_docs.py` is a tiny stdlib-only extractor that turns specially formatted comments in the shell scripts into a beautiful, human-readable reference page.
@@ -213,7 +224,7 @@ reload, which is the right thing for authoring.
 - One change in a script comment → reference, examples on the site, and live panel examples all update together.
 - Over-documenting in the scripts is explicitly encouraged (see user request and AGENTS guidance).
 
-See the very long "Documentation from Code (Auto-Generated & Always Up-to-Date)" section in getting-started.md for the full picture, Mermaid diagram, and contribution instructions.
+See the Mermaid pipeline at the top of this section and [CONTRIBUTING.md](CONTRIBUTING.md) for markers, workflow, and contribution instructions.
 
 The previous short paragraph has been replaced by this more complete description.
 

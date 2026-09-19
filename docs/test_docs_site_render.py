@@ -44,6 +44,12 @@ BAD_PROSE_LIST_RE = re.compile(r"[^\n]:[ \t]*\n-\s")
 # An unquoted `{...}` inside a Mermaid node label is accepted by the parser but throws
 # "Syntax error in text" once the browser runs the diagram.
 BAD_MERMAID_LABEL_RE = re.compile(r'\[[^"\]]*\{\{')
+# Architecture sections on the published site must be Mermaid, not ASCII.
+ARCH_HEADING_RE = re.compile(r"^## Architecture\b", re.M)
+MERMAID_FENCE_RE = re.compile(r"^```mermaid\b", re.M)
+TEXT_FENCE_RE = re.compile(r"^```text[^\n]*\n(.*?)```", re.S | re.M)
+# Arrow flows and box-drawing trees in ```text fences are diagrams, not samples.
+ASCII_FLOW_RE = re.compile(r"[→├└│]")
 # Asset references the exported HTML asks the browser to fetch, used to prove the export is
 # self-consistent with the prefix it is served under.
 _ASSET_REF_RE = re.compile(
@@ -171,6 +177,62 @@ def exported_pages() -> list[str]:
     return routes
 
 
+def hand_written_doc_paths() -> list[Path]:
+    """Return hand-written Markdown/MDX pages under `docs/`, excluding generated trees.
+
+    Returns:
+        Paths to author-maintained pages the GitHub Pages site publishes.
+    """
+    paths: list[Path] = []
+    for path in DOCS_DIR.rglob("*"):
+        if path.suffix not in {".md", ".mdx"}:
+            continue
+        if "generated/" in path.as_posix():
+            continue
+        paths.append(path)
+    return paths
+
+
+def is_directory_tree(body: str) -> bool:
+    """Return whether a text fence is a directory listing rather than a diagram.
+
+    A directory tree's first non-empty line ends with ``/`` (for example ``k8s/``).
+    Architecture ASCII (Hermes host trees, request flows) does not.
+
+    Args:
+        body: Contents of a `` ```text `` fence, without the fences.
+
+    Returns:
+        True when the fence should be left as text.
+    """
+    for line in body.splitlines():
+        stripped = line.strip()
+        if stripped:
+            return stripped.endswith("/")
+    return False
+
+
+def ascii_flow_offenders(text: str, rel: str) -> list[str]:
+    """Return locations of `` ```text `` fences that are ASCII architecture diagrams.
+
+    Args:
+        text: Markdown or MDX source.
+        rel: Repo-relative path used in failure messages.
+
+    Returns:
+        Strings ``path:line`` for each offending fence.
+    """
+    found: list[str] = []
+    for match in TEXT_FENCE_RE.finditer(text):
+        body = match.group(1)
+        if is_directory_tree(body):
+            continue
+        if ASCII_FLOW_RE.search(body):
+            line = text[: match.start()].count("\n") + 1
+            found.append(f"{rel}:{line}")
+    return found
+
+
 def read_export(route: str) -> str:
     """Read the exported HTML for one route.
 
@@ -270,6 +332,32 @@ class TestDocsSiteRender(unittest.TestCase):
                     offenders.append(path.relative_to(REPO_ROOT).as_posix())
         self.assertGreater(blocks, 0, "no mermaid diagrams found; the port lost them")
         self.assertEqual(offenders, [], "Unquoted {…} in a mermaid node label: " + ", ".join(sorted(set(offenders))))
+
+    def test_architecture_headings_have_mermaid(self) -> None:
+        """A ## Architecture section on a published page is drawn as Mermaid, not prose or ASCII."""
+        missing: list[str] = []
+        for path in hand_written_doc_paths():
+            text = path.read_text(encoding="utf-8", errors="replace")
+            if not ARCH_HEADING_RE.search(text):
+                continue
+            if not MERMAID_FENCE_RE.search(text):
+                missing.append(path.relative_to(REPO_ROOT).as_posix())
+        self.assertEqual(
+            missing,
+            [],
+            "Architecture heading without a mermaid fence: " + ", ".join(sorted(missing)),
+        )
+
+    def test_no_ascii_flow_diagrams(self) -> None:
+        """Arrow flows and box-drawing trees in ```text fences must be Mermaid instead.
+
+        Directory listings (first non-empty line ends with ``/``) stay text.
+        """
+        offenders: list[str] = []
+        for path in hand_written_doc_paths():
+            rel = path.relative_to(REPO_ROOT).as_posix()
+            offenders.extend(ascii_flow_offenders(path.read_text(encoding="utf-8", errors="replace"), rel))
+        self.assertEqual(offenders, [], "ASCII architecture diagram in a text fence: " + ", ".join(offenders))
 
     def test_no_mistakes_in_information_architecture(self) -> None:
         """The six top-level sections of the old site are all present."""

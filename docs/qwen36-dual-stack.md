@@ -27,6 +27,13 @@ tags: [qwen, inference, nvfp4, vllm, dual, dgx-spark]
 | Unified memory | 128 GB LPDDR5x |
 | Physical GPUs | 1 (time-sliced to 2 logical for dual) |
 
+```mermaid
+flowchart LR
+  Job27["qwen3.6-27b-nvfp4"] --> GPU["1x GB10 time-sliced"]
+  Job35["qwen3.6-35b-a3b-nvfp4"] --> GPU
+  GPU --> OWUI["Open WebUI selector"]
+```
+
 ## Models
 
 | Role | Job / Service | Checkpoint | Notes |

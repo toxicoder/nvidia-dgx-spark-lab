@@ -23,6 +23,15 @@ The file is `ansible/inventory/lab.yaml`. The engine is `scripts/lib/py/lab_topo
 (shell wrapper: `scripts/lib/topology.sh`). `bazelisk run //:manage -- setup` and
 `bazelisk run //:manage -- topology` drive it.
 
+```mermaid
+flowchart LR
+  yaml["lab.yaml"] --> eng["lab_topology.py"]
+  eng --> inv[inventory]
+  eng --> net[netplan]
+  eng --> ci[cloud-init]
+  eng --> gv["group vars"]
+```
+
 ## The model
 
 ```yaml

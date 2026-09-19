@@ -24,6 +24,14 @@ tags: [safety, resources, kubernetes, bazel, nvidia]
 
 Resource Guard uses **defense in depth**:
 
+```mermaid
+flowchart TD
+  Policy["resource-policy.yaml / json"] --> Runtime["resources.sh preflight"]
+  Runtime --> K8s["PriorityClass / Quota / LimitRange"]
+  K8s --> Host["kubelet reserved"]
+  Host --> SSH["SSH and control plane stay up"]
+```
+
 1. **Policy** — `config/resource-policy.yaml` (human) + `config/resource-policy.json` (parsed by scripts)
 2. **Runtime checks** — `scripts/lib/resources.sh` blocks unsafe `start-*` unless you confirm or `--force`
 3. **Kubernetes** — `k8s/base/resource-guard/` (PriorityClass, ResourceQuota, LimitRange, PDB)

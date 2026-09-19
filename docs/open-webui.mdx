@@ -62,14 +62,14 @@ Traefik forward-auth protects the SSO route. Open WebUI trusts the `Remote-User`
 
 ## Architecture
 
-```text
-Browser → Traefik/Authelia → Open WebUI (dev namespace, Helm)
-              ↓
-    hermes-gateway Service (headless)
-              ↓
-    Endpoints → spark0:8642 (host-network Hermes)
-              ↓
-    Nemotron orchestrator + MCP toolkit
+```mermaid
+flowchart TD
+  Browser --> SSO["Traefik / Authelia"]
+  SSO --> OWUI["Open WebUI (dev namespace, Helm)"]
+  OWUI --> GW["hermes-gateway headless Service"]
+  GW --> EP["Endpoints to spark0:8642"]
+  EP --> Hermes["host-network Hermes"]
+  Hermes --> Stack["Nemotron orchestrator + MCP toolkit"]
 ```
 
 The `hermes-gateway` Endpoints IP is rendered at deploy time from the control-plane node InternalIP (`LAB_SPARK0_IP` override supported).

@@ -19,6 +19,14 @@ tags: [nemotron, inference, agents, safety, rag]
 - Picking the right preset for your node count without manual manifest juggling
 - Copying per-service API URLs for LangGraph, OpenAI SDK, or custom agents
 
+```mermaid
+flowchart LR
+  Orch[Orchestrator] --> RAG["CPU RAG"]
+  Orch --> Safety[Safety]
+  RAG --> Qdrant
+  Orch --> Speech["Speech on 3+ node presets"]
+```
+
 ## Presets
 
 | Preset ID | Nodes | Orchestrator | Pillars |

@@ -741,14 +741,15 @@ See [dashboard/AGENTS.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob
 
 ### Layering
 
-```text
-Request → middleware (cookie/proxy/bypass)
-       → app/(dashboard)/layout (requireSession)
-       → page.tsx (Promise.all reads via lib/host)
-       → Panels (RSC or client + initial* props)
-       → actions/* (requireSession + Zod)
-       → lib/services/* (withMock in tests)
-       → revalidatePath + toast
+```mermaid
+flowchart TD
+  Req[Request] --> MW["middleware (cookie / proxy / bypass)"]
+  MW --> Layout["app dashboard layout requireSession"]
+  Layout --> Page["page.tsx Promise.all via lib/host"]
+  Page --> Panels["Panels RSC or client"]
+  Panels --> Actions["actions requireSession + Zod"]
+  Actions --> Services["lib/services withMock"]
+  Services --> Done["revalidatePath + toast"]
 ```
 
 | Layer | Role |
@@ -853,7 +854,7 @@ Every `.md` page needs YAML frontmatter (`title`, `description`, `tags`) and two
 - Headings start at `##` inside pages (title from frontmatter)
 - **All code fences must specify a language** (`bash`, `yaml`, `text`, `mermaid`, etc.)
 - Blank line before list items that follow prose ending in `:`
-- Mermaid: quote node labels with `{{...}}`; prefer `flowchart TD`
+- Mermaid: double-quote node labels that contain special characters; prefer `flowchart TD`. Architecture diagrams are Mermaid (`//docs:test_docs_site_render` rejects ASCII flow diagrams in text fences and Architecture headings without a mermaid fence).
 - Use `<Callout type="info|warning|error">` for asides and `<Tabs>`/`<Tab>` for alternatives; the old `!!!` and `=== "Tab"` syntax is no longer parsed
 - MDX escapes: a literal `<` in prose needs `&lt;`, and braces outside a code fence need `&#123;` / `&#125;`; pages that use components are `.mdx`, the rest stay `.md`
 - **Links to repo-root files** (outside `docs/`): use full GitHub URLs — the site build resolves relative links inside the content root only
