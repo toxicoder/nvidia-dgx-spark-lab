@@ -8,6 +8,11 @@ name: Deploy Documentation
 # <base>/development/ with mike. The two exports below are written to those same
 # prefixes, so previously published and bookmarked URLs keep resolving, and a
 # redirect page at the root sends bare <base>/ traffic to /latest/.
+#
+# Publishing: the repository's Pages source is the legacy `gh-pages` branch, so
+# the assembled tree is committed on top of that branch and pushed with a plain
+# fast-forward push (the run fetches the branch tip at publish time, and the
+# `pages` concurrency group serializes overlapping runs). No force-push, ever.
 on:
   push:
     branches: [main, master, development]
@@ -99,10 +104,26 @@ jobs:
           </html>
           HOR
 
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4
-        with:
-          path: _site/
+      - name: Publish to the gh-pages branch
+        run: |
+          set -euo pipefail
+          # The gh-pages branch is a generated artifact: every run replaces its
+          # whole tree with the freshly assembled site (fast-forward on top of
+          # the current remote tip; no force-push).
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin gh-pages
+          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+            git checkout -B gh-pages origin/gh-pages
+          else
+            git checkout --orphan gh-pages
+          fi
+          git rm -rf --quiet . 2>/dev/null || true
+          cp -r _site/. ./
+          rm -rf _site
+          git add -A
+          git commit -m "docs: publish $GITHUB_REF_NAME from $GITHUB_SHA" --allow-empty
+          git push origin gh-pages
 
       - name: Report the published URLs
         run: |
