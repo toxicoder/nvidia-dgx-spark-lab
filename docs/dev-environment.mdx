@@ -140,7 +140,10 @@ Hermes **on the Spark host** (Docker gateway stacks) is documented separately in
 Lifecycle (optimized):
 
 1. **Image build** — independent fetch stages (Dockerfile). CI publishes
-   `ghcr.io/toxicoder/nvidia-dgx-spark-lab/devcontainer` for layer cache.
+   `ghcr.io/toxicoder/nvidia-dgx-spark-lab/devcontainer` for layer cache
+   (native `linux/amd64` + `linux/arm64`). After the first successful
+   publish, set that GHCR package **public** so anonymous clones can use
+   `build.cacheFrom`.
    Bumping one CLI pin does not re-download the others. Node 22 and Python 3.11
    are baked (not Features). Workspace `npm ci` / Playwright stay in post-create.
 2. **updateContentCommand** — `post-create.sh --deps-only` (npm, docs, Playwright)

@@ -54,6 +54,26 @@ teardown() {
   grep -q 'ghcr.io' "$wf"
 }
 
+@test "devcontainer image digest artifacts have slash-free names" {
+  # upload-artifact@v4 rejects names containing / (run 35474275534:
+  # "The artifact name is not valid: digests-linux/amd64").
+  # Keep docker platforms as linux/amd64; use a separate matrix.artifact id.
+  local wf="${REPO_ROOT}/.github/workflows/devcontainer-image.yml"
+  [[ -f $wf ]]
+  ! grep -F 'name: digests-${{ matrix.platform }}' "$wf"
+  grep -F 'name: digests-${{ matrix.artifact }}' "$wf"
+  grep -F 'pattern: digests-*' "$wf"
+  grep -qE '^[[:space:]]+platform:[[:space:]]+linux/amd64[[:space:]]*$' "$wf"
+  grep -qE '^[[:space:]]+platform:[[:space:]]+linux/arm64[[:space:]]*$' "$wf"
+  grep -qE '^[[:space:]]+artifact:[[:space:]]+linux-amd64[[:space:]]*$' "$wf"
+  grep -qE '^[[:space:]]+artifact:[[:space:]]+linux-arm64[[:space:]]*$' "$wf"
+  if grep -E '^[[:space:]]+artifact:[[:space:]]+' "$wf" | grep -q '/'; then
+    echo "matrix.artifact values must not contain /:" >&2
+    grep -E '^[[:space:]]+artifact:[[:space:]]+' "$wf" >&2
+    return 1
+  fi
+}
+
 @test "Gitea CI long-lived branches match GitHub CI" {
   # development is the primary integration branch — both CI surfaces must run on it.
   # Use portable grep (not host ripgrep): GHA ubuntu-latest has no rg by default.
