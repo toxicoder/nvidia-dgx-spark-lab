@@ -1,0 +1,13 @@
+# Example Grok custom model pointing at an LLM on the *host* (LiteLLM, vLLM, …).
+# Copy into ~/.grok/config.toml and adjust the port. Do not put live API keys here.
+#
+# From the container: http://host.docker.internal:<port>/v1
+# (devcontainer.json adds host.docker.internal → host-gateway on every OS)
+
+[model.lab-host]
+model = "lab-auto"
+name = "Host LiteLLM"
+description = "OpenAI-compatible endpoint on the contributor host"
+base_url = "http://host.docker.internal:4000/v1"
+api_key = "none"
+api_backend = "chat_completions"

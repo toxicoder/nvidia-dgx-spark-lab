@@ -38,8 +38,11 @@ Environment:
   FORCE_AGENT_CLI_INSTALL=1        Re-run installers even if commands exist
 
 Auth (user-initiated only after install — never committed, not during create):
-  grok login          # or set GROK_DEPLOYMENT_KEY only in your shell session
-  hermes setup        # only when you want to use Hermes (provider/model under ~/.hermes)
+  grok login --device-auth   # container has no host browser; or XAI_API_KEY in the shell
+  hermes setup               # only when you want to use Hermes (provider/model under ~/.hermes)
+
+The image already ships /usr/local/bin/grok at GROK_VERSION. This script skips
+that install when the pin matches.
 
 See docs/dev-environment.md and SECURITY.md.
 EOF
@@ -55,7 +58,16 @@ if [[ ${SKIP} == "1" ]]; then
   exit 0
 fi
 
-export PATH="${HOME}/.local/bin:${HOME}/.hermes/bin:${PATH}"
+export PATH="/usr/local/bin:${HOME}/.local/bin:${HOME}/.hermes/bin:${PATH}"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "${SCRIPT_DIR}/tool-versions.env" ]]; then
+  # shellcheck disable=SC1091
+  set -a
+  # shellcheck disable=SC1090
+  source "${SCRIPT_DIR}/tool-versions.env"
+  set +a
+fi
 
 # @function ensure_agent_homes
 # Make ~/.grok and ~/.hermes writable for vscode (named volume ownership).
@@ -91,18 +103,44 @@ ensure_agent_homes() {
   done
 }
 
+# @function grok_matches_pin
+# True when /usr/local/bin/grok reports the pinned GROK_VERSION.
+grok_matches_pin() {
+  local pin="${GROK_VERSION:-}"
+  local bin="/usr/local/bin/grok"
+  [[ -x ${bin} ]] || return 1
+  [[ -n ${pin} ]] || return 0
+  "${bin}" --version 2>/dev/null | grep -Fq "${pin}"
+}
+
 # @function install_grok
-# Install Grok Build CLI via official installer when missing.
+# Install Grok Build CLI via official installer when the image pin is missing.
 install_grok() {
-  if command -v grok >/dev/null 2>&1 && [[ ${FORCE} != "1" ]]; then
+  if [[ ${FORCE} != "1" ]] && grok_matches_pin; then
+    echo "install-agent-clis: grok ${GROK_VERSION} already at /usr/local/bin/grok"
+    return 0
+  fi
+  if command -v grok >/dev/null 2>&1 && [[ ${FORCE} != "1" ]] && [[ -z ${GROK_VERSION:-} ]]; then
     echo "install-agent-clis: grok already on PATH ($(command -v grok))"
     return 0
   fi
   echo "install-agent-clis: installing Grok Build CLI (https://github.com/xai-org/grok-build)"
-  # GROK_BIN_DIR keeps binary under user-local path (no root).
-  export GROK_BIN_DIR="${GROK_BIN_DIR:-${HOME}/.local/bin}"
+  # Image pin lives at /usr/local/bin (outside the ~/.grok volume). Fallback
+  # installs go to the same path when writable, else ~/.local/bin.
+  if [[ -w /usr/local/bin ]]; then
+    export GROK_BIN_DIR="${GROK_BIN_DIR:-/usr/local/bin}"
+  else
+    export GROK_BIN_DIR="${GROK_BIN_DIR:-${HOME}/.local/bin}"
+  fi
   mkdir -p "${GROK_BIN_DIR}"
-  if ! curl -fsSL https://x.ai/cli/install.sh | bash; then
+  if [[ -n ${GROK_VERSION:-} ]]; then
+    if ! curl -fsSL https://x.ai/cli/install.sh | bash -s "${GROK_VERSION}"; then
+      echo "install-agent-clis: grok install failed (network, installer, or ~/.grok not writable)" >&2
+      echo 'install-agent-clis: if Permission denied under ~/.grok, run: sudo chown -R "$(id -u):$(id -g)" ~/.grok ~/.hermes' >&2
+      echo "install-agent-clis: or on host: docker volume rm dgx-lab-grok-home dgx-lab-hermes-home && rebuild container" >&2
+      return 0
+    fi
+  elif ! curl -fsSL https://x.ai/cli/install.sh | bash; then
     echo "install-agent-clis: grok install failed (network, installer, or ~/.grok not writable)" >&2
     echo 'install-agent-clis: if Permission denied under ~/.grok, run: sudo chown -R "$(id -u):$(id -g)" ~/.grok ~/.hermes' >&2
     echo "install-agent-clis: or on host: docker volume rm dgx-lab-grok-home dgx-lab-hermes-home && rebuild container" >&2

@@ -12,7 +12,7 @@ setup() {
 
 @test "tool-versions.env exists and is bash-sourceable" {
   [[ -f "${DEVCONTAINER_DIR}/tool-versions.env" ]]
-  run bash -c "set -a; source '${DEVCONTAINER_DIR}/tool-versions.env'; set +a; test -n \"\${BAZELISK_VERSION}\" && test -n \"\${KUBECONFORM_VERSION}\" && test -n \"\${NODE_MAJOR}\""
+  run bash -c "set -a; source '${DEVCONTAINER_DIR}/tool-versions.env'; set +a; test -n \"\${BAZELISK_VERSION}\" && test -n \"\${KUBECONFORM_VERSION}\" && test -n \"\${NODE_MAJOR}\" && test -n \"\${NODE_VERSION}\" && test -n \"\${GROK_VERSION}\""
   [ "$status" -eq 0 ]
 }
 
@@ -62,6 +62,8 @@ setup() {
   grep -q "${KUBECONFORM_VERSION}" "${DEVCONTAINER_DIR}/Dockerfile"
   grep -q "${HELM_VERSION}" "${DEVCONTAINER_DIR}/Dockerfile"
   grep -q "${KUBECTL_VERSION}" "${DEVCONTAINER_DIR}/Dockerfile"
+  grep -q "${NODE_VERSION}" "${DEVCONTAINER_DIR}/Dockerfile"
+  grep -q "${GROK_VERSION}" "${DEVCONTAINER_DIR}/Dockerfile"
 
   # CI installer (scripts/ci; .github wrapper delegates here) must source SSOT.
   local installer="${REPO_ROOT}/scripts/ci/install-lint-tools.sh"
@@ -100,7 +102,9 @@ setup() {
 
 @test "devcontainer.json uses docker-outside-of-docker and Node 22" {
   grep -q 'docker-outside-of-docker' "${DEVCONTAINER_DIR}/devcontainer.json"
-  grep -q '"version": "22"' "${DEVCONTAINER_DIR}/devcontainer.json"
+  # Node 22 is baked into the image (NODE_VERSION / NODE_MAJOR), not a Feature.
+  grep -Eq '^NODE_MAJOR=22([[:space:]]|$)' "${DEVCONTAINER_DIR}/tool-versions.env"
+  grep -Eq '^NODE_VERSION=22\.' "${DEVCONTAINER_DIR}/tool-versions.env"
   # Must not enable both DinD and get.docker.com dual install path in json features.
   run grep -E 'docker-in-docker' "${DEVCONTAINER_DIR}/devcontainer.json"
   [ "$status" -ne 0 ]
@@ -167,10 +171,12 @@ setup() {
   local lock="${DEVCONTAINER_DIR}/devcontainer-lock.json"
   [[ -f ${lock} ]]
   grep -q 'docker-outside-of-docker' "${lock}"
-  grep -q 'ghcr.io/devcontainers/features/node' "${lock}"
-  grep -q 'ghcr.io/devcontainers/features/python' "${lock}"
   grep -q '"resolved"' "${lock}"
   grep -q 'sha256:' "${lock}"
+  # Node and Python are baked into the Dockerfile so a Dockerfile cache miss
+  # does not re-run those Feature install scripts.
+  ! grep -q 'ghcr.io/devcontainers/features/node' "${lock}"
+  ! grep -q 'ghcr.io/devcontainers/features/python' "${lock}"
 }
 
 @test "hermes installer skips interactive setup during create" {
@@ -275,4 +281,114 @@ EOF
 
 @test "post-create prewarms bazelisk to avoid IDE first-query race" {
   grep -Eq 'bazelisk (version|info)' "${DEVCONTAINER_DIR}/post-create.sh"
+}
+
+@test "Dockerfile uses independent fetch stages so one CLI pin does not rebuild the rest" {
+  # BuildKit caches stages independently. A single RUN that curls every binary
+  # is one cache key; split FROM + COPY --from= keeps rebuilds local to the pin.
+  local df="${DEVCONTAINER_DIR}/Dockerfile"
+  [[ -f ${df} ]]
+  grep -Eq '^# syntax=docker/dockerfile:' "${df}"
+  local from_count
+  from_count="$(grep -cE '^FROM[[:space:]]' "${df}")"
+  [[ ${from_count} -ge 5 ]]
+  grep -q 'COPY --from=' "${df}"
+  grep -Eq 'FROM[[:space:]].+[[:space:]]AS[[:space:]]kubectl' "${df}"
+  grep -Eq 'FROM[[:space:]].+[[:space:]]AS[[:space:]]bazelisk' "${df}"
+  grep -Eq 'FROM[[:space:]].+[[:space:]]AS[[:space:]]grok' "${df}" ||
+    grep -Eq 'GROK_BIN_DIR=/usr/local/bin' "${df}"
+}
+
+@test "Dockerfile does not COPY tool-versions.env before the apt layer" {
+  # COPY of a frequently edited pin file before apt busts the expensive layer.
+  # Bind-mount or a late verify step is fine; an early COPY is not.
+  local df="${DEVCONTAINER_DIR}/Dockerfile"
+  run awk '
+    /COPY[[:space:]]+tool-versions\.env/ { copy=NR }
+    /apt-get[[:space:]]+update/ && !apt { apt=NR }
+    END {
+      if (copy && apt && copy < apt) exit 1
+      exit 0
+    }
+  ' "${df}"
+  [ "$status" -eq 0 ]
+}
+
+@test "Dockerfile apt install uses BuildKit cache mounts" {
+  grep -q 'mount=type=cache,target=/var/cache/apt' "${DEVCONTAINER_DIR}/Dockerfile"
+  grep -q 'mount=type=cache,target=/var/lib/apt' "${DEVCONTAINER_DIR}/Dockerfile"
+}
+
+@test "Dockerfile installs bubblewrap for Grok deny-list sandbox" {
+  grep -q 'bubblewrap' "${DEVCONTAINER_DIR}/Dockerfile"
+}
+
+@test "Dockerfile pins Grok into /usr/local/bin not ~/.grok/bin" {
+  # Named volume dgx-lab-grok-home overlays ~/.grok and would hide a binary
+  # installed there. The CLI belongs on the image PATH.
+  local df="${DEVCONTAINER_DIR}/Dockerfile"
+  grep -q 'GROK_VERSION' "${df}"
+  grep -Eq 'GROK_BIN_DIR=/usr/local/bin' "${df}"
+  ! grep -Eq 'GROK_BIN_DIR=.*\.grok' "${df}"
+}
+
+@test "devcontainer context has a tight .dockerignore" {
+  local ignore="${DEVCONTAINER_DIR}/.dockerignore"
+  [[ -f ${ignore} ]]
+  grep -q '^[[:space:]]*\*' "${ignore}"
+  grep -q '!Dockerfile' "${ignore}"
+  grep -q '!tool-versions.env' "${ignore}"
+}
+
+@test "devcontainer.json reaches the host via host-gateway not host network" {
+  local json="${DEVCONTAINER_DIR}/devcontainer.json"
+  grep -q 'host.docker.internal:host-gateway' "${json}"
+  ! grep -Eq '"--network=host"|networkMode[[:space:]]*:[[:space:]]*"host"' "${json}"
+}
+
+@test "devcontainer.json caches from the published multi-arch image" {
+  grep -q 'ghcr.io/toxicoder/nvidia-dgx-spark-lab/devcontainer' \
+    "${DEVCONTAINER_DIR}/devcontainer.json"
+  grep -q 'cacheFrom' "${DEVCONTAINER_DIR}/devcontainer.json"
+}
+
+@test "devcontainer.json sandboxes Grok and disables auto-update" {
+  local json="${DEVCONTAINER_DIR}/devcontainer.json"
+  grep -q 'GROK_SANDBOX' "${json}"
+  grep -q 'GROK_DISABLE_AUTOUPDATER' "${json}"
+  # Node/Python Features would reinstall on every image-id change.
+  ! grep -q 'ghcr.io/devcontainers/features/node' "${json}"
+  ! grep -q 'ghcr.io/devcontainers/features/python' "${json}"
+}
+
+@test "devcontainer ships Grok managed config and lab sandbox profile" {
+  local managed="${DEVCONTAINER_DIR}/grok-managed.toml"
+  local sandbox="${DEVCONTAINER_DIR}/sandbox.toml"
+  [[ -f ${managed} ]]
+  [[ -f ${sandbox} ]]
+  grep -q 'auto_update' "${managed}"
+  grep -q '\[profiles.lab\]' "${sandbox}"
+  grep -q 'docker.sock' "${sandbox}"
+  grep -q '\*\*/.env' "${sandbox}"
+}
+
+@test "doctor requires grok inside the container and treats it optional on the host" {
+  grep -Eq 'REMOTE_CONTAINERS|/\.dockerenv' "${DEVCONTAINER_DIR}/doctor.sh"
+  run env PATH="/usr/bin:/bin" DEVCONTAINER_DOCTOR_STRICT=0 \
+    bash "${DEVCONTAINER_DIR}/doctor.sh"
+  [ "$status" -eq 0 ]
+  [[ $output == *"--  grok"* ]]
+  run env PATH="/usr/bin:/bin" REMOTE_CONTAINERS=true DEVCONTAINER_DOCTOR_STRICT=0 \
+    bash "${DEVCONTAINER_DIR}/doctor.sh"
+  [ "$status" -eq 0 ]
+  [[ $output == *"MISSING"* ]] && [[ $output == *"grok"* ]]
+}
+
+@test "install-agent-clis skips grok when the image pin is already on PATH" {
+  grep -q 'GROK_VERSION' "${DEVCONTAINER_DIR}/install-agent-clis.sh"
+  grep -q '/usr/local/bin/grok' "${DEVCONTAINER_DIR}/install-agent-clis.sh"
+}
+
+@test "post-create installs the lab sandbox profile without overwriting user config" {
+  grep -q 'sandbox.toml' "${DEVCONTAINER_DIR}/post-create.sh"
 }

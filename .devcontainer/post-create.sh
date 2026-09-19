@@ -159,6 +159,19 @@ if [[ -x "${SCRIPT_DIR}/install-agent-clis.sh" || -f "${SCRIPT_DIR}/install-agen
     echo "post-create: agent CLI install skipped or partial (optional)" >&2
 fi
 
+# Lab Grok sandbox profile: copy once; never overwrite a user-custom file.
+sandbox_src="${SCRIPT_DIR}/sandbox.toml"
+if [[ ! -f ${sandbox_src} && -f /usr/local/share/dgx-lab/grok/sandbox.toml ]]; then
+  sandbox_src="/usr/local/share/dgx-lab/grok/sandbox.toml"
+fi
+sandbox_dst="${HOME}/.grok/sandbox.toml"
+if [[ -f ${sandbox_src} && ! -f ${sandbox_dst} ]]; then
+  echo "→ install lab Grok sandbox profile (${sandbox_dst})"
+  mkdir -p "${HOME}/.grok"
+  cp "${sandbox_src}" "${sandbox_dst}" ||
+    echo "post-create: could not write ${sandbox_dst}" >&2
+fi
+
 if [[ ${DEPS_ONLY} -eq 1 ]]; then
   echo "=== Deps-only post-create complete ==="
   exit 0
@@ -209,11 +222,12 @@ Recommended next steps:
   cd dashboard && npm run dev                 # http://localhost:3000
   bash .devcontainer/doctor.sh
 
-Agent CLIs (optional; never commit API keys):
-  # CLIs are installed during create without setup wizards.
-  grok login                                  # when you need Grok — https://github.com/xai-org/grok-build
+Agent CLIs (never commit API keys):
+  grok login --device-auth                    # container has no host browser
+  # Host LiteLLM/vLLM: http://host.docker.internal:4000/v1 (see host-llm.example.toml)
   hermes setup                                # when you need Hermes — https://github.com/NousResearch/hermes-agent
   # Auth lives in volume-mounted ~/.grok and ~/.hermes only (see SECURITY.md).
+  # GROK_SANDBOX=lab (deny docker.sock / secret globs). Override: GROK_SANDBOX=off.
 
 Platform notes:
   - Image is multi-arch Linux (amd64 + arm64): Apple Silicon, Windows x86 Docker,

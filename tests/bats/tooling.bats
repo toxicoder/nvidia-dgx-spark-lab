@@ -36,6 +36,24 @@ teardown() {
   [ "$status" -eq 0 ]
 }
 
+@test "CI bazel-core path filter includes the devcontainer" {
+  # Dockerfile-only PRs must still run //tests:bats_devcontainer_test.
+  local gh="${REPO_ROOT}/.github/workflows/ci.yml"
+  local gitea="${REPO_ROOT}/.gitea/workflows/ci.yml"
+  grep -F '.devcontainer/**' "$gh"
+  grep -F '.devcontainer/**' "$gitea"
+}
+
+@test "devcontainer image workflow builds linux/amd64 and linux/arm64" {
+  local wf="${REPO_ROOT}/.github/workflows/devcontainer-image.yml"
+  [[ -f $wf ]]
+  grep -q 'linux/amd64' "$wf"
+  grep -q 'linux/arm64' "$wf"
+  grep -q 'packages: write' "$wf"
+  grep -F '.devcontainer/**' "$wf"
+  grep -q 'ghcr.io' "$wf"
+}
+
 @test "Gitea CI long-lived branches match GitHub CI" {
   # development is the primary integration branch — both CI surfaces must run on it.
   # Use portable grep (not host ripgrep): GHA ubuntu-latest has no rg by default.
@@ -138,6 +156,7 @@ _ci_action_pins() {
     "${REPO_ROOT}/.github/actions/setup-bazel/action.yml" \
     "${REPO_ROOT}/.github/workflows/ci.yml" \
     "${REPO_ROOT}/.github/workflows/deploy-docs.yml" \
+    "${REPO_ROOT}/.github/workflows/devcontainer-image.yml" \
     "${REPO_ROOT}/.gitea/workflows/ci.yml"; do
     if [[ -f $f ]] && grep -qE 'actions/cache@v4([^0-9]|$)' "$f"; then
       hits+="$(grep -nE 'actions/cache@v4([^0-9]|$)' "$f")"$'\n'

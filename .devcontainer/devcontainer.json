@@ -3,6 +3,9 @@
   "build": {
     "dockerfile": "Dockerfile",
     "context": ".",
+    "cacheFrom": [
+      "ghcr.io/toxicoder/nvidia-dgx-spark-lab/devcontainer:development"
+    ],
     "args": {
       // Keep in sync with tool-versions.env (bats enforces Dockerfile ARG defaults).
       "BAZELISK_VERSION": "v1.25.0",
@@ -11,25 +14,21 @@
       "KUBECONFORM_VERSION": "v0.8.0",
       "HELM_VERSION": "v3.15.0",
       "KUBECTL_VERSION": "v1.30.14",
-      "PRETTIER_VERSION": "3.9.4"
+      "NODE_VERSION": "22.23.2",
+      "PYTHON_VERSION": "3.11",
+      "GROK_VERSION": "1.0.34"
     }
   },
   // Multi-platform: image is linux/amd64 + linux/arm64.
   // Hosts: macOS Apple Silicon, Windows x86_64 Docker Desktop, Linux, DGX Spark (Grace ARM).
+  // Node 22 and Python 3.11 are baked into the Dockerfile (not Features) so a
+  // Dockerfile cache miss does not re-run those install scripts.
   "features": {
     // Use host Docker Engine (Desktop / WSL2 / Linux socket). Faster than DinD on macOS.
     // Hermetic dashboard tests: docker build -f dashboard/Dockerfile.test
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
       "version": "latest",
       "moby": true
-    },
-    "ghcr.io/devcontainers/features/python:1": {
-      "version": "3.11",
-      "installTools": true
-    },
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "22",
-      "installYarn": false
     }
   },
   "hostRequirements": {
@@ -82,6 +81,7 @@
   },
   // Persist expensive caches + agent auth homes across rebuilds.
   // Auth state (~/.grok, ~/.hermes) stays on Docker volumes — never commit keys.
+  // The grok *binary* lives at /usr/local/bin (image), not under ~/.grok.
   // Do NOT forward host API keys via localEnv (would leak into container metadata).
   "mounts": [
     "source=dgx-lab-bazel-disk,target=/home/vscode/.cache/bazel-disk,type=volume",
@@ -95,12 +95,22 @@
   "containerEnv": {
     "PYTHONUNBUFFERED": "1",
     "REQUIRE_LINT_TOOLS": "1",
-    "PIP_DISABLE_PIP_VERSION_CHECK": "1"
+    "PIP_DISABLE_PIP_VERSION_CHECK": "1",
+    "GROK_SANDBOX": "lab",
+    "GROK_DISABLE_AUTOUPDATER": "1",
+    "GROK_BIN_DIR": "/usr/local/bin"
   },
   "remoteEnv": {
-    "PATH": "${containerWorkspaceFolder}/dashboard/node_modules/.bin:/home/vscode/.local/bin:/home/vscode/.hermes/bin:/usr/local/python/current/bin:${containerEnv:PATH}"
+    // /usr/local/bin first so a leftover ~/.local/bin/grok cannot shadow the pin.
+    "PATH": "/usr/local/bin:${containerWorkspaceFolder}/dashboard/node_modules/.bin:/home/vscode/.local/bin:/home/vscode/.hermes/bin:/usr/local/python/current/bin:${containerEnv:PATH}"
   },
   "remoteUser": "vscode",
+  // Linux Engine does not define host.docker.internal; Docker Desktop does.
+  // host-gateway is portable (Desktop + Engine, Docker 20.10+). Do NOT use
+  // --network=host (Linux-only, breaks macOS/Windows, drops isolation).
+  "runArgs": [
+    "--add-host=host.docker.internal:host-gateway"
+  ],
   // Connect after deps install; full suite is not part of create.
   "updateContentCommand": "bash .devcontainer/post-create.sh --deps-only",
   "postCreateCommand": "bash .devcontainer/post-create.sh",

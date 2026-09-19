@@ -1,0 +1,19 @@
+# Lab sandbox profile for Grok Build inside the contributor container.
+# Copied to ~/.grok/sandbox.toml on first create if that file is missing.
+# Kernel deny lists require bubblewrap on Linux (baked into the image).
+#
+# The agent can still call LLMs in-process (host.docker.internal or api.x.ai).
+# Child processes cannot read the host Docker socket or typical secret files.
+
+[profiles.lab]
+extends = "workspace"
+restrict_network = false
+deny = [
+  "/var/run/docker.sock",
+  "/var/run/docker-host.sock",
+  "**/.env",
+  "**/*.pem",
+  "**/*.key",
+  "**/secrets.env",
+  "**/kubeconfig",
+]

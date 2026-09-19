@@ -140,7 +140,8 @@ check_node_major() {
 log "=== nvidia-dgx-spark-lab environment doctor ==="
 log "Repo: ${REPO_ROOT}"
 log "Arch: $(uname -m)  OS: $(uname -s)"
-log "Pins: bazelisk=${BAZELISK_VERSION:-?} buildifier=${BUILDIFIER_VERSION:-?} shfmt=${SHFMT_VERSION:-?} kubeconform=${KUBECONFORM_VERSION:-?}"
+log "Pins: bazelisk=${BAZELISK_VERSION:-?} buildifier=${BUILDIFIER_VERSION:-?} shfmt=${SHFMT_VERSION:-?} kubeconform=${KUBECONFORM_VERSION:-?} grok=${GROK_VERSION:-?} node=${NODE_VERSION:-?}"
+log "Host LLM from the container: http://host.docker.internal:<port>/v1"
 log ""
 log "Required tools:"
 
@@ -177,7 +178,18 @@ check_optional docker "hermetic dashboard image builds (host Docker / DooD)"
 check_optional kcov "shell coverage on Linux"
 check_optional pre-commit "optional git hooks"
 check_optional pytest "docs python coverage"
-check_optional grok "Grok Build CLI (post-create install; then grok login)"
+
+# Grok is baked into the image at /usr/local/bin. Require it inside the
+# container; keep it optional for contributors on a bare host.
+in_devcontainer=0
+if [[ -f /.dockerenv || -n ${REMOTE_CONTAINERS:-} || ${DEVCONTAINER:-} == "1" ]]; then
+  in_devcontainer=1
+fi
+if [[ ${in_devcontainer} -eq 1 ]]; then
+  check_required grok "rebuild the image (Grok is pinned in tool-versions.env)"
+else
+  check_optional grok "Grok Build CLI (devcontainer image; grok login --device-auth)"
+fi
 check_optional hermes "Hermes Agent CLI (post-create install only; hermes setup when you need it)"
 
 # Soft checks for workspace deps (do not fail create when network skipped)
