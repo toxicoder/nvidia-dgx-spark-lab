@@ -40,13 +40,20 @@ export function isDevelopmentAlias(): boolean {
 /**
  * Public base path of the deployed site, e.g. `/nvidia-dgx-spark-lab/latest`.
  *
- * Set from `NEXT_BASE_PATH` by the build scripts so the two published aliases keep the
- * URLs the MkDocs `mike` deployment served.
+ * GitHub project Pages serves this repository at `/<repo>/`, so a published alias must
+ * bake that prefix into every asset URL.  `DOCS_ALIAS=latest|development` is what the
+ * alias build scripts set; `NEXT_BASE_PATH` remains an explicit override (`/` means none).
+ * Local `next dev` and the unprefixed export leave both unset, so the path stays empty.
  */
 export function basePath(): string {
-  const value = (process.env.NEXT_BASE_PATH ?? "").trim();
-  if (value.length === 0 || value === "/") return "";
-  return value.replace(/\/$/, "");
+  const explicit = (process.env.NEXT_BASE_PATH ?? "").trim();
+  if (explicit === "/") return "";
+  if (explicit.length > 0) return explicit.replace(/\/$/, "");
+  const alias = (process.env.DOCS_ALIAS ?? "").trim();
+  if (alias === "latest" || alias === "development") {
+    return `/${REPO.repo}/${alias}`;
+  }
+  return "";
 }
 
 /** URL of a file in the repository at the active ref. */

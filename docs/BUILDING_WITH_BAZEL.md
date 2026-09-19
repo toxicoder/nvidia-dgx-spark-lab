@@ -176,10 +176,14 @@ same URLs are produced by building the static export twice with different `baseP
 
 | Alias | Branch | Build target | URL |
 | --- | --- | --- | --- |
-| `latest` (default) | `main` | `//docs-site:build-latest` (`NEXT_BASE_PATH=/latest`) | `…/latest/` |
-| `development` | `development` | `//docs-site:build-development` (`NEXT_BASE_PATH=/development`) | `…/development/` |
+| `latest` (default) | `main` | `//docs-site:build-latest` (`DOCS_ALIAS=latest`) | `…/nvidia-dgx-spark-lab/latest/` |
+| `development` | `development` | `//docs-site:build-development` (`DOCS_ALIAS=development`) | `…/nvidia-dgx-spark-lab/development/` |
 
-Both come from the same commit, so the two aliases never disagree about content, and each is a
+`DOCS_ALIAS` makes Next bake `basePath=/nvidia-dgx-spark-lab/<alias>` into every asset URL.
+A host-root prefix such as `/latest` would request `https://<user>.github.io/latest/_next/...`
+and 404 on GitHub project Pages.
+
+Both aliases come from the same commit, so they never disagree about content, and each is a
 complete export (assets and the search index are baked with their prefix, so they are not
 shared between prefixes). A root `index.html` forwards bare URLs to `/latest/`, which keeps
 every previously published and bookmarked address working — no redirect service required.
@@ -187,8 +191,9 @@ every previously published and bookmarked address working — no redirect servic
 Workflow: `.github/workflows/deploy-docs.yml` runs **only on push** to `main`/`master`/`development`
 (docs paths) or `workflow_dispatch` — not on `pull_request`. Merging a PR into those branches is
 what publishes; PR-time docs validation is the `docs-and-render` CI job, not this workflow. The
-job assembles `_site/{latest,development}` and deploys it as a Pages artifact, so the Pages source
-is the **GitHub Actions** deployment (the old `gh-pages` branch is no longer written to).
+job assembles `_site/{latest,development}`, writes a root `.nojekyll` (GitHub Pages still uses
+the legacy `gh-pages` branch, which otherwise runs Jekyll and drops Next's `_next/` tree), and
+fast-forwards that branch. Never force-push `gh-pages`.
 
 `DGX_DOCS_VERSION` is the branch-aware knob the MkDocs hooks used, now read by the app:
 

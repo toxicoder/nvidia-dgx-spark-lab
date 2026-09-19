@@ -61,7 +61,7 @@ Allowed Gitea-only delta: a short header comment that the file is a Forgejo/Gite
 
 | GitHub-only | Why not mirrored |
 | --- | --- |
-| `.github/workflows/deploy-docs.yml` | mike → GitHub Pages (`gh-pages`). Needs a chosen Gitea Pages / static host + secrets before a Gitea equivalent exists. |
+| `.github/workflows/deploy-docs.yml` | Fumadocs static export → GitHub Pages (`gh-pages`, `.nojekyll`). Needs a chosen Gitea Pages / static host + secrets before a Gitea equivalent exists. |
 | `.github/dependabot.yml` | Dependabot is a GitHub product; use Renovate or manual bumps on Gitea. On GitHub it must open PRs against `development` (`target-branch`), not `main`. Enforced by `tests/bats/tooling.bats`. |
 
 Docker Buildx still uses `cache-from/to: type=gha` for structural parity with GitHub. On pure `gitea-act-runner` hosts the GHA cache backend may no-op; prefer a persistent local Docker layer cache or registry cache on the runner if rebuilds stay cold.

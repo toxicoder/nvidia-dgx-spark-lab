@@ -86,6 +86,11 @@ jobs:
           bazelisk run //docs-site:build-development
           cp -r docs-site/out/. _site/development/
 
+          # GitHub Pages in legacy (Jekyll) mode drops directories that start with `_`,
+          # including Next's `_next/` asset tree.  An empty `.nojekyll` at the Pages root
+          # disables Jekyll so those files are served.
+          touch _site/.nojekyll
+
           # Bare <base> URLs (and old bookmarks to the MkDocs root) keep working: the root
           # document forwards to the latest alias.
           cat >_site/index.html <<'HOR'
@@ -137,6 +142,7 @@ jobs:
           !/latest
           !/development
           !/index.html
+          !/.nojekyll
           GITIGNORE
           git add -A
           git commit -m "docs: publish $GITHUB_REF_NAME from $GITHUB_SHA" --allow-empty

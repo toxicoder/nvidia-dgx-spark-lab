@@ -61,11 +61,11 @@ case "$SUBCMD" in
     ;;
   build-latest)
     ensure_deps
-    NEXT_BASE_PATH=/latest exec $CMD run build:latest "$@"
+    exec $CMD run build:latest "$@"
     ;;
   build-development)
     ensure_deps
-    NEXT_BASE_PATH=/development DGX_DOCS_VERSION=development exec $CMD run build:development "$@"
+    exec $CMD run build:development "$@"
     ;;
   serve)
     ensure_deps

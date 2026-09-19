@@ -212,6 +212,8 @@ sh_test(
         "bats/tooling.bats",
         ":bats_tool",
         "//:ci_workflows",
+        "//docs-site:package.json",
+        "//docs-site:run_npm.sh",
         "//scripts:lib/paths.sh",
         "//scripts:utilities",
         "//scripts:validate",
