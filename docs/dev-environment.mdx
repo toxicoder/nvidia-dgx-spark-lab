@@ -58,6 +58,10 @@ The contributor image is **Linux multi-arch** (`linux/amd64` + `linux/arm64`). T
 | **NVIDIA DGX Spark** | arm64 (Grace) | Docker/Podman on the Spark → arm64 Linux container |
 | **GitHub Codespaces** | typically amd64 | Uses `.devcontainer/` automatically |
 
+The **container is always Linux**. Native Windows containers are out of scope
+(this toolchain is Linux-native). On Windows, clone on the WSL2 filesystem, not
+`/mnt/c`.
+
 **No GPU is required** for unit tests, lint, docs, or dashboard Vitest. GPU nodes matter only when you operate real workloads.
 
 Tool pins live in [`.devcontainer/tool-versions.env`](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/.devcontainer/tool-versions.env) and are shared with CI.
@@ -96,18 +100,32 @@ bazelisk run //:validate
 | K8s | kubectl (pinned), helm, kubeconform |
 | Ansible | ansible, ansible-lint |
 | Docker | **docker-outside-of-docker** (host engine) for hermetic dashboard images |
-| Agent CLIs | [Grok Build](https://github.com/xai-org/grok-build) (`grok`), [Hermes Agent](https://github.com/NousResearch/hermes-agent) (`hermes`) via post-create |
+| Agent CLIs | [Grok Build](https://github.com/xai-org/grok-build) (`grok`, baked into the image), [Hermes Agent](https://github.com/NousResearch/hermes-agent) (`hermes`) via post-create |
 
 ### Agent CLIs and secrets
 
-Post-create runs `.devcontainer/install-agent-clis.sh` (skip with
-`DEVCONTAINER_SKIP_AGENT_CLIS=1`). Installers put CLIs on PATH only — they
-**never** write API keys and **never** run interactive setup wizards during create.
-Configure when you actually need the tools:
+Grok Build is **in the image** at `/usr/local/bin/grok` (pin + checksum in
+`tool-versions.env`). Post-create still runs `.devcontainer/install-agent-clis.sh`
+(skip with `DEVCONTAINER_SKIP_AGENT_CLIS=1`): it no-ops Grok when the pin
+matches, and installs Hermes with `--skip-setup --non-interactive`. Installers
+**never** write API keys and **never** run setup wizards during create.
+
+The container can reach LLM providers on the **host** at
+`http://host.docker.internal:<port>/v1` (LiteLLM/vLLM on the workstation) and
+cloud APIs (`api.x.ai`, …) over ordinary egress. `devcontainer.json` adds
+`host.docker.internal` → `host-gateway` so this works on Docker Desktop **and**
+Linux Engine. Do not use `--network=host`.
+
+Default sandbox is `GROK_SANDBOX=lab`: workspace writes, kernel-deny of
+`/var/run/docker.sock` and typical secret globs (`**/.env`, `**/*.pem`). Humans
+can still run `docker` for hermetic tests. Override with `GROK_SANDBOX=off` or
+`workspace` if you need the agent to talk to Docker. Copy
+`.devcontainer/host-llm.example.toml` into `~/.grok/config.toml` to register a
+host model.
 
 ```bash
-grok login          # interactive auth → volume ~/.grok (not git)
-hermes setup        # only when you use Hermes → volume ~/.hermes (not git)
+grok login --device-auth   # container has no host browser; volume ~/.grok
+hermes setup               # only when you use Hermes → volume ~/.hermes
 ```
 
 <Callout type="warning" title="Never commit agent credentials">
@@ -121,7 +139,10 @@ Hermes **on the Spark host** (Docker gateway stacks) is documented separately in
 
 Lifecycle (optimized):
 
-1. **Image build** — pinned CLIs (Dockerfile)
+1. **Image build** — independent fetch stages (Dockerfile). CI publishes
+   `ghcr.io/toxicoder/nvidia-dgx-spark-lab/devcontainer` for layer cache.
+   Bumping one CLI pin does not re-download the others. Node 22 and Python 3.11
+   are baked (not Features). Workspace `npm ci` / Playwright stay in post-create.
 2. **updateContentCommand** — `post-create.sh --deps-only` (npm, docs, Playwright)
 3. **postCreateCommand** — full post-create + doctor  
    Full `//:test` is **not** a create gate (optional `DEVCONTAINER_SMOKE=1`).
@@ -224,7 +245,9 @@ flowchart LR
 | Stale Bazel cache | `docker volume rm dgx-lab-bazel-disk dgx-lab-bazel-repo` then rebuild |
 | Node version mismatch | Container and CI use **22**; set host Node 22 if not using the container |
 | `mkdir … ~/.grok/…: Permission denied` | Named volume `dgx-lab-grok-home` is root-owned. In-container: `sudo chown -R "$(id -u):$(id -g)" ~/.grok ~/.hermes` then `bash .devcontainer/install-agent-clis.sh`. Or on host: `docker volume rm dgx-lab-grok-home dgx-lab-hermes-home` and rebuild. |
-| `grok: command not found` | Agent CLI install is optional/non-blocking; re-run `bash .devcontainer/install-agent-clis.sh` after homes are writable, then `grok login`. |
+| `grok: command not found` | Image pin missing — rebuild the container. Fallback: `bash .devcontainer/install-agent-clis.sh` then `grok login --device-auth`. |
+| Host LiteLLM unreachable | Use `http://host.docker.internal:<port>/v1`, not `127.0.0.1` (that is the container). Docker Engine needs Docker 20.10+ (`host-gateway`). |
+| Grok cannot run `docker` | Expected under `GROK_SANDBOX=lab`. Run docker yourself, or `GROK_SANDBOX=off` for that session. |
 | Feature lockfile drift | Commit `.devcontainer/devcontainer-lock.json`; regenerate via Dev Containers rebuild / CLI when changing features. |
 | Mypy / Pylance `ENOENT` on `.venv-docs/bin/python` | Host macOS/Windows venv bind-mounted into Linux. Fix: `rm -rf .venv-docs && bash docs/setup-docs.sh` (post-create also recreates unusable venvs). IDE uses system Python 3.11 by default. |
 | `docs/manage-docs.sh status` says venv unusable | Same host venv issue; run `docs/setup-docs.sh`. |

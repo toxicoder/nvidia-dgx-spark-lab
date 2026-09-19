@@ -28,11 +28,12 @@ Runtime secrets belong in environment variables, Kubernetes Secrets, or the dash
 
 ### Agent CLIs in the devcontainer
 
-The contributor container may install [Grok Build](https://github.com/xai-org/grok-build) and [Hermes Agent](https://github.com/NousResearch/hermes-agent) CLIs. Rules:
+The contributor image includes [Grok Build](https://github.com/xai-org/grok-build) at `/usr/local/bin/grok` and may install [Hermes Agent](https://github.com/NousResearch/hermes-agent) at post-create. Rules:
 
 - **Do not** put API keys or `GROK_DEPLOYMENT_KEY` in `.devcontainer/devcontainer.json` (`containerEnv` / `remoteEnv` / `localEnv`).
-- Authenticate interactively (`grok login`, `hermes setup`) or export keys only in an ephemeral shell session.
-- Auth state lives on Docker volumes (`~/.grok`, `~/.hermes`) or the host home directory — not in the git workspace.
+- Authenticate interactively (`grok login --device-auth`, `hermes setup`) or export keys only in an ephemeral shell session.
+- Auth state lives on Docker volumes (`~/.grok`, `~/.hermes`) or the host home directory — not in the git workspace. The Grok **binary** is not on that volume.
+- Default `GROK_SANDBOX=lab` kernel-denies the host Docker socket and typical secret globs. This is not a substitute for keeping secrets out of git.
 - Lab Hermes **Docker stacks** on Spark nodes use gitignored `hermes/data/`; never commit that tree.
 
 ## Local-only development defaults

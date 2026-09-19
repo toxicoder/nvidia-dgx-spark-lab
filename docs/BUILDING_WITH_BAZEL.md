@@ -317,7 +317,7 @@ First-class multi-arch contributor environment (`.devcontainer/`): **linux/amd64
 | Linux amd64/arm64 | Docker Engine / Podman |
 | NVIDIA DGX Spark (Grace arm64) | Docker/Podman on-box |
 
-Pinned tools (see `.devcontainer/tool-versions.env`, shared with CI): bazelisk, buildifier, shfmt, shellcheck, kubeconform, kubectl, helm, ansible, ruff, mypy, Node **22**, Python **3.11**, prettier, bats, kcov.
+Pinned tools (see `.devcontainer/tool-versions.env`, shared with CI): bazelisk, buildifier, shfmt, shellcheck, kubeconform, kubectl, helm, ansible, ruff, mypy, Node **22**, Python **3.11**, prettier, bats, kcov, Grok Build CLI.
 
 Full onboarding: **[dev-environment.md](dev-environment.md)**.
 
