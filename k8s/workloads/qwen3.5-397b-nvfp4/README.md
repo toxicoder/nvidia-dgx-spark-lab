@@ -7,6 +7,7 @@ Requires spark0 (leader) + spark1..spark3 (workers), each with 1 GPU and ~115 Gi
 ## Requirements
 
 - 4× DGX Spark nodes on the CRS804 fabric (one 200 Gb/s RoCE link per node)
+- Switch NCCL: `NCCL_SOCKET_IFNAME` on the management NIC (`enP7s7` default), `NCCL_IB_HCA=mlx5_0` (one HCA). Do not copy 2-node pair vars.
 - SGLang `lmsysorg/sglang:v0.5.9`
 - Weights at `/mnt/models` on all nodes
 

@@ -36,9 +36,7 @@ spec:
               preference:
                 matchExpressions:
                   - key: nvidia-dgx-spark/highspeed
-                    operator: In
-                    values:
-                      - "dual-400g"
+                    operator: Exists
       containers:
         - name: inference
           # Qwen 3.5 122B NVFP4 — 1-node substitute for 397B NVFP4 (~75 GB weights).

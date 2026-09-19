@@ -9,8 +9,8 @@
 # Primary playbook to bring up a K3s cluster on DGX Spark (1-5 nodes).
 #
 # Scalable design:
-# - k3s_server group (spark0): control-plane + worker
-# - k3s_agent group (spark1+): workers using high-speed links (2-5 nodes)
+# - k3s_server group: the orchestrator (control-plane + worker; any Spark)
+# - k3s_agent group: every other node; high-speed links on 2-5 node fabrics
 #
 # This playbook is usually the first thing you run after preparing inventory.
 # See docs/getting-started.md Step 2 for the full recommended sequence.
@@ -88,10 +88,11 @@
   become: true
   gather_facts: true
   vars:
-    k3s_url: "https://{{ hostvars[k3s_control_plane].ansible_host }}:6443"
+    cp_node: "{{ groups['k3s_server'][0] | default(k3s_control_plane) }}"
+    k3s_url: "https://{{ hostvars[cp_node].ansible_host }}:6443"
   tasks:
     - name: Get server token from control plane
-      delegate_to: "{{ k3s_control_plane }}"
+      delegate_to: "{{ cp_node }}"
       slurp:
         src: /var/lib/rancher/k3s/server/node-token
       register: server_token

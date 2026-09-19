@@ -441,3 +441,43 @@ PY
   [ -f "$OUT/ansible/inventory/hosts.ini" ]
   [ -f "$OUT/ansible/inventory/group_vars/generated/fabric.yml" ]
 }
+
+@test "render hosts.ini includes generated:children so fabric.yml loads" {
+  fixture_switch 4
+  python3 "$TOP_PY" render "$FIX/switch-4.yaml" --out "$OUT"
+  local inv="$OUT/ansible/inventory/hosts.ini"
+  grep -q '\[generated:children\]' "$inv"
+  grep -q '^k3s_cluster$' "$inv"
+}
+
+@test "render honors a non-spark0 orchestrator in inventory and fabric.yml" {
+  fixture_switch 4
+  python3 - "$FIX/switch-4.yaml" <<'PY'
+import sys, yaml
+p = sys.argv[1]
+cfg = yaml.safe_load(open(p))
+for node in cfg["lab"]["nodes"]:
+    node.pop("role", None)
+cfg["lab"]["nodes"][2]["role"] = "orchestrator"
+open(p, "w").write(yaml.dump(cfg, default_flow_style=False, sort_keys=False))
+PY
+  python3 "$TOP_PY" render "$FIX/switch-4.yaml" --out "$OUT"
+  grep -q 'k3s_control_plane: "spark2"' "$OUT/ansible/inventory/group_vars/generated/fabric.yml"
+  grep -q 'spark2' <(awk '/^\[k3s_server\]/{f=1;next}/^\[/{f=0}f' "$OUT/ansible/inventory/hosts.ini")
+  ! grep -q '^spark0$' <(awk '/^\[k3s_server\]/{f=1;next}/^\[/{f=0}f' "$OUT/ansible/inventory/hosts.ini")
+}
+
+@test "validate rejects 3-node switch (docs: switch is 4-5)" {
+  fixture_switch 4
+  python3 - "$FIX/switch-4.yaml" <<'PY'
+import sys, yaml
+p = sys.argv[1]
+cfg = yaml.safe_load(open(p))
+cfg["lab"]["nodes"] = cfg["lab"]["nodes"][:3]
+cfg["lab"]["switch"]["port_map"] = cfg["lab"]["switch"]["port_map"][:3]
+open(p, "w").write(yaml.dump(cfg, default_flow_style=False, sort_keys=False))
+PY
+  run python3 "$TOP_PY" validate "$FIX/switch-4.yaml"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"switch"* ]]
+}

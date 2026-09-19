@@ -573,7 +573,7 @@ DASHBOARDS: dict[str, dict[str, Any]] = {
             panel_timeseries(
                 4, "Disk I/O Write", "rate(node_disk_written_bytes_total[5m])", 0, 9, 12, unit="Bps"
             ),
-            panel_row(10, "High-Speed Network (400G)", 17),
+            panel_row(10, "High-Speed Network (QSFP)", 17),
             panel_timeseries(
                 11,
                 "HS RX (enp1s0*)",

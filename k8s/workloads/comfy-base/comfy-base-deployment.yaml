@@ -38,9 +38,7 @@ spec:
               preference:
                 matchExpressions:
                   - key: nvidia-dgx-spark/highspeed
-                    operator: In
-                    values:
-                      - "dual-400g"
+                    operator: Exists
       priorityClassName: lab-inference
       initContainers:
         - name: comfy-install

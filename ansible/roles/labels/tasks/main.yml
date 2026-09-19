@@ -5,10 +5,12 @@
 
 ---
 - name: Label control-plane node
+  vars:
+    cp_node: "{{ groups['k3s_server'][0] | default(k3s_control_plane) }}"
   shell: |
-    kubectl label node {{ k3s_control_plane }} node-role.kubernetes.io/control-plane= --overwrite || true
-    kubectl label node {{ k3s_control_plane }} node-role.kubernetes.io/worker= --overwrite || true
-    kubectl label node {{ k3s_control_plane }} nvidia-dgx-spark/role=control-plane-worker --overwrite || true
+    kubectl label node {{ cp_node }} node-role.kubernetes.io/control-plane= --overwrite || true
+    kubectl label node {{ cp_node }} node-role.kubernetes.io/worker= --overwrite || true
+    kubectl label node {{ cp_node }} nvidia-dgx-spark/role=control-plane-worker --overwrite || true
 
 - name: Label worker nodes (if any)
   shell: |
@@ -18,5 +20,6 @@
 
 - name: Add high-speed interconnect label (multi-node only)
   shell: |
-    kubectl label node {{ item }} nvidia-dgx-spark/highspeed=dual-400g --overwrite || true
+    kubectl label node {{ item }} nvidia-dgx-spark/highspeed=true --overwrite || true
   loop: "{{ groups['k3s_cluster'] | default([]) }}"
+  when: groups['k3s_cluster'] | default([]) | length > 1

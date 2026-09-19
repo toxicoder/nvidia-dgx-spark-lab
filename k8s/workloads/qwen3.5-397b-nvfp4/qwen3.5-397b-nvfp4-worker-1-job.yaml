@@ -1,7 +1,7 @@
 # Purpose: Qwen3.5 397B Nvfp4 inference Job manifest
 # Source of truth: k8s/workloads/qwen3.5-397b-nvfp4/
 # Regenerate: n/a
-# Safety: manual start only; consumes significant GPU/CPU resources
+# Safety: manual start only; 4-node CRS804 switch NCCL (mgmt IFNAME + one HCA); no 2-node pair vars
 
 apiVersion: batch/v1
 kind: Job
@@ -41,9 +41,7 @@ spec:
               preference:
                 matchExpressions:
                   - key: nvidia-dgx-spark/highspeed
-                    operator: In
-                    values:
-                      - "dual-400g"
+                    operator: Exists
       containers:
         - name: inference
           image: lmsysorg/sglang:v0.5.9
@@ -66,10 +64,13 @@ spec:
               memory: "122Gi"
               nvidia.com/gpu: "1"
           env:
+            # 4-node CRS804 switch: OOB on the management NIC; payload on the
+            # single RoCE HCA for the generated netplan link (enp1s0f0np0).
+            # Do not copy 2-node pair IFNAME/HCA lists. Override if ibdev2netdev differs.
             - name: NCCL_SOCKET_IFNAME
-              value: "enp1s0f0np0,enp1s0f1np1"
+              value: "enP7s7"
             - name: NCCL_IB_HCA
-              value: "mlx5_0,mlx5_1"
+              value: "mlx5_0"
             - name: NCCL_DEBUG
               value: "INFO"
             - name: NCCL_P2P_DISABLE

@@ -172,7 +172,7 @@
     {
       "id": 10,
       "type": "row",
-      "title": "High-Speed Network (400G)",
+      "title": "High-Speed Network (QSFP)",
       "gridPos": {
         "h": 1,
         "w": 24,

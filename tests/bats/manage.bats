@@ -1101,6 +1101,47 @@ assert [n for n in lab["nodes"] if n.get("role") == "orchestrator"][0]["name"] =
   grep -q 'spark2' <(awk '/^\[k3s_server\]/{f=1;next}/^\[/{f=0}f' "$scratch/ansible/inventory/hosts.ini")
 }
 
+@test "manage.sh setup --interactive keeps comma-separated wizard-vars names" {
+  local scratch
+  scratch="$(mktemp -d)"
+  mkdir -p "$scratch/ansible/inventory"
+  cat > "$scratch/ansible/inventory/lab.yaml" <<'YAML'
+lab:
+  management:
+    subnet: 10.0.0.0/24
+  ansible_user: ubuntu
+  fabric: ring
+  nodes:
+    - name: spark1
+      ip: 10.0.0.21
+      role: orchestrator
+      hs_ifs: [enp1s0f0np0, enp1s0f1np1]
+    - name: spark2
+      ip: 10.0.0.22
+      hs_ifs: [enp1s0f0np0, enp1s0f1np1]
+    - name: spark3
+      ip: 10.0.0.23
+      hs_ifs: [enp1s0f0np0, enp1s0f1np1]
+YAML
+  run bash -c "
+    printf '\n\n\n\n\n\n\n\n' | env REPO_ROOT=\"$scratch\" bash \"$MANAGE_SH\" setup --interactive
+  "
+  [ "$status" -eq 0 ]
+  python3 -c '
+import yaml
+lab = yaml.safe_load(open("'"$scratch"'/ansible/inventory/lab.yaml"))["lab"]
+assert [n["name"] for n in lab["nodes"]] == ["spark1", "spark2", "spark3"], lab["nodes"]
+assert [n["ip"] for n in lab["nodes"]] == ["10.0.0.21", "10.0.0.22", "10.0.0.23"]
+assert [n for n in lab["nodes"] if n.get("role") == "orchestrator"][0]["name"] == "spark1"
+'
+}
+
+@test "manage.sh doctor-fabric describes the committed lab.yaml fabric" {
+  run bash "$MANAGE_SH" doctor-fabric
+  [[ "$output" == *"switch"* || "$output" == *"CRS804"* ]]
+  [[ "$output" != *"=== Fabric doctor (3-node QSFP ring) ==="* ]]
+}
+
 @test "manage.sh doctor reports the lab topology" {
   run bash "$MANAGE_SH" doctor
   [ "$status" -eq 0 ]

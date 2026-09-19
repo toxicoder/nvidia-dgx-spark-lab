@@ -20,6 +20,8 @@ tags: [nccl, interconnect, qsfp, mikrotik, safety, nvidia]
 Authoritative **runtime** values are in `k8s/workloads/*` Job YAML. `ansible/inventory/group_vars/all.yml` `highspeed_*` / `nccl_env` is **reference for a 2-node pair only**.
 The 3/4/5-node netplans come from the declarative topology: [Lab topology](../start/lab-topology.md).
 
+Multi-node nodes are labeled `nvidia-dgx-spark/highspeed=true` (Ansible labels role). Jobs that prefer the fabric use `operator: Exists` on that key — the value is not a speed rating.
+
 ## Planes
 
 | Plane | Typical names | Carries |

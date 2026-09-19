@@ -25,9 +25,9 @@ import sys
 from pathlib import Path
 
 FABRICS = ("none", "pair", "ring", "switch")
-# fabric -> (min_nodes, max_nodes); switch allows 3 (undocumented) but the
-# canonical switch topologies are 4 and 5 nodes.
-FABRIC_NODE_RANGE = {"none": (1, 1), "pair": (2, 2), "ring": (3, 3), "switch": (3, 5)}
+# fabric -> (min_nodes, max_nodes). Switch is the CRS804 fabric: 4 full ports,
+# or 5 with one breakout. The documented 3-node fabric is the QSFP ring.
+FABRIC_NODE_RANGE = {"none": (1, 1), "pair": (2, 2), "ring": (3, 3), "switch": (4, 5)}
 MAX_NODES = 5
 NODE_NAME_RE = re.compile(r"^[a-z][a-z0-9-]{0,62}$")
 HS_IF_DEFAULT = ("enp1s0f0np0", "enp1s0f1np1")
@@ -95,9 +95,6 @@ def validate_lab(lab: dict) -> tuple[list[str], list[str]]:
             + (f"–{max_nodes}" if max_nodes > min_nodes else "")
             + f" node(s), got {len(nodes)}"
         )
-    if fabric == "switch" and len(nodes) == 3:
-        warnings.append("fabric switch with 3 nodes: the documented 3-node fabric is the QSFP ring")
-
     seen_names: set[str] = set()
     seen_ips: set[str] = set()
     orchestrators = 0
@@ -270,7 +267,9 @@ def render_hosts_ini(lab: dict) -> str:
         )
     lines += ["", "[k3s_server]", str(orchestrator.get("name")), "", "[k3s_agent]"]
     lines += [str(n.get("name")) for n in nodes if n is not orchestrator]
-    lines.append("")
+    # Ansible loads inventory/group_vars/<group>/*.yml. fabric.yml lives under
+    # group_vars/generated/, so the inventory must define group `generated`.
+    lines += ["", "[generated:children]", "k3s_cluster", ""]
     return "\n".join(lines)
 
 

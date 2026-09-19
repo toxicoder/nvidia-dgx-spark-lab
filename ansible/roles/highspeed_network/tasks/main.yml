@@ -45,6 +45,15 @@
     - hs_if0 == ''
     - not generated_netplan.stat.exists
 
+- name: Fail if generated highspeed netplan is missing on 3+ node labs
+  fail:
+    msg: >-
+      fabric ring/switch labs require generated per-node netplan from lab.yaml
+      (pair fallback is 2-node only). Run 'manage.sh topology render'.
+  when:
+    - not generated_netplan.stat.exists
+    - groups['k3s_cluster'] | default([]) | length > 2
+
 - name: Set IP suffix based on node (spark0=1, others=2)
   set_fact:
     ip_suffix: "{{ '1' if inventory_hostname == k3s_control_plane else '2' }}"
