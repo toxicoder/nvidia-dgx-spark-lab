@@ -1010,3 +1010,99 @@ MOCKPS
   [[ "$output" == *"\"ok\": true"* ]]
   [[ "$output" == *"model:kimi-test"* ]]
 }
+
+# --- Lab topology wiring (setup / doctor / topology) ---
+
+# @function _topology_scratch
+# Build a scratch REPO_ROOT holding a 2-node pair lab.yaml; $1 = scratch root.
+_topology_scratch() {
+  local scratch="$1"
+  mkdir -p "$scratch/ansible/inventory"
+  cat > "$scratch/ansible/inventory/lab.yaml" <<'YAML'
+lab:
+  management:
+    subnet: 10.0.0.0/24
+  ansible_user: ubuntu
+  fabric: pair
+  nodes:
+    - name: spark0
+      ip: 10.0.0.10
+      role: orchestrator
+      hs_ifs: [enp1s0f0np0, enp1s0f1np1]
+    - name: spark1
+      ip: 10.0.0.11
+      hs_ifs: [enp1s0f0np0, enp1s0f1np1]
+YAML
+}
+
+@test "manage.sh topology validate passes on the reference lab.yaml" {
+  run bash "$MANAGE_SH" topology validate
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"lab-topology: ok"* ]]
+}
+
+@test "manage.sh topology facts emits fabric, node count, and orchestrator" {
+  run bash "$MANAGE_SH" topology facts
+  [ "$status" -eq 0 ]
+  [[ "$output" == *$'fabric=switch'* ]]
+  [[ "$output" == *$'node_count=5'* ]]
+  [[ "$output" == *$'orchestrator=spark0'* ]]
+}
+
+@test "manage.sh topology check degrades without cluster access" {
+  run bash "$MANAGE_SH" topology check
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"topology check: no kubectl cluster access"* || "$output" == *"topology drift"* ]]
+}
+
+@test "manage.sh setup validates and renders the lab topology into the repo root" {
+  local scratch
+  scratch="$(mktemp -d)"
+  _topology_scratch "$scratch"
+  run env REPO_ROOT="$scratch" bash "$MANAGE_SH" setup
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Guided first-time setup"* ]]
+  [ -f "$scratch/ansible/inventory/hosts.ini" ]
+  grep -q '^\[k3s_server\]' "$scratch/ansible/inventory/hosts.ini"
+  grep -q 'spark0' <(awk '/^\[k3s_server\]/{f=1;next}/^\[/{f=0}f' "$scratch/ansible/inventory/hosts.ini")
+  [ -f "$scratch/ansible/files/generated/netplan/spark0-99-highspeed.yaml" ]
+  [ -f "$scratch/ansible/files/generated/cloud-init/user-data-spark1.yaml" ]
+}
+
+@test "manage.sh setup warns but continues when lab.yaml is missing" {
+  local scratch
+  scratch="$(mktemp -d)"
+  run env REPO_ROOT="$scratch" bash "$MANAGE_SH" setup
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"no lab.yaml"* || "$output" == *"lab.yaml not found"* ]]
+}
+
+@test "manage.sh setup --interactive writes a valid lab.yaml from piped answers" {
+  local scratch
+  scratch="$(mktemp -d)"
+  _topology_scratch "$scratch"
+  run bash -c "
+    printf 'ring\n3\nspark1 spark2 spark3\n10.0.0.0/24\n10.0.0.21\n10.0.0.22\n10.0.0.23\nspark2\n' | \
+    env REPO_ROOT=\"$scratch\" bash \"$MANAGE_SH\" setup --interactive
+  "
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"topology wizard"* ]]
+  python3 -c '
+import yaml
+lab = yaml.safe_load(open("'"$scratch"'/ansible/inventory/lab.yaml"))["lab"]
+assert lab["fabric"] == "ring", lab["fabric"]
+assert [n["name"] for n in lab["nodes"]] == ["spark1", "spark2", "spark3"]
+assert [n["ip"] for n in lab["nodes"]] == ["10.0.0.21", "10.0.0.22", "10.0.0.23"]
+assert [n for n in lab["nodes"] if n.get("role") == "orchestrator"][0]["name"] == "spark2"
+'
+  # The rewritten file must pass the validator and re-render.
+  run env REPO_ROOT="$scratch" bash "$MANAGE_SH" topology validate
+  [ "$status" -eq 0 ]
+  grep -q 'spark2' <(awk '/^\[k3s_server\]/{f=1;next}/^\[/{f=0}f' "$scratch/ansible/inventory/hosts.ini")
+}
+
+@test "manage.sh doctor reports the lab topology" {
+  run bash "$MANAGE_SH" doctor
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"topology"* ]]
+}
