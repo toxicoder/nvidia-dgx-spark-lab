@@ -17,19 +17,19 @@ tags: [topology, nccl, k3s, safety, nvidia, mikrotik]
 **What this enables**
 
 - Picking a size that matches cables, models, and operational risk
-- Avoiding a 3-node QSFP ring configured with 2-node dual-400G `NCCL_*` env
+- Avoiding a 3-node QSFP ring configured with 2-node pair `NCCL_*` env
 - Re-choosing the control plane without re-cabling (any Spark can be it)
 
 ```mermaid
 flowchart TD
   A[How many Sparks?] --> B{Cables?}
   B -->|None / learning Comfy| C[1 node]
-  B -->|One dual-QSFP pair| D[2 nodes]
+  B -->|One QSFP cable| D[2 nodes]
   B -->|Triangle QSFP ring| E[3 nodes]
   B -->|CRS804 switch + 4 ports| F[4 nodes]
   B -->|CRS804 switch + breakout| G[5 nodes]
   C --> H[Local SHM/P2P NCCL only]
-  D --> I[2-node pair dual ~400G]
+  D --> I[2-node pair 200 Gb/s]
   E --> J[Ring 200 Gb/s per pair]
   F --> K[Switch: one RoCE link per node]
   G --> L[Switch: 3 full ports + one split port]
@@ -40,7 +40,7 @@ flowchart TD
 | Nodes | Fabric (`lab.yaml` `fabric:`) | Wiring | Typical first Job |
 | --- | --- | --- | --- |
 | **1** | `none` | no high-speed cabling | `kimi-test` (local GPUs) |
-| **2** | `pair` | dual QSFP direct between the two Sparks | `kimi-test`, then 2-node models |
+| **2** | `pair` | one QSFP cable (200 Gb/s) between the two Sparks | `kimi-test`, then 2-node models |
 | **3** | `ring` | QSFP triangle (200 Gb/s per port per pair) | Mode A daily fleet, or exclusive B/C |
 | **4** | `switch` | Mikrotik **CRS804-4DDQ-hRM**, four QSFP-DD ports | e.g. Qwen 397B NVFP4 TP=4 |
 | **5** | `switch` | CRS804: three full ports + one 400G port split into two 200G breakout lanes | full-lab TP=4 + extra worker |
@@ -53,7 +53,7 @@ See [Lab topology](lab-topology.md).
 
 The switch is a managed 4-port 400G QSFP-DD device with a 10GbE management port:
 
-- **4-node lab:** each Spark plugs into one of the four `sfpplus1`…`sfpplus4` ports at 400G.
+- **4-node lab:** each Spark plugs into one of the four `sfpplus1`…`sfpplus4` ports. The Spark CX-7 link is 200 Gb/s; the CRS804 port is 400G QSFP-DD.
 - **5-node lab:** three Sparks take three full ports; the fourth port uses a **breakout cable**
   (QSFP-DD to 2× QSFP) and carries two Sparks on lanes `sfpplus4a` and `sfpplus4b` at 200G each.
   Both lanes must be declared together — the validator rejects a lone breakout lane.
@@ -92,7 +92,7 @@ membership and the `k3s_control_plane` fact change.
 | Nodes | orchestrator | others | Fabric |
 | --- | --- | --- | --- |
 | **1** | control-plane + worker | — | none |
-| **2** | control-plane + worker | worker | dual QSFP ~400G aggregate |
+| **2** | control-plane + worker | worker | one QSFP cable, 200 Gb/s |
 | **3** | control-plane + worker | two workers | QSFP **ring** 200 Gb/s per pair |
 | **4** | control-plane + worker | three workers | CRS804, full QSFP-DD ports |
 | **5** | control-plane + worker | four workers | CRS804, one port split to two lanes |

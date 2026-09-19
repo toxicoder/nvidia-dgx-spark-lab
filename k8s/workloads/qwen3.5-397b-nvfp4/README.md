@@ -6,7 +6,7 @@ Requires spark0 (leader) + spark1..spark3 (workers), each with 1 GPU and ~115 Gi
 
 ## Requirements
 
-- 4× DGX Spark nodes with dual-400G interconnect
+- 4× DGX Spark nodes on the CRS804 fabric (one 200 Gb/s RoCE link per node)
 - SGLang `lmsysorg/sglang:v0.5.9`
 - Weights at `/mnt/models` on all nodes
 

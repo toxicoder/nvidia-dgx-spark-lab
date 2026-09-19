@@ -23,6 +23,8 @@ exports_files([
     ".ansible-lint",
     ".prettierignore",
     ".yamllint.yml",
+    "CONTRIBUTING.md",
+    "README.md",
     "fix.sh",
     "mypy.ini",
     "prettier.config.mjs",

@@ -27,7 +27,7 @@ k3s_channel: "stable"
 k3s_control_plane: "spark0"
 k3s_server_ip: "{{ hostvars[k3s_control_plane].ansible_host | default('127.0.0.1') }}"
 
-# High-speed network interfaces — 2-node PAIR reference only (dual QSFP / ~400G aggregate).
+# High-speed network interfaces — 2-node PAIR reference only (one 200 Gb/s QSFP cable).
 # Do NOT copy this NCCL block onto the 3-node QSFP ring (Mode B GLM-5.3-Flash TP=3).
 # The ring uses OOB on 10GbE (often enP7s7) and NCCL_IB_HCA=all four CX-7 RoCE twins.
 # See docs/litellm-rounded-stack.md and k8s/workloads/glm-5.3-flash/README.md.

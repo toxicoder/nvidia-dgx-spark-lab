@@ -210,6 +210,8 @@ sh_test(
         "test_docs_site_render.py",
         "test_docs_site_render.sh",
         ":content",
+        "//:CONTRIBUTING.md",
+        "//:README.md",
         "//docs-site:sources",
     ],
     visibility = ["//visibility:public"],

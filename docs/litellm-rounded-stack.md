@@ -33,7 +33,7 @@ Three DGX Spark GB10 nodes (128 GB UMA, sm_121). Two networks — never mix role
 
 ### 3-node QSFP ring (Mode B and Mode C)
 
-200 Gb/s per physical port (not 400G, not NVLink, not InfiniBand switch). Triangle mesh: every pair has a direct cable.
+200 Gb/s per physical port (not NVLink, not InfiniBand switch). Triangle mesh: every pair has a direct cable.
 
 ```mermaid
 flowchart LR

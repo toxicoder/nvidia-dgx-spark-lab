@@ -89,7 +89,7 @@ topology file. Full model: [Lab topology](start/lab-topology.md).
     `fabric: none`, one node with `role: orchestrator`. No high-speed cabling, local NCCL only.
   </Tab>
   <Tab value="2-node">
-    `fabric: pair`, two nodes with both `hs_ifs` (dual QSFP direct). `group_vars` `highspeed_*`
+    `fabric: pair`, two nodes with `hs_ifs` (one 200 Gb/s QSFP cable). `group_vars` `highspeed_*`
     is the **pair** NCCL reference.
   </Tab>
   <Tab value="3-node ring">

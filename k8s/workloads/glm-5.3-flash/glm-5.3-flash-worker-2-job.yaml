@@ -1,7 +1,7 @@
 # Purpose: GLM-5.3-Flash NVFP4 TP=3 worker rank 2 on spark2 (Mode B, QSFP ring)
 # Source of truth: k8s/workloads/glm-5.3-flash/
 # Regenerate: n/a
-# Safety: exclusive frontier; hostNetwork + ring NCCL; gpu-mem-util 0.85 exclusive; no 2-node 400G vars
+# Safety: exclusive frontier; hostNetwork + ring NCCL; gpu-mem-util 0.85 exclusive; no 2-node pair vars
 
 apiVersion: batch/v1
 kind: Job

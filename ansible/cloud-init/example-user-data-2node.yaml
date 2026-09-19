@@ -4,7 +4,7 @@
 # Safety: example only; customize high-speed IPs before use
 
 #cloud-config
-# Example for node in 2-node setup (high-speed dual 400G).
+# Example for node in 2-node setup (high-speed 200 Gb/s QSFP).
 # Customize IPs/interfaces per node (spark0 suffix 1, spark1 suffix 2).
 
 hostname: { { inventory_hostname | default('spark0') } }

@@ -8,7 +8,7 @@
 #
 # Configures the high-speed interconnect netplan on every node.
 # Prefers the per-node netplan generated from ansible/inventory/lab.yaml
-# (fabric: pair/ring/switch); falls back to the legacy dual-400G pair
+# (fabric: pair/ring/switch); falls back to the legacy 2-node pair
 # template + ibdev2netdev detection for hand-made hosts.ini labs.
 #
 # Critical for good NCCL performance on 2+ node setups.
@@ -108,7 +108,7 @@
     - hs_if0 != ''
     - hostvars[peer].ssh_pub_key is defined
 
-# Pair-fabric peer checks only: the dual-400G scheme pins both nodes to
+# Pair-fabric peer checks only: the 2-node pair scheme pins both nodes to
 # 192.168.10x.1/.2. Ring/switch labs use the generated per-node /24s instead,
 # so verify those with 'manage.sh topology check' + 'doctor-fabric'.
 - name: Validate highspeed connectivity (ping and basic)

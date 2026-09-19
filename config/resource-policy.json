@@ -917,7 +917,7 @@
       "pillars": [
         "orchestrator"
       ],
-      "quality_notes": "Mode B uses the 3-node 200G ring; do not copy 2-node 400G NCCL vars"
+      "quality_notes": "Mode B uses the 3-node 200G ring; do not copy 2-node pair NCCL vars"
     },
     "dsv41-flash-spark-3": {
       "label": "DeepSeek-V4.1-Flash official MXFP4 TP=3 (exclusive Mode C)",

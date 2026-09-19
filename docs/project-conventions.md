@@ -60,7 +60,7 @@ Official per-node specs ([NVIDIA DGX Spark hardware](https://docs.nvidia.com/dgx
 | GPU | 1× Blackwell (GB10) | **2 GPUs** allocatable |
 | CPU | 20-core Arm | **~28 cores** allocatable after kubelet reserve |
 | Memory | **128 GB** unified | **~112 Gi** allocatable after kubelet reserve |
-| Network | ConnectX-7, dual ~400G | NCCL via `enp1s0f0np0,enp1s0f1np1` |
+| Network | ConnectX-7, 200 Gb/s per QSFP port | NCCL via `enp1s0f0np0,enp1s0f1np1` |
 
 Kubelet reservations (Ansible `k3s_kubelet_reserved_args`): `system-reserved=cpu=4,memory=64Gi` + `kube-reserved=cpu=2,memory=8Gi` per node. Resource Guard adds **15% / 24Gi minimum headroom per node** (`config/resource-policy.yaml`): `max(24Gi, 15% of allocatable)`. That floor is **not** a second 64Gi tax after kubelet. Host hang protection is kubelet `system-reserved` (if actually applied) plus MemAvailable soak. Live nodes already schedule 95Gi Jobs, so the documented 64Gi+8Gi kubelet args may not be applied as written — measure allocatable before changing Ansible.
 

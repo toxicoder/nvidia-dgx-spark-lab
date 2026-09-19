@@ -39,7 +39,7 @@ tags: [models, inference, safety, resources, vllm]
 | nemotron-retriever-*  | 0    | 4–6Gi       | NIM embed/rerank (CPU)      | Stack aux only                   | All presets       |
 | nemotron-parse        | 1    | 8Gi         | NIM document parse          | 2+ node stacks                   | 2–4 nodes         |
 | nemotron-safety-guard | 0    | 4Gi         | NeMo Guard NIM (CPU)        | Always-on in stacks              | All presets       |
-| glm-5.2               | 2    | 110Gi+      | 1-bit UD-IQ1_M llama.cpp RPC (2-node dual-400G) | Validate with test first; quality trade-off | 2-node required (no Ray) |
+| glm-5.2               | 2    | 110Gi+      | 1-bit UD-IQ1_M llama.cpp RPC (2-node 200G QSFP) | Validate with test first; quality trade-off | 2-node required (no Ray) |
 | qwen3.5-122b-a10b-nvfp4 | 1 | 95Gi        | Qwen 3.5 122B NVFP4 (1-node 397B substitute) | vLLM cu130-nightly + transformers 5.x | 1-node            |
 | qwen3.5-397b-spark2   | 2    | 220Gi       | Qwen 397B int4-AutoRound (2-node 397B substitute) | Ray + vLLM; ~26-30 tok/s on dual Spark | 2-node + Ray      |
 | qwen3.5-397b-nvfp4    | 4    | 460Gi+      | Qwen 397B NVFP4 (exact HF checkpoint) | SGLang TP=4; displaces other LLMs | 4-node required   |

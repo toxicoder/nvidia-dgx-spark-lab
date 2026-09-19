@@ -1,6 +1,6 @@
 # GLM-5.2 (Heavy Production — 1-bit UD-IQ1_M + llama.cpp RPC)
 
-Ultra-low-footprint GLM-5.2 on 2× DGX Spark GB10 nodes using Unsloth dynamic 1-bit quantization and llama.cpp RPC over dual 400G.
+Ultra-low-footprint GLM-5.2 on 2× DGX Spark GB10 nodes using Unsloth dynamic 1-bit quantization and llama.cpp RPC over the 200 Gb/s QSFP pair.
 
 **What's on this page**
 
@@ -13,7 +13,7 @@ Ultra-low-footprint GLM-5.2 on 2× DGX Spark GB10 nodes using Unsloth dynamic 1-
 **What this enables**
 
 - Running GLM-5.2 (~753B MoE) on exactly two DGX Spark nodes when higher-quant paths do not fit
-- Leveraging dual 400G interconnect for MoE expert/layer offloading via llama.cpp RPC
+- Leveraging the 200 Gb/s QSFP pair for MoE expert/layer offloading via llama.cpp RPC
 - OpenAI-compatible HTTP API on port 8000 (same Service pattern as other workloads)
 
 ## Requirements
