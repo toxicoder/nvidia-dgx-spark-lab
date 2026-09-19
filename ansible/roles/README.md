@@ -6,7 +6,7 @@ Reusable Ansible roles for the lab.
 
 - **k3s_common**: OS prerequisites, swapoff, sysctls, containerd prep for all nodes.
 - **gpu_operator**: Deploys NVIDIA GPU Operator via Helm (drivers, device plugin, DCGM, etc.).
-- **highspeed_network**: Configures dual 400G links using netplan + ibdev2netdev detection.
+- **highspeed_network**: Configures the high-speed fabric links (pair/ring/switch) using netplan + ibdev2netdev detection.
 - **coder**, **kasm**, **monitoring**: Helm-based dev/observability stacks.
 - **cloud_init**: Early OS + highspeed prep templates (used optionally before full bootstrap).
 - **labels**: Applies node labels (highspeed, role, etc.).

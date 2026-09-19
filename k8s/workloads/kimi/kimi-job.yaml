@@ -30,9 +30,9 @@ spec:
       restartPolicy: OnFailure
       # hostNetwork omitted (default false); explicit NCCL_* + IFNAME sufficient for high-speed. Decision: keep on heavy ray jobs (nemotron/glm) only; see models-catalog.
 
-      # Preferred affinity to high-speed nodes (scalable for 1-4 nodes)
+      # Preferred affinity to high-speed nodes (scalable for 1-5 nodes)
       # 1 node: runs on the single node (all local GPUs).
-      # 2-4 nodes: prefers highspeed nodes, with anti-affinity to spread production pods.
+      # 2-5 nodes: prefers highspeed nodes, with anti-affinity to spread production pods.
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -70,8 +70,8 @@ spec:
             capabilities:
               drop: ["ALL"]
 
-          # Full production resource profile - adjust for your actual DGX Spark GPUs (1-4 nodes)
-          # Example: 8 GPUs for 1-2 nodes; scale up for 3-4 nodes with inter-node parallelism.
+          # Full production resource profile - adjust for your actual DGX Spark GPUs (1-5 nodes)
+          # Example: 8 GPUs for 1-2 nodes; scale up for 3-5 nodes with inter-node parallelism.
           resources:
             requests:
               cpu: "32"
@@ -84,7 +84,7 @@ spec:
 
           env:
             # === HIGH-SPEED INTERCONNECT CONFIGURATION ===
-            # For 2-4 nodes: utilize dual 400G links. For 1 node: local multi-GPU NCCL (SHM/P2P).
+            # For 2-5 nodes: utilize the fabric's high-speed links. For 1 node: local multi-GPU NCCL (SHM/P2P).
             - name: NCCL_SOCKET_IFNAME
               value: "enp1s0f0np0,enp1s0f1np1"
             - name: NCCL_IB_HCA

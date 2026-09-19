@@ -15,7 +15,7 @@
 **What's on this page**
 
 - Project goals and core safety principles
-- Node role table (1-node vs 2-4 node configurations)
+- Node role table (five supported fabrics: 1 / 2 / 3 / 4 / 5 nodes)
 - Core components (K3s, GPU Operator, Ansible + cloud-init, Helm vs raw manifests)
 - High-speed interconnect and NCCL configuration
 - High-level repository layout
@@ -23,26 +23,35 @@
 
 **What this enables**
 
-- Quickly understanding the lab's scope (small 1-4 node DGX Spark clusters for large inference)
+- Quickly understanding the lab's scope (small 1-5 node DGX Spark clusters for large inference)
 - Seeing the emphasis on stability, explicit resources, and no auto-start of heavy jobs
 - Deciding where to go next: [Getting Started](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/) (Start tab). Compose Comfy: [ez-comfy-stack](https://github.com/toxicoder/ez-comfy-stack)
 
 ## Goals
 
 - Run very large models (e.g. Kimi-K2.6 and similar) reliably without freezing the host or making SSH unresponsive.
-- Utilize the dual 400G high-speed interconnect between nodes.
+- Utilize the high-speed interconnect fabric between nodes (pair, ring, or switch).
 - Provide both a heavy production configuration and a lighter/safer test mode.
 - Never auto-start heavy containers on reboot.
 - Everything managed through simple, auditable scripts and manifests.
 
 <img width="1280" height="858" alt="dashboard-main copy" src="https://github.com/user-attachments/assets/057fd2c0-27d4-47a5-ae02-1157dcd6dca1" />
 
-## Node Roles (Scalable 1-4 nodes)
+## Node Roles (Scalable 1-5 nodes, five fabrics)
 
-| Nodes     | Role Configuration                          | Notes |
-|-----------|---------------------------------------------|-------|
-| 1 node    | spark0: control-plane + worker             | All-in-one; single-node NCCL for local GPUs |
-| 2-4 nodes | spark0: control-plane + worker; spark1..N: workers | High-speed interconnects (dual 400G) for multi-node NCCL / tensor-parallel |
+The declarative topology `ansible/inventory/lab.yaml` declares the fabric and marks exactly one
+node `role: orchestrator` — the K3s control plane. Any Spark can be it (default `spark0`);
+re-assigning it moves the control plane without re-cabling.
+
+| Nodes | Fabric (`lab.yaml` `fabric:`) | Role configuration | High-speed interconnect |
+|-------|-------------------------------|--------------------|-------------------------|
+| 1 | `none` | control-plane + worker (all-in-one) | none — local NCCL (SHM/P2P) |
+| 2 | `pair` | control-plane + worker; 1 worker | dual QSFP ~400G direct |
+| 3 | `ring` | control-plane + worker; 2 workers | QSFP triangle, 200 Gb/s per pair |
+| 4 | `switch` | control-plane + worker; 3 workers | Mikrotik CRS804-4DDQ-hRM, full ports |
+| 5 | `switch` | control-plane + worker; 4 workers | CRS804, one 400G port split to two 200G breakout lanes |
+
+Multi-node NCCL / tensor-parallel ride the fabric's high-speed links. Do **not** copy the 2-node pair `NCCL_*` env onto a ring or switch lab. See [Choose topology](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/start/choose-topology/).
 
 ## Core Components
 
@@ -64,6 +73,8 @@
 `ansible/inventory/group_vars/all.yml` `highspeed_*` / `nccl_env` document that pair. Do **not** copy them onto a 3-node ring.
 
 **3-node QSFP ring (Mode B and Mode C):** 200 Gb/s per pair, triangle mesh, OOB on 10GbE (often `enP7s7`), payload on all four CX-7 RoCE devices. See [LiteLLM rounded stack](docs/litellm-rounded-stack.md). Not NVLink.
+
+**4/5-node CRS804 switch:** one RoCE link per node on its own /24 (the generated per-node netplan); `NCCL_SOCKET_IFNAME` stays on the management NIC, payload on the single RoCE HCA. See [Choose topology](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/start/choose-topology/).
 
 For 1 node: standard local multi-GPU NCCL (SHM/P2P) is used.
 
@@ -96,14 +107,18 @@ nvidia-dgx-spark-lab/
 
 ## Quick Start
 
-1. **Inventory Setup**
+1. **Operator client + topology file**
    ```bash
-   cp ansible/inventory/hosts.ini.example ansible/inventory/hosts.ini
-   # Edit with real IPs. Supports 1 node (only spark0) or 2-4 (spark0 + agents).
-   # See hosts.ini.example for examples and high-speed config.
+   ./scripts/utilities/install-operator-client.sh run   # one command: Ansible, kubectl, helm, bazelisk
+   # Declare the lab (fabric, node IPs, switch port map, orchestrator) in ansible/inventory/lab.yaml,
+   # then render the inventory / netplan / cloud-init from it:
+   bazelisk run //:manage -- setup            # guided wizard (prompts, then writes + renders)
+   # or non-interactive: bazelisk run //:manage -- topology render
    ```
+   Legacy fallback: `cp ansible/inventory/hosts.ini.example ansible/inventory/hosts.ini` and edit by hand
+   (skips the generated netplan / cloud-init). See [Lab topology](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/start/lab-topology/).
 
-2. **Bootstrap the Cluster** (works for 1 or 2-4 nodes)
+2. **Bootstrap the Cluster** (works for 1 or 2-5 nodes)
    ```bash
    # Preferred when working Bazel-first:
    bazelisk run //ansible:bootstrap -- -i inventory/hosts.ini
@@ -134,7 +149,7 @@ nvidia-dgx-spark-lab/
    # classic: ./scripts/manage.sh start-test
    ```
 
-See the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/) for the gold path (1/2/4-node inventory, cloud-init, Ansible, GPU Operator, `doctor`, first `kimi-test`, dashboard URL, reboot reminder). Prefer `bazelisk run //:manage -- <verb>` (equivalent: `./scripts/manage.sh <verb>`).
+See the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/) for the gold path (1-5 node topologies, cloud-init, Ansible, GPU Operator, `doctor`, first `kimi-test`, dashboard URL, reboot reminder). Prefer `bazelisk run //:manage -- <verb>` (equivalent: `./scripts/manage.sh <verb>`).
 
 The auto-generated command reference is [Shell Commands & Helpers](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/generated/shell/reference/) (`bazelisk run //docs:docs`). Workload numbers: [Workload catalog](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/operate/workload-catalog/). `group_vars/all.yml` is reference only.
 
@@ -293,7 +308,7 @@ Never rely on Kubernetes to auto-restart heavy inference pods.
 - Large models can easily OOM or starve the control plane if resource limits are too loose.
 - Avoid `imagePullPolicy: Always` on huge images.
 - SSH can become unresponsive if the node is under extreme memory pressure — always set conservative limits.
-- Dual 400G links require correct interface naming and NCCL env vars; misconfiguration falls back to slower paths.
+- High-speed links require correct interface naming and NCCL env vars; misconfiguration falls back to slower paths.
 - Watch for thermal/power limits on sustained inference.
 
 See [DGX Spark Notes](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/dgx-spark-notes/) and [Reboot Safety](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/reboot-safety/) for more.

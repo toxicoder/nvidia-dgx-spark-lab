@@ -91,7 +91,7 @@ get_free_gpus() { get_approx_free_gpus "$@"; }
 # Called by `manage.sh status`.
 print_status() {
   echo
-  log "=== Cluster Nodes (supports 1-4 node scalable setups) ==="
+  log "=== Cluster Nodes (supports 1-5 node scalable setups) ==="
   kubectl get nodes -L nvidia-dgx-spark/highspeed,nvidia-dgx-spark/role || true
 
   echo

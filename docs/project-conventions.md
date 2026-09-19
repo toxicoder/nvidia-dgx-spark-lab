@@ -42,7 +42,7 @@ These principles override convenience. When in doubt, choose stability and expli
 | **Explicit resources** | Every heavy workload has `resources.requests` and `resources.limits`. |
 | **No auto-start** | Heavy inference Jobs never start on reboot. Operators start them deliberately. |
 | **Low backoff** | Production inference Jobs use `restartPolicy: OnFailure` (or `Never`) with a low `backoffLimit`. |
-| **High-speed NCCL** | Multi-node workloads set `NCCL_SOCKET_IFNAME` and related vars for dual 400G links. |
+| **High-speed NCCL** | Multi-node workloads set `NCCL_SOCKET_IFNAME` and related vars for the fabric's high-speed links. |
 | **Test before production** | Lighter `*-test` variants validate clusters before heavy `kimi`-class jobs. |
 | **Defense in depth** | Policy files, runtime checks, Kubernetes guardrails, and static greps all enforce safety. |
 | **Hermetic tests** | Tests run on any clone without real DGX hardware or a live cluster. |
@@ -678,7 +678,7 @@ Meta playbook `full-lab-setup.yml` chains via `import_playbook:` with `when:` gu
 | --- | --- |
 | `k3s_common` | OS prep, swap, sysctls |
 | `gpu_operator` | NVIDIA GPU Operator Helm |
-| `highspeed_network` | netplan + dual 400G |
+| `highspeed_network` | netplan + high-speed fabric (pair/ring/switch) |
 | `coder`, `kasm`, `monitoring`, `traefik`, `sso` | Helm stacks |
 | `labels` | Node labels for scheduling |
 
