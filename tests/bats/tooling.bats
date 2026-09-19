@@ -188,6 +188,17 @@ _ci_action_pins() {
     grep -nE 'git push .*(--force|-f)' "$deploy" >&2 || true
     return 1
   fi
+  # The publish commit is scoped to the published site: after the branch switch
+  # the source .gitignore is gone from the worktree, so a bare `git add -A`
+  # would commit the build workspace (node_modules, .next, bazel symlinks)
+  # into the Pages branch.
+  grep -qF '!/latest' "$deploy"
+  grep -qF '!/development' "$deploy"
+  grep -qF '!/index.html' "$deploy"
+  # The working tree is restored to the source commit after the push: local
+  # composite actions re-resolve their action.yml from disk in post steps.
+  grep -qF 'SRC_SHA=$(git rev-parse HEAD)' "$deploy"
+  grep -qF 'git checkout -f "$SRC_SHA"' "$deploy"
   # mike is gone: nothing may shell out to it any more.
   if grep -qF 'mike ' "$deploy"; then
     echo "deploy-docs.yml still invokes mike:" >&2
