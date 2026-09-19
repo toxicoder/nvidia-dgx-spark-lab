@@ -166,9 +166,10 @@ _ci_action_pins() {
     grep -nE '^[[:space:]]*pull_request:' "$deploy" >&2 || true
     return 1
   fi
-  # Publishing goes through the Pages artifact deployment, which is only reachable from
-  # the push/dispatch triggers above.  A PR-time deploy would let an unreviewed branch
-  # overwrite the public site, so the checks below are the ones that keep it safe.
+  # Publishing commits the assembled tree to the repository's legacy `gh-pages`
+  # Pages source branch, which is only reachable from the push/dispatch triggers
+  # above.  A PR-time deploy would let an unreviewed branch overwrite the public
+  # site, so the checks below are the ones that keep it safe.
   if grep -qE 'preview-branch|allow-preview-deployment|pages-deployment-branch' "$deploy"; then
     echo "deploy-docs.yml must not publish a PR preview deployment:" >&2
     grep -nE 'preview-branch|allow-preview-deployment|pages-deployment-branch' "$deploy" >&2 || true
@@ -180,7 +181,13 @@ _ci_action_pins() {
   grep -qE 'branches:[[:space:]]*\[.*development' "$deploy"
   grep -qF '//docs-site:build-latest' "$deploy"
   grep -qF '//docs-site:build-development' "$deploy"
-  grep -qF 'actions/deploy-pages' "$deploy"
+  grep -qF 'git push origin gh-pages' "$deploy"
+  # The gh-pages branch is a fast-forward-only artifact branch: no force-push, ever.
+  if grep -qE 'git push .*(--force|-f)' "$deploy"; then
+    echo "deploy-docs.yml must never force-push the gh-pages branch:" >&2
+    grep -nE 'git push .*(--force|-f)' "$deploy" >&2 || true
+    return 1
+  fi
   # mike is gone: nothing may shell out to it any more.
   if grep -qF 'mike ' "$deploy"; then
     echo "deploy-docs.yml still invokes mike:" >&2
