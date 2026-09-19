@@ -65,6 +65,7 @@ Hover any dotted abbreviation in the docs (for example K3s or Resource Guard) fo
 | --- | --- | --- |
 | **PVC** | PersistentVolumeClaim for durable pod storage (e.g. Comfy state). | [Visual generative AI](visual-generative-ai.md) |
 | **hostPath** | Mount of a path on the node (e.g. `/mnt/models` for model weights). | [Models catalog](models-catalog.md) |
+| **disk wizard** | Plan-first leftover survey for Spark NVMe (HF cache, incomplete pulls, keep-set). | [Disk wizard](operate/disk-wizard.md) |
 | **kustomize** | Overlay-based Kubernetes config (base + test/prod/single-node). | [Architecture](architecture.md) |
 
 ## Agents & UI

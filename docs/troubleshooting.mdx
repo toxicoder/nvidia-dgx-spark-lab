@@ -94,6 +94,16 @@ Generated flags: [Shell reference](generated/shell/reference.md).
 | `start-glm53-flash` refuses | Mode A or C | `stop-stack-rounded` or stop C | Exclusive ring | `status-stack` |
 | Visual start blocked | Another `workload: visual` | `stop-visual` | One Comfy Deployment | `status-visual` |
 
+## Disk full / NVMe
+
+| Symptom | Likely cause | Action | Prevention | Verify |
+| --- | --- | --- | --- | --- |
+| `df` 85%+ on `/` or `/mnt/models` | HF hub leftovers, incomplete pulls, containerd images | `disk-wizard status` then `recommend --target-gib N` then `apply --yes` | Reap interrupted downloads; do not leave ad-hoc `hf download` trees | `disk-wizard status --json` pressure not `crit` |
+| Space did not return after delete | File still open (`mmap` / fd) | `disk-wizard explain PATH`; stop the Job | Wizard refuses in-use paths | `lsof` / pod gone |
+| Download utility fails mid-pull | NVMe full | Step A first (`*.incomplete`, pip cache) | `status` before a 100 GB+ pull | `df -h` |
+
+See [Disk wizard](operate/disk-wizard.md). Do not `docker system prune -a --volumes`.
+
 ## Still stuck
 
 1. `bazelisk run //:manage -- doctor` output

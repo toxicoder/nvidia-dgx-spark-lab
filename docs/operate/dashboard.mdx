@@ -37,7 +37,7 @@ bazelisk run //:manage -- urls
 | **Tasks** | Docker containers / Ollama list (host docker.sock) | Destructive stop/delete confirms |
 | **Storage** | Treemap of `/mnt/models` (allow-listed paths) | Bulk delete is permanent |
 | **Machine State** | nvidia-smi, packages, services | Read-mostly |
-| **Utilities** | Allow-listed scripts only (`ALLOWED_UTILITIES`) | Unknown names are rejected |
+| **Utilities** | Allow-listed scripts only (`ALLOWED_UTILITIES`) | `disk-wizard` Status/Run are read-only; apply stays on the CLI |
 | **Secrets** | Encrypted vault; optional K8s sync to `dev` / `ai-inference` | Never screenshot values |
 | **Workspaces** | Links/embed to Coder and Kasm | Separate from inference Jobs |
 | **Nemotron / Open WebUI / Observability** | Stack status and Grafana entry | Red scrape targets |

@@ -10,6 +10,7 @@ describe("validation schemas", () => {
 
   it("UtilityNameSchema enforces allow-list", () => {
     expect(UtilityNameSchema.parse("spark-clock")).toBe("spark-clock");
+    expect(UtilityNameSchema.parse("disk-wizard")).toBe("disk-wizard");
     expect(() => UtilityNameSchema.parse("evil-script")).toThrow();
   });
 

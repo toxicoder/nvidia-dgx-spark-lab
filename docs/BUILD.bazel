@@ -54,6 +54,7 @@ _HAND_WRITTEN_MD = [
     "operate/ansible-catalog.mdx",
     "operate/backup-restore.mdx",
     "operate/capacity-planning.mdx",
+    "operate/disk-wizard.mdx",
     "operate/dashboard.mdx",
     "operate/index.mdx",
     "operate/node-failure.mdx",

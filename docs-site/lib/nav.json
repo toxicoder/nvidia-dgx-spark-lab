@@ -134,6 +134,10 @@
         "path": "operate/backup-restore.md"
       },
       {
+        "title": "Disk wizard",
+        "path": "operate/disk-wizard.md"
+      },
+      {
         "title": "Monitoring",
         "path": "monitoring-observability.md"
       },

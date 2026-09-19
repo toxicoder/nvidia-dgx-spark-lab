@@ -1319,6 +1319,228 @@ Usage:
 
 
 
+<!-- source: scripts/utilities/disk-wizard.sh -->
+
+## disk-wizard
+
+Guided, plan-first reclaim for leftover files on a DGX Spark K3s node.
+Does not overload manage.sh cleanup (namespaces) or the dashboard treemap.
+
+```bash
+Usage:
+  ./scripts/utilities/disk-wizard.sh status [--json]
+  ./scripts/utilities/disk-wizard.sh plan [--json] [--deep]
+  ./scripts/utilities/disk-wizard.sh recommend [--target-gib N] [--json]
+  ./scripts/utilities/disk-wizard.sh largest [--path DIR] [--n 30] [--json]
+  ./scripts/utilities/disk-wizard.sh explain PATH [--json]
+  ./scripts/utilities/disk-wizard.sh run [--json]
+  ./scripts/utilities/disk-wizard.sh apply --yes [--step A|B] [--id ID] [--path P]
+  ./scripts/utilities/disk-wizard.sh restore --from DIR
+
+```
+
+!!! warning
+
+    Safety:
+      Default is plan/status (read-only). apply requires --yes.
+      Review-class items quarantine. Dangerous / keep-set / in-use refused.
+      run never deletes (dashboard contract).
+      Never runs docker system prune -a --volumes.
+      Does not weaken Resource Guard, restartPolicy, NCCL, or download utilities.
+
+### Command: disk-wizard
+
+### Function `log`
+
+@function log
+Informational message on stderr (stdout stays JSON-clean).
+
+### Function `warn`
+
+@function warn
+!!! warning
+
+    Warning on stderr.
+
+### Function `err`
+
+@function err
+Error on stderr.
+
+### Function `disk_wizard_usage`
+
+@function disk_wizard_usage
+Print usage to stderr.
+
+### Function `parse_args`
+
+@function parse_args
+Parse CLI into MODE / flags.
+Arguments:
+  $@
+
+### Function `disk_is_tty`
+
+@function disk_is_tty
+True when stdin is a TTY.
+
+### Function `disk_catalog_path`
+
+@function disk_catalog_path
+Catalog YAML path.
+
+### Function `disk_plan_file`
+
+@function disk_plan_file
+Path to the last written plan JSON.
+
+### Function `disk_log`
+
+@function disk_log
+Append a UTC log line to MODELS_DIR wizard log and stderr.
+Arguments:
+  $@  message
+
+### Function `disk_catalog_py`
+
+@function disk_catalog_py
+Run disk_catalog.py with the lab catalog.
+Arguments:
+  $@  subcommand and args
+
+### Function `disk_survey_jsonl`
+
+@function disk_survey_jsonl
+Walk (shallow or deep) plus docker/factory synthetic rows.
+Outputs:
+  JSONL on stdout
+
+### Function `disk_overlay_plan`
+
+@function disk_overlay_plan
+Apply in-use overlay to a ranked JSON array on stdin.
+Outputs:
+  JSON array
+
+### Function `disk_rank_and_overlay`
+
+@function disk_rank_and_overlay
+Classify JSONL on stdin, overlay, write plan file, print JSON array.
+Outputs:
+  ranked JSON
+
+### Function `disk_print_plan`
+
+@function disk_print_plan
+Human A/B/C listing.
+Arguments:
+  $1  JSON array
+
+### Function `disk_survey`
+
+@function disk_survey
+Run survey + rank + overlay; print human or JSON.
+
+### Function `disk_status`
+
+@function disk_status
+Fast df + roots + last-plan recommend. Never walks the NVMe (dashboard 8s).
+
+### Function `disk_recommend`
+
+@function disk_recommend
+Time-crunch greedy list. Uses last plan or runs a shallow survey.
+
+### Function `disk_largest`
+
+@function disk_largest
+Top files and directories under an allowed root.
+
+### Function `disk_explain`
+
+@function disk_explain
+Classify one path and print education.
+
+### Function `disk_resolve_apply_path`
+
+@function disk_resolve_apply_path
+Jail realpath, or OEM bittest exception. Refuses OS / k3s / models root / checkout.
+Arguments:
+  $1  path
+Outputs:
+  realpath
+Returns:
+  0 allowed; 1 refuse
+
+### Function `disk_apply_guards`
+
+@function disk_apply_guards
+Refuse apply when hf pid unless --force.
+
+### Function `disk_quarantine_base`
+
+@function disk_quarantine_base
+Quarantine destination directory for a path.
+Arguments:
+  $1  path
+  $2  utc stamp
+
+### Function `disk_quarantine_one`
+
+@function disk_quarantine_one
+Move one path into quarantine with a manifest row.
+Arguments:
+  $1  class/id
+  $2  path
+
+### Function `disk_delete_one`
+
+@function disk_delete_one
+Delete one junk path after jail + keep-set checks.
+Arguments:
+  $1  class
+  $2  path
+
+### Function `disk_apply_one`
+
+@function disk_apply_one
+Apply one ranked row.
+Arguments:
+  $1  JSON object
+
+### Function `disk_apply`
+
+@function disk_apply
+Apply step A (safe) from the plan. Step B only with --step B.
+
+### Function `disk_restore`
+
+@function disk_restore
+Restore files from a quarantine tree using MANIFEST.jsonl.
+
+### Function `disk_confirm_yes`
+
+@function disk_confirm_yes
+Require the operator to type yes (never a single keypress).
+Arguments:
+  $1  prompt
+Returns:
+  0 iff the line is exactly yes
+
+### Function `disk_wizard_menu`
+
+@function disk_wizard_menu
+Interactive TTY guide. Mutations still require typing yes.
+
+### Function `main`
+
+@function main
+CLI dispatcher.
+Arguments:
+  $@
+
+
+
 <!-- source: scripts/utilities/download-glm52-gguf.sh -->
 
 ## download-glm52-gguf
@@ -2734,3 +2956,139 @@ Optional third arg: url_mode override (host_localhost | in_cluster).
 ### Function `stop_hermes_stack`
 
 @function stop_hermes_stack
+
+
+
+<!-- source: scripts/lib/disk_scan.sh -->
+
+## disk_scan
+
+Read-only filesystem / containerd / docker survey helpers for disk-wizard.
+Source after common.sh. Not executable.
+
+!!! warning
+
+    Safety:
+      Does not delete. Realpath jail. Hermetic tests set LAB_HERMETIC=1 and
+      DISK_WIZARD_HOME so $HOME is never walked on a developer laptop.
+
+### Function `disk_scan_home`
+
+@function disk_scan_home
+Home used for ~/.cache and ~/.ollama (tests override DISK_WIZARD_HOME).
+Globals:
+  DISK_WIZARD_HOME, HOME
+Outputs:
+  Absolute home path
+
+### Function `disk_scan_hermetic`
+
+@function disk_scan_hermetic
+True when this is a hermetic test run (no live docker/crictl/kubectl).
+Globals:
+  LAB_HERMETIC
+Returns:
+  0 hermetic
+
+### Function `disk_allowed_roots`
+
+@function disk_allowed_roots
+Print allowed root directories (one per line), existing only.
+Globals:
+  MODELS_DIR, DISK_WIZARD_ROOTS, DISK_WIZARD_SCAN_TMP, DISK_WIZARD_HOME
+Outputs:
+  Paths on stdout
+
+### Function `disk_root_is_allowed`
+
+@function disk_root_is_allowed
+True if realpath(path) is under one of the allowed roots.
+Arguments:
+  $1  path
+Returns:
+  0 allowed
+
+### Function `disk_realpath_under_any`
+
+@function disk_realpath_under_any
+Realpath; fail unless under an allowed root.
+Arguments:
+  $1  path
+Outputs:
+  realpath
+Returns:
+  0; 1 escape
+
+### Function `disk_df_json`
+
+@function disk_df_json
+Filesystem size JSON for MODELS_DIR (or LAB_MOCK_DF_JSON).
+Globals:
+  MODELS_DIR, LAB_MOCK_DF_JSON
+Outputs:
+  JSON object
+
+### Function `disk_df_report`
+
+@function disk_df_report
+Human df -h for MODELS_DIR (or mock).
+Globals:
+  MODELS_DIR, LAB_MOCK_DF
+
+### Function `disk_docker_df`
+
+@function disk_docker_df
+Docker disk usage JSON lines (or LAB_MOCK_DOCKER_DF).
+Globals:
+  LAB_MOCK_DOCKER_DF, LAB_HERMETIC
+
+### Function `disk_crictl_in_use`
+
+@function disk_crictl_in_use
+Image ids in use (one per line).
+Globals:
+  LAB_MOCK_CRICTL_IN_USE, LAB_HERMETIC
+
+### Function `disk_hf_pid_present`
+
+@function disk_hf_pid_present
+True if an hf download PID or pidfile is present.
+Globals:
+  MODELS_DIR, LAB_MOCK_HF_PID
+Returns:
+  0 running
+
+### Function `disk_factory_bittest_paths`
+
+@function disk_factory_bittest_paths
+Non-recursive *bittest* glob under DISK_WIZARD_ROOT_GLOB_BASE (default /).
+Hermetic runs skip unless DISK_WIZARD_ROOT_GLOB_BASE is set.
+Outputs:
+  JSONL path/size rows
+
+### Function `disk_crictl_image_rows`
+
+@function disk_crictl_image_rows
+containerd image JSONL (crictl://unused-image/ID or in-use). Hermetic unless mocked.
+Globals:
+  LAB_MOCK_CRICTL_IMAGES, LAB_HERMETIC
+Outputs:
+  JSONL path/size rows
+
+### Function `disk_live_workload_flags`
+
+@function disk_live_workload_flags
+Set LAB_MOCK_VISUAL / MODE_C / FLASH_NEXT from live kubectl (no-op when hermetic).
+Globals:
+  LAB_HERMETIC, LAB_MOCK_VISUAL, LAB_MOCK_MODE_C, LAB_MOCK_FLASH_NEXT
+
+### Function `disk_kubectl_pods_json`
+
+@function disk_kubectl_pods_json
+
+```bash
+kubectl get pods -A -o json or LAB_MOCK_PODS_JSON.
+```
+
+Globals:
+  LAB_MOCK_PODS_JSON, LAB_HERMETIC

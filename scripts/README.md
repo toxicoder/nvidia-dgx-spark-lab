@@ -45,6 +45,15 @@ bazelisk run //scripts:run-utility -- spark-clock status
 bazelisk run //scripts:run-utility -- spark-clock run
 ```
 
+Disk leftovers (HF cache, incomplete downloads) — plan-first, never deletes on `run`:
+
+```bash
+bazelisk run //scripts:run-utility -- disk-wizard status
+bazelisk run //:manage -- disk-wizard recommend --target-gib 50
+```
+
+See [Disk wizard](../docs/operate/disk-wizard.mdx).
+
 See the dashboard "Utilities" panel for UI control (run buttons, status).
 
 Adding a new utility: drop a compliant .sh in the directory. It becomes visible to Bazel, docs generator, and the dashboard automatically.

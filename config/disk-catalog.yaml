@@ -1,0 +1,379 @@
+# Purpose:
+#   Host leftover signatures for disk-wizard (what / why / risk / reclaim / educate).
+# Source of truth: this file (operator entry via scripts/utilities/disk-wizard.sh)
+# Schema: restricted YAML, scripts/lib/py/disk_catalog.py (no PyYAML)
+# Safety:
+#   keep-set weights, dsv41-engram, k3s server data, and in-use paths are refused
+#   (risk: dangerous, reclaim: none). Never offers docker system prune -a --volumes.
+#   Default disk-wizard is plan/status (read-only). apply requires --yes.
+# risk: safe | review | dangerous
+# reclaim: delete | quarantine | docker-prune | none
+schema: 1
+keep_set:
+  prefixes:
+    - dsv41-engram
+    - RadixArk__Qwen3.8-Flash-Next-NVFP4
+    - models--RadixArk--Qwen3.8-Flash-Next-NVFP4
+    - google__medgemma-27b-multimodal
+    - models--google--medgemma-27b-multimodal
+    - local-inference-lab__GLM-5.3-Flash-NVFP4
+    - models--local-inference-lab--GLM-5.3-Flash-NVFP4
+    - deepseek-ai__DeepSeek-V4.1-Flash
+    - models--deepseek-ai--DeepSeek-V4.1-Flash
+    - unsloth__Qwen3.8-27B-NVFP4
+    - models--unsloth--Qwen3.8-27B-NVFP4
+    - unsloth__Qwen3.6-27B-NVFP4
+    - models--unsloth--Qwen3.6-27B-NVFP4
+    - unsloth__Qwen3.6-35B-A3B-NVFP4-Fast
+    - models--unsloth--Qwen3.6-35B-A3B-NVFP4-Fast
+    - RedHatAI__Qwen3.5-122B-A10B-NVFP4
+    - models--RedHatAI--Qwen3.5-122B-A10B-NVFP4
+    - Intel__Qwen3.5-397B-A17B-int4-AutoRound
+    - models--Intel--Qwen3.5-397B-A17B-int4-AutoRound
+    - nvidia__Qwen3.5-397B-A17B-NVFP4
+    - models--nvidia--Qwen3.5-397B-A17B-NVFP4
+    - black-forest-labs__FLUX.2
+    - models--black-forest-labs--FLUX.2
+    - tonera__FLUX.2
+    - models--tonera--FLUX.2
+    - Kijai__LTX2
+    - models--Kijai--LTX2
+    - GLM-5.2-GGUF
+  basenames: []
+signatures:
+  hf-incomplete:
+    risk: safe
+    reclaim: delete
+    leftover_weight: 10
+    what: "Interrupted Hugging Face download (*.incomplete)"
+    why: "hf download was Ctrl-C'd or the Spark rebooted mid-pull"
+    leftover_when: "basename ends with .incomplete"
+    educate: "Partial blobs are not a usable checkpoint. Safe to delete; re-run the download utility."
+    match_suffix:
+      - ".incomplete"
+    roots:
+      - MODELS_DIR
+      - HOME_HF
+    refuse_if:
+      - hf_pid
+  hf-lock-stale:
+    risk: safe
+    reclaim: delete
+    leftover_weight: 8
+    what: "Stale Hugging Face .lock file"
+    why: "A previous hf process died without removing the lock"
+    leftover_when: "basename ends with .lock and no hf PID is running"
+    educate: "Locks are tiny; deleting a live lock can corrupt a download. Refused while hf is running."
+    match_suffix:
+      - ".lock"
+    roots:
+      - MODELS_DIR
+      - HOME_HF
+    refuse_if:
+      - hf_pid
+  dangling-symlink:
+    risk: safe
+    reclaim: delete
+    leftover_weight: 9
+    what: "Broken symlink"
+    why: "A pack was moved or reaped but a relative link was left behind"
+    leftover_when: "symlink target does not exist"
+    educate: "Removing a dangling link does not delete weights. Comfy just stops seeing the missing pack."
+    match_broken_symlink: true
+    roots:
+      - MODELS_DIR
+  hf-xet-chunk-cache:
+    risk: safe
+    reclaim: delete
+    leftover_weight: 9
+    what: "Hugging Face Xet / chunk-cache / shard-cache leftover"
+    why: "Transient transfer cache; not a committed snapshot"
+    leftover_when: "path contains chunk-cache, shard-cache, or huggingface/xet"
+    educate: "Safe when no download is running. hf cache prune also removes these."
+    match_contains:
+      - "chunk-cache"
+      - "shard-cache"
+      - "huggingface/xet"
+    roots:
+      - HOME_HF
+      - MODELS_DIR
+    refuse_if:
+      - hf_pid
+  pip-uv-cache:
+    risk: safe
+    reclaim: delete
+    leftover_weight: 3
+    what: "pip or uv wheel cache"
+    why: "Repeated pip install in venvs and containers"
+    leftover_when: "under ~/.cache/pip or ~/.cache/uv"
+    educate: "Wheels re-download on the next pip/uv install. Safe junk."
+    match_contains:
+      - "/.cache/pip"
+      - "/.cache/uv"
+    roots:
+      - HOME_CACHE
+  core-dump:
+    risk: safe
+    reclaim: delete
+    leftover_weight: 8
+    what: "Core dump or NVIDIA crash log in tmp"
+    why: "A process aborted; dumps are not needed to start Jobs again"
+    leftover_when: "basename is core, core.*, or nvidia-crash-ish in tmp"
+    educate: "Safe to delete. If you are debugging a crash, copy it off-node first."
+    match_basename:
+      - "core"
+    match_prefix:
+      - "core."
+      - "nvidia-crash"
+    roots:
+      - TMP
+      - VAR_TMP
+  hf-datasets-arrow:
+    risk: review
+    reclaim: quarantine
+    leftover_weight: 5
+    what: "Hugging Face datasets Arrow / extracted cache"
+    why: "datasets library processed shards; hf cache ls does not count this"
+    leftover_when: "under ~/.cache/huggingface/datasets"
+    educate: "Not model weights. Quarantine if you are not iterating on datasets. Re-prepare is slow."
+    redownload_hint: "datasets will rebuild Arrow shards on the next load_dataset()."
+    match_contains:
+      - "huggingface/datasets"
+    roots:
+      - HOME_HF
+  hf-complete-repo:
+    risk: review
+    reclaim: quarantine
+    leftover_weight: 6
+    what: "Complete Hugging Face hub repo that is not the lab keep-set"
+    why: "An experiment pull (vLLM, transformers, ad-hoc hf download) was left on disk"
+    leftover_when: "under huggingface/hub/models-- and not keep-set"
+    educate: "Re-download can take hours on WAN and tens of minutes on NVMe. Prefer quarantine."
+    redownload_hint: "Hours, not minutes, for 100 GB+ NVFP4 checkpoints."
+    match_contains:
+      - "huggingface/hub/models--"
+      - "huggingface/hub/datasets--"
+    roots:
+      - HOME_HF
+  hf-detached-revision:
+    risk: safe
+    reclaim: delete
+    leftover_weight: 8
+    what: "Detached Hugging Face hub revision or orphan blob"
+    why: "Old snapshots stay after you switch models; blobs may be unreferenced"
+    leftover_when: "under huggingface/hub snapshots/blobs and not a models-- repo dir"
+    educate: "Equivalent of hf cache prune --dry-run. Whole hub repos are review, not this class."
+    match_contains:
+      - "huggingface/hub"
+    roots:
+      - HOME_HF
+    refuse_if:
+      - hf_pid
+  torch-cache:
+    risk: review
+    reclaim: quarantine
+    leftover_weight: 4
+    what: "PyTorch hub / extension cache"
+    why: "torch.hub or compiled extensions from a one-off notebook"
+    leftover_when: "under ~/.cache/torch"
+    educate: "Kernels recompile on next import. Quarantine, then drop if inference still starts."
+    match_contains:
+      - "/.cache/torch"
+    roots:
+      - HOME_CACHE
+  vllm-sglang-cache:
+    risk: review
+    reclaim: quarantine
+    leftover_weight: 6
+    what: "vLLM or SGLang compile cache"
+    why: "Inference backend kernel compile while testing servers on this Spark"
+    leftover_when: "under ~/.cache/vllm or ~/.cache/sglang"
+    educate: "First start after delete will be slower (compile). Does not delete checkpoints."
+    match_contains:
+      - "/.cache/vllm"
+      - "/.cache/sglang"
+    roots:
+      - HOME_CACHE
+  ollama-blobs:
+    risk: review
+    reclaim: quarantine
+    leftover_weight: 5
+    what: "Ollama model blobs"
+    why: "ollama pull of a GGUF you were testing on this Spark"
+    leftover_when: "under ~/.ollama"
+    educate: "sync-ollama-models can restore tags you still serve. Quarantine first."
+    redownload_hint: "ollama pull re-fetches the tag."
+    match_contains:
+      - "/.ollama"
+    roots:
+      - HOME_OLLAMA
+  ple-mmap:
+    risk: review
+    reclaim: quarantine
+    leftover_weight: 7
+    what: "Flash-Next PLE mmap / n-gram backing file"
+    why: "Qwen3.8-Flash-Next serves a large table from NVMe"
+    leftover_when: "path looks like a PLE/mmap backing file"
+    educate: "If the Flash-Next Job is running this is in-use (refused). Rebuild is slow."
+    redownload_hint: "The PLE file is rewritten on engine boot; deleting it does not remove the checkpoint."
+    match_contains:
+      - "flashnext-ple"
+      - "ple-mmap"
+      - ".ple."
+    roots:
+      - MODELS_DIR
+      - HOME_CACHE
+  comfy-outputs-media:
+    risk: review
+    reclaim: none
+    leftover_weight: 2
+    what: "Generated MP4/PNG/WAV under a Comfy output dir"
+    why: "Queued films or stills — this is media, not a cache"
+    leftover_when: "only if you no longer need the take"
+    educate: "The wizard will not auto-delete your media. Copy off-node, then delete by hand."
+    match_suffix:
+      - ".mp4"
+      - ".png"
+      - ".wav"
+      - ".webp"
+    roots:
+      - MODELS_DIR
+  factory-bittest:
+    risk: review
+    reclaim: delete
+    leftover_weight: 10
+    what: "Factory NVMe burn-in leftover (*bittest*)"
+    why: "OEM burn-in sometimes leaves a huge pattern file at the volume root"
+    leftover_when: "basename contains bittest (special root glob, not a / walk)"
+    educate: "Some MSI/ASUS units left ~550 GiB at /~bittest*.txt. Confirm BITTEST. Not an OS file."
+    match_contains:
+      - "bittest"
+    roots:
+      - ROOT_GLOB
+  containerd-unused-image:
+    risk: review
+    reclaim: docker-prune
+    leftover_weight: 5
+    what: "Unused K3s/containerd image"
+    why: "Old vLLM / SGLang / dashboard pulls stay in the content store"
+    leftover_when: "crictl image not used by a running container"
+    educate: "Plan-only. Next start-* may re-pull 30-40 GiB. Manual: sudo k3s crictl rmi --prune"
+    docker_type: unused-image
+    refuse_if:
+      - image_in_use
+  containerd-in-use-image:
+    risk: dangerous
+    reclaim: none
+    leftover_weight: 0
+    what: "containerd image used by a running container"
+    why: "Deleting it would break a live Pod"
+    leftover_when: "never while the container exists"
+    educate: "Stop the Job/Deployment first. Never crictl rmi an in-use image."
+    docker_type: in-use-image
+  docker-build-cache:
+    risk: review
+    reclaim: docker-prune
+    leftover_weight: 4
+    what: "Docker BuildKit cache"
+    why: "Local image builds keep layer cache"
+    leftover_when: "docker builder cache is unused"
+    educate: "Plan-only. Never docker system prune -a --volumes (that deletes named volumes)."
+    docker_type: build-cache
+  docker-dangling-image:
+    risk: safe
+    reclaim: docker-prune
+    leftover_weight: 7
+    what: "Dangling Docker image (<none>:<none>)"
+    why: "Retagged builds leave untagged layers"
+    leftover_when: "image has no tag and no container"
+    educate: "Plan-only. docker image prune (not -a --volumes) after review."
+    docker_type: dangling-image
+  docker-local-volume:
+    risk: dangerous
+    reclaim: none
+    leftover_weight: 0
+    what: "Docker / containerd named volume"
+    why: "Named volumes hold Comfy state and other durable data"
+    leftover_when: "never — disk-wizard will not prune volumes"
+    educate: "Never docker volume prune or docker system prune -a --volumes."
+    docker_type: local-volume
+  docker-containers:
+    risk: dangerous
+    reclaim: none
+    leftover_weight: 0
+    what: "Running or stopped container writable layer"
+    why: "Not leftover cache; stop the workload first"
+    leftover_when: "never while the container exists"
+    educate: "Use manage.sh stop-* / stop-visual. The wizard will not rm a container."
+    docker_type: containers
+  triton-cache:
+    risk: review
+    reclaim: quarantine
+    leftover_weight: 4
+    what: "Triton / CUDA kernel compile cache"
+    why: "vLLM and SGLang compile kernels into ~/.triton"
+    leftover_when: "under ~/.triton or ~/.cache/triton"
+    educate: "First start after delete recompiles (minutes). Does not delete checkpoints."
+    match_contains:
+      - "/.triton"
+      - "/.cache/triton"
+    roots:
+      - HOME_CACHE
+  torch-extensions:
+    risk: review
+    reclaim: quarantine
+    leftover_weight: 4
+    what: "PyTorch C++ extension build cache"
+    why: "torch.utils.cpp_extension writes here while testing backends"
+    leftover_when: "under torch_extensions"
+    educate: "Rebuilds on next import. Quarantine, then drop if Jobs still start."
+    match_contains:
+      - "torch_extensions"
+    roots:
+      - HOME_CACHE
+  cuda-compute-cache:
+    risk: review
+    reclaim: quarantine
+    leftover_weight: 3
+    what: "NVIDIA CUDA compute cache"
+    why: "Driver JIT cache under ~/.nv/ComputeCache"
+    leftover_when: "under ~/.nv/ComputeCache"
+    educate: "Rebuilt on next CUDA start. Not model weights."
+    match_contains:
+      - "/.nv/ComputeCache"
+      - "/.nv/compute-cache"
+  k3s-server-data:
+    risk: dangerous
+    reclaim: none
+    leftover_weight: 0
+    what: "K3s server / etcd data"
+    why: "This is the cluster, not leftover weights"
+    leftover_when: "never"
+    educate: "disk-wizard will not scan or delete /var/lib/rancher/k3s/server."
+    match_contains:
+      - "/var/lib/rancher/k3s/server"
+  dsv41-engram:
+    risk: dangerous
+    reclaim: none
+    leftover_weight: 0
+    what: "DeepSeek-V4.1-Flash Engram NVMe tables"
+    why: "Mode C packs shards onto each node's NVMe; re-pack is painful"
+    leftover_when: "never — disk-wizard will not touch this"
+    educate: "Even idle, deleting Engram means a long pack. Use download-dsv41-flash docs."
+    match_contains:
+      - "dsv41-engram"
+    roots:
+      - MODELS_DIR
+  keep-set-weight:
+    risk: dangerous
+    reclaim: none
+    leftover_weight: 0
+    what: "Lab keep-set weight / documented download target"
+    why: "Required by rounded / flux / ltx / qwen / dsv41 download utilities"
+    leftover_when: "never — disk-wizard will not touch this"
+    educate: "Re-download of keep-set checkpoints is hours. The wizard refuses entirely."
+    redownload_hint: "Use the matching scripts/utilities/download-*.sh; expect 20-500 GiB."
+    match_keep_set: true
+    roots:
+      - MODELS_DIR
+      - HOME_HF
