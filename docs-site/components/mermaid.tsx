@@ -1,7 +1,21 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+
+/**
+ * Turn a React `useId()` value into a Mermaid `render()` id.
+ *
+ * Mermaid 12 rejects two `render()` calls that share an id, and `useId()` emits colons
+ * (`:r1:`) that are not legal in the SVG id Mermaid writes. Prefixing `mmd` keeps the
+ * result a CSS identifier even when the React id is only punctuation.
+ *
+ * @param reactId Value from `useId()`.
+ * @returns A distinct, CSS-safe id.
+ */
+export function mermaidRenderId(reactId: string): string {
+  return `mmd${reactId.replace(/[^A-Za-z0-9_-]/g, "")}`;
+}
 
 /**
  * Renders a ```mermaid fence.
@@ -13,6 +27,7 @@ import { useEffect, useRef, useState } from "react";
  */
 export function Mermaid({ chart }: { chart: string }) {
   const ref = useRef<HTMLDivElement>(null);
+  const reactId = useId();
   const [error, setError] = useState<string>();
   // `useTheme` returns an object; `resolvedTheme` is the scheme after `system` is
   // evaluated, which is what the diagram palette has to follow.
@@ -33,7 +48,7 @@ export function Mermaid({ chart }: { chart: string }) {
         theme: scheme
       });
       try {
-        const { svg } = await mermaid.render(`id`, chart);
+        const { svg } = await mermaid.render(mermaidRenderId(reactId), chart);
         if (cancelled) return;
         node.innerHTML = svg;
         setError(undefined);
@@ -45,7 +60,7 @@ export function Mermaid({ chart }: { chart: string }) {
     return () => {
       cancelled = true;
     };
-  }, [chart, scheme]);
+  }, [chart, scheme, reactId]);
 
   if (error) {
     return (

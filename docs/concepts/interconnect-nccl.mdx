@@ -35,6 +35,11 @@ No inter-node NCCL. Local multi-GPU (if advertised) uses SHM/P2P. The `highspeed
 
 ## 2-node pair (dual ~400G aggregate)
 
+```mermaid
+flowchart LR
+  s0["spark0"] -->|"dual QSFP about 400G aggregate"| s1["spark1"]
+```
+
 Existing 1-node / 2-node Jobs and `group_vars` document:
 
 ```text
@@ -50,10 +55,11 @@ kimi / kimi-test omit `hostNetwork` (isolation). Heavy Ray / GLM-5.2 Jobs set `h
 
 200 Gb/s per physical port — not 400G, not NVLink, not an IB switch. Triangle:
 
-```text
-Node1 Port0 → Node2 Port1
-Node2 Port0 → Node3 Port1
-Node3 Port0 → Node1 Port1
+```mermaid
+flowchart LR
+  n1p0["Node1 Port0"] --> n2p1["Node2 Port1"]
+  n2p0["Node2 Port0"] --> n3p1["Node3 Port1"]
+  n3p0["Node3 Port0"] --> n1p1["Node1 Port1"]
 ```
 
 Port0 = cage next to the RJ-45 jack; Port1 = far cage. Wrong polarity looks half-alive.
@@ -79,6 +85,16 @@ Full cabling, aliases, and util caps: [LiteLLM rounded stack](../litellm-rounded
 ## 4 / 5 nodes — Mikrotik CRS804-4DDQ-hRM switch
 
 The switch fabric is a managed 4× 400G QSFP-DD device; each node sees **one** RoCE link:
+
+```mermaid
+flowchart TB
+  sw["CRS804 sfpplus1-4"]
+  sw --> s0["spark0 sfpplus1"]
+  sw --> s1["spark1 sfpplus2"]
+  sw --> s2["spark2 sfpplus3"]
+  sw --> s3["spark3 sfpplus4 or 4a"]
+  sw -.->|"5-node breakout"| s4["spark4 sfpplus4b"]
+```
 
 - **4 nodes:** one full port per node (`sfpplus1`…`sfpplus4`), 400G each.
 - **5 nodes:** three full ports + one port split with a breakout cable into

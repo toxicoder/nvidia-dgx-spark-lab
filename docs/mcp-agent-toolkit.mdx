@@ -21,6 +21,16 @@ tags: [mcp, agents, privacy, searxng, qdrant]
 
 Deploy privacy-preserving MCP services alongside the Nemotron agentic stack.
 
+```mermaid
+flowchart LR
+  Hermes --> Ports["NodePorts 32100-32106"]
+  Ports --> SearxNG
+  Ports --> Qdrant
+  Ports --> Fetch
+```
+
+MCP is **not** behind Traefik/SSO — API keys and NetworkPolicies only.
+
 ## Deploy
 
 ```bash

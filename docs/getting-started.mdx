@@ -23,6 +23,15 @@ tags: [getting-started, bazel, k3s, ansible, safety]
 
 Topology choice: [Choose topology](start/choose-topology.md). Profiles after this page: [Profiles](start/profiles.md).
 
+```mermaid
+flowchart LR
+  Topo["lab.yaml"] --> CI[cloud-init]
+  CI --> Boot[Ansible bootstrap]
+  Boot --> GPU[GPU Operator]
+  GPU --> Doc[doctor]
+  Doc --> Test[kimi-test]
+```
+
 ## Prerequisites
 
 - 1–5 DGX Spark nodes, Ubuntu 22.04 or 24.04 (fabric per node count: [Choose topology](start/choose-topology.md))

@@ -34,14 +34,19 @@ Hermes runs in Docker with **host networking** so it can reach:
 - **Inference** — `kubectl port-forward` to `127.0.0.1:8000` (managed by `hermes-stack`)
 - **MCP toolkit** — NodePorts `32100–32106` on localhost
 
-```text
-Spark host
-  ├─ kubectl port-forward → nemotron-3-nano-omni-30b:8000
-  ├─ hermes container (host network)
-  │    ├─ :8642  OpenAI-compatible gateway API
-  │    ├─ :9119  Web dashboard (basic auth)
-  │    └─ MCP → 127.0.0.1:32100–32106
-  └─ K8s agent-tools + ai-inference namespaces
+```mermaid
+flowchart TB
+  subgraph host ["Spark host"]
+    pf["kubectl port-forward to nemotron :8000"]
+    subgraph hermes ["hermes container (host network)"]
+      api[":8642 OpenAI-compatible gateway"]
+      dash[":9119 Web dashboard"]
+      mcp["MCP 127.0.0.1:32100-32106"]
+    end
+    k8s["K8s agent-tools + ai-inference"]
+  end
+  pf --> hermes
+  hermes --> k8s
 ```
 
 ## Prerequisites

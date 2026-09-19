@@ -140,7 +140,7 @@ The [Shell Commands & Helpers](generated/shell/reference.md) page is **not** wri
 5. Use the live variables panel on getting-started to verify `{{PLACEHOLDER}}` still works in the new content.
 6. Commit the *source* script (the generated file is derived).
 
-See the extensive "Documentation from Code" section in [getting-started.md](getting-started.md) for examples, a Mermaid diagram of the pipeline, and troubleshooting tips.
+See the Mermaid pipeline in [BUILDING_WITH_BAZEL.md](BUILDING_WITH_BAZEL.md#documentation-generation--efficiency) for how comments become the published reference.
 
 The generator lives in `docs/generate_shell_docs.py`. It is intentionally kept simple (stdlib only) but is being improved for even nicer output formatting.
 

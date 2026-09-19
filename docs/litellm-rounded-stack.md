@@ -35,10 +35,11 @@ Three DGX Spark GB10 nodes (128 GB UMA, sm_121). Two networks — never mix role
 
 200 Gb/s per physical port (not 400G, not NVLink, not InfiniBand switch). Triangle mesh: every pair has a direct cable.
 
-```text
-Node1 Port0 → Node2 Port1
-Node2 Port0 → Node3 Port1
-Node3 Port0 → Node1 Port1
+```mermaid
+flowchart LR
+  n1p0["Node1 Port0"] --> n2p1["Node2 Port1"]
+  n2p0["Node2 Port0"] --> n3p1["Node3 Port1"]
+  n3p0["Node3 Port0"] --> n1p1["Node1 Port1"]
 ```
 
 Port0 = cage next to the RJ-45 jack; Port1 = far cage. Wrong polarity looks half-alive and dies in NCCL. MTU 9000 on CX-7. All four CX-7 netdevs per node need IPs (six unique /24s). Confirm live names with `ibdev2netdev` before baking env.

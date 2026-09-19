@@ -23,6 +23,16 @@ The lab uses **production-grade Traefik v3** (official Helm chart) as the unifie
 
 ## Architecture
 
+```mermaid
+flowchart LR
+  User --> Traefik
+  cert["cert-manager star.lab.local"] --> Traefik
+  Traefik --> Authelia
+  Traefik --> Apps["dashboard / chat / grafana / coder / kasm"]
+  Authelia -->|"forward-auth"| Traefik
+  oauth["oauth2-proxy OIDC"] --> Traefik
+```
+
 - **Traefik** (`traefik` namespace) — reverse proxy on NodePorts `:32080` (HTTP redirect) and `:32443` (HTTPS)
 - **cert-manager** — self-signed CA for `*.lab.local` (swap to ACME for production)
 - **Authelia** (`auth` namespace) — login portal at `https://auth.lab.local`, session cookies for SSO

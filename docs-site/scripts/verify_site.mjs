@@ -292,7 +292,11 @@ const diagrams = await withPage(async (page) => {
     return { hosts: hosts.length, drawn: hosts.filter((h) => h.querySelector("svg")).length };
   });
 });
-check("mermaid fences render as SVG", diagrams !== PROBE_FAILED && diagrams.hosts > 0 && diagrams.drawn === diagrams.hosts, JSON.stringify(diagrams));
+check(
+  "mermaid fences render as SVG",
+  diagrams !== PROBE_FAILED && diagrams.hosts >= 5 && diagrams.drawn === diagrams.hosts,
+  JSON.stringify(diagrams)
+);
 
 const tabState = await withPage(async (page) => {
   await goto(page, "/getting-started/", 2500);

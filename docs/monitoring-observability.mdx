@@ -25,6 +25,20 @@ tags: [monitoring, grafana, prometheus, dcgm, safety]
 
 ## Stack Components
 
+```mermaid
+flowchart LR
+  subgraph exporters [Exporters]
+    nodeExp[node-exporter]
+    dcgm[DCGM exporter]
+    ksm[kube-state-metrics]
+    bb[blackbox-exporter]
+  end
+  exporters --> Prom[Prometheus]
+  Prom --> Grafana
+  Prom --> Headlamp
+  Prom --> Dash["Lab dashboard Observability"]
+```
+
 | Component | Role |
 |-----------|------|
 | **node-exporter** | Host CPU, memory, disk, network on every DGX node |
