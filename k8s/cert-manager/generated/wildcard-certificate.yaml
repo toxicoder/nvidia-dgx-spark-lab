@@ -10,5 +10,5 @@ spec:
     name: lab-ca-issuer
     kind: ClusterIssuer
   dnsNames:
-  - lab.local
-  - '*.lab.local'
+    - lab.local
+    - "*.lab.local"
