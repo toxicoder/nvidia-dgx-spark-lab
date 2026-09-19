@@ -1,7 +1,0 @@
-{
-  "/[[...slug]]/page": "/[[...slug]]",
-  "/_global-error/page": "/_global-error",
-  "/_not-found/page": "/_not-found",
-  "/api/search/route": "/api/search",
-  "/icon.svg/route": "/icon.svg"
-}

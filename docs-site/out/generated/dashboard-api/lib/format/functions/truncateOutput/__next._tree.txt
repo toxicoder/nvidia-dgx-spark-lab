@@ -1,2 +1,0 @@
-:HL["/development/_next/static/chunks/15dv2_rd0k2yw.css","style"]
-0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"slug","param":{"type":"oc","key":"generated/dashboard-api/lib/format/functions/truncateOutput","siblings":["api"]},"prefetchHints":4192,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}},"staleTime":300,"buildId":"eGz_aYxXg5SvhLnsERwpS"}

@@ -1,2 +1,0 @@
-import { n as RemarkFeedbackBlockOptions, r as remarkFeedbackBlock, t as FeedbackBlockProps } from "../remark-feedback-block-BxtINXN-.js";
-export { FeedbackBlockProps, RemarkFeedbackBlockOptions, remarkFeedbackBlock };

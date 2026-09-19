@@ -1,2 +1,0 @@
-import { a as InternalTypeConfig, i as GetTextOptions, n as DocMethods, o as MetaMethods, r as FileInfo, t as DocData } from "../types-1n7Fk5Dl.js";
-export { DocData, DocMethods, FileInfo, GetTextOptions, InternalTypeConfig, MetaMethods };

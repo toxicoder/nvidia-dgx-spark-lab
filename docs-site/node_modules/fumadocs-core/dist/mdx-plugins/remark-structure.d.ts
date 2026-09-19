@@ -1,2 +1,0 @@
-import { a as defaultStringifier, c as structure, i as StructuredData, n as StringifyOptions, o as remarkStructure, r as StructureOptions, s as remarkStructureDefaultOptions, t as Stringifier } from "../remark-structure-CnHwvNZr.js";
-export { Stringifier, StringifyOptions, StructureOptions, StructuredData, defaultStringifier, remarkStructure, remarkStructureDefaultOptions, structure };

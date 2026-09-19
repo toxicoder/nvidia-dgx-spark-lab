@@ -1,3 +1,0 @@
-module.exports=[808778,a=>{"use strict";var b=a.i(332610);a.s(["default",0,function(){return(0,b.jsxs)("main",{className:"mx-auto max-w-3xl px-6 py-24",children:[(0,b.jsx)("h1",{className:"text-2xl font-bold text-fd-foreground",children:"Page not found"}),(0,b.jsxs)("p",{className:"mt-3 text-fd-muted-foreground",children:["That page is not part of the documentation.  Use search, or start from the",(0,b.jsxs)("a",{className:"text-fd-primary underline underline-offset-2",href:"/",children:[" ","overview"]}),"."]})]})},"metadata",0,{title:"Page not found"}])},507205,function(a){a.n(a.i(808778))}];
-
-//# sourceMappingURL=docs-site_app_not-found_tsx_1oz3l9c._.js.map
