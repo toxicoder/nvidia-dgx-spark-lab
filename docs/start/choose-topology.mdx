@@ -103,29 +103,37 @@ use for `k3s_control_plane`. Inventory: generated from `ansible/inventory/lab.ya
 
 ## Interconnect (do not mix)
 
-**2-node pair** is what `ansible/inventory/group_vars/all.yml` `highspeed_*` / `nccl_env` documents:
+<Tabs groupId="1-node-2-node-5-node" items={["1-node", "2-node", "3-node ring", "4/5-node switch"]} persist>
+  <Tab value="1-node">
+    **1 node:** ignore `highspeed` inventory; NCCL uses SHM/P2P on the local GPU.
+  </Tab>
+  <Tab value="2-node">
+    **2-node pair** is what `ansible/inventory/group_vars/all.yml` `highspeed_*` / `nccl_env` documents:
 
-- `NCCL_SOCKET_IFNAME=enp1s0f0np0,enp1s0f1np1`
-- `NCCL_IB_HCA=mlx5_0,mlx5_1` (or live `ibdev2netdev` names)
+    - `NCCL_SOCKET_IFNAME=enp1s0f0np0,enp1s0f1np1`
+    - `NCCL_IB_HCA=mlx5_0,mlx5_1` (or live `ibdev2netdev` names)
+  </Tab>
+  <Tab value="3-node ring">
+    **3-node QSFP ring** (Mode B GLM TP=3 and Mode C DeepSeek TP=3) is different:
 
-**3-node QSFP ring** (Mode B GLM TP=3 and Mode C DeepSeek TP=3) is different:
+    - 200 Gb/s per physical port, triangle mesh, **not** NVLink
+    - Management / NCCL bootstrap on 10GbE (often `enP7s7`)
+    - Payload on all four CX-7 RoCE devices per node
+    - Jobs use `hostNetwork: true` and `hostIPC: true`
+  </Tab>
+  <Tab value="4/5-node switch">
+    **4 / 5-node switch** is its own scheme again:
 
-- 200 Gb/s per physical port, triangle mesh, **not** NVLink
-- Management / NCCL bootstrap on 10GbE (often `enP7s7`)
-- Payload on all four CX-7 RoCE devices per node
-- Jobs use `hostNetwork: true` and `hostIPC: true`
-
-**4 / 5-node switch** is its own scheme again:
-
-- One RoCE link per node on its own /24 (the generated per-node netplan)
-- `NCCL_SOCKET_IFNAME` stays on the management NIC; payload on the single RoCE HCA
-- Jobs use `hostNetwork: true`; verify with `ibdev2netdev` per node
+    - One RoCE link per node on its own /24 (the generated per-node netplan)
+    - `NCCL_SOCKET_IFNAME` stays on the management NIC; payload on the single RoCE HCA
+    - Jobs use `hostNetwork: true`; verify with `ibdev2netdev` per node
+  </Tab>
+</Tabs>
 
 <Callout type="error" title="Do not copy 2-node NCCL env onto a ring or switch lab">
   Wrong polarity or pair `NCCL_SOCKET_IFNAME` on a ring or switch looks half-alive and dies in NCCL.
   See [Interconnect & NCCL](../concepts/interconnect-nccl.md) and [LiteLLM rounded stack](../litellm-rounded-stack.md).
 </Callout>
-**1 node:** ignore `highspeed` inventory; NCCL uses SHM/P2P on the local GPU.
 
 ## When not to multi-node
 

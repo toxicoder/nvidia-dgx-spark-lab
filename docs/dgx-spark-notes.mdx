@@ -1,6 +1,6 @@
 ---
 title: DGX Spark Specific Notes
-description: Platform-specific guidance for DGX Spark — resource limits, NCCL dual-400G config, GPU Operator on K3s, stability tips, and recommended workflow.
+description: Platform-specific guidance for DGX Spark — resource limits, per-topology NCCL interconnect (pair, ring, CRS804 switch), GPU Operator on K3s, stability tips, and recommended workflow.
 tags: [dgx, nvidia, nccl, safety, kubernetes]
 ---
 
@@ -10,7 +10,7 @@ tags: [dgx, nvidia, nccl, safety, kubernetes]
 
 - Resource management rules critical for large models on DGX Spark hardware
 - Reboot safety procedures and prevention of auto-restarts
-- High-speed interconnect (dual 400G) and required NCCL settings
+- High-speed interconnect per topology (pair, ring, CRS804 switch) and required NCCL settings
 - GPU Operator and K3s specifics for this platform
 - Stability tips and common failure modes
 - Recommended overall workflow
@@ -41,23 +41,45 @@ Large models (70B+, MoE like Kimi-K2.6) can quickly exhaust host memory and make
 
 ## High-Speed Interconnect
 
-**2-node pair (dual ~400G aggregate):** existing Jobs and `group_vars` `highspeed_*` / `nccl_env` are **reference for a pair**. Typical env:
+<Tabs groupId="1-node-2-node-5-node" items={["1-node", "2-node", "3-node ring", "4/5-node switch"]} persist>
+  <Tab value="1-node">
+    No inter-node NCCL. Local multi-GPU (if advertised) uses SHM/P2P, and the `highspeed`
+    inventory group is ignored.
+  </Tab>
+  <Tab value="2-node">
+    **2-node pair (dual ~400G aggregate):** existing Jobs and `group_vars` `highspeed_*` /
+    `nccl_env` are **reference for a pair**. Typical env:
 
-```yaml
-env:
-  - name: NCCL_SOCKET_IFNAME
-    value: "enp1s0f0np0,enp1s0f1np1"
-  - name: NCCL_IB_HCA
-    value: "mlx5_0,mlx5_1"
-  - name: NCCL_DEBUG
-    value: "INFO"
-```
-
-**3-node QSFP ring (200 Gb/s per pair, triangle mesh):** used by Mode B (`glm-5.3-flash`) and Mode C (`deepseek-v4.1-flash`). OOB/Gloo on 10GbE (often `enP7s7`); payload on all four CX-7 RoCE devices; `NCCL_NET_PLUGIN=none`. Do **not** copy the 2-node pair vars onto that ring. Confirm names with `ibdev2netdev`. See [LiteLLM rounded stack](litellm-rounded-stack.md).
+    ```yaml
+    env:
+      - name: NCCL_SOCKET_IFNAME
+        value: "enp1s0f0np0,enp1s0f1np1"
+      - name: NCCL_IB_HCA
+        value: "mlx5_0,mlx5_1"
+      - name: NCCL_DEBUG
+        value: "INFO"
+    ```
+  </Tab>
+  <Tab value="3-node ring">
+    **3-node QSFP ring (200 Gb/s per pair, triangle mesh):** used by Mode B (`glm-5.3-flash`)
+    and Mode C (`deepseek-v4.1-flash`). OOB/Gloo on 10GbE (often `enP7s7`); payload on all
+    four CX-7 RoCE devices; `NCCL_NET_PLUGIN=none`. Do **not** copy the 2-node pair vars onto
+    that ring. Confirm names with `ibdev2netdev`. See [LiteLLM rounded stack](litellm-rounded-stack.md).
+  </Tab>
+  <Tab value="4/5-node switch">
+    **4 / 5-node CRS804 switch:** each node sees **one** RoCE link — one full port per node
+    (400G) for 4 nodes, or three full ports plus one port split into `sfpplus4a` / `sfpplus4b`
+    (two 200G lanes) for 5. Every link is its own /24 (192.168.110–114, MTU 9000) from the
+    generated per-node netplan. `NCCL_SOCKET_IFNAME` stays the management NIC; the payload
+    rides the single RoCE HCA (`NCCL_IB_HCA` from live `ibdev2netdev` names per node). Heavy
+    Jobs use `hostNetwork: true` — do not assume the 2-node pair `NCCL_SOCKET_IFNAME` list is
+    complete. Cabling and port map: [Choose topology](start/choose-topology.md).
+  </Tab>
+</Tabs>
 
 If NCCL payload falls back to the management network, performance will be terrible.
 
-Full pair vs ring env: [Interconnect & NCCL](concepts/interconnect-nccl.md).
+Full fabric env: [Interconnect & NCCL](concepts/interconnect-nccl.md).
 
 ### hostNetwork and hostIPC
 
