@@ -41,6 +41,11 @@ teardown() {
   [ "$status" -eq 0 ]
 }
 
+@test "lab_identities unit tests" {
+  run python3 "${REPO_ROOT}/scripts/lib/py/test_lab_identities.py"
+  [ "$status" -eq 0 ]
+}
+
 @test "disk_inuse unit tests" {
   run python3 "${REPO_ROOT}/scripts/lib/py/test_disk_inuse.py"
   [ "$status" -eq 0 ]

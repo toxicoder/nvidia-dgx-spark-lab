@@ -38,9 +38,35 @@ runcmd:
   - sysctl -p || true
   - echo "1-node cloud-init prep done. Ready for K3s + GPU Operator via Ansible or helm."
 
+# Official automation users (no authorized_keys in the committed example).
+# `- default` keeps the factory ubuntu account for first-contact SSH.
+groups:
+  - lab
+  - lab-admin
+  - lab-ops
+  - lab-k3s
+  - lab-models
 users:
-  - name: ubuntu
+  - default
+  - name: lab-admin
+    uid: 60001
+    lock_passwd: true
+    shell: /bin/bash
+    groups: lab,lab-admin
     sudo: ALL=(ALL) NOPASSWD:ALL
+  - name: lab-ansible
+    uid: 60002
+    lock_passwd: true
+    shell: /bin/bash
+    groups: lab,lab-ops,lab-k3s,lab-models
+    sudo: ALL=(ALL) NOPASSWD:ALL
+  - name: lab-svc
+    uid: 60003
+    lock_passwd: true
+    shell: /usr/sbin/nologin
+    groups: lab,lab-models
+    system: true
+    no_create_home: true
 
 final_message: |
   1-node DGX Spark prep complete via cloud-init.

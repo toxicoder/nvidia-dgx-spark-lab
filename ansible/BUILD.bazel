@@ -136,6 +136,14 @@ sh_binary(
 )
 
 sh_binary(
+    name = "identities",
+    srcs = ["run_playbook.sh"],
+    args = ["configure-identities.yml"],
+    data = [":all_playbooks"],
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
     name = "install-dev-workspaces",
     srcs = ["run_playbook.sh"],
     args = ["install-dev-workspaces.yml"],

@@ -84,6 +84,17 @@ Rendering produces the Ansible inventory (`ansible/inventory/hosts.ini`, gitigno
 fabric group vars, per-node netplan, and per-node cloud-init user-data — all from the
 topology file. Full model: [Lab topology](start/lab-topology.md).
 
+Day-2 Ansible uses `lab-ansible`, not the factory `ubuntu` account. After topology
+render, create keys and apply identities **before** `ansible ping` as `lab-ansible`:
+
+```bash
+bazelisk run //:manage -- identities ensure-keys
+bazelisk run //:manage -- identities plan
+bazelisk run //:manage -- identities apply --yes
+```
+
+First-contact SSH is still `bootstrap_user` (default `ubuntu`). Details: [Lab identities](operate/identities.md).
+
 <Tabs groupId="1-node-2-node-5-node" items={["1-node", "2-node", "3-node ring", "4/5-node switch"]} persist>
   <Tab value="1-node">
     `fabric: none`, one node with `role: orchestrator`. No high-speed cabling, local NCCL only.

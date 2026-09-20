@@ -145,7 +145,7 @@ lab_wizard() {
   local lab_file
   lab_file="$(lab_topology_path)"
 
-  local fabric="none" subnet="10.0.0.0/24" ansible_user="ubuntu" node_count=1
+  local fabric="none" subnet="10.0.0.0/24" ansible_user="lab-ansible" bootstrap_user="ubuntu" node_count=1
   local orchestrator="spark0" names="spark0" ips="10.0.0.10"
   local switch_model="CRS804-4DDQ-hRM" switch_host="10.0.0.2" switch_user="admin"
   local port_map=""
@@ -162,6 +162,7 @@ lab_wizard() {
           fabric) fabric="${kv#*=}" ;;
           mgmt_subnet) subnet="${kv#*=}" ;;
           ansible_user) ansible_user="${kv#*=}" ;;
+          bootstrap_user) bootstrap_user="${kv#*=}" ;;
           node_count) node_count="${kv#*=}" ;;
           orchestrator) orchestrator="${kv#*=}" ;;
           node_names)
@@ -297,6 +298,7 @@ lab_wizard() {
     echo "  management:"
     echo "    subnet: $subnet"
     echo "  ansible_user: $ansible_user"
+    echo "  bootstrap_user: $bootstrap_user"
     echo "  fabric: $fabric"
     if [[ $fabric == "switch" ]]; then
       echo "  switch:"
@@ -1317,6 +1319,24 @@ case "${1:-help}" in
     check_cluster_access
     cleanup
     ;;
+  identities)
+    ## identities
+    # @command identities
+    # Plan-first lab users/groups/sudoers/SSH keys. Default is status.
+    # apply requires --yes. run never mutates. Never prints private keys.
+    #
+    # Usage:
+    #   ./scripts/manage.sh identities status [--json]
+    #   ./scripts/manage.sh identities ensure-keys
+    #   ./scripts/manage.sh identities plan
+    #   ./scripts/manage.sh identities apply --yes
+    #   ./scripts/manage.sh identities ping
+    #
+    # Safety:
+    #   Does not start workloads. Does not delete the factory bootstrap user.
+    shift || true
+    exec "${REPO_ROOT}/scripts/utilities/identities.sh" "$@"
+    ;;
   disk-wizard)
     ## disk-wizard
     # @command disk-wizard
@@ -1414,6 +1434,7 @@ Commands:
   stop           Stop all jobs (kimi, test, new models, ray) + dev
   cleanup        Delete namespace and all managed resources (destructive)
   secrets        Secrets vault status / ensure master key / list names (no values)
+  identities     Official lab users/groups/SSH keys (read-only default; apply --yes)
   disk-wizard    Plan-first NVMe leftover survey (read-only default; apply --yes)
   help           This message
 

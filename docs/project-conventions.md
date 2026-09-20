@@ -152,6 +152,8 @@ commonLabels:
 
 - Hosts: `spark0`, `spark1`, …
 - Groups: `k3s_server`, `k3s_agent`, `k3s_cluster`
+- Day-2 `ansible_user`: `lab-ansible` (catalog: `config/lab-identities.yaml`)
+- First-contact `bootstrap_user`: `ubuntu` (factory image; identities apply only)
 
 ### Priority classes and quotas
 
@@ -681,6 +683,7 @@ Meta playbook `full-lab-setup.yml` chains via `import_playbook:` with `when:` gu
 | `highspeed_network` | netplan + high-speed fabric (pair/ring/switch) |
 | `coder`, `kasm`, `monitoring`, `traefik`, `sso` | Helm stacks |
 | `labels` | Node labels for scheduling |
+| `lab_identities` | Official users, groups, sudoers, SSH authorized_keys |
 
 ### Invocation
 

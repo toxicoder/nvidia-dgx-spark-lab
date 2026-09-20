@@ -55,6 +55,7 @@ _HAND_WRITTEN_MD = [
     "operate/backup-restore.mdx",
     "operate/capacity-planning.mdx",
     "operate/disk-wizard.mdx",
+    "operate/identities.mdx",
     "operate/dashboard.mdx",
     "operate/index.mdx",
     "operate/node-failure.mdx",

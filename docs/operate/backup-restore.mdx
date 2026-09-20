@@ -28,6 +28,7 @@ tags: [backup, secrets, operate, safety]
 | Item | Path (typical) | Notes |
 | --- | --- | --- |
 | Inventory | `ansible/inventory/hosts.ini` | Never committed; start from `.example` |
+| Host identity keys | `secrets/identities/` | `lab-admin` / `lab-ansible` ed25519 pairs; never git |
 | Group vars overrides | host_vars / extra-vars | `group_vars/all.yml` in git is reference |
 | Policy | `config/resource-policy.yaml` + `.json` | Already in git if unchanged |
 | Domains / SSO policy | `config/lab-domains.yaml`, `config/sso-policy.yaml` | Twins where they exist |

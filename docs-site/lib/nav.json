@@ -118,6 +118,10 @@
         "path": "operate/secrets.md"
       },
       {
+        "title": "Lab identities",
+        "path": "operate/identities.md"
+      },
+      {
         "title": "Capacity planning",
         "path": "operate/capacity-planning.md"
       },

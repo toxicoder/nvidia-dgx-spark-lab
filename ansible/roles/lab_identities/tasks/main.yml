@@ -1,0 +1,138 @@
+# Purpose: Idempotent host users, groups, sudoers, SSH keys, and optional hardening
+# Source of truth: config/lab-identities.yaml
+# Regenerate: n/a
+# Safety: never userdel; never recursive chmod of /mnt/models; hardening is opt-in
+
+---
+# ## lab_identities role
+#
+# Applies the identity catalog on every Spark. First-contact SSH is the factory
+# bootstrap user; authorized_keys come from the operator client key dir.
+#
+# @role lab_identities
+
+- name: Load lab identity catalog (named var — do not clobber magic groups)
+  include_vars:
+    file: "{{ playbook_dir }}/../../config/lab-identities.yaml"
+    name: lab_identities
+
+- name: SSH login user names from the catalog
+  set_fact:
+    lab_ssh_users: "{{ lab_identities.users | dict2items | selectattr('value.ssh') | map(attribute='key') | list }}"
+
+- name: Ensure identity groups exist
+  group:
+    name: "{{ item.key }}"
+    gid: "{{ item.value.gid }}"
+    state: present
+  loop: "{{ lab_identities.groups | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Ensure identity users exist (password locked)
+  user:
+    name: "{{ item.key }}"
+    uid: "{{ item.value.uid }}"
+    group: "{{ item.value.groups[0] }}"
+    groups: "{{ item.value.groups | join(',') }}"
+    append: false
+    shell: "{{ item.value.shell }}"
+    password: "!"
+    comment: "{{ item.value.comment | default(item.key) }}"
+    create_home: "{{ item.value.ssh | bool }}"
+    system: "{{ not (item.value.ssh | bool) }}"
+    state: present
+  no_log: true
+  loop: "{{ lab_identities.users | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Stat operator public keys (localhost)
+  stat:
+    path: "{{ lab_identities_dir }}/{{ item }}.pub"
+  register: lab_identity_pubs
+  delegate_to: localhost
+  become: false
+  loop: "{{ lab_ssh_users }}"
+  loop_control:
+    label: "{{ item }}"
+
+- name: Fail when an SSH user is missing a public key
+  assert:
+    that:
+      - item.stat.exists
+    fail_msg: >-
+      Missing {{ lab_identities_dir }}/{{ item.item }}.pub —
+      run: bazelisk run //:manage -- identities ensure-keys
+  loop: "{{ lab_identity_pubs.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Install authorized keys (append, never exclusive)
+  authorized_key:
+    user: "{{ item.item }}"
+    key: "{{ lookup('file', lab_identities_dir ~ '/' ~ item.item ~ '.pub') }}"
+    state: present
+    exclusive: false
+    manage_dir: true
+  loop: "{{ lab_identity_pubs.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Install sudoers drop-in for lab capability groups
+  template:
+    src: sudoers.j2
+    dest: /etc/sudoers.d/lab-identities
+    owner: root
+    group: root
+    mode: "0440"
+    validate: visudo -cf %s
+
+- name: Ensure models directory exists with lab-models setgid (not recursive)
+  file:
+    path: "{{ lab_identities.models_dir | default(models_dir_fallback) }}"
+    state: directory
+    owner: lab-svc
+    group: lab-models
+    mode: "{{ lab_identities.models_dir_mode | default('2775') }}"
+
+- name: Stat k3s kubeconfig
+  stat:
+    path: "{{ lab_identities.k3s_kubeconfig | default(k3s_kubeconfig_path) }}"
+  register: lab_k3s_kubeconfig
+
+- name: Tighten k3s kubeconfig to group lab-k3s when present
+  file:
+    path: "{{ lab_identities.k3s_kubeconfig | default(k3s_kubeconfig_path) }}"
+    group: lab-k3s
+    mode: "{{ lab_identities.k3s_kubeconfig_mode | default('0640') }}"
+  when: lab_k3s_kubeconfig.stat.exists | default(false)
+
+- name: Install sshd hardening drop-in (opt-in)
+  template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config.d/10-lab-identities.conf
+    owner: root
+    group: root
+    mode: "0644"
+  when: harden_ssh | bool
+  notify: Reload ssh
+
+- name: Write sudoers override that revokes bootstrap NOPASSWD (opt-in)
+  copy:
+    dest: /etc/sudoers.d/99-lab-harden-bootstrap
+    owner: root
+    group: root
+    mode: "0440"
+    validate: visudo -cf %s
+    content: |
+      # Revoke passwordless sudo for the factory bootstrap user. Account stays.
+      {{ bootstrap_user }} ALL=(ALL) ALL
+  when: harden_bootstrap_user | bool
+
+- name: Remove bootstrap user from the sudo group (opt-in, account kept)
+  command: gpasswd -d {{ bootstrap_user }} sudo
+  register: lab_gpasswd_bootstrap
+  changed_when: lab_gpasswd_bootstrap.rc == 0
+  failed_when: false
+  when: harden_bootstrap_user | bool

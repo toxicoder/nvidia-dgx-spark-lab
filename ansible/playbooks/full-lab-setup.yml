@@ -39,6 +39,9 @@
 - import_playbook: apply-cloud-init-prep.yml
   when: run_cloud_init_prep | bool
 
+- import_playbook: configure-identities.yml
+  when: run_identities | default(false) | bool
+
 - import_playbook: bootstrap-cluster.yml
 
 - import_playbook: install-gpu-operator.yml

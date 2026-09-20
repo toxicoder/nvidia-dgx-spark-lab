@@ -27,6 +27,7 @@ Inventory: copy `ansible/inventory/hosts.ini.example` → `ansible/inventory/hos
 | Playbook | When | Idempotent? | extra-vars / notes | Bazel | Classic |
 | --- | --- | --- | --- | --- | --- |
 | `apply-cloud-init-prep.yml` | Physical nodes, **before** or as first part of bootstrap | Render is safe; apply is not | `apply_now=true` copies user-data and can reboot. Default `apply_now: false` | `bazelisk run //ansible:playbook -- apply-cloud-init-prep.yml` | `ansible-playbook -i inventory/hosts.ini playbooks/apply-cloud-init-prep.yml` |
+| `configure-identities.yml` | After topology render, **before** day-2 Ansible as `lab-ansible` | Yes | Connects as `bootstrap_user` (default `ubuntu`). `harden_ssh` / `harden_bootstrap_user` default false. Prefer `manage.sh identities apply --yes` | `bazelisk run //ansible:identities` | `ansible-playbook -i inventory/hosts.ini playbooks/configure-identities.yml` |
 | `bootstrap-cluster.yml` | First cluster; re-run for labels/highspeed | Yes for K3s install tasks | `run_cloud_init_prep=true` imports cloud-init prep first | `bazelisk run //ansible:bootstrap` | `ansible-playbook -i inventory/hosts.ini playbooks/bootstrap-cluster.yml` |
 | `install-gpu-operator.yml` | After nodes Ready | Helm upgrade-style | May restart GPU pods; fetches kubeconfig | `bazelisk run //ansible:gpu-operator` | `ansible-playbook -i inventory/hosts.ini playbooks/install-gpu-operator.yml` |
 | `verify-cluster.yml` | After bootstrap / GPU Operator / drift | Read-only | none | `bazelisk run //ansible:verify` | `ansible-playbook -i inventory/hosts.ini playbooks/verify-cluster.yml` |
@@ -53,7 +54,9 @@ Wrappers default to the **example** inventory for safety. Do not point them at p
 </Callout>
 ## Roles (not playbooks)
 
-`ansible/roles/` implements k3s_common, highspeed_network, labels, gpu_operator, coder, kasm, monitoring, traefik, sso, cloud_init. Do not invoke roles except through the playbooks above.
+`ansible/roles/` implements k3s_common, highspeed_network, labels, gpu_operator, coder, kasm, monitoring, traefik, sso, cloud_init, lab_identities. Do not invoke roles except through the playbooks above.
+
+Host users and SSH keys: [Lab identities](identities.md) (`bazelisk run //:manage -- identities apply --yes`). `full-lab-setup.yml` imports identities only when `run_identities=true`.
 
 SSO from the operator CLI (after cluster exists): `bazelisk run //:manage -- start-sso`.
 

@@ -23,6 +23,11 @@ filegroup(
 )
 
 filegroup(
+    name = "lab_identities",
+    srcs = ["lab-identities.yaml"],
+)
+
+filegroup(
     name = "grafana_dashboards",
     srcs = glob(["grafana/dashboards/*.json"]),
     visibility = ["//tests:__pkg__"],

@@ -1,0 +1,15 @@
+# Purpose: Default extra-vars for the lab_identities role
+# Source of truth: config/lab-identities.yaml (users/groups); this file is role defaults
+# Regenerate: n/a
+# Safety: hardening flags default false so apply cannot lock operators out
+
+---
+# ## lab_identities defaults
+#
+# @role lab_identities
+lab_identities_dir: "{{ playbook_dir }}/../../secrets/identities"
+lab_bootstrap_user: ubuntu
+harden_ssh: false
+harden_bootstrap_user: false
+models_dir_fallback: /mnt/models
+k3s_kubeconfig_path: /etc/rancher/k3s/k3s.yaml

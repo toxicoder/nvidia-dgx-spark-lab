@@ -1,0 +1,10 @@
+# Purpose: Reload ssh after optional harden_ssh drop-in
+# Source of truth: ansible/roles/lab_identities/tasks/main.yml
+# Regenerate: n/a
+# Safety: only notified when harden_ssh=true
+
+---
+- name: Reload ssh
+  service:
+    name: ssh
+    state: reloaded

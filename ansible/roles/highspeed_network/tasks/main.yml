@@ -108,7 +108,7 @@
 
 - name: Add peer public key to authorized_keys for passwordless SSH
   authorized_key:
-    user: "{{ ansible_user | default('ubuntu') }}"
+    user: "{{ ansible_user | default('lab-ansible') }}"
     key: "{{ hostvars[peer].ssh_pub_key }}"
     state: present
   vars:
@@ -135,7 +135,7 @@
 - name: Validate passwordless SSH on highspeed (if configured)
   shell: |
     PEER_IP="{{ highspeed_ip_prefix }}.{{ '2' if inventory_hostname == k3s_control_plane else '1' }}"
-    ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 {{ ansible_user | default('ubuntu') }}@$PEER_IP 'echo OK'
+    ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 {{ ansible_user | default('lab-ansible') }}@$PEER_IP 'echo OK'
   when:
     - groups['k3s_cluster'] | default([]) | length > 1
     - not generated_netplan.stat.exists

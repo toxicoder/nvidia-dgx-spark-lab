@@ -1,0 +1,129 @@
+---
+title: Lab identities
+description: Official automation users, POSIX groups, passwordless SSH, and gitignored host keys — instead of the factory ubuntu account.
+tags: [identities, ansible, ssh, secrets, security, operate]
+---
+
+# Lab identities
+
+**What's on this page**
+
+- The catalog (`config/lab-identities.yaml`) of users and groups
+- Plan-first `identities` commands (`status` / `plan` / `ensure-keys` / `apply --yes` / `ping`)
+- Where SSH keys live (never in git)
+- Migration from a factory `ubuntu` login
+
+**What this enables**
+
+- Day-2 Ansible as `lab-ansible`, not the interactive cloud-image user
+- Separate break-glass (`lab-admin`) and file-ownership (`lab-svc`) principals
+- Passwordless SSH with keys that stay on the operator client
+
+<ClusterConfigPanel />
+
+<Callout type="error" title="Never commit identity keys">
+  Private keys, PEMs, and live `authorized_keys` stay in `secrets/identities/` (gitignored).
+  `status` prints SHA256 fingerprints only. Policy: [SECURITY.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/SECURITY.md).
+</Callout>
+
+<Callout type="error" title="Default is read-only">
+  `status`, `plan`, `run`, and `ensure-keys` do not mutate the cluster (`run` is Ansible `--check`).
+  `apply` requires `--yes`. The factory `ubuntu` account is never deleted.
+</Callout>
+
+## Catalog
+
+Source of truth: `config/lab-identities.yaml`. UID/GID range **60000–60099**.
+
+Linux has no nested groups. The hierarchy is a parent group plus capability groups:
+
+| Group | GID | Role |
+| --- | --- | --- |
+| `lab` | 60000 | Parent; every lab account |
+| `lab-admin` | 60001 | Break-glass sudo |
+| `lab-ops` | 60002 | Ansible / `manage.sh` sudo |
+| `lab-k3s` | 60003 | Read `/etc/rancher/k3s/k3s.yaml` |
+| `lab-models` | 60004 | `rwx` `/mnt/models` (setgid) |
+
+| User | UID | SSH | Sudo | Purpose |
+| --- | --- | --- | --- | --- |
+| `lab-admin` | 60001 | yes | `%lab-admin` NOPASSWD:ALL | Break-glass |
+| `lab-ansible` | 60002 | yes | `%lab-ops` NOPASSWD:ALL | Day-2 Ansible remote user |
+| `lab-svc` | 60003 | no (`nologin`) | none | Owns `/mnt/models` |
+
+Passwords are locked. Command-limited sudoers is a follow-up; v1 least privilege is dedicated keys, locked passwords, no sudo on `lab-svc`, and file GIDs.
+
+`lab.yaml`:
+
+```yaml
+lab:
+  ansible_user: lab-ansible   # day-2
+  bootstrap_user: ubuntu      # factory first-contact only
+```
+
+## Gold path
+
+1. SSH to the factory `ubuntu` (or `nvidia`) account from the operator client still works.
+2. Topology is rendered (`manage.sh setup`).
+3. Keys, plan, apply, ping:
+
+<Tabs groupId="bazel-classic" items={["Bazel", "Classic"]} persist>
+  <Tab value="Bazel">
+    ```bash
+    bazelisk run //:manage -- identities ensure-keys
+    bazelisk run //:manage -- identities plan
+    bazelisk run //:manage -- identities apply --yes
+    bazelisk run //:manage -- identities ping
+    ```
+  </Tab>
+  <Tab value="Classic">
+    ```bash
+    ./scripts/manage.sh identities ensure-keys
+    ./scripts/manage.sh identities plan
+    ./scripts/manage.sh identities apply --yes
+    ./scripts/manage.sh identities ping
+    ```
+  </Tab>
+</Tabs>
+
+Committed cloud-init keeps the distro `default` user (factory `ubuntu` on Spark images) so first-contact SSH still works. Catalog users are created **without** `authorized_keys`; `apply` injects keys from `secrets/identities/*.pub`.
+
+`apply` connects as `bootstrap_user` and installs catalog users, sudoers, and authorized keys. After `ping` succeeds, bootstrap / GPU Operator / the rest of Ansible use `lab-ansible`.
+
+Do **not** add this utility to the dashboard Run allow-list. Host user and sudo changes are operator-client only.
+
+## Hardening (opt-in)
+
+Requires out-of-band console. Default is off.
+
+```bash
+bazelisk run //:manage -- identities apply --yes --harden-ssh
+bazelisk run //:manage -- identities apply --yes --harden-bootstrap-user
+```
+
+`--harden-ssh` writes `/etc/ssh/sshd_config.d/10-lab-identities.conf` (`PasswordAuthentication no`, `PermitRootLogin no`). It does **not** set `AllowUsers`.
+
+`--harden-bootstrap-user` revokes NOPASSWD sudo for `ubuntu` and removes it from group `sudo`. The account stays for console login.
+
+## Secrets layout
+
+```text
+secrets/identities/          # gitignored except README
+  lab-admin                  # private, 0600
+  lab-admin.pub
+  lab-ansible
+  lab-ansible.pub
+```
+
+`LAB_IDENTITIES_DIR` overrides the directory. `LAB_BOOTSTRAP_SSH_KEY` is the first-contact private key (your existing operator key). `LAB_ANSIBLE_INVENTORY` overrides `ansible/inventory/hosts.ini`.
+
+This store is **not** the dashboard SQLite vault. Backup the key directory privately; see [Backup and restore](backup-restore.md).
+
+## Verify
+
+```bash
+bazelisk run //:manage -- identities status
+bazelisk run //:manage -- identities ping
+```
+
+Expected: fingerprints for `lab-admin` and `lab-ansible`; ping pong as `lab-ansible`; no key **values** in command output or git diff.
