@@ -100,6 +100,9 @@ ident() {
 
 @test "status --json has ansible_user and no private key armor" {
   run ident status --json
+  if [[ $status -ne 0 ]]; then
+    echo "$output" >&2
+  fi
   [ "$status" -eq 0 ]
   [[ "$output" == *"lab-ansible"* ]]
   [[ "$output" != *"BEGIN OPENSSH"* ]]
@@ -141,7 +144,12 @@ ident() {
   [ -f "${LAB_IDENTITIES_DIR}/lab-admin" ]
   [ ! -f "${LAB_IDENTITIES_DIR}/lab-svc" ]
   local mode
-  mode="$(stat -f '%OLp' "${LAB_IDENTITIES_DIR}/lab-ansible" 2>/dev/null || stat -c '%a' "${LAB_IDENTITIES_DIR}/lab-ansible")"
+  # GNU stat -f is --file-system (succeeds with garbage); BSD -f is format.
+  if stat --version >/dev/null 2>&1; then
+    mode="$(stat -c '%a' "${LAB_IDENTITIES_DIR}/lab-ansible")"
+  else
+    mode="$(stat -f '%OLp' "${LAB_IDENTITIES_DIR}/lab-ansible")"
+  fi
   [[ ${mode} == "600" || ${mode} == "0600" ]]
   printf 'keep-me\n' >"${LAB_IDENTITIES_DIR}/lab-ansible"
   run ident ensure-keys

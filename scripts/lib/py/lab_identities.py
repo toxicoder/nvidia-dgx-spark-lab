@@ -326,12 +326,22 @@ def _cli(argv: list[str] | None = None) -> int:
     parser.add_argument("catalog", nargs="?", help="path to lab-identities.yaml")
     parser.add_argument("--identities-dir", default="", help="SSH key directory for status-json")
     try:
-        args = parser.parse_args(argv)
+        # parse_known_args: Python 3.12 treats a leftover positional after
+        # --identities-dir as unrecognized; 3.13 intermixes it into catalog.
+        args, extra = parser.parse_known_args(argv)
     except SystemExit as exc:
         code = exc.code
         if code in (0, 2, None):
             return 0 if code in (0, None) else 2
         return int(code)
+
+    if extra:
+        leftover = [item for item in extra if item]
+        if args.catalog is None and len(leftover) == 1 and not leftover[0].startswith("-"):
+            args.catalog = leftover[0]
+        else:
+            print(f"lab-identities: unrecognized arguments: {' '.join(extra)}", file=sys.stderr)
+            return 2
 
     if not args.command:
         parser.print_help()

@@ -116,7 +116,13 @@ identities_dir() {
 # Arguments:
 #   $@  Subcommand and extra args for lab_identities.py.
 identities_py() {
-  python3 "${REPO_ROOT}/scripts/lib/py/lab_identities.py" "$@" "$(identities_catalog_path)"
+  local sub="${1:-}"
+  if [[ $# -gt 0 ]]; then
+    shift
+  fi
+  # Catalog immediately after the subcommand so Python 3.12 argparse does not
+  # treat it as an unrecognized leftover after --identities-dir.
+  python3 "${REPO_ROOT}/scripts/lib/py/lab_identities.py" "${sub}" "$(identities_catalog_path)" "$@"
 }
 
 # @function identities_topology_fact
