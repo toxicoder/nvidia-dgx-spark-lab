@@ -206,6 +206,16 @@ class TestLabIdentities(unittest.TestCase):
         self.assertIn("lab-ansible", buf.getvalue())
         self.assertNotIn("BEGIN OPENSSH", buf.getvalue())
 
+    def test_cli_status_json_flag_before_catalog(self) -> None:
+        """Python 3.12 argparse rejects a leftover positional after options."""
+        buf = io.StringIO()
+        with patch("sys.stdout", buf):
+            rc = _cli(
+                ["status-json", "--identities-dir", self.tmp.name, str(self.cat_path)]
+            )
+        self.assertEqual(rc, 0)
+        self.assertIn("lab-ansible", buf.getvalue())
+
     def test_cli_unknown_and_help(self) -> None:
         buf = io.StringIO()
         with patch("sys.stderr", buf):
@@ -213,6 +223,9 @@ class TestLabIdentities(unittest.TestCase):
         buf = io.StringIO()
         with patch("sys.stdout", buf):
             self.assertEqual(_cli(["--help"]), 0)
+        buf = io.StringIO()
+        with patch("sys.stderr", buf):
+            self.assertEqual(_cli(["validate", str(self.cat_path), "--bogus"]), 2)
 
 
 if __name__ == "__main__":
