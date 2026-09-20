@@ -1,2 +1,2 @@
-:HL["/nvidia-dgx-spark-lab/development/_next/static/chunks/1gs-6u_cnwsvr.css","style"]
-0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"slug","param":{"type":"oc","key":"generated/dashboard-api/components/ui/card/variables/CardTitle","siblings":["api"]},"prefetchHints":4192,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}},"staleTime":300,"buildId":"IXRJi237n8tmr1tYDmeCp"}
+:HL["/nvidia-dgx-spark-lab/development/_next/static/chunks/3s2thtc6w8vni.css","style"]
+0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"slug","param":{"type":"oc","key":"generated/dashboard-api/components/ui/card/variables/CardTitle","siblings":["api"]},"prefetchHints":4192,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}},"staleTime":300,"buildId":"iugGH8zJhN-d8OmJyVxnV"}

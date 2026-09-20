@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <title>Overeazy</title>
   <rect width="64" height="64" rx="14" fill="#161311" />
-  <path d="M35.5 8 18 36h11.5l-2 20 18.5-30H34.5z" fill="#e8a317" />
+  <path d="M35.5 8 18 36h11.5l-2 20 18.5-30H34.5z" fill="#e89424" />
   <circle cx="46" cy="17" r="5" fill="#ff7a3d" />
 </svg>
