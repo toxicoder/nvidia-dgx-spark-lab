@@ -13,7 +13,7 @@
 FROM node:22-alpine AS base
 ARG TARGETARCH
 WORKDIR /app
-RUN apk add --no-cache libc6-compat bash curl \
+RUN apk add --no-cache libc6-compat bash curl openssl \
   && KVER="$(curl -L -s https://dl.k8s.io/release/stable.txt)" \
   && curl -fsSL "https://dl.k8s.io/release/${KVER}/bin/linux/${TARGETARCH}/kubectl" -o /usr/local/bin/kubectl \
   && chmod +x /usr/local/bin/kubectl \
