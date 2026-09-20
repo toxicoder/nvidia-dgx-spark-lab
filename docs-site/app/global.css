@@ -217,9 +217,31 @@ html {
 }
 
 /* Glossary tooltips are injected as <abbr> by lib/remark-glossary.ts. */
-abbr[title] {
+abbr[title],
+.glossary-term {
   text-decoration: underline dotted;
   text-decoration-color: var(--color-fd-teal);
   text-underline-offset: 3px;
   cursor: help;
+}
+
+.glossary-term:focus-visible {
+  outline: 2px solid var(--color-fd-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+[data-glossary-tooltip] {
+  position: fixed;
+  z-index: 80;
+  max-width: 20rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--color-fd-border);
+  border-radius: 0.375rem;
+  background: var(--color-fd-popover);
+  color: var(--color-fd-popover-foreground);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  box-shadow: 0 8px 24px var(--color-fd-overlay);
+  pointer-events: none;
 }

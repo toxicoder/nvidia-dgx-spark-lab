@@ -17,6 +17,7 @@ import { Banner } from "fumadocs-ui/components/banner";
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
 import { ClusterConfigPanel } from "@/components/cluster-config-panel";
+import { GlossaryTerm } from "@/components/glossary-term";
 import { Mermaid } from "@/components/mermaid";
 import { PageOverview, PageOverviewColumn } from "@/components/page-overview";
 import { resolveDocHref } from "@/lib/source";
@@ -48,6 +49,8 @@ export function mdxComponentsFor(page: Page) {
   return {
     ...defaultMdxComponents,
     a: ContentLink,
+    abbr: GlossaryTerm,
+    GlossaryTerm,
     Banner,
     Tab,
     Tabs,

@@ -438,6 +438,44 @@ const abbrStyle = await withPage(async (page) => {
 });
 check("glossary tooltips are styled", Boolean(abbrStyle) && abbrStyle !== "none" && abbrStyle !== PROBE_FAILED, String(abbrStyle));
 
+/** Hover a glossary abbr and read the portal tooltip the client component mounts. */
+async function hoverGlossary(page, selector) {
+  const abbr = page.locator(selector).first();
+  if ((await abbr.count()) === 0) return { selector, title: null, visible: false, text: "" };
+  const title = await abbr.getAttribute("title");
+  await abbr.hover();
+  const tip = page.locator("[data-glossary-tooltip]");
+  await tip.waitFor({ state: "visible", timeout: 4000 }).catch(() => undefined);
+  return {
+    selector,
+    title,
+    visible: await tip.isVisible().catch(() => false),
+    text: ((await tip.textContent()) ?? "").trim()
+  };
+}
+
+const tableHover = await withPage(async (page) => {
+  await goto(page, "/glossary/", 2500);
+  return hoverGlossary(page, "table abbr[title]");
+});
+const okTableHover = tableHover !== PROBE_FAILED;
+check(
+  "glossary tooltip appears on hover in a table",
+  okTableHover && tableHover.visible && tableHover.title && tableHover.text === tableHover.title,
+  JSON.stringify(tableHover)
+);
+
+const proseHover = await withPage(async (page) => {
+  await goto(page, "/getting-started/", 2500);
+  return hoverGlossary(page, "p abbr[title]");
+});
+const okProseHover = proseHover !== PROBE_FAILED;
+check(
+  "glossary tooltip appears on hover in prose",
+  okProseHover && proseHover.visible && proseHover.title && proseHover.text === proseHover.title,
+  JSON.stringify(proseHover)
+);
+
 // ------------------------------------------------------------------ search
 console.log("\n### SEARCH");
 const search = await withPage(async (page) => {
