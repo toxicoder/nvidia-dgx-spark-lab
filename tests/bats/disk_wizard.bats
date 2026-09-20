@@ -23,7 +23,13 @@ setup_file() {
 
 setup() {
   export TEST_TMP_DIR REPO_ROOT LAB_HERMETIC DISK_WIZARD_HOME HOME MODELS_DIR
-  export LAB_MOCK_DF_JSON LAB_MOCK_OPEN_FILES LAB_MOCK_PODS_JSON LAB_MOCK_HF_PID PATH
+  export LAB_MOCK_DF_JSON PATH
+  export LAB_MOCK_OPEN_FILES=""
+  export LAB_MOCK_PODS_JSON='{"items":[]}'
+  export LAB_MOCK_HF_PID=0
+  unset LAB_MOCK_CRICTL_IMAGES DISK_WIZARD_ROOT_GLOB_BASE
+  rm -rf "${MODELS_DIR:?}" "${DISK_WIZARD_HOME:?}"
+  mkdir -p "${MODELS_DIR}" "${DISK_WIZARD_HOME}/.cache/pip" "${DISK_WIZARD_HOME}/.ollama"
 }
 
 teardown_file() {
@@ -208,10 +214,23 @@ for r in rows:
   mkdir -p "${DISK_WIZARD_HOME}/.cache/pip"
   printf 'w' >"${DISK_WIZARD_HOME}/.cache/pip/wheel.bin"
   printf 'j' >"${MODELS_DIR}/only.incomplete"
+  run wizard plan --json
+  [ "$status" -eq 0 ]
   run wizard apply --yes --id hf-incomplete
   [ "$status" -eq 0 ]
   [[ ! -f ${MODELS_DIR}/only.incomplete ]]
   [[ -f ${DISK_WIZARD_HOME}/.cache/pip/wheel.bin ]]
+}
+
+@test "apply --id re-surveys when a stale plan omits the path" {
+  printf 'stale' >"${MODELS_DIR}/gone-already.incomplete"
+  run wizard plan --json
+  [ "$status" -eq 0 ]
+  rm -f "${MODELS_DIR}/gone-already.incomplete"
+  printf 'j' >"${MODELS_DIR}/fresh.incomplete"
+  run wizard apply --yes --id hf-incomplete
+  [ "$status" -eq 0 ]
+  [[ ! -f ${MODELS_DIR}/fresh.incomplete ]]
 }
 
 @test "factory-bittest requires BITTEST and is not jailed as /" {
@@ -279,6 +298,8 @@ open(dest, "w", encoding="utf-8").write(json.dumps([row]))
   mkdir -p "${DISK_WIZARD_HOME}/.cache/huggingface/hub/models--Someone--KeepReview"
   printf 'blob' >"${DISK_WIZARD_HOME}/.cache/huggingface/hub/models--Someone--KeepReview/w.bin"
   printf 'j' >"${MODELS_DIR}/step-a.incomplete"
+  run wizard plan --json
+  [ "$status" -eq 0 ]
   run wizard apply --yes
   [ "$status" -eq 0 ]
   [[ ! -f ${MODELS_DIR}/step-a.incomplete ]]

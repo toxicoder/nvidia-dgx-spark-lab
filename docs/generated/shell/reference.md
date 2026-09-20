@@ -1512,6 +1512,8 @@ Arguments:
 
 @function disk_apply
 Apply step A (safe) from the plan. Step B only with --step B.
+Re-surveys when the plan file is empty or --id/--path is set so a
+stale plan cannot silently skip matching leftovers.
 
 ### Function `disk_restore`
 
