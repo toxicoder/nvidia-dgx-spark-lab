@@ -22,6 +22,7 @@ filegroup(
     name = "safety_data",
     srcs = [
         "images/coder-workspace/Dockerfile",
+        "images/coder-workspace/Dockerfile.dockerignore",
         "images/kasm-spark-desktop/Dockerfile",
         "open-webui/hermes-gateway.yaml",
         "templates/coder-spark-lab/main.tf",

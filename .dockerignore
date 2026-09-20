@@ -1,5 +1,7 @@
-# Docker build context exclusions (repo root; used by dashboard/Dockerfile)
+# Docker build context exclusions (repo root; used by dashboard/Dockerfile.test).
 # Prevents shipping caches and Bazel outputs into image builds.
+# Production dashboard/coder images use sibling <Dockerfile>.dockerignore so
+# they can COPY k8s/ and ansible/ files this file excludes.
 
 # Dashboard dependencies and build output
 dashboard/node_modules

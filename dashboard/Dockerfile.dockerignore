@@ -1,0 +1,33 @@
+# BuildKit ignore for dashboard/Dockerfile (replaces repo-root .dockerignore).
+# Keep hermetic noise out, but allow the production COPY sources.
+
+# Dashboard dependencies and build output
+dashboard/node_modules
+dashboard/.next
+dashboard/test-results
+dashboard/**/actuals
+
+# Repo-wide noise
+bazel-*
+bazel-out/
+external/
+.git
+.github
+.DS_Store
+*.log
+.venv*/
+site/
+docs/tests/visual/actuals/
+helm/
+tests/
+docs/generated/
+
+# ansible/ and k8s/ are excluded at repo root; re-include Dockerfile COPY paths.
+ansible/**
+!ansible/files/
+!ansible/files/coder-values.yaml
+k8s/**
+!k8s/workloads/
+!k8s/workloads/**
+!k8s/base/
+!k8s/base/**
