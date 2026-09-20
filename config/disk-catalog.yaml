@@ -1,11 +1,10 @@
-# Purpose:
-#   Host leftover signatures for disk-wizard (what / why / risk / reclaim / educate).
+# Purpose: Host leftover signatures for disk-wizard (class, risk, reclaim, educate)
 # Source of truth: this file (operator entry via scripts/utilities/disk-wizard.sh)
-# Schema: restricted YAML, scripts/lib/py/disk_catalog.py (no PyYAML)
-# Safety:
-#   keep-set weights, dsv41-engram, k3s server data, and in-use paths are refused
-#   (risk: dangerous, reclaim: none). Never offers docker system prune -a --volumes.
-#   Default disk-wizard is plan/status (read-only). apply requires --yes.
+# Regenerate: n/a
+# Safety: keep-set, engram, k3s, and in-use paths are refused; never docker system prune -a --volumes
+
+# Restricted YAML parsed by scripts/lib/py/disk_catalog.py (no PyYAML).
+# Default disk-wizard is plan/status (read-only). apply requires --yes.
 # risk: safe | review | dangerous
 # reclaim: delete | quarantine | docker-prune | none
 schema: 1

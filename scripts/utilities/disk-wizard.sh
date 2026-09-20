@@ -702,6 +702,8 @@ disk_apply_one() {
 
 # @function disk_apply
 # Apply step A (safe) from the plan. Step B only with --step B.
+# Re-surveys when the plan file is empty or --id/--path is set so a
+# stale plan cannot silently skip matching leftovers.
 disk_apply() {
   local dest row risk
   disk_apply_guards || return 1
@@ -710,7 +712,7 @@ disk_apply() {
     return 1
   fi
   dest="$(disk_plan_file)"
-  if [[ ! -s ${dest} ]]; then
+  if [[ ! -s ${dest} || -n ${FILTER_ID} || -n ${FILTER_PATH} ]]; then
     disk_survey >/dev/null
   fi
   dest="$(disk_plan_file)"
