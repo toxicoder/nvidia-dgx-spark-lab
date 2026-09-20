@@ -90,4 +90,4 @@ Hover any dotted abbreviation in the docs (for example K3s or Resource Guard) fo
 2. Add or update a row on this page with a deeper link.
 3. Prefer linking to existing concept pages over duplicating long guides here.
 
-In-page tooltips use Material **content.tooltips** + the `abbr` Markdown extension.
+In-page tooltips are compiled from that abbreviations file into dotted `<abbr>` terms. Hover or focus a term to read the short definition; this page is the longer index.

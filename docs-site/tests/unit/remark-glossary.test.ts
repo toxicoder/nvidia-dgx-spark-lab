@@ -17,7 +17,7 @@ interface Node {
   name?: string;
   value?: string;
   children?: Node[];
-  attributes?: { name: string; value: string }[];
+  attributes?: { type?: string; name: string; value: string }[];
 }
 
 /** Build a root holding one paragraph of the given text and run the transformer over it. */
@@ -32,6 +32,18 @@ function applyTo(text: string, parentType = "paragraph"): Node {
 
 const childrenOf = (node: Node, index = 0) => node.children?.[index]?.children ?? [];
 
+/** Collect every node with the given JSX name, including nested ones. */
+function collectNamed(node: Node | undefined, name: string): Node[] {
+  const found: Node[] = [];
+  const walk = (current: Node | undefined) => {
+    if (!current) return;
+    if (current.name === name) found.push(current);
+    for (const child of current.children ?? []) walk(child);
+  };
+  walk(node);
+  return found;
+}
+
 describe("remarkGlossaryTooltips", () => {
   it("finds the shared abbreviations file when run from the docs package", () => {
     const children = childrenOf(applyTo("The K3s control plane and NCCL interconnect matter here."));
@@ -40,10 +52,10 @@ describe("remarkGlossaryTooltips", () => {
 
   it("wraps a known term with its tooltip text", () => {
     const children = childrenOf(applyTo("PVC storage is provisioned per workload."));
-    const abbr = children.find((child) => child.name === "abbr");
-    expect(abbr?.type).toBe("mdxJsxTextElement");
-    expect(abbr?.attributes?.[0]?.name).toBe("title");
-    expect(abbr?.attributes?.[0]?.value).toMatch(/PersistentVolumeClaim/u);
+    const term = children.find((child) => child.name === "GlossaryTerm");
+    expect(term?.type).toBe("mdxJsxTextElement");
+    expect(term?.attributes?.[0]?.name).toBe("title");
+    expect(term?.attributes?.[0]?.value).toMatch(/PersistentVolumeClaim/u);
   });
 
   it("leaves unknown terms untouched", () => {
@@ -54,5 +66,34 @@ describe("remarkGlossaryTooltips", () => {
   it("does not touch text inside a heading", () => {
     const children = childrenOf(applyTo("K3s and NCCL", "heading"));
     expect(children.every((child) => child.type === "text")).toBe(true);
+  });
+
+  it("wraps a known term only once", () => {
+    const terms = collectNamed(applyTo("The K3s control plane."), "GlossaryTerm");
+    expect(terms).toHaveLength(1);
+    expect(terms[0]?.children?.every((child) => child.type === "text")).toBe(true);
+  });
+
+  it("does not wrap text already inside an abbr element", () => {
+    const tree: Node = {
+      type: "root",
+      children: [
+        {
+          type: "paragraph",
+          children: [
+            {
+              type: "mdxJsxTextElement",
+              name: "abbr",
+              attributes: [{ type: "mdxJsxAttribute", name: "title", value: "already defined" }],
+              children: [{ type: "text", value: "K3s" }]
+            }
+          ]
+        }
+      ]
+    };
+    (remarkGlossaryTooltips() as (tree: unknown) => void)(tree);
+    const abbrs = collectNamed(tree, "abbr");
+    expect(abbrs).toHaveLength(1);
+    expect(abbrs[0]?.attributes?.[0]?.value).toBe("already defined");
   });
 });

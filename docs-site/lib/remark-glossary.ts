@@ -4,7 +4,7 @@
  * MkDocs read `docs/includes/abbreviations.md` (`*[TERM]: definition` lines) through
  * `pymdownx.snippets` and wrapped each known term in a Material tooltip.  Doing the same as
  * a remark transformer keeps every content page free of the markup: the term stays plain
- * text in the source and becomes an `<abbr>` element at build time.
+ * text in the source and becomes a `<GlossaryTerm>` (rendered as `<abbr>`) at build time.
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -92,6 +92,30 @@ function buildMatcher(terms: string[]): RegExp | undefined {
 /** Element types whose text is not a candidate for abbreviation. */
 const SKIPPED_PARENTS = new Set(["link", "heading", "inlineCode", "abbr"]);
 
+/** JSX names that already carry a glossary tooltip. */
+const SKIPPED_JSX_NAMES = new Set(["abbr", "GlossaryTerm"]);
+
+/**
+ * Whether a text node's parent is already a glossary tooltip or another skipped container.
+ *
+ * Injected nodes are `mdxJsxTextElement` with `name: "abbr"`, not `type: "abbr"`. Without
+ * that check, `visit` walks into the new element's text child and wraps it again.
+ *
+ * @param parent The unist parent of a text node.
+ * @returns True when the text must be left alone.
+ */
+function shouldSkipGlossaryParent(parent: { type: string; name?: string }): boolean {
+  if (SKIPPED_PARENTS.has(parent.type)) return true;
+  if (
+    (parent.type === "mdxJsxTextElement" || parent.type === "mdxJsxFlowElement") &&
+    typeof parent.name === "string" &&
+    SKIPPED_JSX_NAMES.has(parent.name)
+  ) {
+    return true;
+  }
+  return false;
+}
+
 /**
  * Wrap the first occurrence of each known term in a paragraph with an `<abbr>` element.
  *
@@ -107,9 +131,9 @@ export function remarkGlossaryTooltips() {
     visit(tree, "text", (node, index, rawParent) => {
       // `visit`'s parent parameter is the unist parent union; the fields used here are the
       // ones every container node in this tree carries.
-      const parent = rawParent as { type: string; children: unknown[] } | undefined;
+      const parent = rawParent as { type: string; name?: string; children: unknown[] } | undefined;
       if (!parent || typeof index !== "number") return;
-      if (SKIPPED_PARENTS.has(parent.type)) return;
+      if (shouldSkipGlossaryParent(parent)) return;
 
       const text = String((node as { value?: string }).value ?? "");
       if (text.length === 0 || !matcher.test(text)) {
@@ -127,7 +151,9 @@ export function remarkGlossaryTooltips() {
         if (match.index > cursor) children.push({ type: "text", value: text.slice(cursor, match.index) });
         children.push({
           type: "mdxJsxTextElement",
-          name: "abbr",
+          // PascalCase so MDX looks the name up in `props.components`. A lowercase
+          // `abbr` compiles to the intrinsic HTML tag and never mounts GlossaryTerm.
+          name: "GlossaryTerm",
           attributes: [{ type: "mdxJsxAttribute", name: "title", value: definition }],
           children: [{ type: "text", value: found }],
           data: { _mdxExplicitJsx: true }
