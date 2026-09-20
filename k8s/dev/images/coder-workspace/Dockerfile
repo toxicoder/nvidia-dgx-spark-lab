@@ -22,7 +22,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ansible \
     shellcheck \
     bats \
-    yamllint \
     apt-transport-https \
     ca-certificates \
     gnupg \
@@ -57,6 +56,7 @@ RUN case "${TARGETARCH}" in \
       | tar xz -C /usr/local/bin kubeconform \
     && chmod +x /usr/local/bin/kubeconform
 
+# yamllint is pip-only: apt yamllint has no RECORD and breaks pip/ansible-lint.
 RUN pip3 install --no-cache-dir --break-system-packages \
     ansible-lint \
     yamllint \

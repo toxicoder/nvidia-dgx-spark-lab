@@ -55,15 +55,15 @@ filegroup(
 filegroup(
     name = "ci_workflows",
     srcs = [
+        ".dockerignore",
         ".gitea/workflows/ci.yml",
         ".github/actions/setup-bazel/action.yml",
+        ".github/container-images.json",
         ".github/dependabot.yml",
         ".github/workflows/ci.yml",
         ".github/workflows/deploy-docs.yml",
         ".github/workflows/devcontainer-image.yml",
         ".github/workflows/publish-images.yml",
-        ".github/container-images.json",
-        ".dockerignore",
     ],
     visibility = ["//visibility:public"],
 )

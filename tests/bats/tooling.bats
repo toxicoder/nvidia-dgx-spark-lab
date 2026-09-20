@@ -320,6 +320,72 @@ PY
   grep -q 'coder-workspace.mcp.json.example' "$coder_ignore"
 }
 
+@test "dashboard image apk packages include openssl for get-helm-3" {
+  # node:alpine does not ship openssl. Helm's get-helm-3 verifies the tarball
+  # checksum with it and otherwise fails: "openssl must first be installed".
+  local df="${REPO_ROOT}/dashboard/Dockerfile"
+  [[ -f $df ]]
+  python3 - "$df" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text()
+if "get-helm-3" not in text:
+    print("dashboard Dockerfile must install helm via get-helm-3", file=sys.stderr)
+    sys.exit(1)
+apk = None
+for line in text.splitlines():
+    if "apk add" in line:
+        apk = line
+    if "get-helm-3" in line and apk:
+        break
+else:
+    print("get-helm-3 must follow an apk add in dashboard/Dockerfile", file=sys.stderr)
+    sys.exit(1)
+if not re.search(r"(^|[\s])openssl([\s\\]|$)", apk):
+    print(f"apk add before get-helm-3 must include openssl: {apk}", file=sys.stderr)
+    sys.exit(1)
+print("ok")
+PY
+}
+
+@test "coder-workspace installs yamllint via pip only" {
+  # apt yamllint has no pip RECORD. A later `pip3 install yamllint` (or
+  # ansible-lint, which depends on it) then fails with uninstall-no-record-file.
+  local df="${REPO_ROOT}/k8s/dev/images/coder-workspace/Dockerfile"
+  [[ -f $df ]]
+  python3 - "$df" <<'PY'
+import sys
+from pathlib import Path
+
+lines = Path(sys.argv[1]).read_text().splitlines()
+in_apt = False
+in_pip = False
+apt_yamllint = False
+pip_yamllint = False
+for line in lines:
+    stripped = line.strip().rstrip("\\").strip()
+    if line.startswith("RUN ") and "apt-get install" in line:
+        in_apt, in_pip = True, False
+    elif line.startswith("RUN ") and "pip3 install" in line:
+        in_apt, in_pip = False, True
+    elif line.startswith("RUN "):
+        in_apt, in_pip = False, False
+    if in_apt and stripped == "yamllint":
+        apt_yamllint = True
+    if in_pip and stripped == "yamllint":
+        pip_yamllint = True
+if apt_yamllint:
+    print("coder-workspace must not apt-install yamllint (pip RECORD conflict)", file=sys.stderr)
+    sys.exit(1)
+if not pip_yamllint:
+    print("coder-workspace must pip-install yamllint", file=sys.stderr)
+    sys.exit(1)
+print("ok")
+PY
+}
+
 @test "Deploy Documentation workflow publishes only after merge (not on PR)" {
   # Public docs go live on push to long-lived branches (PR merge) or
   # workflow_dispatch, by publishing the two static exports. Opening a PR must

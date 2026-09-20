@@ -113,6 +113,7 @@ exports_files(
     [
         "package.json",
         "run_npm.sh",
+        "Dockerfile",
         "Dockerfile.dockerignore",
     ],
     visibility = ["//visibility:public"],
