@@ -244,6 +244,8 @@ sh_test(
         "bats/tooling.bats",
         ":bats_tool",
         "//:ci_workflows",
+        "//dashboard:Dockerfile.dockerignore",
+        "//k8s/dev:safety_data",
         "//config:lab_identities",
         "//docs-site:package.json",
         "//docs-site:run_npm.sh",

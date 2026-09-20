@@ -1,0 +1,12 @@
+# BuildKit ignore for k8s/dev/images/coder-workspace/Dockerfile.
+# Context is the repo root; only the COPY sources need to be present.
+*
+!k8s/
+!k8s/dev/
+!k8s/dev/images/
+!k8s/dev/images/coder-workspace/
+!k8s/dev/images/coder-workspace/workspace-init.sh
+!mcp/
+!mcp/config/
+!mcp/config/clients/
+!mcp/config/clients/coder-workspace.mcp.json.example

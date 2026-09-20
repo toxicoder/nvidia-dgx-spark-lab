@@ -63,6 +63,7 @@ filegroup(
         ".github/workflows/devcontainer-image.yml",
         ".github/workflows/publish-images.yml",
         ".github/container-images.json",
+        ".dockerignore",
     ],
     visibility = ["//visibility:public"],
 )

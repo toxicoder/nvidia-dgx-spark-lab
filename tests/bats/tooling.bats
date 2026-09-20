@@ -302,6 +302,24 @@ PY
   [[ ! -f ${REPO_ROOT}/.gitea/workflows/publish-images.yml ]]
 }
 
+@test "publish-images Dockerfiles are not blocked by root dockerignore COPY excludes" {
+  # Root .dockerignore excludes k8s/ and ansible/ so hermetic dashboard tests
+  # stay small. Production images COPY those trees, so they need a sibling
+  # <Dockerfile>.dockerignore that un-excludes the COPY sources (BuildKit).
+  local root_ignore="${REPO_ROOT}/.dockerignore"
+  local dash_ignore="${REPO_ROOT}/dashboard/Dockerfile.dockerignore"
+  local coder_ignore="${REPO_ROOT}/k8s/dev/images/coder-workspace/Dockerfile.dockerignore"
+  [[ -f $root_ignore && -f $dash_ignore && -f $coder_ignore ]]
+  grep -qE '^k8s/' "$root_ignore"
+  grep -qE '^ansible/' "$root_ignore"
+  grep -q '!k8s/workloads' "$dash_ignore"
+  grep -q '!k8s/base' "$dash_ignore"
+  grep -q '!ansible/files/coder-values.yaml' "$dash_ignore"
+  grep -q '!k8s/dev/images/coder-workspace' "$coder_ignore"
+  grep -q 'workspace-init.sh' "$coder_ignore"
+  grep -q 'coder-workspace.mcp.json.example' "$coder_ignore"
+}
+
 @test "Deploy Documentation workflow publishes only after merge (not on PR)" {
   # Public docs go live on push to long-lived branches (PR merge) or
   # workflow_dispatch, by publishing the two static exports. Opening a PR must
