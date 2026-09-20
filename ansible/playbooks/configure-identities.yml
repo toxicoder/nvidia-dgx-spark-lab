@@ -1,0 +1,35 @@
+# Purpose: Create official lab automation users, groups, sudoers, and SSH keys
+# Source of truth: config/lab-identities.yaml
+# Regenerate: n/a
+# Safety: first-contact as bootstrap_user; never deletes ubuntu; apply is opt-in via identities apply --yes
+
+---
+# ## configure-identities.yml
+#
+# Creates catalog groups/users, sudoers.d, authorized_keys from the operator
+# client's gitignored secrets/identities/*.pub, and optional sshd hardening.
+#
+# Connects as the factory bootstrap user (default ubuntu). After this play
+# succeeds, day-2 playbooks use ansible_user lab-ansible.
+#
+# @playbook configure-identities
+# Usage:
+#   bazelisk run //:manage -- identities plan
+#   bazelisk run //:manage -- identities apply --yes
+#   bazelisk run //ansible:identities -- -i inventory/hosts.ini -e bootstrap_user=ubuntu
+#
+# Safety:
+#   Never userdel. Never docker system prune. harden_ssh / harden_bootstrap_user
+#   default false (OOB console required if enabled). Does not start inference.
+
+- name: Configure official lab automation identities
+  hosts: k3s_cluster
+  become: true
+  gather_facts: true
+  vars:
+    bootstrap_user: "{{ lab_bootstrap_user | default('ubuntu') }}"
+    ansible_user: "{{ bootstrap_user }}"
+    harden_ssh: false
+    harden_bootstrap_user: false
+  roles:
+    - lab_identities

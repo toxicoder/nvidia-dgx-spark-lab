@@ -727,4 +727,61 @@ assert "reclaim: none" in text
 assert "docker system prune -a --volumes" in text
 '
 
+echo "Checking lab identities safety..."
+test -f config/lab-identities.yaml
+test -f scripts/utilities/identities.sh
+test -f scripts/lib/py/lab_identities.py
+test -f ansible/playbooks/configure-identities.yml
+grep -q 'apply requires --yes' scripts/utilities/identities.sh
+grep -q 'run never mutates' scripts/utilities/identities.sh
+grep -q 'Never prints private keys' scripts/utilities/identities.sh
+grep -q 'ansible_user: lab-ansible' config/lab-identities.yaml
+grep -q 'bootstrap_user_default: ubuntu' config/lab-identities.yaml
+if grep -nE 'userdel|user:[[:space:]]*state:[[:space:]]*absent' \
+  scripts/utilities/identities.sh ansible/roles/lab_identities/tasks/main.yml \
+  ansible/playbooks/configure-identities.yml |
+  grep -vE 'Never|never|# |echo |log |err '; then
+  echo "identities must never delete users"
+  exit 1
+fi
+if grep -nE 'docker[[:space:]]+system[[:space:]]+prune[[:space:]]+-a[[:space:]]+--volumes' \
+  scripts/utilities/identities.sh ansible/roles/lab_identities/tasks/main.yml |
+  grep -vE 'Never|never|# |echo |log |err '; then
+  echo "identities must not invoke docker system prune -a --volumes"
+  exit 1
+fi
+python3 -c '
+from pathlib import Path
+text = Path("config/lab-identities.yaml").read_text()
+assert "lab-ansible:" in text
+assert "lab-admin:" in text
+assert "lab-svc:" in text
+assert "BEGIN OPENSSH" not in text
+assert "ssh-ed25519 AAAA" not in text
+'
+for ident_file in \
+  config/lab-identities.yaml \
+  ansible/cloud-init/example-user-data-1node.yaml \
+  ansible/cloud-init/example-user-data-2node.yaml \
+  ansible/files/generated/cloud-init/user-data-spark0.yaml; do
+  test -f "${ident_file}"
+  if grep -q "ssh-ed25519 AAAA" "${ident_file}"; then
+    echo "${ident_file} must not embed authorized keys"
+    exit 1
+  fi
+  if grep -qE '^[[:space:]]*- name: ubuntu[[:space:]]*$' "${ident_file}"; then
+    echo "${ident_file} must not create the factory ubuntu user"
+    exit 1
+  fi
+done
+for ident_file in \
+  ansible/cloud-init/example-user-data-1node.yaml \
+  ansible/cloud-init/example-user-data-2node.yaml \
+  ansible/files/generated/cloud-init/user-data-spark0.yaml; do
+  if ! grep -qE '^[[:space:]]*- default$' "${ident_file}"; then
+    echo "${ident_file} must keep the distro default user for first-contact SSH"
+    exit 1
+  fi
+done
+
 echo "All critical safety checks passed"

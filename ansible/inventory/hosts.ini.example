@@ -5,6 +5,10 @@
 # That path generates this file (gitignored) plus per-node netplan and
 # cloud-init. Use this example only for manual labs.
 #
+# ansible_user is the day-2 principal (lab-ansible). First-contact from a
+# factory image still uses bootstrap_user (ubuntu) via:
+#   bazelisk run //:manage -- identities apply --yes
+#
 # Supported sizes: 1-5 DGX Spark nodes.
 # - 1 node (`fabric: none`): one all-in-one control-plane + worker. Local NCCL.
 # - 2 nodes (`pair`): one 200 Gb/s QSFP cable.
@@ -20,11 +24,11 @@
 # [k3s_agent] (host lines carry the vars; no per-node groups needed).
 
 [k3s_cluster]
-spark0 ansible_host=10.0.0.10 ansible_user=ubuntu
-# spark1 ansible_host=10.0.0.11 ansible_user=ubuntu
-# spark2 ansible_host=10.0.0.12 ansible_user=ubuntu
-# spark3 ansible_host=10.0.0.13 ansible_user=ubuntu
-# spark4 ansible_host=10.0.0.14 ansible_user=ubuntu
+spark0 ansible_host=10.0.0.10 ansible_user=lab-ansible
+# spark1 ansible_host=10.0.0.11 ansible_user=lab-ansible
+# spark2 ansible_host=10.0.0.12 ansible_user=lab-ansible
+# spark3 ansible_host=10.0.0.13 ansible_user=lab-ansible
+# spark4 ansible_host=10.0.0.14 ansible_user=lab-ansible
 
 [k3s_server]
 spark0

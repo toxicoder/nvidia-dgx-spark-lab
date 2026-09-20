@@ -10,6 +10,7 @@ Reusable Ansible roles for the lab.
 - **coder**, **kasm**, **monitoring**: Helm-based dev/observability stacks.
 - **cloud_init**: Early OS + highspeed prep templates (used optionally before full bootstrap).
 - **labels**: Applies node labels (highspeed, role, etc.).
+- **lab_identities**: Official automation users, groups, sudoers, and SSH keys (`config/lab-identities.yaml`).
 
 ## When to use roles vs playbooks
 

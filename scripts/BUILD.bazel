@@ -144,6 +144,7 @@ filegroup(
         allow_empty = True,
     ) + [
         "//config:disk_catalog",
+        "//config:lab_identities",
     ],
     visibility = ["//visibility:public"],
 )

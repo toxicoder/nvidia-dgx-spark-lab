@@ -27,7 +27,8 @@ fixture_one_node() {
 lab:
   management:
     subnet: 10.0.0.0/24
-  ansible_user: ubuntu
+  ansible_user: lab-ansible
+  bootstrap_user: ubuntu
   fabric: none
   nodes:
     - name: spark0
@@ -43,7 +44,8 @@ fixture_pair() {
 lab:
   management:
     subnet: 10.0.0.0/24
-  ansible_user: ubuntu
+  ansible_user: lab-ansible
+  bootstrap_user: ubuntu
   fabric: pair
   nodes:
     - name: spark0
@@ -67,7 +69,8 @@ fixture_ring() {
 lab:
   management:
     subnet: 10.0.0.0/24
-  ansible_user: ubuntu
+  ansible_user: lab-ansible
+  bootstrap_user: ubuntu
   fabric: ring
   nodes:
     - name: spark0
@@ -97,7 +100,8 @@ fixture_switch() {
 lab:
   management:
     subnet: 10.0.0.0/24
-  ansible_user: ubuntu
+  ansible_user: lab-ansible
+  bootstrap_user: ubuntu
   fabric: switch
   switch:
     brand: mikrotik
@@ -164,6 +168,23 @@ PY
 @test "validate accepts the committed reference lab.yaml (5-node switch)" {
   run python3 "$TOP_PY" validate "${REPO_ROOT}/ansible/inventory/lab.yaml"
   [ "$status" -eq 0 ]
+}
+
+@test "omitted ansible_user defaults to lab-ansible" {
+  cat > "$FIX/bare.yaml" <<'YAML'
+lab:
+  management:
+    subnet: 10.0.0.0/24
+  fabric: none
+  nodes:
+    - name: spark0
+      ip: 10.0.0.10
+      role: orchestrator
+YAML
+  run python3 "$TOP_PY" facts "$FIX/bare.yaml"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *$'ansible_user=lab-ansible'* ]]
+  [[ "$output" == *$'bootstrap_user=ubuntu'* ]]
 }
 
 @test "validate accepts one-node none fabric" {
@@ -304,7 +325,8 @@ PY
   [[ "$output" == *$'node_names=spark0,spark1,spark2,spark3,spark4'* ]]
   [[ "$output" == *$'node_ips=10.0.0.10,10.0.0.11,10.0.0.12,10.0.0.13,10.0.0.14'* ]]
   [[ "$output" == *$'mgmt_subnet=10.0.0.0/24'* ]]
-  [[ "$output" == *$'ansible_user=ubuntu'* ]]
+  [[ "$output" == *$'ansible_user=lab-ansible'* ]]
+  [[ "$output" == *$'bootstrap_user=ubuntu'* ]]
   [[ "$output" == *$'switch_model=CRS804-4DDQ-hRM'* ]]
   [[ "$output" == *$'switch_host=10.0.0.2'* ]]
   [[ "$output" == *$'switch_user=admin'* ]]
@@ -353,7 +375,7 @@ PY
     [[ "$(awk '/^\[k3s_cluster\]/{f=1;next}/^\[/{f=0}f' "$ini")" == *"$n"* ]]
   done
   # Host lines carry ansible_host + ansible_user.
-  grep -q 'spark1 ansible_host=10.0.0.11 ansible_user=ubuntu' "$ini"
+  grep -q 'spark1 ansible_host=10.0.0.11 ansible_user=lab-ansible' "$ini"
 }
 
 @test "render pair netplan uses two /24 subnets with MTU 9000" {
@@ -413,6 +435,12 @@ PY
   [ -f "$ud" ]
   grep -q 'hostname: spark0' "$ud"
   grep -q '192.168.100.1/24' "$ud"
+  grep -q 'name: lab-ansible' "$ud"
+  grep -q 'name: lab-admin' "$ud"
+  grep -q 'name: lab-svc' "$ud"
+  grep -qE '^[[:space:]]*- default$' "$ud"
+  ! grep -q 'name: ubuntu' "$ud"
+  ! grep -q 'ssh-ed25519 AAAA' "$ud"
 }
 
 @test "render is idempotent" {

@@ -1022,7 +1022,8 @@ _topology_scratch() {
 lab:
   management:
     subnet: 10.0.0.0/24
-  ansible_user: ubuntu
+  ansible_user: lab-ansible
+  bootstrap_user: ubuntu
   fabric: pair
   nodes:
     - name: spark0
@@ -1109,7 +1110,8 @@ assert [n for n in lab["nodes"] if n.get("role") == "orchestrator"][0]["name"] =
 lab:
   management:
     subnet: 10.0.0.0/24
-  ansible_user: ubuntu
+  ansible_user: lab-ansible
+  bootstrap_user: ubuntu
   fabric: ring
   nodes:
     - name: spark1

@@ -38,7 +38,8 @@ flowchart LR
 lab:
   management:
     subnet: 10.0.0.0/24     # management LAN (K3s, SSH, dashboard)
-  ansible_user: ubuntu
+  ansible_user: lab-ansible
+  bootstrap_user: ubuntu
   fabric: switch            # none | pair | ring | switch
   switch:                   # only for fabric: switch
     brand: mikrotik

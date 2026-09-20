@@ -54,6 +54,16 @@ bazelisk run //:manage -- disk-wizard recommend --target-gib 50
 
 See [Disk wizard](../docs/operate/disk-wizard.mdx).
 
+Official host users (not dashboard-allow-listed):
+
+```bash
+bazelisk run //:manage -- identities status
+bazelisk run //:manage -- identities ensure-keys
+bazelisk run //:manage -- identities apply --yes
+```
+
+See [Lab identities](../docs/operate/identities.mdx). Keys live in gitignored `secrets/identities/`.
+
 See the dashboard "Utilities" panel for UI control (run buttons, status).
 
 Adding a new utility: drop a compliant .sh in the directory. It becomes visible to Bazel, docs generator, and the dashboard automatically.

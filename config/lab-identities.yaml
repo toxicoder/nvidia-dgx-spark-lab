@@ -1,0 +1,53 @@
+# Purpose: Official lab automation users, POSIX groups, sudo, and host path ownership
+# Source of truth: this file
+# Regenerate: n/a
+# Safety: catalog only — no passwords, no private keys; apply via identities apply --yes
+
+# UID/GID range 60000–60099 sits above the factory ubuntu (1000) account.
+# Linux has no nested groups: "hierarchy" is parent group `lab` plus capability groups.
+schema: 1
+uid_gid_min: 60000
+uid_gid_max: 60099
+bootstrap_user_default: ubuntu
+ansible_user: lab-ansible
+models_dir: /mnt/models
+models_dir_mode: "2775"
+k3s_kubeconfig: /etc/rancher/k3s/k3s.yaml
+k3s_kubeconfig_mode: "0640"
+groups:
+  lab:
+    gid: 60000
+    description: Parent group; every lab automation account
+  lab-admin:
+    gid: 60001
+    description: Break-glass / identities re-apply
+    sudo: ALL=(ALL) NOPASSWD:ALL
+  lab-ops:
+    gid: 60002
+    description: Ansible remote user and manage.sh on the orchestrator
+    sudo: ALL=(ALL) NOPASSWD:ALL
+  lab-k3s:
+    gid: 60003
+    description: Read /etc/rancher/k3s/k3s.yaml
+  lab-models:
+    gid: 60004
+    description: Read-write /mnt/models (setgid directory)
+users:
+  lab-admin:
+    uid: 60001
+    groups: [lab, lab-admin]
+    ssh: true
+    shell: /bin/bash
+    comment: Lab break-glass automation
+  lab-ansible:
+    uid: 60002
+    groups: [lab, lab-ops, lab-k3s, lab-models]
+    ssh: true
+    shell: /bin/bash
+    comment: Lab Ansible remote user
+  lab-svc:
+    uid: 60003
+    groups: [lab, lab-models]
+    ssh: false
+    shell: /usr/sbin/nologin
+    comment: Lab file-ownership service account

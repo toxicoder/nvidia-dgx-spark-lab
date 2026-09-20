@@ -112,6 +112,22 @@ sh_test(
 )
 
 sh_test(
+    name = "bats_identities_test",
+    size = "small",
+    timeout = "short",
+    srcs = ["bats_runner.sh"],
+    args = ["identities.bats"],
+    data = _BATS_MIN + [
+        "bats/identities.bats",
+        "//ansible:inventory_lab",
+        "//config:lab_identities",
+        "//scripts:lib/py/lab_identities.py",
+        "//scripts:lib/py/lab_topology.py",
+        "//scripts:utilities",
+    ],
+)
+
+sh_test(
     name = "bats_disk_wizard_test",
     size = "small",
     timeout = "short",
@@ -228,9 +244,11 @@ sh_test(
         "bats/tooling.bats",
         ":bats_tool",
         "//:ci_workflows",
+        "//config:lab_identities",
         "//docs-site:package.json",
         "//docs-site:run_npm.sh",
         "//scripts:lib/paths.sh",
+        "//scripts:lib/py/lab_identities.py",
         "//scripts:utilities",
         "//scripts:validate",
         "//scripts:yaml_format.sh",
@@ -261,6 +279,7 @@ test_suite(
         ":bats_devcontainer_test",
         ":bats_disk_wizard_test",
         ":bats_domains_test",
+        ":bats_identities_test",
         ":bats_manage_test",
         ":bats_tooling_test",
         ":bats_topology_test",
@@ -298,6 +317,7 @@ sh_test(
     data = [
         "//ansible:all_playbooks",
         "//config:grafana_dashboards",
+        "//config:lab_identities",
         "//config:resource_policy",
         "//hermes:safety_data",
         "//k8s/auth/generated:generated_auth",

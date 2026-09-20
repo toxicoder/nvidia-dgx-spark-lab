@@ -84,6 +84,14 @@ external/
 *.rendered
 vault-password.txt
 
+# Host automation SSH keys (never commit private or lab-specific public keys)
+secrets/identities/**
+!secrets/identities/README.md
+!secrets/identities/.gitkeep
+
+# Local cloud-init renders may include authorized_keys from the operator client
+ansible/files/cloud-init/rendered/
+
 # Visual test generated artifacts (actual/current screenshots captured during runs).
 # ONLY the committed baseline goldens under goldens/ directories are part of the repo.
 # See .gitattributes for binary handling of the committed *.png baselines.

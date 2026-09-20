@@ -10,6 +10,7 @@ This repository must never contain:
 
 - Live API keys, tokens, or passwords
 - Private keys (`.pem`, SSH keys, TLS private material)
+- Host automation key pairs under `secrets/identities/` (except the committed README)
 - Cluster kubeconfig files with real credentials
 - `ansible/inventory/hosts.ini` with production host addresses and keys
 - `mcp/config/secrets.env` or `k8s/auth/secrets.yaml` (non-example)
@@ -42,7 +43,9 @@ Placeholder values such as `dev-only-change-me` and `change-me` appear in exampl
 
 ## Sensitive paths (.gitignore)
 
-The root `.gitignore` blocks common leak vectors: `.env*`, `kubeconfig/`, `hermes/data/`, `.grok/`, agent auth dumps, `vault-password.txt`, Ansible inventory secrets, and test artifact directories. Do not remove these patterns without a documented replacement control.
+The root `.gitignore` blocks common leak vectors: `.env*`, `kubeconfig/`, `hermes/data/`, `.grok/`, agent auth dumps, `vault-password.txt`, `secrets/identities/**`, Ansible inventory secrets, and test artifact directories. Do not remove these patterns without a documented replacement control.
+
+Official host principals are `lab-admin`, `lab-ansible`, and `lab-svc` (`config/lab-identities.yaml`). Do not use the factory `ubuntu` account as the day-2 Ansible user. Apply with `bazelisk run //:manage -- identities apply --yes`. See [Lab identities](docs/operate/identities.mdx).
 
 ## Dependency and supply chain
 

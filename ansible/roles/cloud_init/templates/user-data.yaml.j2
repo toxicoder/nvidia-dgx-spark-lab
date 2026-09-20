@@ -13,7 +13,7 @@
 #
 # Vars expected from group_vars/all.yml or inventory:
 #   highspeed_interfaces, highspeed_ip_prefix, highspeed_ip_prefix2, k3s_control_plane, etc.
-#   ansible_user (default ubuntu)
+#   ansible_user (default lab-ansible); factory first-contact is bootstrap_user
 
 hostname: {{ inventory_hostname | default('spark0') }}
 
@@ -76,8 +76,8 @@ runcmd:
 
   # Generate SSH key if not present (ed25519 for modern)
   - |
-    if [ ! -f /home/{{ ansible_user | default('ubuntu') }}/.ssh/id_ed25519 ]; then
-      sudo -u {{ ansible_user | default('ubuntu') }} ssh-keygen -t ed25519 -f /home/{{ ansible_user | default('ubuntu') }}/.ssh/id_ed25519 -N "" -q
+    if [ ! -f /home/{{ ansible_user | default('lab-ansible') }}/.ssh/id_ed25519 ]; then
+      sudo -u {{ ansible_user | default('lab-ansible') }} ssh-keygen -t ed25519 -f /home/{{ ansible_user | default('lab-ansible') }}/.ssh/id_ed25519 -N "" -q
     fi
 
   # Basic validation hint (logged)
@@ -106,12 +106,16 @@ write_files:
           {% endif %}
       {% endif %}
 
-# Ensure user can sudo without password for ansible (common on DGX Ubuntu images)
+# Official automation users (keys injected only on local rendered copies, never committed).
+# Prefer config/lab-identities.yaml + identities apply for the full group catalog.
+# `- default` keeps the factory ubuntu account for first-contact SSH.
 users:
-  - name: {{ ansible_user | default('ubuntu') }}
+  - default
+  - name: {{ ansible_user | default('lab-ansible') }}
     sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
     ssh_authorized_keys:
-      - {{ ssh_pub_key | default('') }}   # populated by Ansible if peer key known
+      - {{ ssh_pub_key | default('') }}   # populated by Ansible if peer key known; keep empty in git
 
 # Final message
 final_message: |

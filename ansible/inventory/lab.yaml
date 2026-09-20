@@ -13,7 +13,8 @@
 lab:
   management:
     subnet: 10.0.0.0/24
-  ansible_user: ubuntu
+  ansible_user: lab-ansible
+  bootstrap_user: ubuntu
   fabric: switch
   switch:
     brand: mikrotik

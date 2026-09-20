@@ -1,7 +1,7 @@
 # Purpose: generated cloud-init user-data for spark0 (fabric: switch) — first-boot OS/netplan prep
-# Source of truth: ansible/inventory/lab.yaml
+# Source of truth: ansible/inventory/lab.yaml + config/lab-identities.yaml
 # Regenerate: ./scripts/manage.sh setup or scripts/lib/topology.sh topology_render
-# Safety: OS/netplan/SSH prep only; K3s is installed later by Ansible; applying this reboots the node
+# Safety: OS/netplan/SSH prep only; K3s is installed later by Ansible; applying this reboots the node; no authorized_keys
 
 #cloud-config
 hostname: spark0
@@ -48,11 +48,35 @@ runcmd:
   - sysctl -w net.ipv4.ip_forward=1 || true
   - netplan apply || true
   - |
-    if [ ! -f /home/ubuntu/.ssh/id_ed25519 ]; then
-      sudo -u ubuntu ssh-keygen -t ed25519 -f /home/ubuntu/.ssh/id_ed25519 -N "" -q
+    if [ ! -f /home/lab-ansible/.ssh/id_ed25519 ]; then
+      sudo -u lab-ansible ssh-keygen -t ed25519 -f /home/lab-ansible/.ssh/id_ed25519 -N "" -q
     fi
   - echo "spark0 (switch) cloud-init prep done. Next: ansible bootstrap from the operator client."
 
+groups:
+  - lab
+  - lab-admin
+  - lab-ops
+  - lab-k3s
+  - lab-models
 users:
-  - name: ubuntu
+  - default
+  - name: lab-admin
+    uid: 60001
+    lock_passwd: true
+    shell: /bin/bash
+    groups: lab,lab-admin
     sudo: ALL=(ALL) NOPASSWD:ALL
+  - name: lab-ansible
+    uid: 60002
+    lock_passwd: true
+    shell: /bin/bash
+    groups: lab,lab-ops,lab-k3s,lab-models
+    sudo: ALL=(ALL) NOPASSWD:ALL
+  - name: lab-svc
+    uid: 60003
+    lock_passwd: true
+    shell: /usr/sbin/nologin
+    groups: lab,lab-models
+    system: true
+    no_create_home: true

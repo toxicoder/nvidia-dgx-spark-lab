@@ -38,6 +38,7 @@ _CONFIG_EXERCISED = frozenset(
         "config/resource-policy.yaml",
         "config/resource-policy.json",
         "config/disk-catalog.yaml",
+        "config/lab-identities.yaml",
         "config/nemotron-catalog.yaml",
         "config/open-webui-policy.yaml",
         "config/open-webui-policy.json",

@@ -2001,6 +2001,166 @@ Usage:
 
 
 
+<!-- source: scripts/utilities/identities.sh -->
+
+## identities
+
+Plan-first automation for official lab users, groups, sudoers, and SSH keys.
+Replaces the factory ubuntu account as the day-2 Ansible principal.
+
+```bash
+Usage:
+  ./scripts/utilities/identities.sh status [--json]
+  ./scripts/utilities/identities.sh plan
+  ./scripts/utilities/identities.sh run
+  ./scripts/utilities/identities.sh ensure-keys
+  ./scripts/utilities/identities.sh apply --yes
+  ./scripts/utilities/identities.sh ping
+
+```
+
+!!! warning
+
+    Safety:
+      Default is status (read-only). apply requires --yes.
+      run never mutates (same as plan / --check).
+      Never prints private key material.
+      Never deletes the factory bootstrap user.
+      Never docker system prune -a --volumes.
+      Does not weaken Resource Guard, restartPolicy, or NCCL.
+
+### Command: identities
+
+### Function `log`
+
+@function log
+Informational message on stderr (stdout stays JSON-clean).
+
+### Function `warn`
+
+@function warn
+!!! warning
+
+    Warning on stderr.
+
+### Function `err`
+
+@function err
+Error on stderr.
+
+### Function `identities_usage`
+
+@function identities_usage
+Print usage to stderr.
+
+### Function `parse_args`
+
+@function parse_args
+Parse CLI into MODE / flags.
+Arguments:
+  $@
+
+### Function `identities_catalog_path`
+
+@function identities_catalog_path
+Path to config/lab-identities.yaml.
+@stdout Absolute catalog path.
+
+### Function `identities_dir`
+
+@function identities_dir
+Gitignored SSH key directory on the operator client.
+@stdout Absolute directory path.
+
+### Function `identities_py`
+
+@function identities_py
+Invoke lab_identities.py with the catalog path appended.
+Arguments:
+  $@  Subcommand and extra args for lab_identities.py.
+
+### Function `identities_topology_fact`
+
+@function identities_topology_fact
+Read one key from lab.yaml facts (empty if topology is missing).
+Arguments:
+  $1  Fact key (ansible_user, bootstrap_user, ...).
+@stdout Fact value or empty.
+
+### Function `identities_ansible_user`
+
+@function identities_ansible_user
+Day-2 Ansible remote user (catalog / lab.yaml).
+@stdout Username.
+
+### Function `identities_bootstrap_user`
+
+@function identities_bootstrap_user
+Factory first-contact user used only by apply/plan.
+@stdout Username.
+
+### Function `identities_inventory`
+
+@function identities_inventory
+Ansible inventory path (hosts.ini, else fail).
+@stdout Inventory path.
+
+### Function `identities_fingerprint`
+
+@function identities_fingerprint
+OpenSSH SHA256 fingerprint of a public key file (never prints the key).
+Arguments:
+  $1  Path to .pub file.
+@stdout Fingerprint or "missing".
+
+### Function `cmd_status`
+
+@function cmd_status
+Catalog + local key presence. Never prints key material.
+
+### Function `identities_playbook_args`
+
+@function identities_playbook_args
+Shared extra-vars for plan/apply.
+@stdout Arguments suitable for ansible-playbook.
+
+### Function `cmd_plan`
+
+@function cmd_plan
+
+```bash
+ansible-playbook --check --diff as bootstrap_user. Never mutates.
+```
+
+### Function `cmd_run`
+
+@function cmd_run
+Dashboard/status contract: never mutates. Same as plan.
+
+### Function `cmd_ensure_keys`
+
+@function cmd_ensure_keys
+Generate missing ed25519 pairs. Refuse to overwrite. Never prints keys.
+
+### Function `cmd_apply`
+
+@function cmd_apply
+Real playbook. Requires --yes. Never deletes the bootstrap user.
+
+### Function `cmd_ping`
+
+@function cmd_ping
+ansible ping as the day-2 lab-ansible user with the identities private key.
+
+### Function `main`
+
+@function main
+Dispatch identities subcommands.
+Arguments:
+  $@
+
+
+
 <!-- source: scripts/utilities/kasm-workspace-image.sh -->
 
 ## kasm-workspace-image

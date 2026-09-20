@@ -1,0 +1,7 @@
+# Managed by ansible role lab_identities. Do not edit.
+# Source of truth: config/lab-identities.yaml
+{% for item in lab_identities.groups | dict2items %}
+{% if item.value.sudo is defined and item.value.sudo %}
+%{{ item.key }} {{ item.value.sudo }}
+{% endif %}
+{% endfor %}
