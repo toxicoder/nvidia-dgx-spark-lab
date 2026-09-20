@@ -320,6 +320,29 @@ PY
   grep -q 'coder-workspace.mcp.json.example' "$coder_ignore"
 }
 
+@test "dashboard image builder creates public before COPY --from=builder" {
+  # The dashboard has no public/ directory. Docker COPY of a missing path
+  # fails with: failed to calculate checksum ... "/app/public": not found.
+  local df="${REPO_ROOT}/dashboard/Dockerfile"
+  [[ -f $df ]]
+  python3 - "$df" <<'PY'
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text()
+if "COPY --from=builder /app/public" not in text:
+    print("ok (no public COPY)")
+    sys.exit(0)
+if "mkdir -p public" not in text and "mkdir -p /app/public" not in text:
+    print(
+        "builder must mkdir -p public before COPY --from=builder /app/public",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+print("ok")
+PY
+}
+
 @test "dashboard image npm ci uses --legacy-peer-deps like the hermetic test image" {
   # Plain `npm ci` on node:alpine hits arborist "Cannot read properties of
   # null (reading 'edgesOut')". dashboard/Dockerfile.test and run_npm.sh

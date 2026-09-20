@@ -26,7 +26,8 @@ RUN npm ci --legacy-peer-deps
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY dashboard/ ./
-RUN npm run build
+# Next.js COPY of public/ fails when the directory is absent from the repo.
+RUN mkdir -p public && npm run build
 
 FROM base AS runner
 ENV NODE_ENV=production
