@@ -84,6 +84,12 @@ bazelisk run //scripts:run-utility -- build-mcp-images run
 bazelisk run //scripts:run-utility -- build-mcp-images run -- component=mcp-fetch
 ```
 
+CI also publishes `ghcr.io/toxicoder/nvidia-dgx-spark-lab/<name>` (`mcp-fetch`,
+`mcp-gitea`, …, `context7-proxy`, `doc-ingest`) from `.github/workflows/publish-images.yml`.
+Cluster manifests still default to `lab-mcp/<name>:local`. Pull the GHCR tag when
+you want nodes to skip the local build (set the package public after the first
+publish).
+
 Dockerfiles live under `mcp/docker/<name>/`. Deployments set `imagePullPolicy: IfNotPresent`
 so a local tag is enough on single-node labs (import into the cluster runtime if needed).
 

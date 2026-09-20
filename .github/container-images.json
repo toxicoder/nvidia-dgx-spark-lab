@@ -1,0 +1,76 @@
+{
+  "images": [
+    {
+      "id": "lab-dashboard",
+      "file": "dashboard/Dockerfile",
+      "context": ".",
+      "paths": [
+        "dashboard/**",
+        "scripts/utilities/**",
+        "scripts/lib/**",
+        "config/resource-policy.json",
+        "k8s/workloads/**",
+        "k8s/base/**",
+        "ansible/files/coder-values.yaml"
+      ]
+    },
+    {
+      "id": "mcp-fetch",
+      "file": "mcp/docker/mcp-fetch/Dockerfile",
+      "context": ".",
+      "paths": ["mcp/docker/mcp-fetch/**"]
+    },
+    {
+      "id": "mcp-gitea",
+      "file": "mcp/docker/mcp-gitea/Dockerfile",
+      "context": ".",
+      "paths": ["mcp/docker/mcp-gitea/**"]
+    },
+    {
+      "id": "mcp-qdrant",
+      "file": "mcp/docker/mcp-qdrant/Dockerfile",
+      "context": ".",
+      "paths": ["mcp/docker/mcp-qdrant/**"]
+    },
+    {
+      "id": "mcp-memory",
+      "file": "mcp/docker/mcp-memory/Dockerfile",
+      "context": ".",
+      "paths": ["mcp/docker/mcp-memory/**"]
+    },
+    {
+      "id": "mcp-searxng",
+      "file": "mcp/docker/mcp-searxng/Dockerfile",
+      "context": ".",
+      "paths": ["mcp/docker/mcp-searxng/**"]
+    },
+    {
+      "id": "mcp-firecrawl",
+      "file": "mcp/docker/mcp-firecrawl/Dockerfile",
+      "context": ".",
+      "paths": ["mcp/docker/mcp-firecrawl/**"]
+    },
+    {
+      "id": "context7-proxy",
+      "file": "mcp/docker/context7-proxy/Dockerfile",
+      "context": ".",
+      "paths": [
+        "mcp/docker/context7-proxy/**",
+        "mcp/k8s/workloads/context7-proxy/server.py",
+        "mcp/k8s/workloads/context7-proxy/config.yaml"
+      ]
+    },
+    {
+      "id": "doc-ingest",
+      "file": "mcp/docker/doc-ingest/Dockerfile",
+      "context": ".",
+      "paths": ["mcp/docker/doc-ingest/**", "mcp/k8s/workloads/doc-ingest/ingest.py"]
+    },
+    {
+      "id": "coder-workspace",
+      "file": "k8s/dev/images/coder-workspace/Dockerfile",
+      "context": ".",
+      "paths": ["k8s/dev/images/coder-workspace/**", "mcp/config/clients/coder-workspace.mcp.json.example"]
+    }
+  ]
+}

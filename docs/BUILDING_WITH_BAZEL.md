@@ -275,6 +275,20 @@ For Gitea: see [gitea-ci-setup.md](gitea-ci-setup.md) and `.gitea/workflows/ci.y
 
 Bazel jobs restore disk/repo cache via `.github/actions/setup-bazel` (keyed on `MODULE.bazel.lock` + `.bazelversion`).
 
+### Published lab images (GHCR)
+
+`.github/workflows/publish-images.yml` builds first-party CPU-portable images and publishes them to `ghcr.io/<owner>/<repo>/<id>` on push to `development` / `main`. Pull requests build both architectures (`linux/amd64` + `linux/arm64`) with `type=cacheonly` and do **not** push. Catalog: `.github/container-images.json`.
+
+| Image id | Local tag (unchanged) | GHCR tags |
+| --- | --- | --- |
+| `lab-dashboard` | `lab-dashboard:local` | `development`, `main`, `sha-<short>`, `latest` (main only) |
+| `mcp-*` / `context7-proxy` / `doc-ingest` | `lab-mcp/<name>:local` | same |
+| `coder-workspace` | `spark-lab-coder-workspace:latest` | same |
+
+Not published here: the contributor `devcontainer` (`.github/workflows/devcontainer-image.yml`), `dashboard/Dockerfile.test`, GPU overlay Dockerfiles (build on Spark), and the Kasm desktop image (`kasm-workspace-image.sh` on the node).
+
+Cluster manifests stay on `:local` with `imagePullPolicy: IfNotPresent`. After the first successful publish, set the GHCR packages **public** so nodes can pull without `imagePullSecrets`. Rebuild a single image with `workflow_dispatch` (`image=<id>` or `all`).
+
 ## Security Notes
 
 - Never commit real `ansible/inventory/hosts.ini` (it is gitignored).

@@ -192,6 +192,7 @@ _ci_action_pins() {
     "${REPO_ROOT}/.github/workflows/ci.yml" \
     "${REPO_ROOT}/.github/workflows/deploy-docs.yml" \
     "${REPO_ROOT}/.github/workflows/devcontainer-image.yml" \
+    "${REPO_ROOT}/.github/workflows/publish-images.yml" \
     "${REPO_ROOT}/.gitea/workflows/ci.yml"; do
     if [[ -f $f ]] && grep -qE 'actions/cache@v4([^0-9]|$)' "$f"; then
       hits+="$(grep -nE 'actions/cache@v4([^0-9]|$)' "$f")"$'\n'
@@ -205,6 +206,100 @@ _ci_action_pins() {
   # Positive control: setup-bazel must pin a modern cache major.
   [[ -f $setup_bazel ]]
   grep -qE 'actions/cache@v[56]([^0-9]|$)' "$setup_bazel"
+}
+
+_publish_image_ids() {
+  python3 - <<'PY'
+import json
+import os
+from pathlib import Path
+
+root = Path(os.environ["REPO_ROOT"])
+catalog = json.loads((root / ".github/container-images.json").read_text())
+print(" ".join(img["id"] for img in catalog["images"]))
+PY
+}
+
+@test "publish-images catalog lists portable lab images only" {
+  local catalog="${REPO_ROOT}/.github/container-images.json"
+  [[ -f $catalog ]]
+  python3 - "$catalog" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+catalog_path = Path(sys.argv[1])
+data = json.loads(catalog_path.read_text())
+images = data["images"]
+got = [img["id"] for img in images]
+want = [
+    "lab-dashboard",
+    "mcp-fetch",
+    "mcp-gitea",
+    "mcp-qdrant",
+    "mcp-memory",
+    "mcp-searxng",
+    "mcp-firecrawl",
+    "context7-proxy",
+    "doc-ingest",
+    "coder-workspace",
+]
+if got != want:
+    print(f"catalog ids {got} != {want}", file=sys.stderr)
+    sys.exit(1)
+forbidden = (
+    "devcontainer",
+    "lab-dashboard-test",
+    "glm53-flash-tp3",
+    "dsv41-flash-tp3",
+    "kasm-spark-desktop",
+    "spark-lab-kasm-desktop",
+)
+for img in images:
+    for key in ("id", "file", "context", "paths"):
+        if key not in img or img[key] in ("", [], None):
+            print(f"{img.get('id', '<missing>')}: missing {key}", file=sys.stderr)
+            sys.exit(1)
+    if "/" in img["id"]:
+        print(f"image id must be slash-free for artifact names: {img['id']}", file=sys.stderr)
+        sys.exit(1)
+    if img["id"] in forbidden or any(tok in img["file"] for tok in forbidden):
+        print(f"must not publish {img['id']} ({img['file']})", file=sys.stderr)
+        sys.exit(1)
+    if "Dockerfile.test" in img["file"]:
+        print(f"must not publish test image {img['file']}", file=sys.stderr)
+        sys.exit(1)
+print("ok")
+PY
+}
+
+@test "publish-images workflow builds linux/amd64 and linux/arm64 and pushes GHCR only after merge" {
+  local wf="${REPO_ROOT}/.github/workflows/publish-images.yml"
+  local catalog="${REPO_ROOT}/.github/container-images.json"
+  [[ -f $wf && -f $catalog ]]
+  grep -q 'packages: write' "$wf"
+  grep -q 'ghcr.io' "$wf"
+  grep -q 'linux/amd64' "$wf"
+  grep -q 'linux/arm64' "$wf"
+  grep -q 'ubuntu-24.04-arm' "$wf"
+  grep -q 'workflow_dispatch' "$wf"
+  grep -F '.github/container-images.json' "$wf"
+  grep -q 'type=cacheonly' "$wf"
+  grep -q 'push-by-digest=true' "$wf"
+  grep -q 'github.event_name != '\''pull_request'\''' "$wf" ||
+    grep -q 'github.event_name != "pull_request"' "$wf"
+  # PRs must not get a pull_request publish path (cacheonly + no merge).
+  grep -qE '^[[:space:]]+if:.*github.event_name != .pull_request' "$wf" ||
+    grep -qF "if: github.event_name != 'pull_request'" "$wf"
+  ! grep -F 'name: digests-${{ matrix.platform }}' "$wf"
+  grep -F 'digests-${{ matrix.image }}' "$wf"
+  grep -qE 'artifact:[[:space:]]+linux-amd64|linux-amd64' "$wf"
+  grep -qE 'artifact:[[:space:]]+linux-arm64|linux-arm64' "$wf"
+  local id
+  for id in $(_publish_image_ids); do
+    grep -qF "$id" "$catalog"
+  done
+  [[ ! -f ${REPO_ROOT}/.gitea/workflows/publish-images.yml ]]
 }
 
 @test "Deploy Documentation workflow publishes only after merge (not on PR)" {

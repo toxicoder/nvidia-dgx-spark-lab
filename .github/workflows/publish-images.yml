@@ -1,0 +1,282 @@
+# Purpose: Build and publish first-party CPU-portable lab images to GHCR.
+# Source of truth: .github/container-images.json (ids, Dockerfiles, path filters)
+# Triggers: path-filtered push/PR plus workflow_dispatch (image=all or one id).
+# Safety: no secrets in images; GITHUB_TOKEN writes GHCR only on push (not PRs).
+# Not published: devcontainer (own workflow), Dockerfile.test, GPU overlays, Kasm.
+
+name: Publish lab images
+
+on:
+  push:
+    branches: [development, main]
+    paths:
+      - ".github/workflows/publish-images.yml"
+      - ".github/container-images.json"
+      - "dashboard/**"
+      - "scripts/utilities/**"
+      - "scripts/lib/**"
+      - "config/resource-policy.json"
+      - "k8s/workloads/**"
+      - "k8s/base/**"
+      - "ansible/files/coder-values.yaml"
+      - "mcp/docker/**"
+      - "mcp/k8s/workloads/context7-proxy/**"
+      - "mcp/k8s/workloads/doc-ingest/**"
+      - "k8s/dev/images/coder-workspace/**"
+      - "mcp/config/clients/coder-workspace.mcp.json.example"
+  pull_request:
+    branches: [main, master, development, dev]
+    paths:
+      - ".github/workflows/publish-images.yml"
+      - ".github/container-images.json"
+      - "dashboard/**"
+      - "scripts/utilities/**"
+      - "scripts/lib/**"
+      - "config/resource-policy.json"
+      - "k8s/workloads/**"
+      - "k8s/base/**"
+      - "ansible/files/coder-values.yaml"
+      - "mcp/docker/**"
+      - "mcp/k8s/workloads/context7-proxy/**"
+      - "mcp/k8s/workloads/doc-ingest/**"
+      - "k8s/dev/images/coder-workspace/**"
+      - "mcp/config/clients/coder-workspace.mcp.json.example"
+  workflow_dispatch:
+    inputs:
+      image:
+        description: Image id from .github/container-images.json, or all
+        required: true
+        default: all
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.pick.outputs.images }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Write path filters from catalog
+        env:
+          FILTERS_PATH: ${{ runner.temp }}/image-filters.yml
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          catalog = json.loads(Path(".github/container-images.json").read_text(encoding="utf-8"))
+          lines = [
+              "workflow:",
+              "  - \".github/workflows/publish-images.yml\"",
+              "  - \".github/container-images.json\"",
+          ]
+          for img in catalog["images"]:
+              lines.append(f"{img['id']}:")
+              for path in img["paths"]:
+                  lines.append(f"  - {json.dumps(path)}")
+          dest = Path(os.environ["FILTERS_PATH"])
+          dest.write_text("\n".join(lines) + "\n", encoding="utf-8")
+          PY
+
+      - uses: dorny/paths-filter@v4
+        id: filter
+        if: github.event_name != 'workflow_dispatch'
+        with:
+          filters: ${{ runner.temp }}/image-filters.yml
+
+      - name: Select images
+        id: pick
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DISPATCH_IMAGE: ${{ github.event.inputs.image }}
+          FILTER_JSON: ${{ toJSON(steps.filter.outputs) }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          catalog = json.loads(Path(".github/container-images.json").read_text(encoding="utf-8"))
+          ids = [img["id"] for img in catalog["images"]]
+          event = os.environ.get("EVENT_NAME", "")
+          dispatch = (os.environ.get("DISPATCH_IMAGE") or "all").strip()
+          raw = os.environ.get("FILTER_JSON") or "{}"
+          outputs = {}
+          if raw not in ("", "null", "None"):
+              parsed = json.loads(raw)
+              if isinstance(parsed, dict):
+                  outputs = parsed
+
+          if event == "workflow_dispatch":
+              if dispatch in ("", "all"):
+                  selected = ids
+              elif dispatch in ids:
+                  selected = [dispatch]
+              else:
+                  raise SystemExit(f"unknown image id {dispatch!r}; expected one of: all, {', '.join(ids)}")
+          elif str(outputs.get("workflow", "")).lower() == "true":
+              selected = ids
+          else:
+              selected = [image_id for image_id in ids if str(outputs.get(image_id, "")).lower() == "true"]
+
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as fh:
+              fh.write(f"images={json.dumps(selected)}\n")
+          print(f"selected={selected}")
+          PY
+
+  build:
+    needs: changes
+    if: needs.changes.outputs.images != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJSON(needs.changes.outputs.images) }}
+        runner: [ubuntu-latest, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Platform for runner
+        id: plat
+        run: |
+          set -euo pipefail
+          case "${{ matrix.runner }}" in
+            ubuntu-24.04-arm)
+              echo "platform=linux/arm64" >>"${GITHUB_OUTPUT}"
+              echo "artifact=linux-arm64" >>"${GITHUB_OUTPUT}"
+              ;;
+            *)
+              echo "platform=linux/amd64" >>"${GITHUB_OUTPUT}"
+              echo "artifact=linux-amd64" >>"${GITHUB_OUTPUT}"
+              ;;
+          esac
+
+      - name: Resolve Dockerfile from catalog
+        id: spec
+        env:
+          IMAGE_ID: ${{ matrix.image }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          image_id = os.environ["IMAGE_ID"]
+          catalog = json.loads(Path(".github/container-images.json").read_text(encoding="utf-8"))
+          spec = next((img for img in catalog["images"] if img["id"] == image_id), None)
+          if spec is None:
+              raise SystemExit(f"unknown image id {image_id!r}")
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as fh:
+              fh.write(f"file={spec['file']}\n")
+              fh.write(f"context={spec['context']}\n")
+          PY
+
+      - name: Lowercase image name
+        id: image
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}/${{ matrix.image }}" >>"${GITHUB_OUTPUT}"
+
+      - uses: docker/setup-buildx-action@v4
+
+      - uses: docker/login-action@v3
+        if: github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ${{ steps.image.outputs.name }}
+
+      - name: Build (and push digest on branch)
+        id: build
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ steps.spec.outputs.context }}
+          file: ${{ steps.spec.outputs.file }}
+          platforms: ${{ steps.plat.outputs.platform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          cache-from: type=gha,scope=lab-${{ matrix.image }}-${{ steps.plat.outputs.platform }}
+          cache-to: type=gha,mode=max,scope=lab-${{ matrix.image }}-${{ steps.plat.outputs.platform }}
+          outputs: >-
+            ${{
+              github.event_name == 'pull_request'
+              && 'type=cacheonly'
+              || format('type=image,name={0},push-by-digest=true,name-canonical=true,push=true', steps.image.outputs.name)
+            }}
+
+      - name: Export digest
+        if: github.event_name != 'pull_request'
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/digests"
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${RUNNER_TEMP}/digests/${digest#sha256:}"
+
+      - uses: actions/upload-artifact@v4
+        if: github.event_name != 'pull_request'
+        with:
+          name: digests-${{ matrix.image }}-${{ steps.plat.outputs.artifact }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    needs: [changes, build]
+    if: github.event_name != 'pull_request' && needs.changes.outputs.images != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJSON(needs.changes.outputs.images) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lowercase image name
+        id: image
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}/${{ matrix.image }}" >>"${GITHUB_OUTPUT}"
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-${{ matrix.image }}-*
+          merge-multiple: true
+
+      - uses: docker/setup-buildx-action@v4
+
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ${{ steps.image.outputs.name }}
+          tags: |
+            type=raw,value=${{ github.ref_name }}
+            type=sha,prefix=sha-,format=short
+            type=raw,value=latest,enable=${{ github.ref_name == 'main' }}
+
+      - name: Create multi-arch manifest
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          set -euo pipefail
+          image="${{ steps.image.outputs.name }}"
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<<"${DOCKER_METADATA_OUTPUT_JSON}") \
+            $(printf "${image}@sha256:%s " *)

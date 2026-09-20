@@ -143,7 +143,9 @@ Lifecycle (optimized):
    `ghcr.io/toxicoder/nvidia-dgx-spark-lab/devcontainer` for layer cache
    (native `linux/amd64` + `linux/arm64`). After the first successful
    publish, set that GHCR package **public** so anonymous clones can use
-   `build.cacheFrom`.
+   `build.cacheFrom`. Lab runtime images (`lab-dashboard`, `mcp-*`,
+   `coder-workspace`) use the same GHCR namespace via
+   `.github/workflows/publish-images.yml` — also set those packages public.
    Bumping one CLI pin does not re-download the others. Node 22 and Python 3.11
    are baked (not Features). Workspace `npm ci` / Playwright stay in post-create.
 2. **updateContentCommand** — `post-create.sh --deps-only` (npm, docs, Playwright)

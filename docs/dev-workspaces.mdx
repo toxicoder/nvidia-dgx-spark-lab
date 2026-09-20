@@ -145,6 +145,8 @@ Each workspace pod runs two containers sharing a network namespace:
 
 ```bash
 docker build -t spark-lab-coder-workspace:latest -f k8s/dev/images/coder-workspace/Dockerfile .
+# or pull the CI image (after GHCR packages are public):
+# docker pull ghcr.io/toxicoder/nvidia-dgx-spark-lab/coder-workspace:development
 ```
 
 **Register template in Coder:**
@@ -190,6 +192,9 @@ Build from the **repository root** (the image bundles `scripts/utilities/` for t
 ```bash
 docker build -t lab-dashboard:local -f dashboard/Dockerfile .
 kubectl apply -f k8s/dev/dashboard/
+# or pull the CI image (after GHCR packages are public) and override Helm:
+#   --set image.repository=ghcr.io/toxicoder/nvidia-dgx-spark-lab/lab-dashboard \
+#   --set image.tag=development
 ```
 
 Or use local compose:
