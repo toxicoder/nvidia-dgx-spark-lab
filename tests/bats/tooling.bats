@@ -320,6 +320,15 @@ PY
   grep -q 'coder-workspace.mcp.json.example' "$coder_ignore"
 }
 
+@test "dashboard image npm ci uses --legacy-peer-deps like the hermetic test image" {
+  # Plain `npm ci` on node:alpine hits arborist "Cannot read properties of
+  # null (reading 'edgesOut')". dashboard/Dockerfile.test and run_npm.sh
+  # already pass --legacy-peer-deps; the production image must match.
+  local prod="${REPO_ROOT}/dashboard/Dockerfile"
+  [[ -f $prod ]]
+  grep -qE 'npm ci --legacy-peer-deps' "$prod"
+}
+
 @test "dashboard image apk packages include openssl for get-helm-3" {
   # node:alpine does not ship openssl. Helm's get-helm-3 verifies the tarball
   # checksum with it and otherwise fails: "openssl must first be installed".

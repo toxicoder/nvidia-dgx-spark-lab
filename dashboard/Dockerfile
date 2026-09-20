@@ -21,7 +21,7 @@ RUN apk add --no-cache libc6-compat bash curl openssl \
 
 FROM base AS deps
 COPY dashboard/package.json dashboard/package-lock.json ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
