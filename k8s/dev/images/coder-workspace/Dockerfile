@@ -4,7 +4,7 @@
 
 FROM codercom/enterprise-base:ubuntu
 
-ARG TARGETARCH=amd64
+ARG TARGETARCH
 ENV DEBIAN_FRONTEND=noninteractive
 
 USER root

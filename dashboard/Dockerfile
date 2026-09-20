@@ -11,10 +11,11 @@
 #     lab-dashboard:local
 
 FROM node:22-alpine AS base
+ARG TARGETARCH
 WORKDIR /app
 RUN apk add --no-cache libc6-compat bash curl \
   && KVER="$(curl -L -s https://dl.k8s.io/release/stable.txt)" \
-  && curl -fsSL "https://dl.k8s.io/release/${KVER}/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl \
+  && curl -fsSL "https://dl.k8s.io/release/${KVER}/bin/linux/${TARGETARCH}/kubectl" -o /usr/local/bin/kubectl \
   && chmod +x /usr/local/bin/kubectl \
   && curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | HELM_INSTALL_DIR=/usr/local/bin USE_SUDO=false bash
 

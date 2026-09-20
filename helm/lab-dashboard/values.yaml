@@ -13,6 +13,9 @@ image:
   repository: lab-dashboard
   pullPolicy: IfNotPresent
   # tag: "local"   # override when built
+  # GHCR (after packages are public):
+  #   repository: ghcr.io/toxicoder/nvidia-dgx-spark-lab/lab-dashboard
+  #   tag: development   # or main / sha-<short>
 
 service:
   type: NodePort

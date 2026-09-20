@@ -10,6 +10,11 @@ helm upgrade --install lab-dashboard ./helm/lab-dashboard \
   -n dev --create-namespace \
   --set image.tag=local \
   --set service.nodePort=32082
+
+# Optional: pull the GHCR image instead of a local build
+# helm upgrade --install lab-dashboard ./helm/lab-dashboard -n dev --create-namespace \
+#   --set image.repository=ghcr.io/toxicoder/nvidia-dgx-spark-lab/lab-dashboard \
+#   --set image.tag=development
 ```
 
 Values come from group_vars or --set. See values.yaml.
