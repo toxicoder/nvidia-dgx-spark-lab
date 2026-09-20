@@ -150,8 +150,8 @@ function isIndigo(rgb) {
 }
 
 const VOLTAGE = {
-  light: { background: "247,243,235", foreground: "22,19,17", primary: "#c67a0a" },
-  dark: { background: "18,16,14", foreground: "243,237,227", primary: "#e8a317" },
+  light: { background: "245,242,238", foreground: "22,19,17", primary: "#c46e16" },
+  dark: { background: "19,18,17", foreground: "242,238,232", primary: "#e89424" },
 };
 
 /**
