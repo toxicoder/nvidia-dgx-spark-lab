@@ -42,7 +42,7 @@ Makefile is a shim. Prefer Bazel.
 Prose rules: [Contributing to docs](../CONTRIBUTING.md). Shared patterns: [Project conventions](../project-conventions.md). Agent workflow: [AGENTS.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md).
 
 - Frontmatter `title` / `description` / `tags`
-- **What's on this page** and **What this enables**
+- **What's on this page** and **What this enables** (bold markdown plus lists; the site renders the first pair as a two-column panel)
 - New pages in **both** `docs-site/lib/nav.json` (hand-edited, then `npm run nav:check`) and `docs/BUILD.bazel`
 - Shell: `# ##` / `# @command` / `# @function` then `bazelisk run //docs:docs`
 - Dashboard JSDoc then `bazelisk run //dashboard:docs`

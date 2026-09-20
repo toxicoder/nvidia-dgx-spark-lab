@@ -11,9 +11,10 @@ import { defineConfig } from "fumadocs-mdx/config";
 import { remarkMdxMermaid } from "fumadocs-core/mdx-plugins";
 
 import { remarkGlossaryTooltips } from "./lib/remark-glossary";
+import { remarkPageOverview } from "./lib/remark-page-overview";
 
 export default defineConfig({
   mdxOptions: {
-    remarkPlugins: [remarkMdxMermaid, remarkGlossaryTooltips]
+    remarkPlugins: [remarkMdxMermaid, remarkGlossaryTooltips, remarkPageOverview]
   }
 });

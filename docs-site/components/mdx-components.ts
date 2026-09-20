@@ -18,6 +18,7 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
 import { ClusterConfigPanel } from "@/components/cluster-config-panel";
 import { Mermaid } from "@/components/mermaid";
+import { PageOverview, PageOverviewColumn } from "@/components/page-overview";
 import { resolveDocHref } from "@/lib/source";
 import type { Page } from "fumadocs-core/source";
 
@@ -51,6 +52,8 @@ export function mdxComponentsFor(page: Page) {
     Tab,
     Tabs,
     Mermaid,
-    ClusterConfigPanel
+    ClusterConfigPanel,
+    PageOverview,
+    PageOverviewColumn
   };
 }

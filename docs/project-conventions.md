@@ -840,7 +840,7 @@ Hand-written docs live in `docs/` as markdown/MDX and are rendered by the Fumado
 
 ### Page structure (required)
 
-Every `.md` page needs YAML frontmatter (`title`, `description`, `tags`) and two scannable sections after the title:
+Every `.md` page needs YAML frontmatter (`title`, `description`, `tags`) and two scannable sections after the title. Write them as bold markdown plus lists (not JSX); the docs site wraps the first pair into a two-column panel:
 
 ```markdown
 **What's on this page**
