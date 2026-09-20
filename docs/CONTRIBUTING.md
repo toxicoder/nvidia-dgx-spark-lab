@@ -93,6 +93,7 @@ tags: [bazel, k3s, nvidia, safety]
   - Bullets describing the main content, sections, diagrams, tables, etc.
   **What this enables / practical use**
   - Bullets describing reader benefit, common use cases, or what the content lets you achieve.
+  Write those labels as bold markdown plus lists, not as JSX. The site wraps the first pair into a two-column panel; later examples on the same page stay ordinary prose.
 - Write for humans. Be concise. Remove filler.
 - Include copy-pasteable examples.
 - Use Mermaid for diagrams (supported).

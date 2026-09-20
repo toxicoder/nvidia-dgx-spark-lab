@@ -145,6 +145,76 @@ html {
   font-weight: 600;
 }
 
+/*
+ * Page-overview panel: the first What's on this page / What this enables pair, rewritten
+ * by lib/remark-page-overview.ts.  `not-prose` on the section opts out of article list
+ * margins so the two cards stay compact.
+ */
+.page-overview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-block: 1rem 1.5rem;
+}
+
+@media (max-width: 40rem) {
+  .page-overview {
+    grid-template-columns: 1fr;
+  }
+}
+
+.page-overview-col {
+  border: 1px solid var(--color-fd-border);
+  border-radius: 0.5rem;
+  border-top-width: 3px;
+  border-top-color: var(--color-fd-teal);
+  background: var(--color-fd-card);
+  padding: 0.75rem 1rem 0.65rem;
+  min-width: 0;
+}
+
+.page-overview-col[data-kind="enables"] {
+  border-top-color: var(--color-fd-primary);
+}
+
+.page-overview-label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  color: var(--color-fd-teal);
+}
+
+.page-overview-col[data-kind="enables"] .page-overview-label {
+  color: var(--color-fd-primary);
+}
+
+.page-overview-mark {
+  flex-shrink: 0;
+}
+
+.page-overview-col ul {
+  list-style: disc;
+  margin: 0;
+  padding-inline-start: 1.15rem;
+  color: var(--color-fd-foreground);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.page-overview-col li + li {
+  margin-top: 0.3rem;
+}
+
+.page-overview-col a {
+  color: var(--color-fd-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* Glossary tooltips are injected as <abbr> by lib/remark-glossary.ts. */
 abbr[title] {
   text-decoration: underline dotted;

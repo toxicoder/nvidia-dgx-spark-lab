@@ -298,6 +298,40 @@ check(
   JSON.stringify(diagrams)
 );
 
+const overview = await withPage(async (page) => {
+  await goto(page, "/", 2500);
+  return page.evaluate(() => {
+    const box = document.querySelector('[aria-label="Page overview"]');
+    const cols = Array.from(document.querySelectorAll(".page-overview-col"));
+    return {
+      present: Boolean(box),
+      columns: cols.length,
+      kinds: cols.map((col) => col.getAttribute("data-kind")),
+      labels: cols.map((col) => (col.querySelector(".page-overview-label")?.textContent ?? "").replace(/\s+/gu, " ").trim())
+    };
+  });
+});
+check(
+  "home page overview is a two-column panel",
+  overview !== PROBE_FAILED && overview.present && overview.columns === 2,
+  JSON.stringify(overview)
+);
+check(
+  "overview columns are contents then enables",
+  overview !== PROBE_FAILED && JSON.stringify(overview.kinds) === JSON.stringify(["contents", "enables"]),
+  JSON.stringify(overview)
+);
+
+const conventionOverviews = await withPage(async (page) => {
+  await goto(page, "/project-conventions/", 2500);
+  return page.evaluate(() => document.querySelectorAll('[aria-label="Page overview"]').length);
+});
+check(
+  "convention examples are not wrapped a second time",
+  conventionOverviews !== PROBE_FAILED && conventionOverviews === 1,
+  `count=${conventionOverviews}`
+);
+
 const tabState = await withPage(async (page) => {
   await goto(page, "/getting-started/", 2500);
   const total = await count(page, '[role="tab"]');

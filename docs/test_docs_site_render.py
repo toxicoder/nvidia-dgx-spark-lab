@@ -456,6 +456,18 @@ class TestDocsSiteRender(unittest.TestCase):
         self.assertIn("data-profile", html)
         self.assertIn("SPARK0_IP", html)
 
+    def test_exported_home_wraps_page_overview(self) -> None:
+        """The first What's on this page pair renders as the two-column panel."""
+        routes = exported_pages()
+        if not routes:
+            self.skipTest("No exported site; run the docs-site build first.")
+        html = read_export("/")
+        self.assertIn("page-overview", html)
+        self.assertIn('data-kind="contents"', html)
+        self.assertIn('data-kind="enables"', html)
+        self.assertIn("on this page", html)
+        self.assertIn("What this enables", html)
+
     def test_exported_pages_render_mermaid_and_callouts(self) -> None:
         """Diagrams and callouts survive the export as real elements, not raw syntax."""
         routes = exported_pages()
