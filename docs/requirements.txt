@@ -6,6 +6,6 @@
 #     generator modules.
 #   - Pillow: pixel comparison used when triaging a visual-regression failure in
 #     docs-site/tests/visual.
-pytest>=8.0.0
-pytest-cov>=6.0.0
-Pillow>=10.0.0
+pytest>=9.1.1
+pytest-cov>=7.1.0
+Pillow>=12.3.0
