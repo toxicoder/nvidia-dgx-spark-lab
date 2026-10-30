@@ -7,12 +7,13 @@ content used by the interactive command-vars panel) works correctly.
 
 from __future__ import annotations
 
+import importlib
 import os
 import sys
 import tempfile
 import unittest
 from pathlib import Path
-from typing import Sequence
+from typing import Any, Callable, Iterator, Sequence
 
 # Import the module under test
 sys.path.insert(0, str(Path(__file__).parent))
@@ -343,10 +344,27 @@ class TestMainIdempotent(unittest.TestCase):
                 mod.OUTPUT_FILE = orig
 
     def test_main_module_guard(self) -> None:
-        """The module executes without error when run as ``__main__``."""
-        import runpy
+        """The module executes without error when run as ``__main__``.
 
-        runpy.run_path(str(Path(__file__).parent / "generate_shell_docs.py"), run_name="__main__")
+        ``SHELL_REFERENCE_OUTPUT`` points the write at a temp file: the guard runs
+        the real module path, which resolves ``REPO_ROOT`` through runfiles
+        symlinks and would otherwise rewrite the tracked reference in the working
+        tree on every test run.
+        """
+        import runpy
+        from unittest.mock import patch
+
+        with tempfile.TemporaryDirectory() as td:
+            rendered = Path(td) / "reference.md"
+            with patch.dict(os.environ, {"SHELL_REFERENCE_OUTPUT": str(rendered)}):
+                runpy.run_path(
+                    str(Path(__file__).parent / "generate_shell_docs.py"),
+                    run_name="__main__",
+                )
+            self.assertTrue(rendered.exists())
+            content = rendered.read_text(encoding="utf-8")
+            self.assertIn("Auto-Generated Shell Reference", content)
+            self.assertIn("<!-- source: scripts/manage.sh -->", content)
 
     def test_fallback_when_no_docs_extracted(self) -> None:
         """An empty scripts tree produces the helpful no-docs fallback message."""
@@ -369,6 +387,114 @@ class TestMainIdempotent(unittest.TestCase):
                 mod.SCRIPTS_DIR = orig_scripts
                 mod.OUTPUT_DIR = orig_dir
                 mod.OUTPUT_FILE = orig_out
+
+
+class TestDeterministicOrdering(unittest.TestCase):
+    """The reference must not depend on filesystem directory order."""
+
+    @staticmethod
+    def _write_scripts(scripts: Path, rel_paths: Sequence[str]) -> None:
+        """Write one minimal documented script per relative path.
+
+        Args:
+            scripts: Directory that stands in for ``scripts/``.
+            rel_paths: Paths to create below ``scripts``.
+        """
+        for rel in rel_paths:
+            target = scripts / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("# ## %s\n# body\n" % rel, encoding="utf-8")
+
+    def _generate(self, td: Path, scripts: Path) -> str:
+        """Run the generator against a temp scripts tree and return the Markdown.
+
+        Args:
+            td: Temporary directory that stands in for the repository root.
+            scripts: Directory that stands in for ``scripts/``.
+
+        Returns:
+            Generated reference Markdown content.
+        """
+        mod: Any = importlib.import_module("generate_shell_docs")
+
+        mod.SCRIPTS_DIR = scripts
+        mod.REPO_ROOT = td
+        mod.OUTPUT_DIR = td
+        mod.OUTPUT_FILE = td / "reference.md"
+        mod.main()
+        return str(mod.OUTPUT_FILE.read_text(encoding="utf-8"))
+
+    def test_sections_follow_sorted_paths_not_walk_order(self) -> None:
+        """Shuffled os.walk output leaves the generated reference unchanged."""
+        mod: Any = importlib.import_module("generate_shell_docs")
+
+        rel_paths = [
+            "zulu.sh",
+            "alpha.sh",
+            "utilities/zulu.sh",
+            "utilities/alpha.sh",
+            "lib/zulu.sh",
+            "lib/alpha.sh",
+        ]
+        real_walk = mod.os.walk
+
+        def shuffled_walk(shift: int) -> Callable[..., Iterator[Any]]:
+            """Return an os.walk replacement whose entries are rotated by ``shift``.
+
+            Args:
+                shift: How far to rotate each directory's sorted entry list.
+
+            Returns:
+                A generator function compatible with ``os.walk``.
+            """
+
+            def walk(top: Any, *args: Any, **kwargs: Any) -> Iterator[Any]:
+                """Yield the tree below ``top`` with each directory's entries rotated."""
+                for root, dirs, names in real_walk(top, *args, **kwargs):
+                    ordered_dirs = sorted(dirs)
+                    ordered_names = sorted(names)
+                    yield (
+                        root,
+                        ordered_dirs[shift:] + ordered_dirs[:shift],
+                        ordered_names[shift:] + ordered_names[:shift],
+                    )
+
+            return walk
+
+        with tempfile.TemporaryDirectory() as raw_td:
+            td = Path(raw_td)
+            scripts = td / "scripts"
+            self._write_scripts(scripts, rel_paths)
+            saved = (mod.SCRIPTS_DIR, mod.REPO_ROOT, mod.OUTPUT_DIR, mod.OUTPUT_FILE)
+            outputs: list[str] = []
+            try:
+                mod.SCRIPTS_DIR = scripts
+                mod.REPO_ROOT = td
+                mod.OUTPUT_DIR = td
+                mod.OUTPUT_FILE = td / "reference.md"
+                for shift in (0, 1, len(rel_paths) // 2):
+                    mod.os.walk = shuffled_walk(shift)
+                    if mod.OUTPUT_FILE.exists():
+                        mod.OUTPUT_FILE.unlink()
+                    outputs.append(self._generate(td, scripts))
+            finally:
+                mod.os.walk = real_walk
+                (
+                    mod.SCRIPTS_DIR,
+                    mod.REPO_ROOT,
+                    mod.OUTPUT_DIR,
+                    mod.OUTPUT_FILE,
+                ) = saved
+
+            self.assertEqual([outputs[0]] * len(outputs), outputs)
+            expected_order = [
+                str(Path(root, name).relative_to(scripts))
+                for root, _, names in sorted(real_walk(scripts))
+                for name in sorted(names)
+                if name.endswith(".sh")
+            ]
+            positions = [outputs[0].index(f"<!-- source: scripts/{rel} -->") for rel in expected_order]
+            self.assertEqual(positions, sorted(positions))
 
 
 if __name__ == "__main__":
