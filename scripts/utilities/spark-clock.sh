@@ -15,6 +15,12 @@
 # - `run` is a no-op when the configured lock range already matches targets.
 # - Service install is idempotent (only rewrites unit if content differs).
 #
+# **Lock readback**: NVML only offers setters for locked GPU clocks
+# (`nvmlDeviceSetGpuLockedClocks`), so `nvidia-smi` cannot confirm a `-lgc` request.
+# Live `clocks.min/max.graphics` are used whenever the driver reports them; otherwise
+# the range applied during the current boot is read from `SPARK_CLOCK_STATE_FILE`
+# (default `/var/lib/spark-clock/lock`). `status` names which source it used.
+#
 # **Safety**:
 # - Never touches ai-inference namespace workloads.
 # - Requires nvidia-smi; mutation verbs require root (or passwordless sudo).
@@ -41,13 +47,22 @@
 
 set -euo pipefail
 
-# shellcheck source=../lib/paths.sh disable=SC1091
-source "$(cd "$(dirname "${0}")" && pwd)/../lib/paths.sh"
-SCRIPT_DIR="$(lab_script_dir 1 utilities)"
+# The systemd unit execs the installed copy at /usr/local/bin, which has no ../lib
+# sibling, so repo helpers are optional and every helper below stands on its own.
+SPARK_CLOCK_SELF="${BASH_SOURCE[0]:-$0}"
+[[ -f $SPARK_CLOCK_SELF ]] || SPARK_CLOCK_SELF="$0"
+SCRIPT_DIR="$(cd "$(dirname "$SPARK_CLOCK_SELF")" >/dev/null 2>&1 && pwd)"
+SCRIPT_DIR="${SCRIPT_DIR:-.}"
+SPARK_CLOCK_LIB_DIR="${SPARK_CLOCK_LIB_DIR:-${SCRIPT_DIR}/../lib}"
 
-if [[ -f "${SCRIPT_DIR}/../lib/common.sh" ]]; then
-  # shellcheck source=../lib/common.sh
-  source "${SCRIPT_DIR}/../lib/common.sh"
+if [[ -f "${SPARK_CLOCK_LIB_DIR}/paths.sh" ]]; then
+  # shellcheck source=/dev/null
+  source "${SPARK_CLOCK_LIB_DIR}/paths.sh"
+fi
+
+if [[ -f "${SPARK_CLOCK_LIB_DIR}/common.sh" ]]; then
+  # shellcheck source=/dev/null
+  source "${SPARK_CLOCK_LIB_DIR}/common.sh"
 fi
 
 # @function log
@@ -89,8 +104,12 @@ DIAGNOSE_INTERVAL_S=${DIAGNOSE_INTERVAL_S:-0.5}
 CLOCK_TOLERANCE_MHZ=${CLOCK_TOLERANCE_MHZ:-10}
 
 SERVICE_NAME="nvidia-clock-optimize.service"
-SERVICE_PATH="/etc/systemd/system/${SERVICE_NAME}"
-SCRIPT_INSTALL_PATH="/usr/local/bin/spark-clock.sh"
+SERVICE_PATH="${SPARK_CLOCK_SERVICE_PATH:-/etc/systemd/system/${SERVICE_NAME}}"
+SCRIPT_INSTALL_PATH="${SPARK_CLOCK_SCRIPT_INSTALL_PATH:-/usr/local/bin/spark-clock.sh}"
+# NVML exposes no getter for locked GPU clocks (nvmlDeviceSetGpuLockedClocks is
+# write-only), so the range this script applied is recorded here and treated as
+# current only while it is newer than the running boot.
+SPARK_CLOCK_STATE_FILE="${SPARK_CLOCK_STATE_FILE:-/var/lib/spark-clock/lock}"
 
 GPU_QUERY_FIELDS="clocks.current.graphics,clocks.min.graphics,clocks.max.graphics,clocks.applications.graphics,temperature.gpu,temperature.gpu_tlimit_temp,power.draw,utilization.gpu,clocks_throttle_reasons.active,clocks_throttle_reasons.applications_clocks_setting,clocks_event_reasons.sw_power_capping,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_thermal_slowdown,persistence_mode"
 
@@ -98,9 +117,28 @@ GPU_QUERY_FIELDS="clocks.current.graphics,clocks.min.graphics,clocks.max.graphic
 
 # @function nvidia_query
 # Query GPU telemetry fields via nvidia-smi CSV output.
+# @stdout One CSV row in GPU_QUERY_FIELDS order; empty when the GPU is unreadable.
 
 nvidia_query() {
-  nvidia-smi --query-gpu="${GPU_QUERY_FIELDS}" --format=csv,noheader,nounits 2>/dev/null | head -1
+  local row
+  row=$(nvidia-smi --query-gpu="${GPU_QUERY_FIELDS}" --format=csv,noheader,nounits 2>/dev/null | head -1 || true)
+  if [[ -n ${row//[ ,]/} ]]; then
+    printf '%s\n' "$row"
+    return 0
+  fi
+  # A single field the driver does not know aborts the whole combined query, so
+  # retry field by field and keep the column order stable.
+  local fields=() values=() field value
+  IFS=',' read -r -a fields <<<"$GPU_QUERY_FIELDS"
+  for field in "${fields[@]}"; do
+    value=$(nvidia-smi --query-gpu="${field}" --format=csv,noheader,nounits 2>/dev/null | head -1 || true)
+    [[ -n ${value//[ ,]/} ]] || value="N/A"
+    values+=("$value")
+  done
+  (
+    IFS=,
+    printf '%s\n' "${values[*]:-}"
+  )
 }
 
 # @function nvidia_smi_exec
@@ -190,55 +228,150 @@ clock_within_tolerance() {
 }
 
 # @function is_lock_active
-# Detect whether nvidia graphics clock lock is active.
+# Detect whether the applications-clocks setting (nvidia-smi -ac) is active.
+# A -lgc lock keeps this reason "Not Active", so it is a weak last-resort signal.
 # @param $1  Applications clocks setting string.
 
 is_lock_active() {
   local apps_setting="${1:-}"
-  if [[ $apps_setting == "Active" ]]; then
-    return 0
-  fi
-  if [[ $apps_setting == "Not Active" ]]; then
-    return 1
-  fi
-  if nvidia-smi -q -d CLOCK 2>/dev/null | grep -qiE 'Applications Clocks Setting.*Active|Graphics.*Locked'; then
+  case "$apps_setting" in
+    Active | active)
+      return 0
+      ;;
+    "Not Active" | "not active" | "N/A" | "")
+      return 1
+      ;;
+  esac
+  # The reason is not a value we recognise; ask the full query, which must report
+  # the reason as Active (matching "Not Active" here would invert the verdict).
+  if nvidia-smi -q -d CLOCK 2>/dev/null |
+    grep -qiE 'Applications Clocks Setting[[:space:]]*:[[:space:]]*Active([[:space:]]|$)|Graphics Clocks?[[:space:]]*:[[:space:]]*Locked'; then
     return 0
   fi
   return 1
 }
 
+# @function boot_epoch
+# Epoch seconds of the current boot (locks do not survive a power cycle).
+# @stdout Epoch seconds, or empty when it cannot be determined.
+
+boot_epoch() {
+  awk '/^btime/ {print $2; found=1} END {exit found?0:1}' /proc/stat 2>/dev/null || true
+}
+
+# @function lock_record_is_current
+# True when the saved lock record is newer than the current boot.
+
+lock_record_is_current() {
+  local path="$SPARK_CLOCK_STATE_FILE"
+  [[ -s $path ]] || return 1
+  local mtime boot
+  mtime=$(stat -c %Y "$path" 2>/dev/null || true)
+  boot=$(boot_epoch)
+  if ! is_numeric "$mtime" || ! is_numeric "$boot"; then
+    return 0
+  fi
+  [[ $mtime -ge $boot ]]
+}
+
+# @function read_lock_record
+# Read the range applied by this script during the current boot.
+# @stdout floor,ceiling, or empty when no current record exists.
+
+read_lock_record() {
+  local range
+  lock_record_is_current || return 0
+  range=$(head -1 "$SPARK_CLOCK_STATE_FILE" 2>/dev/null | tr -d ' ') || return 0
+  if [[ $range == *,* ]] && is_numeric "${range%%,*}" && is_numeric "${range##*,}"; then
+    echo "$range"
+  fi
+}
+
+# @function write_lock_record
+# Persist the applied lock range; a failure only costs the readback.
+# @param $1  floor,ceiling.
+
+write_lock_record() {
+  local range="${1:-}"
+  [[ $range == *,* ]] || return 0
+  if ! mkdir -p "$(dirname "$SPARK_CLOCK_STATE_FILE")" 2>/dev/null; then
+    warn "Cannot create $(dirname "$SPARK_CLOCK_STATE_FILE"); lock readback will rely on nvidia-smi only."
+    return 0
+  fi
+  if ! printf '%s\n' "$range" >"$SPARK_CLOCK_STATE_FILE" 2>/dev/null; then
+    warn "Cannot write $SPARK_CLOCK_STATE_FILE; lock readback will rely on nvidia-smi only."
+  fi
+}
+
+# @function clear_lock_record
+# Drop the saved lock record after an unlock.
+
+clear_lock_record() {
+  rm -f "$SPARK_CLOCK_STATE_FILE" 2>/dev/null || true
+}
+
+# @function lock_record_conflicts
+# True when live min/max clocks disagree with the range saved this boot.
+# @param $1  Live floor MHz.
+# @param $2  Live ceiling MHz.
+
+lock_record_conflicts() {
+  local floor="${1:-}" ceiling="${2:-}" recorded
+  recorded=$(read_lock_record)
+  [[ -n $recorded ]] || return 1
+  if clock_within_tolerance "$floor" "${recorded%%,*}" &&
+    clock_within_tolerance "$ceiling" "${recorded##*,}"; then
+    return 1
+  fi
+  return 0
+}
+
 # @function get_configured_lock_range
 # Return configured lock range as floor,ceiling or unlocked/locked,unknown.
+# Live min/max clocks win when the driver reports them; otherwise the range this
+# script applied this boot is used, because NVML cannot read a -lgc lock back.
+# Sets LOCK_SOURCE to telemetry, record, apps-clocks, or none.
 
 get_configured_lock_range() {
-  local row floor ceiling
+  local row floor ceiling parsed recorded
+  LOCK_SOURCE="none"
   row=$(nvidia_query)
   parse_gpu_row "$row"
+
+  floor="$MIN_MHZ"
+  ceiling="$MAX_MHZ"
+  if is_numeric "$floor" && is_numeric "$ceiling"; then
+    LOCK_SOURCE="telemetry"
+    echo "${floor},${ceiling}"
+    return 0
+  fi
+
+  recorded=$(read_lock_record)
+  if [[ -n $recorded ]]; then
+    LOCK_SOURCE="record"
+    echo "$recorded"
+    return 0
+  fi
 
   if ! is_lock_active "$APPS_CLOCK_SETTING"; then
     echo "unlocked"
     return 0
   fi
 
-  floor="$MIN_MHZ"
-  ceiling="$MAX_MHZ"
-
-  if ! is_numeric "$floor" || ! is_numeric "$ceiling"; then
-    local parsed
-    parsed=$(nvidia-smi -q -d CLOCK 2>/dev/null | awk '
+  parsed=$(nvidia-smi -q -d CLOCK 2>/dev/null | awk '
             /Graphics/ && /MHz/ {
                 if (match($0, /([0-9]+) MHz/, m)) print m[1]
             }' | head -2 | tr '\n' ',' | sed 's/,$//')
-    if [[ $parsed == *,* ]]; then
-      floor="${parsed%%,*}"
-      ceiling="${parsed##*,}"
-    elif is_numeric "$parsed"; then
-      floor="$CLOCK_FLOOR_MHZ"
-      ceiling="$parsed"
-    fi
+  if [[ $parsed == *,* ]]; then
+    floor="${parsed%%,*}"
+    ceiling="${parsed##*,}"
+  elif is_numeric "$parsed"; then
+    floor="$CLOCK_FLOOR_MHZ"
+    ceiling="$parsed"
   fi
 
   if is_numeric "$floor" && is_numeric "$ceiling"; then
+    LOCK_SOURCE="apps-clocks"
     echo "${floor},${ceiling}"
   else
     echo "locked,unknown"
@@ -357,10 +490,11 @@ build_recommendations() {
 # Populate global status variables from live GPU telemetry.
 
 collect_status_data() {
-  local row range at_target health
+  local row range at_target health recorded
   row=$(nvidia_query)
   parse_gpu_row "$row"
 
+  LOCK_SOURCE="none"
   range=$(get_configured_lock_range)
   if [[ $range == "unlocked" ]]; then
     LOCKED="false"
@@ -403,6 +537,11 @@ collect_status_data() {
   rec=$(build_recommendations "$health")
   if [[ -n $rec ]]; then
     RECOMMENDATIONS+=("$rec")
+  fi
+
+  if [[ ${LOCK_SOURCE:-} == "telemetry" ]] && lock_record_conflicts "${CONFIG_FLOOR:-}" "${CONFIG_CEILING:-}"; then
+    recorded=$(read_lock_record)
+    RECOMMENDATIONS+=("Live clocks ${CONFIG_FLOOR}-${CONFIG_CEILING} MHz disagree with the saved lock record ${recorded}; the lock may have changed outside spark-clock. Run: sudo $0 run")
   fi
 }
 
@@ -458,6 +597,7 @@ status() {
   "ceiling_mhz": ${CLOCK_CEILING_MHZ},
   "configured_floor_mhz": "${CONFIG_FLOOR:-}",
   "configured_ceiling_mhz": "${CONFIG_CEILING:-}",
+  "lock_source": "${LOCK_SOURCE:-none}",
   "current_mhz": ${CURRENT_MHZ},
   "locked": ${locked_json},
   "at_target": ${AT_TARGET},
@@ -489,6 +629,7 @@ JSON
   echo "Configured range       : ${CONFIG_FLOOR:-unlocked}–${CONFIG_CEILING:-unlocked} MHz"
   echo "Current graphics clock : ${CURRENT_MHZ} MHz"
   echo "Lock active            : ${LOCKED}"
+  echo "Lock source            : ${LOCK_SOURCE:-none}"
   echo "At target (idempotent) : $([[ $AT_TARGET == true ]] && echo "YES (no-op on run)" || echo "NO (run will lock)")"
   echo "Health                 : ${HEALTH}"
   echo "Temperature            : ${TEMP_C} C (T.Limit margin: ${TLIMIT_C} C)"
@@ -532,6 +673,7 @@ apply_lock_range() {
 
   log "Locking graphics clocks to ${floor},${ceiling} MHz (current: $(nvidia-smi --query-gpu=clocks.current.graphics --format=csv,noheader,nounits 2>/dev/null | head -1 | tr -d ' ') MHz)..."
   if nvidia_smi_exec -lgc "${floor},${ceiling}"; then
+    write_lock_record "${floor},${ceiling}"
     log "Success. Configured range: $(get_configured_lock_range)"
     return 0
   fi
@@ -566,7 +708,11 @@ reset() {
   check_tool nvidia-smi
   require_root "reset"
   log "Unlocking graphics clocks (restoring auto-boost)..."
-  nvidia_smi_exec -rgc || true
+  if nvidia_smi_exec -rgc; then
+    clear_lock_record
+  else
+    warn "nvidia-smi -rgc failed; keeping the saved lock record."
+  fi
   log "Current: $(nvidia-smi --query-gpu=clocks.current.graphics --format=csv,noheader,nounits 2>/dev/null | head -1 | tr -d ' ') MHz"
 }
 
@@ -641,10 +787,23 @@ install_service() {
   require_root "--enable-systemd-service"
   log "Installing spark-clock optimization service (idempotent)..."
 
-  if [[ $0 != "$SCRIPT_INSTALL_PATH" ]]; then
-    cp "$0" "$SCRIPT_INSTALL_PATH"
+  local source_script
+  source_script="$(cd "$(dirname "$SPARK_CLOCK_SELF")" >/dev/null 2>&1 && pwd)/$(basename "$SPARK_CLOCK_SELF")"
+
+  if [[ $source_script != "$SCRIPT_INSTALL_PATH" ]]; then
+    if ! install -D -m 0755 "$source_script" "$SCRIPT_INSTALL_PATH"; then
+      err "Could not install $source_script to $SCRIPT_INSTALL_PATH"
+      return 1
+    fi
     chmod +x "$SCRIPT_INSTALL_PATH"
     log "Script installed to $SCRIPT_INSTALL_PATH"
+  fi
+
+  # The unit execs the installed copy with no repo ../lib next to it; prove it runs
+  # before touching systemd so a broken install cannot leave a failing unit enabled.
+  if ! "$SCRIPT_INSTALL_PATH" status >/dev/null; then
+    err "$SCRIPT_INSTALL_PATH cannot run 'status'; $SERVICE_NAME not enabled"
+    return 1
   fi
 
   local desired_unit
@@ -679,7 +838,10 @@ EOF
 
   systemctl daemon-reload
   systemctl enable "$SERVICE_NAME"
-  systemctl start "$SERVICE_NAME"
+  if ! systemctl start "$SERVICE_NAME"; then
+    err "$SERVICE_NAME failed to start. Inspect: systemctl status $SERVICE_NAME"
+    return 1
+  fi
   log "Service $SERVICE_NAME enabled and started."
 }
 
