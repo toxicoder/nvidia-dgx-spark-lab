@@ -335,11 +335,17 @@ def main() -> None:
     Scans ``scripts/`` for structured comment markers, writes
     ``docs/generated/shell/reference.md``, and skips the write when content is
     unchanged unless ``--force`` is passed on the command line.
+
+    ``SHELL_REFERENCE_OUTPUT`` redirects the reference to another path, which
+    keeps tests and ad-hoc renders from touching the tracked generated file.
     """
     import sys
 
     force = "--force" in sys.argv
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    override = os.environ.get("SHELL_REFERENCE_OUTPUT")
+    output_file = Path(override) if override else OUTPUT_FILE
+    output_dir = output_file.parent if override else OUTPUT_DIR
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     all_docs: list[str] = [
         "# Auto-Generated Shell Reference\n",
@@ -366,9 +372,10 @@ def main() -> None:
         if fp.exists():
             files.append(fp)
 
-    # Add any other .sh files
-    for root, _, names in os.walk(SCRIPTS_DIR):
-        for name in names:
+    # Add any other .sh files in sorted order; os.walk order is filesystem
+    # dependent and would reshuffle the whole reference on every regeneration.
+    for root, _, names in sorted(os.walk(SCRIPTS_DIR)):
+        for name in sorted(names):
             if name.endswith(".sh"):
                 fp = Path(root) / name
                 if fp not in files:
@@ -392,18 +399,18 @@ def main() -> None:
 
     # Efficient no-op: only write when content actually changes
     existing = ""
-    if OUTPUT_FILE.exists():
+    if output_file.exists():
         try:
-            existing = OUTPUT_FILE.read_text(encoding="utf-8")
+            existing = output_file.read_text(encoding="utf-8")
         except Exception:
             existing = ""
 
     if existing == new_content and not force:
-        print(f"Shell reference is up to date: {OUTPUT_FILE}")
+        print(f"Shell reference is up to date: {output_file}")
         return
 
-    OUTPUT_FILE.write_text(new_content, encoding="utf-8")
-    print(f"Generated {OUTPUT_FILE}")
+    output_file.write_text(new_content, encoding="utf-8")
+    print(f"Generated {output_file}")
 
 
 if __name__ == "__main__":

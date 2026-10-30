@@ -774,6 +774,19 @@ Leaves ai-inference workloads untouched.
 
 
 
+<!-- source: scripts/ci_check_only.sh -->
+
+## ci_check_only — lightweight CI validate-gate
+
+Verifies path-filtered GitHub/Gitea jobs reported success (or were correctly
+skipped). No Bazel cold start — intended for the validate-gate job only.
+
+Env (set by CI):
+  BAZEL_CORE_RESULT, DASHBOARD_UNIT_RESULT, DASHBOARD_HERMETIC_RESULT, DOCS_RESULT
+  RUN_BAZEL_CORE, RUN_DASHBOARD, RUN_DOCS  (true/false or 1/0)
+
+
+
 <!-- source: scripts/validate.sh -->
 
 ## validate — unified build / test / lint orchestrator
@@ -823,19 +836,6 @@ Graph / orchestrator changes force all expensive CI slices.
 ### Function `path_matches_ci_workflow`
 
 Workflow/action YAML only — does not force hermetic/docs by itself.
-
-
-
-<!-- source: scripts/ci_check_only.sh -->
-
-## ci_check_only — lightweight CI validate-gate
-
-Verifies path-filtered GitHub/Gitea jobs reported success (or were correctly
-skipped). No Bazel cold start — intended for the validate-gate job only.
-
-Env (set by CI):
-  BAZEL_CORE_RESULT, DASHBOARD_UNIT_RESULT, DASHBOARD_HERMETIC_RESULT, DOCS_RESULT
-  RUN_BAZEL_CORE, RUN_DASHBOARD, RUN_DOCS  (true/false or 1/0)
 
 
 
@@ -890,116 +890,1108 @@ Map uname -m → release asset arch (amd64|arm64).
 
 
 
-<!-- source: scripts/utilities/download-ltx.sh -->
+<!-- source: scripts/lib/check_tool.sh -->
 
-## download-ltx
+## check_tool helper
 
-Download LTX-2.3 ComfyUI components (Kijai split checkpoints).
+Resilient tool checker used by lints/run_*.sh and ansible run scripts.
+By default, a missing tool prints a message and exits 0 so local runs can
+continue gracefully when optional linters are not installed.
 
-Tiers:
-  --tier balanced  distilled FP8 (default for speed)
-  --tier quality   BF16 distilled / full-precision family weights
-  --tier all       balanced + quality
+When CI=true or REQUIRE_LINT_TOOLS=1, a missing tool is fatal (exit 1) so
+CI and strict local runs cannot silently skip lint steps.
+
+@function check_tool
+Usage (from a script):
+  source "$(dirname "$0")/../lib/check_tool.sh"
+  check_tool shellcheck "apt install shellcheck"
+  check_tool yamllint "pip install yamllint"
+
+### Function `check_tool`
+
+@function check_tool
+Usage (from a script):
+  source "$(dirname "$0")/../lib/check_tool.sh"
+  check_tool shellcheck "apt install shellcheck"
+  check_tool yamllint "pip install yamllint"
+
+
+
+<!-- source: scripts/lib/disk_scan.sh -->
+
+## disk_scan
+
+Read-only filesystem / containerd / docker survey helpers for disk-wizard.
+Source after common.sh. Not executable.
+
+!!! warning
+
+    Safety:
+      Does not delete. Realpath jail. Hermetic tests set LAB_HERMETIC=1 and
+      DISK_WIZARD_HOME so $HOME is never walked on a developer laptop.
+
+### Function `disk_scan_home`
+
+@function disk_scan_home
+Home used for ~/.cache and ~/.ollama (tests override DISK_WIZARD_HOME).
+Globals:
+  DISK_WIZARD_HOME, HOME
+Outputs:
+  Absolute home path
+
+### Function `disk_scan_hermetic`
+
+@function disk_scan_hermetic
+True when this is a hermetic test run (no live docker/crictl/kubectl).
+Globals:
+  LAB_HERMETIC
+Returns:
+  0 hermetic
+
+### Function `disk_allowed_roots`
+
+@function disk_allowed_roots
+Print allowed root directories (one per line), existing only.
+Globals:
+  MODELS_DIR, DISK_WIZARD_ROOTS, DISK_WIZARD_SCAN_TMP, DISK_WIZARD_HOME
+Outputs:
+  Paths on stdout
+
+### Function `disk_root_is_allowed`
+
+@function disk_root_is_allowed
+True if realpath(path) is under one of the allowed roots.
+Arguments:
+  $1  path
+Returns:
+  0 allowed
+
+### Function `disk_realpath_under_any`
+
+@function disk_realpath_under_any
+Realpath; fail unless under an allowed root.
+Arguments:
+  $1  path
+Outputs:
+  realpath
+Returns:
+  0; 1 escape
+
+### Function `disk_df_json`
+
+@function disk_df_json
+Filesystem size JSON for MODELS_DIR (or LAB_MOCK_DF_JSON).
+Globals:
+  MODELS_DIR, LAB_MOCK_DF_JSON
+Outputs:
+  JSON object
+
+### Function `disk_df_report`
+
+@function disk_df_report
+Human df -h for MODELS_DIR (or mock).
+Globals:
+  MODELS_DIR, LAB_MOCK_DF
+
+### Function `disk_docker_df`
+
+@function disk_docker_df
+Docker disk usage JSON lines (or LAB_MOCK_DOCKER_DF).
+Globals:
+  LAB_MOCK_DOCKER_DF, LAB_HERMETIC
+
+### Function `disk_crictl_in_use`
+
+@function disk_crictl_in_use
+Image ids in use (one per line).
+Globals:
+  LAB_MOCK_CRICTL_IN_USE, LAB_HERMETIC
+
+### Function `disk_hf_pid_present`
+
+@function disk_hf_pid_present
+True if an hf download PID or pidfile is present.
+Globals:
+  MODELS_DIR, LAB_MOCK_HF_PID
+Returns:
+  0 running
+
+### Function `disk_factory_bittest_paths`
+
+@function disk_factory_bittest_paths
+Non-recursive *bittest* glob under DISK_WIZARD_ROOT_GLOB_BASE (default /).
+Hermetic runs skip unless DISK_WIZARD_ROOT_GLOB_BASE is set.
+Outputs:
+  JSONL path/size rows
+
+### Function `disk_crictl_image_rows`
+
+@function disk_crictl_image_rows
+containerd image JSONL (crictl://unused-image/ID or in-use). Hermetic unless mocked.
+Globals:
+  LAB_MOCK_CRICTL_IMAGES, LAB_HERMETIC
+Outputs:
+  JSONL path/size rows
+
+### Function `disk_live_workload_flags`
+
+@function disk_live_workload_flags
+Set LAB_MOCK_VISUAL / MODE_C / FLASH_NEXT from live kubectl (no-op when hermetic).
+Globals:
+  LAB_HERMETIC, LAB_MOCK_VISUAL, LAB_MOCK_MODE_C, LAB_MOCK_FLASH_NEXT
+
+### Function `disk_kubectl_pods_json`
+
+@function disk_kubectl_pods_json
+
+```bash
+kubectl get pods -A -o json or LAB_MOCK_PODS_JSON.
+```
+
+Globals:
+  LAB_MOCK_PODS_JSON, LAB_HERMETIC
+
+
+
+<!-- source: scripts/lib/domains.sh -->
+
+## Lab domain helpers
+
+Reads config/lab-domains.yaml with env overrides for SSO, monitoring,
+Open WebUI, and the domain render pipeline.
+
+### Function `lab_domains_path`
+
+@function lab_domains_path
+
+### Function `_lab_domains_load`
+
+@function _lab_domains_load
+Emit key=value lines for domain config (env overrides file).
+
+### Function `_lab_domains_get`
+
+@function _lab_domains_get
+
+### Function `lab_local_domain`
+
+@function lab_local_domain
+
+### Function `lab_public_domain`
+
+@function lab_public_domain
+
+### Function `lab_primary_domain`
+
+@function lab_primary_domain
+
+### Function `lab_email_domain`
+
+@function lab_email_domain
+
+### Function `lab_sso_https_port`
+
+@function lab_sso_https_port
+
+### Function `lab_sso_http_port`
+
+@function lab_sso_http_port
+
+### Function `lab_active_domain`
+
+@function lab_active_domain
+Returns the domain used for primary SSO links (local or public apex).
+
+### Function `lab_fqdn`
+
+@function lab_fqdn
+
+```bash
+Usage: lab_fqdn dashboard [local|public]
+```
+
+### Function `lab_host_match`
+
+@function lab_host_match
+Traefik Host() rule for one subdomain across configured domains.
+
+### Function `lab_service_url`
+
+@function lab_service_url
+
+```bash
+Usage: lab_service_url dashboard [/path] [local|public]
+```
+
+### Function `lab_hosts_file_line`
+
+@function lab_hosts_file_line
+
+### Function `lab_domain_urls_json`
+
+@function lab_domain_urls_json
+Emit JSON with local/public URL maps for a service host.
+
+### Function `lab_ansible_values_file`
+
+@function lab_ansible_values_file
+Prefer ansible/files/generated/<name> when render-domains has run.
+
+### Function `domains_render`
+
+@function domains_render
+
+### Function `domains_show`
+
+@function domains_show
+
+### Function `domains_set`
+
+@function domains_set
+
+### Function `domains_apply`
+
+@function domains_apply
+
+### Command: domains
+
+
+
+<!-- source: scripts/lib/hermes.sh -->
+
+## Hermes Agent helpers
+
+Docker deploy helpers for Spark host integration and policy gates.
+
+### Function `_hermes_repo_root`
+
+@function _hermes_repo_root
+
+### Function `hermes_policy_path`
+
+@function hermes_policy_path
+
+### Function `hermes_policy_json_path`
+
+@function hermes_policy_json_path
+
+### Function `hermes_data_dir`
+
+@function hermes_data_dir
+
+### Function `hermes_compose_file`
+
+@function hermes_compose_file
+
+### Function `hermes_port_forward_pid_file`
+
+@function hermes_port_forward_pid_file
+
+### Function `_hermes_load_policy_json`
+
+@function _hermes_load_policy_json
+
+### Function `hermes_ensure_data_dir`
+
+@function hermes_ensure_data_dir
+
+### Function `hermes_render_config`
+
+@function hermes_render_config
+Optional second arg: output config path (defaults to hermes/data/config.yaml).
+Optional third arg: url_mode override (host_localhost | in_cluster).
+
+### Function `hermes_check_prerequisites`
+
+@function hermes_check_prerequisites
+
+### Function `hermes_stop_port_forward`
+
+@function hermes_stop_port_forward
+
+### Function `hermes_start_port_forward`
+
+@function hermes_start_port_forward
+
+### Function `get_hermes_catalog_json`
+
+@function get_hermes_catalog_json
+
+### Function `get_hermes_status_json`
+
+@function get_hermes_status_json
+
+### Function `start_hermes_stack`
+
+@function start_hermes_stack
+
+### Function `stop_hermes_stack`
+
+@function stop_hermes_stack
+
+
+
+<!-- source: scripts/lib/mcp.sh -->
+
+## MCP agent toolkit helpers
+
+Deploy helpers for agent-tools namespace workloads and policy gates.
+
+### Function `mcp_policy_path`
+
+@function mcp_policy_path
+
+### Function `mcp_policy_json_path`
+
+@function mcp_policy_json_path
+
+### Function `_mcp_load_policy_json`
+
+@function _mcp_load_policy_json
+
+### Function `mcp_namespace`
+
+@function mcp_namespace
+
+### Function `ensure_mcp_namespace`
+
+@function ensure_mcp_namespace
+
+### Function `_mcp_stack_startup_order`
+
+@function _mcp_stack_startup_order
+
+### Function `_mcp_component_kustomize`
+
+@function _mcp_component_kustomize
+
+### Function `start_mcp_component`
+
+@function start_mcp_component
+
+### Function `stop_mcp_component`
+
+@function stop_mcp_component
+
+### Function `get_mcp_catalog_json`
+
+@function get_mcp_catalog_json
+
+### Function `get_mcp_stack_status_json`
+
+@function get_mcp_stack_status_json
+
+### Function `start_mcp_stack`
+
+@function start_mcp_stack
+
+### Function `stop_mcp_stack`
+
+@function stop_mcp_stack
+
+
+
+<!-- source: scripts/lib/monitoring.sh -->
+
+## Monitoring stack logic
+
+Unified observability deploy: node-exporter, kube-state-metrics, blackbox-exporter,
+Prometheus, Grafana (provisioned), Headlamp, and lab-dashboard.
+
+Used by manage.sh start-monitoring and ansible/roles/monitoring.
+
+### Function `monitoring_helm_release_names`
+
+@function monitoring_helm_release_names
+
+### Function `monitoring_repo_root`
+
+@function monitoring_repo_root
+
+### Function `monitoring_probes_path`
+
+@function monitoring_probes_path
+
+### Function `monitoring_grafana_dashboards_dir`
+
+@function monitoring_grafana_dashboards_dir
+
+### Function `monitoring_spark0_ip`
+
+@function monitoring_spark0_ip
+
+### Function `ensure_monitoring_namespaces`
+
+@function ensure_monitoring_namespaces
+
+### Function `monitoring_helm_repo_add`
+
+@function monitoring_helm_repo_add
+
+### Function `monitoring_apply_grafana_dashboards_configmap`
+
+@function monitoring_apply_grafana_dashboards_configmap
+
+### Function `monitoring_generate_prometheus_scrape_config`
+
+@function monitoring_generate_prometheus_scrape_config
+Writes prometheus-scrape-config.yaml (override path via MONITORING_SCRAPE_CONFIG_OUT).
+
+### Function `monitoring_apply_prometheus_scrape_config`
+
+@function monitoring_apply_prometheus_scrape_config
+
+### Function `deploy_node_exporter`
+
+@function deploy_node_exporter
+
+### Function `deploy_kube_state_metrics`
+
+@function deploy_kube_state_metrics
+
+### Function `deploy_blackbox_exporter`
+
+@function deploy_blackbox_exporter
+
+### Function `deploy_prometheus`
+
+@function deploy_prometheus
+
+### Function `deploy_grafana_monitoring`
+
+@function deploy_grafana_monitoring
+
+### Function `deploy_headlamp_monitoring`
+
+@function deploy_headlamp_monitoring
+
+### Function `deploy_lab_dashboard_monitoring`
+
+@function deploy_lab_dashboard_monitoring
+
+### Function `deploy_monitoring_stack`
+
+@function deploy_monitoring_stack
+
+### Function `_monitoring_release_ready`
+
+@function _monitoring_release_ready
+
+### Function `_monitoring_dcgm_ready`
+
+@function _monitoring_dcgm_ready
+
+### Function `get_monitoring_status_json`
+
+@function get_monitoring_status_json
+
+### Function `verify_scrape_targets`
+
+@function verify_scrape_targets
+
+
+
+<!-- source: scripts/lib/open-webui.sh -->
+
+## Open WebUI stack helpers
+
+Helm deploy helpers; Hermes gateway backend via headless Service + Endpoints.
+
+### Function `openwebui_policy_path`
+
+@function openwebui_policy_path
+
+### Function `openwebui_policy_json_path`
+
+@function openwebui_policy_json_path
+
+### Function `_openwebui_load_policy_json`
+
+@function _openwebui_load_policy_json
+
+### Function `openwebui_control_plane_ip`
+
+@function openwebui_control_plane_ip
+Resolves spark0 InternalIP for Hermes host-network gateway bridge.
+
+### Function `openwebui_hermes_api_key`
+
+@function openwebui_hermes_api_key
+
+### Function `openwebui_ensure_secrets`
+
+@function openwebui_ensure_secrets
+
+### Function `openwebui_apply_hermes_gateway`
+
+@function openwebui_apply_hermes_gateway
+
+### Function `openwebui_check_prerequisites`
+
+@function openwebui_check_prerequisites
+
+### Function `get_openwebui_catalog_json`
+
+@function get_openwebui_catalog_json
+
+### Function `get_openwebui_status_json`
+
+@function get_openwebui_status_json
+
+### Function `start_openwebui_stack`
+
+@function start_openwebui_stack
+
+### Function `stop_openwebui_stack`
+
+@function stop_openwebui_stack
+
+
+
+<!-- source: scripts/lib/paths.sh -->
+
+## kcov-safe path resolution
+
+Helpers for resolving script and repository paths when BASH_SOURCE is unset
+under kcov instrumentation or when scripts run from Bazel runfiles symlinks.
+
+Sourced by manage.sh, validate.sh, utilities, and BATS tests via REPO_ROOT.
+
+### Function `lab_script_dir`
+
+@function lab_script_dir
+Resolve directory of the invoking shell script.
+@param $1 BASH_SOURCE depth (0 = this file, 1 = direct caller).
+@param $2 Fallback path relative to REPO_ROOT (default: scripts).
+@stdout Absolute script directory.
+
+### Function `lab_repo_root_from_lib`
+
+@function lab_repo_root_from_lib
+Resolve repo root from a scripts/lib/*.sh caller when REPO_ROOT is unset.
+@stdout Absolute repository root.
+
+### Function `lab_repo_root`
+
+@function lab_repo_root
+Resolve repository root (REPO_ROOT, BASH_SOURCE, or $0 fallback).
+@stdout Absolute repository root.
+
+### Function `lab_canonical_repo_root`
+
+@function lab_canonical_repo_root
+Resolve physical repository root for kcov coverage attribution.
+@param $1  Candidate root (defaults to REPO_ROOT or lab_repo_root).
+@stdout Canonical absolute repository root.
+
+
+
+<!-- source: scripts/lib/resources.sh -->
+
+## Resource Guard — capacity math, pre-flight checks, and free-resource suggestions
+
+Loads config/resource-policy.yaml and compares cluster allocatable vs requested
+resources (GPU, CPU, memory) with configured headroom.
+
+Used by manage.sh, cluster-resources.sh, inference-workloads.sh, and dashboard utilities.
+
+### Function `resource_policy_path`
+
+@function resource_policy_path
+Returns absolute path to resource-policy.json (stdlib parse target; YAML is human source).
+
+### Function `_resource_python`
+
+@function _resource_python
+Runs inline Python with PyYAML-free stdlib-only YAML subset parser via json export.
+
+### Function `_kubectl_nodes_json`
+
+@function _kubectl_nodes_json
+Returns simplified per-node allocatable JSON array.
+
+### Function `_kubectl_pod_requests_json`
+
+@function _kubectl_pod_requests_json
+Sums Running/Pending pod container requests cluster-wide.
+
+### Function `get_cluster_capacity_json`
+
+@function get_cluster_capacity_json
+Emits JSON with allocatable, requested, headroom, available (after headroom).
+
+### Function `check_capacity`
+
+@function check_capacity
+Args: action (model:kimi, dev:coder, etc.). Prints JSON; exit 0 if ok.
+
+### Function `_is_helm_release_running`
+
+@function _is_helm_release_running
+
+### Function `_is_job_active`
+
+@function _is_job_active
+
+### Function `suggest_free_resources`
+
+@function suggest_free_resources
+Args: action. Prints JSON array of suggestions applicable to clearing deficit.
+
+### Function `_confirm_interactive`
+
+@function _confirm_interactive
+
+### Function `enforce_capacity`
+
+@function enforce_capacity
+Args: action [--force]. Blocks start when capacity insufficient.
+
+### Function `print_resources_status`
+
+@function print_resources_status
+Human-readable capacity report for manage.sh resources command.
+
+### Function `require_heavy_confirm`
+
+@function require_heavy_confirm
+Interactive or LAB_CONFIRM_TOKEN=yes for heavy models.
+
+### Function `guard_active_job`
+
+@function guard_active_job
+Returns 0 if job is not active (safe to start). Returns 1 if still active (caller should abort).
+
+
+
+<!-- source: scripts/lib/secrets.sh -->
+
+## secrets
+
+Manage lab dashboard secrets vault infrastructure (master key, status).
+Never prints secret values.
+
+### Command: secrets
 
 ```bash
 Usage:
-  ./scripts/utilities/download-ltx.sh status [--tier ...] [--json]
-  ./scripts/utilities/download-ltx.sh run [--tier ...]
+  ./scripts/manage.sh secrets status
+  ./scripts/manage.sh secrets ensure-key
+  ./scripts/manage.sh secrets list [--db-path PATH]
+
 ```
 
-### Command: download-ltx
+!!! warning
 
-### Function `tier_repo`
+    Safety:
+      Read-only status/list (metadata only). ensure-key is idempotent and never echoes the key.
 
-@function tier_repo
-Map tier id to primary Hugging Face repo id.
 
-### Function `tier_min_gb`
 
-@function tier_min_gb
-Shared HF repo; quality may pull larger BF16 files (min GB differs).
+<!-- source: scripts/lib/sso.sh -->
 
-### Function `tier_dir`
+## SSO stack helpers
 
-@function tier_dir
-Local download directory for a tier (separate paths per tier).
+Traefik v3 + cert-manager + Authelia + oauth2-proxy deploy helpers.
+Policy: config/sso-policy.yaml
 
-### Function `check_hf_cli`
+### Function `sso_policy_path`
 
-@function check_hf_cli
-Require huggingface-cli or hf on PATH.
+@function sso_policy_path
 
-### Function `hf_download`
+### Function `sso_domain`
 
-@function hf_download
-Invoke huggingface-cli download or hf download with the given args.
+@function sso_domain
+Deprecated alias — returns local apex domain (lab.local by default).
 
-### Function `tier_size_gb`
+### Function `sso_enabled`
 
-@function tier_size_gb
-On-disk size of a directory in GB (0 if missing).
+@function sso_enabled
 
-### Function `tiers_to_process`
+### Function `ensure_sso_namespaces`
 
-@function tiers_to_process
-Expand TIER into the list of tier ids to process.
+@function ensure_sso_namespaces
+
+### Function `require_helm`
+
+@function require_helm
+
+### Function `_sso_policy_value`
+
+@function _sso_policy_value
+
+### Function `ensure_sso_secrets`
+
+@function ensure_sso_secrets
+Generates Authelia + oauth2-proxy secrets if missing.
+
+### Function `_replicate_oidc_client_secrets`
+
+@function _replicate_oidc_client_secrets
+Copy sso-oidc-clients to app namespaces (secrets are namespace-scoped).
+
+### Function `_ensure_authelia_oidc_config`
+
+@function _ensure_authelia_oidc_config
+Generates OIDC JWKS + client overlay for Authelia and oauth2-proxy.
+
+### Function `_sso_oidc_redirect_uris`
+
+@function _sso_oidc_redirect_uris
+Emit YAML list entries for OIDC redirect URIs across local + public domains.
+
+### Function `apply_oauth2_proxy`
+
+@function apply_oauth2_proxy
+
+### Function `ensure_cert_manager`
+
+@function ensure_cert_manager
+
+### Function `ensure_sso_tls`
+
+@function ensure_sso_tls
+
+### Function `ensure_traefik`
+
+@function ensure_traefik
+
+### Function `apply_sso_middlewares`
+
+@function apply_sso_middlewares
+
+### Function `apply_sso_auth_stack`
+
+@function apply_sso_auth_stack
+
+### Command: start-sso
+
+### Command: stop-sso
+
+### Function `get_sso_status_json`
+
+@function get_sso_status_json
+
+### Function `print_sso_access_info`
+
+@function print_sso_access_info
+
+### Function `sso_cmd`
+
+@function sso_cmd
+
+
+
+<!-- source: scripts/lib/stack-rounded.sh -->
+
+## 3-node rounded stack (Mode A mixed fleet vs Mode B GLM vs Mode C DeepSeek-V4.1-Flash)
+
+LiteLLM aliases, Mode A/B/C mutual exclusion, and per-fabric interconnect doctor.
+Heavy Jobs stay manual-start. LiteLLM is a management Deployment.
+
+### Function `rounded_mode_a_jobs`
+
+@function rounded_mode_a_jobs
+Prints Mode A inference Job names (one per line). Used by mutual exclusion.
+
+### Function `rounded_mode_b_jobs`
+
+@function rounded_mode_b_jobs
+Prints Mode B inference Job names (one per line).
+
+### Function `rounded_mode_c_jobs`
+
+@function rounded_mode_c_jobs
+Prints Mode C inference Job names (one per line).
+
+### Function `_rounded_active_from_list`
+
+@function _rounded_active_from_list
+Echoes the first active Job name from a newline-separated list, or empty.
+
+### Function `guard_rounded_mode_b_idle`
+
+@function guard_rounded_mode_b_idle
+Fail if any Mode B (frontier) Job is active.
+
+### Function `guard_rounded_mode_a_idle`
+
+@function guard_rounded_mode_a_idle
+Fail if any Mode A (rounded daily) Job is active.
+
+### Function `guard_rounded_mode_c_idle`
+
+@function guard_rounded_mode_c_idle
+Fail if any Mode C (DeepSeek-V4.1-Flash) Job is active.
+
+### Function `lab_mgmt_ifname`
+
+@function lab_mgmt_ifname
+Management / NCCL OOB interface. Default enP7s7; override LAB_MGMT_IFNAME.
+Does not hard-fail if the live name differs — callers warn via doctor_fabric.
+
+### Command: doctor-fabric
+
+### Function `_rounded_node_count`
+
+@function _rounded_node_count
+
+### Function `_require_three_nodes`
+
+@function _require_three_nodes
+Require ≥3 nodes for rounded / Mode B / Mode C starts.
+
+### Function `litellm_overlay_for_backend`
+
+@function litellm_overlay_for_backend
+Prints the kustomize path for a LiteLLM backend id.
+@param $1  Backend id (rounded | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | glm-5.3-flash | deepseek-v4.1-flash).
+
+### Function `args_have_with_litellm`
+
+@function args_have_with_litellm
+Returns 0 if --with-litellm is among the given args.
+
+### Function `maybe_attach_litellm`
+
+@function maybe_attach_litellm
+Start LiteLLM with the given backend profile when --with-litellm is present.
+@param $1  Backend id. Remaining args are scanned for --with-litellm.
+
+### Command: start-litellm
+
+### Command: stop-litellm
+
+### Command: start-qwen38-27b
+
+### Command: stop-qwen38-27b
+
+### Command: start-qwen38-flash-next
+
+### Command: start-medgemma
+
+### Command: stop-medgemma
+
+### Command: start-stack-rounded
+
+### Command: stop-stack-rounded
+
+### Command: start-glm53-flash
+
+### Command: stop-glm53-flash
+
+### Command: start-dsv41-flash
+
+### Command: stop-dsv41-flash
+
+### Command: status-stack
+
+
+
+<!-- source: scripts/lib/topology.sh -->
+
+## Lab topology helpers
+
+Thin wrappers around scripts/lib/py/lab_topology.py: validate the declarative
+lab topology (ansible/inventory/lab.yaml), emit flat facts, and render the
+generated Ansible artifacts (hosts.ini, fabric group vars, netplan,
+cloud-init user-data). The topology file is the single source of truth —
+`manage.sh setup` (discovery wizard) rewrites it, rendering follows.
+
+### Function `lab_topology_path`
+
+@function lab_topology_path
+Absolute path of the declarative lab topology file.
+Honors LAB_TOPOLOGY_FILE for tests and alternate lab checkouts.
+
+### Function `_lab_topology_py`
+
+@function _lab_topology_py
+Run the Python topology module with the given subcommand/args.
+The module path is resolved next to this file (not via lab_repo_root) so a
+REPO_ROOT/LAB_TOPOLOGY_FILE override still finds the engine in the real repo.
+
+### Function `topology_wizard_vars`
+
+@function topology_wizard_vars
+Emit key=value pre-fill defaults for the setup wizard from the given lab file.
+
+```bash
+Usage: topology_wizard_vars [lab_file]
+```
+
+### Function `topology_validate`
+
+@function topology_validate
+Validate the lab topology; non-zero exit with readable errors on failure.
+
+### Function `topology_facts`
+
+@function topology_facts
+Emit key=value facts (fabric, node_count, orchestrator, switch_host, ...).
+
+### Function `topology_render`
+
+@function topology_render
+
+```bash
+Usage: topology_render [out_root]
+```
+
+Render generated artifacts under out_root/ansible (default: repo root).
+
+### Function `topology_check`
+
+@function topology_check
+Validate the topology and, when kubectl + cluster access exist, compare the
+declared nodes against live K3s nodes (read-only drift report).
+
+
+
+<!-- source: scripts/lib/visual.sh -->
+
+## Visual generative AI (ComfyUI / FLUX / LTX) helpers
+
+Lifecycle for DGX Spark visual workloads: comfy-base, flux-*, ltx-*, flux-to-ltx.
+Heavy GPU + unified-memory consumers — manual start only, capacity-gated.
+
+!!! warning
+
+    Safety:
+      - One visual Deployment at a time (label workload=visual)
+      - enforce_capacity before apply
+      - Heavy confirmation for GPU visual starts
+      - Never auto-starts on reboot
+
+### Function `get_visual_kustomize_dir`
+
+@function get_visual_kustomize_dir
+Returns relative kustomize path for a visual model id, or empty if unknown.
+
+### Function `guard_active_visual`
+
+@function guard_active_visual
+Fail if another visual Deployment is already present (exclusive GPU policy).
+@param $1  Model id being started (allowed if it is the only match).
+
+### Function `apply_visual_kustomize`
+
+@function apply_visual_kustomize
+Apply a visual kustomize directory under REPO_ROOT.
+@param $1  Relative directory path
+
+### Function `check_visual_unified_memory`
+
+@function check_visual_unified_memory
+Pre-flight: warn/fail if cluster allocatable memory looks too low for model request.
+Uses resource-policy request memory; fails only when allocatable < request (strict).
+@param $1  Model id
+
+### Function `check_visual_weights_hint`
+
+@function check_visual_weights_hint
+Non-fatal warn if common Comfy model dirs look empty.
+
+### Function `start_visual_workload`
+
+@function start_visual_workload
+Generic visual starter: confirm (if heavy) + capacity + exclusivity + apply -k.
+@param $1  Model id (policy key)
+@param $2  Optional human label
+
+### Command: start-flux-fast
+
+### Command: start-flux-quality
+
+### Command: start-ltx-balanced
+
+### Command: start-ltx-quality
+
+### Command: start-flux-to-ltx
+
+### Command: start-comfy-base
+
+### Command: stop-comfy-base
+
+### Command: stop-visual
+
+### Command: status-visual
+
+
+
+<!-- source: scripts/lib/workspace-hermes.sh -->
+
+## Hermes workspace dev assistant
+
+Seed and render helpers for Coder and Kasm workspace Hermes profiles.
+
+### Function `workspace_hermes_profile_dir`
+
+@function workspace_hermes_profile_dir
+
+### Function `workspace_hermes_stack_id`
+
+@function workspace_hermes_stack_id
+
+### Function `workspace_hermes_seed_data_dir`
+
+@function workspace_hermes_seed_data_dir
+Copy profile distribution into target Hermes data directory.
+
+### Function `workspace_hermes_render_config`
+
+@function workspace_hermes_render_config
+
+### Function `workspace_hermes_verify_prerequisites`
+
+@function workspace_hermes_verify_prerequisites
+
+### Function `get_workspace_hermes_status_json`
+
+@function get_workspace_hermes_status_json
+
+
+
+<!-- source: scripts/utilities/benchmark-qwen36.sh -->
+
+## benchmark-qwen36
+
+Simple OpenAI-compatible latency/throughput smoke bench for Qwen3.6 endpoints.
+Hermetic-friendly defaults use localhost port-forwards; no cluster required for --dry-run.
+
+```bash
+Usage:
+  ./scripts/utilities/benchmark-qwen36.sh run --model 27b [--concurrency 1,4]
+  ./scripts/utilities/benchmark-qwen36.sh run --dual --concurrency 4
+  ./scripts/utilities/benchmark-qwen36.sh run --dry-run
+```
+
+### Command: benchmark-qwen36
 
 ### Function `parse_args`
 
 @function parse_args
-Parse CLI flags into CMD, TIER, and JSON_FLAG.
 
-### Function `link_into_comfy`
+### Function `endpoint_for_model`
 
-@function link_into_comfy
-Best-effort symlink snapshot files into Comfy model subdirs.
+@function endpoint_for_model
 
-### Function `cmd_status`
+### Function `model_id_for`
 
-@function cmd_status
-Print tier readiness (JSON with --json).
+@function model_id_for
+
+### Function `one_request`
+
+@function one_request
+Single chat completion; prints duration_ms and usage if available.
+
+### Function `bench_model`
+
+@function bench_model
 
 ### Function `cmd_run`
 
 @function cmd_run
-Download selected tiers and link into Comfy paths.
-
-
-
-<!-- source: scripts/utilities/mcp-stack.sh -->
-
-## mcp-stack
-
-One-click MCP agent toolkit lifecycle.
-
-```bash
-Usage:
-  ./scripts/utilities/mcp-stack.sh catalog [--json]
-  ./scripts/utilities/mcp-stack.sh status [--json]
-  ./scripts/utilities/mcp-stack.sh start <stack-id> --confirm yes
-  ./scripts/utilities/mcp-stack.sh stop <stack-id|all>
-```
-
-### Command: mcp-stack
-
-
-
-<!-- source: scripts/utilities/sync-hermes-seed.sh -->
-
-## sync-hermes-seed — copy Hermes workspace-dev profile into Coder template seed
-
-Keeps `hermes/profiles/workspace-dev/` as the single source of truth and
-mirrors tracked files into `k8s/dev/templates/coder-spark-lab/hermes-seed/`.
-
-```bash
-Usage:
-  bazelisk run //scripts:run-utility -- sync-hermes-seed
-  ./scripts/utilities/sync-hermes-seed.sh
-```
-
-### Command: sync-hermes-seed
-
-@description Sync Hermes workspace-dev profile files into the Coder spark-lab template seed directory.
 
 
 
@@ -1045,227 +2037,20 @@ Dispatch utility subcommands (status/run).
 
 
 
-<!-- source: scripts/utilities/spark-clock.sh -->
+<!-- source: scripts/utilities/cluster-resources.sh -->
 
-## spark-clock
+## cluster-resources
 
-Manage GPU graphics clocks on DGX Spark (Blackwell GB10) for thermal stability.
-
-**Intent**: GB10 has no user-controllable power limit or fan curve on DGX Spark
-(`nvidia-smi -pl` and fan speed return N/A). The only operator-accessible actuator
-is graphics clock locking via `nvidia-smi -lgc`. Range lock (default 300–2200 MHz)
-caps peak clocks to avoid sustained 78–88°C temps and thermal shutdowns during
-long-running inference, with near-zero impact on memory-bound MoE workloads.
-
-**Idempotency** (core of the utility pattern):
-
-- `status` reports configured lock range, telemetry, and health classification.
-
-- `run` is a no-op when the configured lock range already matches targets.
-
-- Service install is idempotent (only rewrites unit if content differs).
-
-**Safety**:
-
-- Never touches ai-inference namespace workloads.
-
-- Requires nvidia-smi; mutation verbs require root (or passwordless sudo).
-
-- Respects the lab's GPU Operator + nvidia-persistenced.
-
-- Detects PD-degraded states (513–650 MHz / ~15W) and advises power-cycle.
-
-Usage (CLI):
-
-```bash
-  ./scripts/utilities/spark-clock.sh status [--json]
-  ./scripts/utilities/spark-clock.sh run                 # idempotent optimize to target
-  ./scripts/utilities/spark-clock.sh reset
-  ./scripts/utilities/spark-clock.sh set 2100            # ceiling only
-  ./scripts/utilities/spark-clock.sh set 300,2100        # floor,ceiling range
-  ./scripts/utilities/spark-clock.sh diagnose
-  ./scripts/utilities/spark-clock.sh --enable-systemd-service
-  ./scripts/utilities/spark-clock.sh --disable-systemd-service
-
-```
-
-Env overrides: CLOCK_FLOOR_MHZ, CLOCK_CEILING_MHZ (TARGET_CLOCK_MHZ aliases ceiling),
-THERMAL_WARN_C, THERMAL_HOT_C, PD_* thresholds.
-
-Dashboard integration: The UI will call status --json and run/reset subcommands.
-
-### Command: spark-clock
-
-### Command: clock-optimize
-
-
-
-<!-- source: scripts/utilities/system-update.sh -->
-
-## system-update
-
-Safely perform full system + firmware update on DGX Spark nodes and prepare for reboot.
-
-**Intent**: Keep base OS (apt dist-upgrade) and firmware (fwupdmgr) current.
-CRITICAL LAB SAFETY: Never reboot while heavy inference workloads are running.
-Always stop jobs first (manage.sh stop) and verify clean before reboot.
-
-**Idempotency** (per utility pattern):
-
-- status reports exactly what is pending and whether safe to proceed.
-
-- run is safe to repeat (checks state; only acts on pending items).
-
-- Reboot step is gated and only suggested when safe.
-
-**Safety**:
-
-- Refuses destructive actions (reboot path) if active jobs in ai-inference.
-
-- Respects reboot-safety golden rule.
-
-- Must integrate with manage.sh stop before any reboot.
-
-- Uses shared helpers for logging and cluster checks.
+Resource Guard status and pre-flight checks for the dashboard.
 
 ```bash
 Usage:
-  ./scripts/utilities/system-update.sh status [--json]
-  ./scripts/utilities/system-update.sh run [--reboot]
-
+  ./scripts/utilities/cluster-resources.sh status [--json]
+  ./scripts/utilities/cluster-resources.sh check --action model:kimi [--json]
+  ./scripts/utilities/cluster-resources.sh suggest --action model:kimi [--json]
 ```
 
-Dashboard will call status --json and run.
-
-See reboot-safety.md and AGENTS for mandatory pre-reboot steps.
-
-### Command: system-update
-
-### Command: update-system
-
-
-
-<!-- source: scripts/utilities/install-dev-tools.sh -->
-
-## install-dev-tools
-
-Host-side bootstrap for contributors who are **not** using the devcontainer.
-Prefer the multi-arch devcontainer when possible (Apple Silicon, Windows,
-Linux, DGX Spark).
-
-```bash
-Usage:
-  ./scripts/utilities/install-dev-tools.sh status
-  ./scripts/utilities/install-dev-tools.sh run
-```
-
-### Command: install-dev-tools
-
-### Function `print_platform`
-
-@function print_platform
-Describe host OS/arch and recommended path.
-
-### Function `cmd_status`
-
-@function cmd_status
-Report whether key tools are on PATH.
-
-### Function `cmd_run`
-
-@function cmd_run
-Best-effort install of lint tools on this host.
-
-
-
-<!-- source: scripts/utilities/download-rounded-models.sh -->
-
-## download-rounded-models
-
-Download checkpoints for the 3-node LiteLLM rounded stack.
-
-Tiers:
-  --tier flash-next  RadixArk/Qwen3.8-Flash-Next-NVFP4 (~130 GB)
-  --tier medgemma    google/medgemma-27b-multimodal (HAI-DEF gated)
-  --tier glm53       local-inference-lab/GLM-5.3-Flash-NVFP4 (~185 GB)
-  --tier all         All of the above (default)
-
-```bash
-Usage:
-  ./scripts/utilities/download-rounded-models.sh status [--tier ...] [--json]
-  ./scripts/utilities/download-rounded-models.sh run [--tier ...]
-```
-
-### Command: download-rounded-models
-
-### Function `tier_repo`
-
-@function tier_repo
-Map tier id to Hugging Face repo id.
-
-### Function `tier_min_gb`
-
-@function tier_min_gb
-Minimum on-disk GB required for tier readiness.
-
-### Function `tier_dir`
-
-@function tier_dir
-Local directory for a tier's Hugging Face snapshot.
-
-### Function `check_hf_cli`
-
-@function check_hf_cli
-Require huggingface-cli or hf.
-
-### Function `hf_download`
-
-@function hf_download
-Invoke huggingface-cli download or hf download.
-
-### Function `tier_size_gb`
-
-@function tier_size_gb
-On-disk size of a directory in GB, or 0 if missing.
-
-### Function `tiers_to_process`
-
-@function tiers_to_process
-Expand --tier all into the concrete tier list.
-
-### Function `parse_args`
-
-@function parse_args
-Parse status|run, --tier, and --json.
-
-### Function `cmd_status`
-
-@function cmd_status
-Print download readiness for selected tiers.
-
-### Function `cmd_run`
-
-@function cmd_run
-Download selected tier checkpoints into MODELS_DIR.
-
-
-
-<!-- source: scripts/utilities/nemotron-stack.sh -->
-
-## nemotron-stack
-
-One-click Nemotron agentic stack lifecycle for the dashboard.
-
-```bash
-Usage:
-  ./scripts/utilities/nemotron-stack.sh catalog [--json]
-  ./scripts/utilities/nemotron-stack.sh status [--json]
-  ./scripts/utilities/nemotron-stack.sh check --action stack:<id> [--json]
-  ./scripts/utilities/nemotron-stack.sh start <stack-id> --confirm yes
-  ./scripts/utilities/nemotron-stack.sh stop <stack-id|all>
-```
-
-### Command: nemotron-stack
+### Command: cluster-resources
 
 
 
@@ -1298,24 +2083,6 @@ Usage:
 Dashboard integration: Workspaces panel calls status --json and run/stop subcommands.
 
 ### Command: dev-workspaces
-
-
-
-<!-- source: scripts/utilities/inference-workloads.sh -->
-
-## inference-workloads
-
-Dashboard-controllable inference lifecycle (start/stop/status) with Resource Guard gates.
-
-```bash
-Usage:
-  ./scripts/utilities/inference-workloads.sh status [--json]
-  ./scripts/utilities/inference-workloads.sh check --action model:kimi [--json]
-  ./scripts/utilities/inference-workloads.sh start <model> --confirm yes
-  ./scripts/utilities/inference-workloads.sh stop <model|all|ray>
-```
-
-### Command: inference-workloads
 
 
 
@@ -1543,78 +2310,62 @@ Arguments:
 
 
 
-<!-- source: scripts/utilities/download-glm52-gguf.sh -->
+<!-- source: scripts/utilities/download-dsv41-flash.sh -->
 
-## download-glm52-gguf
+## download-dsv41-flash
 
-Download unsloth/GLM-5.2-GGUF UD-IQ1_M shards (~228 GB) for the glm-5.2 llama.cpp RPC workload.
+Download the official DeepSeek-V4.1-Flash checkpoint for exclusive Mode C.
 
-**Intent**: Resumable, verified download of the 1-bit dynamic quant GGUF shards to shared model storage.
+Official repo only: deepseek-ai/DeepSeek-V4.1-Flash (~476–510 GB).
+Does not pull nvidia/DeepSeek-V4-Flash-NVFP4 (old 284B) or LibertAIDAI requants.
 
-**Idempotency**:
-
-- status reports shard count and on-disk size.
-
-- run only fetches missing shards (huggingface-cli resume).
-
-**Safety**:
-
-- Defaults to /mnt/models (same hostPath as inference jobs).
-
-- Does not delete existing shards.
-
-- Large download; run during off-peak.
+After download, pack Engram shards onto each node's NVMe:
+  follow MiaAI-Lab DeepSeek-v4.1-Flash-DGX-Sparks ./start.sh pack
+  destination: /mnt/models/dsv41-engram
+Never OFFLOAD_MODE=ram.
 
 ```bash
 Usage:
-  ./scripts/utilities/download-glm52-gguf.sh status [--json]
-  ./scripts/utilities/download-glm52-gguf.sh run
-
+  ./scripts/utilities/download-dsv41-flash.sh status [--json]
+  ./scripts/utilities/download-dsv41-flash.sh run
 ```
 
-Dashboard can trigger download and show status.
+### Command: download-dsv41-flash
 
-### Command: download-glm52-gguf
+### Function `repo_dir`
 
-### Command: glm52-download
+@function repo_dir
+Local directory for the official Hugging Face snapshot.
 
+### Function `dir_size_gb`
 
+@function dir_size_gb
+On-disk size of a directory in GB, or 0 if missing.
 
-<!-- source: scripts/utilities/sync-ollama-models.sh -->
+### Function `check_hf_cli`
 
-## sync-ollama-models
+@function check_hf_cli
+Require huggingface-cli or hf.
 
-Bidirectional (or directed) sync of Ollama models between DGX Spark nodes using the high-speed interconnect.
+### Function `hf_download`
 
-**Intent**: Keep ~/.ollama/models in sync across the two nodes for dev/experiments
-without re-downloading large models. Uses the high-speed interconnect links when possible.
+@function hf_download
+Invoke huggingface-cli download or hf download.
 
-**Idempotency**:
+### Function `cmd_status`
 
-- status reports drift (via rsync --dry-run).
+@function cmd_status
+Print download readiness for the official V4.1-Flash snapshot.
 
-- run only transfers differences.
+### Function `cmd_run`
 
-**Safety**:
+@function cmd_run
+Download the official checkpoint into MODELS_DIR.
 
-- Uses highspeed network (enp1s0f0np0/enp1s0f1np1 or 192.168.100/101 prefixes).
+### Function `main`
 
-- Configurable; never uses management network for bulk transfer if highspeed available.
-
-- --delete not used by default (conservative for models).
-
-```bash
-Usage:
-  ./scripts/utilities/sync-ollama-models.sh status [--json]
-  ./scripts/utilities/sync-ollama-models.sh run [to-remote|from-remote]
-
-```
-
-Dashboard can trigger sync and show status.
-
-### Command: sync-ollama-models
-
-### Command: ollama-sync
+@function main
+CLI entry: status|run [--json].
 
 
 
@@ -1695,169 +2446,116 @@ Best-effort symlink snapshot files into Comfy diffusion_models dir.
 
 
 
-<!-- source: scripts/utilities/download-dsv41-flash.sh -->
+<!-- source: scripts/utilities/download-glm52-gguf.sh -->
 
-## download-dsv41-flash
+## download-glm52-gguf
 
-Download the official DeepSeek-V4.1-Flash checkpoint for exclusive Mode C.
+Download unsloth/GLM-5.2-GGUF UD-IQ1_M shards (~228 GB) for the glm-5.2 llama.cpp RPC workload.
 
-Official repo only: deepseek-ai/DeepSeek-V4.1-Flash (~476–510 GB).
-Does not pull nvidia/DeepSeek-V4-Flash-NVFP4 (old 284B) or LibertAIDAI requants.
+**Intent**: Resumable, verified download of the 1-bit dynamic quant GGUF shards to shared model storage.
 
-After download, pack Engram shards onto each node's NVMe:
-  follow MiaAI-Lab DeepSeek-v4.1-Flash-DGX-Sparks ./start.sh pack
-  destination: /mnt/models/dsv41-engram
-Never OFFLOAD_MODE=ram.
+**Idempotency**:
+
+- status reports shard count and on-disk size.
+
+- run only fetches missing shards (huggingface-cli resume).
+
+**Safety**:
+
+- Defaults to /mnt/models (same hostPath as inference jobs).
+
+- Does not delete existing shards.
+
+- Large download; run during off-peak.
 
 ```bash
 Usage:
-  ./scripts/utilities/download-dsv41-flash.sh status [--json]
-  ./scripts/utilities/download-dsv41-flash.sh run
+  ./scripts/utilities/download-glm52-gguf.sh status [--json]
+  ./scripts/utilities/download-glm52-gguf.sh run
+
 ```
 
-### Command: download-dsv41-flash
+Dashboard can trigger download and show status.
 
-### Function `repo_dir`
+### Command: download-glm52-gguf
 
-@function repo_dir
-Local directory for the official Hugging Face snapshot.
+### Command: glm52-download
 
-### Function `dir_size_gb`
 
-@function dir_size_gb
-On-disk size of a directory in GB, or 0 if missing.
+
+<!-- source: scripts/utilities/download-ltx.sh -->
+
+## download-ltx
+
+Download LTX-2.3 ComfyUI components (Kijai split checkpoints).
+
+Tiers:
+  --tier balanced  distilled FP8 (default for speed)
+  --tier quality   BF16 distilled / full-precision family weights
+  --tier all       balanced + quality
+
+```bash
+Usage:
+  ./scripts/utilities/download-ltx.sh status [--tier ...] [--json]
+  ./scripts/utilities/download-ltx.sh run [--tier ...]
+```
+
+### Command: download-ltx
+
+### Function `tier_repo`
+
+@function tier_repo
+Map tier id to primary Hugging Face repo id.
+
+### Function `tier_min_gb`
+
+@function tier_min_gb
+Shared HF repo; quality may pull larger BF16 files (min GB differs).
+
+### Function `tier_dir`
+
+@function tier_dir
+Local download directory for a tier (separate paths per tier).
 
 ### Function `check_hf_cli`
 
 @function check_hf_cli
-Require huggingface-cli or hf.
+Require huggingface-cli or hf on PATH.
 
 ### Function `hf_download`
 
 @function hf_download
-Invoke huggingface-cli download or hf download.
+Invoke huggingface-cli download or hf download with the given args.
+
+### Function `tier_size_gb`
+
+@function tier_size_gb
+On-disk size of a directory in GB (0 if missing).
+
+### Function `tiers_to_process`
+
+@function tiers_to_process
+Expand TIER into the list of tier ids to process.
+
+### Function `parse_args`
+
+@function parse_args
+Parse CLI flags into CMD, TIER, and JSON_FLAG.
+
+### Function `link_into_comfy`
+
+@function link_into_comfy
+Best-effort symlink snapshot files into Comfy model subdirs.
 
 ### Function `cmd_status`
 
 @function cmd_status
-Print download readiness for the official V4.1-Flash snapshot.
+Print tier readiness (JSON with --json).
 
 ### Function `cmd_run`
 
 @function cmd_run
-Download the official checkpoint into MODELS_DIR.
-
-### Function `main`
-
-@function main
-CLI entry: status|run [--json].
-
-
-
-<!-- source: scripts/utilities/runner.sh -->
-
-## Utility runner (Bazel entry)
-
-Dispatches to `scripts/utilities/<name>.sh` for dashboard-controllable utilities.
-
-### Command: run-utility
-
-```bash
-Usage:
-  bazelisk run //scripts:run-utility -- spark-clock status
-  bazelisk run //scripts:run-utility -- nemotron-stack run
-```
-
-!!! warning
-
-    Safety:
-      Only invokes scripts under scripts/utilities/; allowlist enforced by each utility.
-
-
-
-<!-- source: scripts/utilities/workspace-hermes.sh -->
-
-## workspace-hermes
-
-Seed and verify Hermes workspace-dev profile for Coder/Kasm workspaces.
-
-```bash
-Usage:
-  ./scripts/utilities/workspace-hermes.sh status [--json]
-  ./scripts/utilities/workspace-hermes.sh seed <target-dir>
-  ./scripts/utilities/workspace-hermes.sh render <target-dir>
-  ./scripts/utilities/workspace-hermes.sh verify
-```
-
-### Command: workspace-hermes
-
-
-
-<!-- source: scripts/utilities/install-operator-client.sh -->
-
-## install-operator-client
-
-One-command bootstrap for the operator client — the machine that runs
-Ansible against the Sparks and drives `manage.sh` / Bazel (macOS, Linux,
-or WSL2 on Windows). Installs and verifies: git, ssh, python3,
-Ansible >= 2.14, kubectl, helm, bazelisk, jq.
-
-Idempotent: tools already on PATH are skipped. macOS uses Homebrew (no
-sudo); Linux uses apt/dnf; Windows uses the WSL2 path
-(scripts/utilities/install-operator-client.ps1) and fails here with a
-pointer to it.
-
-```bash
-Usage:
-  ./scripts/utilities/install-operator-client.sh status
-  ./scripts/utilities/install-operator-client.sh run
-  bazelisk run //scripts:run-utility -- install-operator-client status
-```
-
-### Command: install-operator-client
-
-### Function `operator_client_os`
-
-@function operator_client_os
-Detect the host OS for the install path: Darwin | Linux | Windows.
-Honors LAB_OPERATOR_CLIENT_OS (test override); WSL reports as Linux.
-
-### Function `tool_present`
-
-@function tool_present
-True when the named tool is on PATH.
-
-### Function `tool_version`
-
-@function tool_version
-Print a short version line for a tool, or "unknown".
-
-### Function `ansible_version_ok`
-
-@function ansible_version_ok
-True when ansible is present and its core version is >= MIN_ANSIBLE.
-
-### Function `cmd_status`
-
-@function cmd_status
-Report which operator-client tools are ready; always exits 0.
-
-### Function `brew_install_tool`
-
-@function brew_install_tool
-Install one tool via Homebrew (macOS); $1 = tool name.
-
-### Function `linux_install_tool`
-
-@function linux_install_tool
-Install one tool on Linux; $1 = tool name. Uses apt/dnf when available,
-official downloads otherwise.
-
-### Function `cmd_run`
-
-@function cmd_run
-Install any missing operator-client tools, then verify; exits non-zero if
-anything is still missing after the install attempt.
+Download selected tiers and link into Comfy paths.
 
 
 
@@ -1889,115 +2587,93 @@ Usage:
 
 
 
-<!-- source: scripts/utilities/open-webui-stack.sh -->
+<!-- source: scripts/utilities/download-rounded-models.sh -->
 
-## open-webui-stack
+## download-rounded-models
 
-Open WebUI Helm lifecycle — Hermes gateway agent chat UI.
+Download checkpoints for the 3-node LiteLLM rounded stack.
 
-```bash
-Usage:
-  ./scripts/utilities/open-webui-stack.sh catalog [--json]
-  ./scripts/utilities/open-webui-stack.sh status [--json]
-  ./scripts/utilities/open-webui-stack.sh start <stack-id> --confirm yes
-  ./scripts/utilities/open-webui-stack.sh stop
-```
-
-### Command: open-webui-stack
-
-
-
-<!-- source: scripts/utilities/cluster-resources.sh -->
-
-## cluster-resources
-
-Resource Guard status and pre-flight checks for the dashboard.
+Tiers:
+  --tier flash-next  RadixArk/Qwen3.8-Flash-Next-NVFP4 (~130 GB)
+  --tier medgemma    google/medgemma-27b-multimodal (HAI-DEF gated)
+  --tier glm53       local-inference-lab/GLM-5.3-Flash-NVFP4 (~185 GB)
+  --tier all         All of the above (default)
 
 ```bash
 Usage:
-  ./scripts/utilities/cluster-resources.sh status [--json]
-  ./scripts/utilities/cluster-resources.sh check --action model:kimi [--json]
-  ./scripts/utilities/cluster-resources.sh suggest --action model:kimi [--json]
+  ./scripts/utilities/download-rounded-models.sh status [--tier ...] [--json]
+  ./scripts/utilities/download-rounded-models.sh run [--tier ...]
 ```
 
-### Command: cluster-resources
+### Command: download-rounded-models
 
+### Function `tier_repo`
 
+@function tier_repo
+Map tier id to Hugging Face repo id.
 
-<!-- source: scripts/utilities/benchmark-qwen36.sh -->
+### Function `tier_min_gb`
 
-## benchmark-qwen36
+@function tier_min_gb
+Minimum on-disk GB required for tier readiness.
 
-Simple OpenAI-compatible latency/throughput smoke bench for Qwen3.6 endpoints.
-Hermetic-friendly defaults use localhost port-forwards; no cluster required for --dry-run.
+### Function `tier_dir`
 
-```bash
-Usage:
-  ./scripts/utilities/benchmark-qwen36.sh run --model 27b [--concurrency 1,4]
-  ./scripts/utilities/benchmark-qwen36.sh run --dual --concurrency 4
-  ./scripts/utilities/benchmark-qwen36.sh run --dry-run
-```
+@function tier_dir
+Local directory for a tier's Hugging Face snapshot.
 
-### Command: benchmark-qwen36
+### Function `check_hf_cli`
+
+@function check_hf_cli
+Require huggingface-cli or hf.
+
+### Function `hf_download`
+
+@function hf_download
+Invoke huggingface-cli download or hf download.
+
+### Function `tier_size_gb`
+
+@function tier_size_gb
+On-disk size of a directory in GB, or 0 if missing.
+
+### Function `tiers_to_process`
+
+@function tiers_to_process
+Expand --tier all into the concrete tier list.
 
 ### Function `parse_args`
 
 @function parse_args
+Parse status|run, --tier, and --json.
 
-### Function `endpoint_for_model`
+### Function `cmd_status`
 
-@function endpoint_for_model
-
-### Function `model_id_for`
-
-@function model_id_for
-
-### Function `one_request`
-
-@function one_request
-Single chat completion; prints duration_ms and usage if available.
-
-### Function `bench_model`
-
-@function bench_model
+@function cmd_status
+Print download readiness for selected tiers.
 
 ### Function `cmd_run`
 
 @function cmd_run
+Download selected tier checkpoints into MODELS_DIR.
 
 
 
-<!-- source: scripts/utilities/render-domains.sh -->
+<!-- source: scripts/utilities/hermes-stack.sh -->
 
-## render-domains — regenerate domain-dependent manifests
+## hermes-stack
 
-Reads config/lab-domains.yaml and config/sso-policy.yaml, then writes generated
-Kubernetes, Ansible, and Grafana artifacts.
-
-```bash
-Usage:
-  ./scripts/utilities/render-domains.sh
-```
-
-### Command: render-domains
-
-@description Regenerate SSO routes, TLS certs, Helm values, and Grafana links from lab-domains config.
-
-
-
-<!-- source: scripts/utilities/monitoring-stack.sh -->
-
-## monitoring-stack
-
-Observability stack status and verification for Grafana/Prometheus integration.
+Hermes Agent Docker lifecycle on the Spark K3s node.
 
 ```bash
 Usage:
-  ./scripts/utilities/monitoring-stack.sh status [--json]
-  ./scripts/utilities/monitoring-stack.sh verify [--json]
+  ./scripts/utilities/hermes-stack.sh catalog [--json]
+  ./scripts/utilities/hermes-stack.sh status [--json]
+  ./scripts/utilities/hermes-stack.sh start <stack-id> --confirm yes
+  ./scripts/utilities/hermes-stack.sh stop
 ```
 
-### Command: monitoring-stack
+### Command: hermes-stack
 
 
 
@@ -2161,6 +2837,125 @@ Arguments:
 
 
 
+<!-- source: scripts/utilities/inference-workloads.sh -->
+
+## inference-workloads
+
+Dashboard-controllable inference lifecycle (start/stop/status) with Resource Guard gates.
+
+```bash
+Usage:
+  ./scripts/utilities/inference-workloads.sh status [--json]
+  ./scripts/utilities/inference-workloads.sh check --action model:kimi [--json]
+  ./scripts/utilities/inference-workloads.sh start <model> --confirm yes
+  ./scripts/utilities/inference-workloads.sh stop <model|all|ray>
+```
+
+### Command: inference-workloads
+
+
+
+<!-- source: scripts/utilities/install-dev-tools.sh -->
+
+## install-dev-tools
+
+Host-side bootstrap for contributors who are **not** using the devcontainer.
+Prefer the multi-arch devcontainer when possible (Apple Silicon, Windows,
+Linux, DGX Spark).
+
+```bash
+Usage:
+  ./scripts/utilities/install-dev-tools.sh status
+  ./scripts/utilities/install-dev-tools.sh run
+```
+
+### Command: install-dev-tools
+
+### Function `print_platform`
+
+@function print_platform
+Describe host OS/arch and recommended path.
+
+### Function `cmd_status`
+
+@function cmd_status
+Report whether key tools are on PATH.
+
+### Function `cmd_run`
+
+@function cmd_run
+Best-effort install of lint tools on this host.
+
+
+
+<!-- source: scripts/utilities/install-operator-client.sh -->
+
+## install-operator-client
+
+One-command bootstrap for the operator client — the machine that runs
+Ansible against the Sparks and drives `manage.sh` / Bazel (macOS, Linux,
+or WSL2 on Windows). Installs and verifies: git, ssh, python3,
+Ansible >= 2.14, kubectl, helm, bazelisk, jq.
+
+Idempotent: tools already on PATH are skipped. macOS uses Homebrew (no
+sudo); Linux uses apt/dnf; Windows uses the WSL2 path
+(scripts/utilities/install-operator-client.ps1) and fails here with a
+pointer to it.
+
+```bash
+Usage:
+  ./scripts/utilities/install-operator-client.sh status
+  ./scripts/utilities/install-operator-client.sh run
+  bazelisk run //scripts:run-utility -- install-operator-client status
+```
+
+### Command: install-operator-client
+
+### Function `operator_client_os`
+
+@function operator_client_os
+Detect the host OS for the install path: Darwin | Linux | Windows.
+Honors LAB_OPERATOR_CLIENT_OS (test override); WSL reports as Linux.
+
+### Function `tool_present`
+
+@function tool_present
+True when the named tool is on PATH.
+
+### Function `tool_version`
+
+@function tool_version
+Print a short version line for a tool, or "unknown".
+
+### Function `ansible_version_ok`
+
+@function ansible_version_ok
+True when ansible is present and its core version is >= MIN_ANSIBLE.
+
+### Function `cmd_status`
+
+@function cmd_status
+Report which operator-client tools are ready; always exits 0.
+
+### Function `brew_install_tool`
+
+@function brew_install_tool
+Install one tool via Homebrew (macOS); $1 = tool name.
+
+### Function `linux_install_tool`
+
+@function linux_install_tool
+Install one tool on Linux; $1 = tool name. Uses apt/dnf when available,
+official downloads otherwise.
+
+### Function `cmd_run`
+
+@function cmd_run
+Install any missing operator-client tools, then verify; exits non-zero if
+anything is still missing after the install attempt.
+
+
+
 <!-- source: scripts/utilities/kasm-workspace-image.sh -->
 
 ## kasm-workspace-image
@@ -2177,1080 +2972,291 @@ Usage:
 
 
 
-<!-- source: scripts/utilities/hermes-stack.sh -->
+<!-- source: scripts/utilities/mcp-stack.sh -->
 
-## hermes-stack
+## mcp-stack
 
-Hermes Agent Docker lifecycle on the Spark K3s node.
-
-```bash
-Usage:
-  ./scripts/utilities/hermes-stack.sh catalog [--json]
-  ./scripts/utilities/hermes-stack.sh status [--json]
-  ./scripts/utilities/hermes-stack.sh start <stack-id> --confirm yes
-  ./scripts/utilities/hermes-stack.sh stop
-```
-
-### Command: hermes-stack
-
-
-
-<!-- source: scripts/lib/secrets.sh -->
-
-## secrets
-
-Manage lab dashboard secrets vault infrastructure (master key, status).
-Never prints secret values.
-
-### Command: secrets
+One-click MCP agent toolkit lifecycle.
 
 ```bash
 Usage:
-  ./scripts/manage.sh secrets status
-  ./scripts/manage.sh secrets ensure-key
-  ./scripts/manage.sh secrets list [--db-path PATH]
+  ./scripts/utilities/mcp-stack.sh catalog [--json]
+  ./scripts/utilities/mcp-stack.sh status [--json]
+  ./scripts/utilities/mcp-stack.sh start <stack-id> --confirm yes
+  ./scripts/utilities/mcp-stack.sh stop <stack-id|all>
+```
 
+### Command: mcp-stack
+
+
+
+<!-- source: scripts/utilities/monitoring-stack.sh -->
+
+## monitoring-stack
+
+Observability stack status and verification for Grafana/Prometheus integration.
+
+```bash
+Usage:
+  ./scripts/utilities/monitoring-stack.sh status [--json]
+  ./scripts/utilities/monitoring-stack.sh verify [--json]
+```
+
+### Command: monitoring-stack
+
+
+
+<!-- source: scripts/utilities/nemotron-stack.sh -->
+
+## nemotron-stack
+
+One-click Nemotron agentic stack lifecycle for the dashboard.
+
+```bash
+Usage:
+  ./scripts/utilities/nemotron-stack.sh catalog [--json]
+  ./scripts/utilities/nemotron-stack.sh status [--json]
+  ./scripts/utilities/nemotron-stack.sh check --action stack:<id> [--json]
+  ./scripts/utilities/nemotron-stack.sh start <stack-id> --confirm yes
+  ./scripts/utilities/nemotron-stack.sh stop <stack-id|all>
+```
+
+### Command: nemotron-stack
+
+
+
+<!-- source: scripts/utilities/open-webui-stack.sh -->
+
+## open-webui-stack
+
+Open WebUI Helm lifecycle — Hermes gateway agent chat UI.
+
+```bash
+Usage:
+  ./scripts/utilities/open-webui-stack.sh catalog [--json]
+  ./scripts/utilities/open-webui-stack.sh status [--json]
+  ./scripts/utilities/open-webui-stack.sh start <stack-id> --confirm yes
+  ./scripts/utilities/open-webui-stack.sh stop
+```
+
+### Command: open-webui-stack
+
+
+
+<!-- source: scripts/utilities/render-domains.sh -->
+
+## render-domains — regenerate domain-dependent manifests
+
+Reads config/lab-domains.yaml and config/sso-policy.yaml, then writes generated
+Kubernetes, Ansible, and Grafana artifacts.
+
+```bash
+Usage:
+  ./scripts/utilities/render-domains.sh
+```
+
+### Command: render-domains
+
+@description Regenerate SSO routes, TLS certs, Helm values, and Grafana links from lab-domains config.
+
+
+
+<!-- source: scripts/utilities/runner.sh -->
+
+## Utility runner (Bazel entry)
+
+Dispatches to `scripts/utilities/<name>.sh` for dashboard-controllable utilities.
+
+### Command: run-utility
+
+```bash
+Usage:
+  bazelisk run //scripts:run-utility -- spark-clock status
+  bazelisk run //scripts:run-utility -- nemotron-stack run
 ```
 
 !!! warning
 
     Safety:
-      Read-only status/list (metadata only). ensure-key is idempotent and never echoes the key.
+      Only invokes scripts under scripts/utilities/; allowlist enforced by each utility.
 
 
 
-<!-- source: scripts/lib/mcp.sh -->
+<!-- source: scripts/utilities/spark-clock.sh -->
 
-## MCP agent toolkit helpers
+## spark-clock
 
-Deploy helpers for agent-tools namespace workloads and policy gates.
+Manage GPU graphics clocks on DGX Spark (Blackwell GB10) for thermal stability.
 
-### Function `mcp_policy_path`
+**Intent**: GB10 has no user-controllable power limit or fan curve on DGX Spark
+(`nvidia-smi -pl` and fan speed return N/A). The only operator-accessible actuator
+is graphics clock locking via `nvidia-smi -lgc`. Range lock (default 300–2200 MHz)
+caps peak clocks to avoid sustained 78–88°C temps and thermal shutdowns during
+long-running inference, with near-zero impact on memory-bound MoE workloads.
 
-@function mcp_policy_path
+**Idempotency** (core of the utility pattern):
 
-### Function `mcp_policy_json_path`
+- `status` reports configured lock range, telemetry, and health classification.
 
-@function mcp_policy_json_path
+- `run` is a no-op when the configured lock range already matches targets.
 
-### Function `_mcp_load_policy_json`
+- Service install is idempotent (only rewrites unit if content differs).
 
-@function _mcp_load_policy_json
+**Lock readback**: NVML only offers setters for locked GPU clocks
+(`nvmlDeviceSetGpuLockedClocks`), so `nvidia-smi` cannot confirm a `-lgc` request.
+Live `clocks.min/max.graphics` are used whenever the driver reports them; otherwise
+the range applied during the current boot is read from `SPARK_CLOCK_STATE_FILE`
+(default `/var/lib/spark-clock/lock`). `status` names which source it used.
 
-### Function `mcp_namespace`
+**Safety**:
 
-@function mcp_namespace
+- Never touches ai-inference namespace workloads.
 
-### Function `ensure_mcp_namespace`
+- Requires nvidia-smi; mutation verbs require root (or passwordless sudo).
 
-@function ensure_mcp_namespace
+- Respects the lab's GPU Operator + nvidia-persistenced.
 
-### Function `_mcp_stack_startup_order`
+- Detects PD-degraded states (513–650 MHz / ~15W) and advises power-cycle.
 
-@function _mcp_stack_startup_order
-
-### Function `_mcp_component_kustomize`
-
-@function _mcp_component_kustomize
-
-### Function `start_mcp_component`
-
-@function start_mcp_component
-
-### Function `stop_mcp_component`
-
-@function stop_mcp_component
-
-### Function `get_mcp_catalog_json`
-
-@function get_mcp_catalog_json
-
-### Function `get_mcp_stack_status_json`
-
-@function get_mcp_stack_status_json
-
-### Function `start_mcp_stack`
-
-@function start_mcp_stack
-
-### Function `stop_mcp_stack`
-
-@function stop_mcp_stack
-
-
-
-<!-- source: scripts/lib/visual.sh -->
-
-## Visual generative AI (ComfyUI / FLUX / LTX) helpers
-
-Lifecycle for DGX Spark visual workloads: comfy-base, flux-*, ltx-*, flux-to-ltx.
-Heavy GPU + unified-memory consumers — manual start only, capacity-gated.
-
-!!! warning
-
-    Safety:
-      - One visual Deployment at a time (label workload=visual)
-      - enforce_capacity before apply
-      - Heavy confirmation for GPU visual starts
-      - Never auto-starts on reboot
-
-### Function `get_visual_kustomize_dir`
-
-@function get_visual_kustomize_dir
-Returns relative kustomize path for a visual model id, or empty if unknown.
-
-### Function `guard_active_visual`
-
-@function guard_active_visual
-Fail if another visual Deployment is already present (exclusive GPU policy).
-@param $1  Model id being started (allowed if it is the only match).
-
-### Function `apply_visual_kustomize`
-
-@function apply_visual_kustomize
-Apply a visual kustomize directory under REPO_ROOT.
-@param $1  Relative directory path
-
-### Function `check_visual_unified_memory`
-
-@function check_visual_unified_memory
-Pre-flight: warn/fail if cluster allocatable memory looks too low for model request.
-Uses resource-policy request memory; fails only when allocatable < request (strict).
-@param $1  Model id
-
-### Function `check_visual_weights_hint`
-
-@function check_visual_weights_hint
-Non-fatal warn if common Comfy model dirs look empty.
-
-### Function `start_visual_workload`
-
-@function start_visual_workload
-Generic visual starter: confirm (if heavy) + capacity + exclusivity + apply -k.
-@param $1  Model id (policy key)
-@param $2  Optional human label
-
-### Command: start-flux-fast
-
-### Command: start-flux-quality
-
-### Command: start-ltx-balanced
-
-### Command: start-ltx-quality
-
-### Command: start-flux-to-ltx
-
-### Command: start-comfy-base
-
-### Command: stop-comfy-base
-
-### Command: stop-visual
-
-### Command: status-visual
-
-
-
-<!-- source: scripts/lib/topology.sh -->
-
-## Lab topology helpers
-
-Thin wrappers around scripts/lib/py/lab_topology.py: validate the declarative
-lab topology (ansible/inventory/lab.yaml), emit flat facts, and render the
-generated Ansible artifacts (hosts.ini, fabric group vars, netplan,
-cloud-init user-data). The topology file is the single source of truth —
-`manage.sh setup` (discovery wizard) rewrites it, rendering follows.
-
-### Function `lab_topology_path`
-
-@function lab_topology_path
-Absolute path of the declarative lab topology file.
-Honors LAB_TOPOLOGY_FILE for tests and alternate lab checkouts.
-
-### Function `_lab_topology_py`
-
-@function _lab_topology_py
-Run the Python topology module with the given subcommand/args.
-The module path is resolved next to this file (not via lab_repo_root) so a
-REPO_ROOT/LAB_TOPOLOGY_FILE override still finds the engine in the real repo.
-
-### Function `topology_wizard_vars`
-
-@function topology_wizard_vars
-Emit key=value pre-fill defaults for the setup wizard from the given lab file.
+Usage (CLI):
 
 ```bash
-Usage: topology_wizard_vars [lab_file]
+  ./scripts/utilities/spark-clock.sh status [--json]
+  ./scripts/utilities/spark-clock.sh run                 # idempotent optimize to target
+  ./scripts/utilities/spark-clock.sh reset
+  ./scripts/utilities/spark-clock.sh set 2100            # ceiling only
+  ./scripts/utilities/spark-clock.sh set 300,2100        # floor,ceiling range
+  ./scripts/utilities/spark-clock.sh diagnose
+  ./scripts/utilities/spark-clock.sh --enable-systemd-service
+  ./scripts/utilities/spark-clock.sh --disable-systemd-service
+
 ```
 
-### Function `topology_validate`
+Env overrides: CLOCK_FLOOR_MHZ, CLOCK_CEILING_MHZ (TARGET_CLOCK_MHZ aliases ceiling),
+THERMAL_WARN_C, THERMAL_HOT_C, PD_* thresholds.
 
-@function topology_validate
-Validate the lab topology; non-zero exit with readable errors on failure.
+Dashboard integration: The UI will call status --json and run/reset subcommands.
 
-### Function `topology_facts`
+### Command: spark-clock
 
-@function topology_facts
-Emit key=value facts (fabric, node_count, orchestrator, switch_host, ...).
+### Command: clock-optimize
 
-### Function `topology_render`
 
-@function topology_render
+
+<!-- source: scripts/utilities/sync-hermes-seed.sh -->
+
+## sync-hermes-seed — copy Hermes workspace-dev profile into Coder template seed
+
+Keeps `hermes/profiles/workspace-dev/` as the single source of truth and
+mirrors tracked files into `k8s/dev/templates/coder-spark-lab/hermes-seed/`.
 
 ```bash
-Usage: topology_render [out_root]
+Usage:
+  bazelisk run //scripts:run-utility -- sync-hermes-seed
+  ./scripts/utilities/sync-hermes-seed.sh
 ```
 
-Render generated artifacts under out_root/ansible (default: repo root).
+### Command: sync-hermes-seed
 
-### Function `topology_check`
+@description Sync Hermes workspace-dev profile files into the Coder spark-lab template seed directory.
 
-@function topology_check
-Validate the topology and, when kubectl + cluster access exist, compare the
-declared nodes against live K3s nodes (read-only drift report).
 
 
+<!-- source: scripts/utilities/sync-ollama-models.sh -->
 
-<!-- source: scripts/lib/resources.sh -->
+## sync-ollama-models
 
-## Resource Guard — capacity math, pre-flight checks, and free-resource suggestions
+Bidirectional (or directed) sync of Ollama models between DGX Spark nodes using the high-speed interconnect.
 
-Loads config/resource-policy.yaml and compares cluster allocatable vs requested
-resources (GPU, CPU, memory) with configured headroom.
+**Intent**: Keep ~/.ollama/models in sync across the two nodes for dev/experiments
+without re-downloading large models. Uses the high-speed interconnect links when possible.
 
-Used by manage.sh, cluster-resources.sh, inference-workloads.sh, and dashboard utilities.
+**Idempotency**:
 
-### Function `resource_policy_path`
+- status reports drift (via rsync --dry-run).
 
-@function resource_policy_path
-Returns absolute path to resource-policy.json (stdlib parse target; YAML is human source).
+- run only transfers differences.
 
-### Function `_resource_python`
+**Safety**:
 
-@function _resource_python
-Runs inline Python with PyYAML-free stdlib-only YAML subset parser via json export.
+- Uses highspeed network (enp1s0f0np0/enp1s0f1np1 or 192.168.100/101 prefixes).
 
-### Function `_kubectl_nodes_json`
+- Configurable; never uses management network for bulk transfer if highspeed available.
 
-@function _kubectl_nodes_json
-Returns simplified per-node allocatable JSON array.
-
-### Function `_kubectl_pod_requests_json`
-
-@function _kubectl_pod_requests_json
-Sums Running/Pending pod container requests cluster-wide.
-
-### Function `get_cluster_capacity_json`
-
-@function get_cluster_capacity_json
-Emits JSON with allocatable, requested, headroom, available (after headroom).
-
-### Function `check_capacity`
-
-@function check_capacity
-Args: action (model:kimi, dev:coder, etc.). Prints JSON; exit 0 if ok.
-
-### Function `_is_helm_release_running`
-
-@function _is_helm_release_running
-
-### Function `_is_job_active`
-
-@function _is_job_active
-
-### Function `suggest_free_resources`
-
-@function suggest_free_resources
-Args: action. Prints JSON array of suggestions applicable to clearing deficit.
-
-### Function `_confirm_interactive`
-
-@function _confirm_interactive
-
-### Function `enforce_capacity`
-
-@function enforce_capacity
-Args: action [--force]. Blocks start when capacity insufficient.
-
-### Function `print_resources_status`
-
-@function print_resources_status
-Human-readable capacity report for manage.sh resources command.
-
-### Function `require_heavy_confirm`
-
-@function require_heavy_confirm
-Interactive or LAB_CONFIRM_TOKEN=yes for heavy models.
-
-### Function `guard_active_job`
-
-@function guard_active_job
-Returns 0 if job is not active (safe to start). Returns 1 if still active (caller should abort).
-
-
-
-<!-- source: scripts/lib/check_tool.sh -->
-
-## check_tool helper
-
-Resilient tool checker used by lints/run_*.sh and ansible run scripts.
-By default, a missing tool prints a message and exits 0 so local runs can
-continue gracefully when optional linters are not installed.
-
-When CI=true or REQUIRE_LINT_TOOLS=1, a missing tool is fatal (exit 1) so
-CI and strict local runs cannot silently skip lint steps.
-
-@function check_tool
-Usage (from a script):
-  source "$(dirname "$0")/../lib/check_tool.sh"
-  check_tool shellcheck "apt install shellcheck"
-  check_tool yamllint "pip install yamllint"
-
-### Function `check_tool`
-
-@function check_tool
-Usage (from a script):
-  source "$(dirname "$0")/../lib/check_tool.sh"
-  check_tool shellcheck "apt install shellcheck"
-  check_tool yamllint "pip install yamllint"
-
-
-
-<!-- source: scripts/lib/paths.sh -->
-
-## kcov-safe path resolution
-
-Helpers for resolving script and repository paths when BASH_SOURCE is unset
-under kcov instrumentation or when scripts run from Bazel runfiles symlinks.
-
-Sourced by manage.sh, validate.sh, utilities, and BATS tests via REPO_ROOT.
-
-### Function `lab_script_dir`
-
-@function lab_script_dir
-Resolve directory of the invoking shell script.
-@param $1 BASH_SOURCE depth (0 = this file, 1 = direct caller).
-@param $2 Fallback path relative to REPO_ROOT (default: scripts).
-@stdout Absolute script directory.
-
-### Function `lab_repo_root_from_lib`
-
-@function lab_repo_root_from_lib
-Resolve repo root from a scripts/lib/*.sh caller when REPO_ROOT is unset.
-@stdout Absolute repository root.
-
-### Function `lab_repo_root`
-
-@function lab_repo_root
-Resolve repository root (REPO_ROOT, BASH_SOURCE, or $0 fallback).
-@stdout Absolute repository root.
-
-### Function `lab_canonical_repo_root`
-
-@function lab_canonical_repo_root
-Resolve physical repository root for kcov coverage attribution.
-@param $1  Candidate root (defaults to REPO_ROOT or lab_repo_root).
-@stdout Canonical absolute repository root.
-
-
-
-<!-- source: scripts/lib/workspace-hermes.sh -->
-
-## Hermes workspace dev assistant
-
-Seed and render helpers for Coder and Kasm workspace Hermes profiles.
-
-### Function `workspace_hermes_profile_dir`
-
-@function workspace_hermes_profile_dir
-
-### Function `workspace_hermes_stack_id`
-
-@function workspace_hermes_stack_id
-
-### Function `workspace_hermes_seed_data_dir`
-
-@function workspace_hermes_seed_data_dir
-Copy profile distribution into target Hermes data directory.
-
-### Function `workspace_hermes_render_config`
-
-@function workspace_hermes_render_config
-
-### Function `workspace_hermes_verify_prerequisites`
-
-@function workspace_hermes_verify_prerequisites
-
-### Function `get_workspace_hermes_status_json`
-
-@function get_workspace_hermes_status_json
-
-
-
-<!-- source: scripts/lib/sso.sh -->
-
-## SSO stack helpers
-
-Traefik v3 + cert-manager + Authelia + oauth2-proxy deploy helpers.
-Policy: config/sso-policy.yaml
-
-### Function `sso_policy_path`
-
-@function sso_policy_path
-
-### Function `sso_domain`
-
-@function sso_domain
-Deprecated alias — returns local apex domain (lab.local by default).
-
-### Function `sso_enabled`
-
-@function sso_enabled
-
-### Function `ensure_sso_namespaces`
-
-@function ensure_sso_namespaces
-
-### Function `require_helm`
-
-@function require_helm
-
-### Function `_sso_policy_value`
-
-@function _sso_policy_value
-
-### Function `ensure_sso_secrets`
-
-@function ensure_sso_secrets
-Generates Authelia + oauth2-proxy secrets if missing.
-
-### Function `_replicate_oidc_client_secrets`
-
-@function _replicate_oidc_client_secrets
-Copy sso-oidc-clients to app namespaces (secrets are namespace-scoped).
-
-### Function `_ensure_authelia_oidc_config`
-
-@function _ensure_authelia_oidc_config
-Generates OIDC JWKS + client overlay for Authelia and oauth2-proxy.
-
-### Function `_sso_oidc_redirect_uris`
-
-@function _sso_oidc_redirect_uris
-Emit YAML list entries for OIDC redirect URIs across local + public domains.
-
-### Function `apply_oauth2_proxy`
-
-@function apply_oauth2_proxy
-
-### Function `ensure_cert_manager`
-
-@function ensure_cert_manager
-
-### Function `ensure_sso_tls`
-
-@function ensure_sso_tls
-
-### Function `ensure_traefik`
-
-@function ensure_traefik
-
-### Function `apply_sso_middlewares`
-
-@function apply_sso_middlewares
-
-### Function `apply_sso_auth_stack`
-
-@function apply_sso_auth_stack
-
-### Command: start-sso
-
-### Command: stop-sso
-
-### Function `get_sso_status_json`
-
-@function get_sso_status_json
-
-### Function `print_sso_access_info`
-
-@function print_sso_access_info
-
-### Function `sso_cmd`
-
-@function sso_cmd
-
-
-
-<!-- source: scripts/lib/domains.sh -->
-
-## Lab domain helpers
-
-Reads config/lab-domains.yaml with env overrides for SSO, monitoring,
-Open WebUI, and the domain render pipeline.
-
-### Function `lab_domains_path`
-
-@function lab_domains_path
-
-### Function `_lab_domains_load`
-
-@function _lab_domains_load
-Emit key=value lines for domain config (env overrides file).
-
-### Function `_lab_domains_get`
-
-@function _lab_domains_get
-
-### Function `lab_local_domain`
-
-@function lab_local_domain
-
-### Function `lab_public_domain`
-
-@function lab_public_domain
-
-### Function `lab_primary_domain`
-
-@function lab_primary_domain
-
-### Function `lab_email_domain`
-
-@function lab_email_domain
-
-### Function `lab_sso_https_port`
-
-@function lab_sso_https_port
-
-### Function `lab_sso_http_port`
-
-@function lab_sso_http_port
-
-### Function `lab_active_domain`
-
-@function lab_active_domain
-Returns the domain used for primary SSO links (local or public apex).
-
-### Function `lab_fqdn`
-
-@function lab_fqdn
+- --delete not used by default (conservative for models).
 
 ```bash
-Usage: lab_fqdn dashboard [local|public]
+Usage:
+  ./scripts/utilities/sync-ollama-models.sh status [--json]
+  ./scripts/utilities/sync-ollama-models.sh run [to-remote|from-remote]
+
 ```
 
-### Function `lab_host_match`
+Dashboard can trigger sync and show status.
 
-@function lab_host_match
-Traefik Host() rule for one subdomain across configured domains.
+### Command: sync-ollama-models
 
-### Function `lab_service_url`
+### Command: ollama-sync
 
-@function lab_service_url
+
+
+<!-- source: scripts/utilities/system-update.sh -->
+
+## system-update
+
+Safely perform full system + firmware update on DGX Spark nodes and prepare for reboot.
+
+**Intent**: Keep base OS (apt dist-upgrade) and firmware (fwupdmgr) current.
+CRITICAL LAB SAFETY: Never reboot while heavy inference workloads are running.
+Always stop jobs first (manage.sh stop) and verify clean before reboot.
+
+**Idempotency** (per utility pattern):
+
+- status reports exactly what is pending and whether safe to proceed.
+
+- run is safe to repeat (checks state; only acts on pending items).
+
+- Reboot step is gated and only suggested when safe.
+
+**Safety**:
+
+- Refuses destructive actions (reboot path) if active jobs in ai-inference.
+
+- Respects reboot-safety golden rule.
+
+- Must integrate with manage.sh stop before any reboot.
+
+- Uses shared helpers for logging and cluster checks.
 
 ```bash
-Usage: lab_service_url dashboard [/path] [local|public]
+Usage:
+  ./scripts/utilities/system-update.sh status [--json]
+  ./scripts/utilities/system-update.sh run [--reboot]
+
 ```
 
-### Function `lab_hosts_file_line`
+Dashboard will call status --json and run.
 
-@function lab_hosts_file_line
+See reboot-safety.md and AGENTS for mandatory pre-reboot steps.
 
-### Function `lab_domain_urls_json`
+### Command: system-update
 
-@function lab_domain_urls_json
-Emit JSON with local/public URL maps for a service host.
+### Command: update-system
 
-### Function `lab_ansible_values_file`
 
-@function lab_ansible_values_file
-Prefer ansible/files/generated/<name> when render-domains has run.
 
-### Function `domains_render`
+<!-- source: scripts/utilities/workspace-hermes.sh -->
 
-@function domains_render
+## workspace-hermes
 
-### Function `domains_show`
-
-@function domains_show
-
-### Function `domains_set`
-
-@function domains_set
-
-### Function `domains_apply`
-
-@function domains_apply
-
-### Command: domains
-
-
-
-<!-- source: scripts/lib/stack-rounded.sh -->
-
-## 3-node rounded stack (Mode A mixed fleet vs Mode B GLM vs Mode C DeepSeek-V4.1-Flash)
-
-LiteLLM aliases, Mode A/B/C mutual exclusion, and per-fabric interconnect doctor.
-Heavy Jobs stay manual-start. LiteLLM is a management Deployment.
-
-### Function `rounded_mode_a_jobs`
-
-@function rounded_mode_a_jobs
-Prints Mode A inference Job names (one per line). Used by mutual exclusion.
-
-### Function `rounded_mode_b_jobs`
-
-@function rounded_mode_b_jobs
-Prints Mode B inference Job names (one per line).
-
-### Function `rounded_mode_c_jobs`
-
-@function rounded_mode_c_jobs
-Prints Mode C inference Job names (one per line).
-
-### Function `_rounded_active_from_list`
-
-@function _rounded_active_from_list
-Echoes the first active Job name from a newline-separated list, or empty.
-
-### Function `guard_rounded_mode_b_idle`
-
-@function guard_rounded_mode_b_idle
-Fail if any Mode B (frontier) Job is active.
-
-### Function `guard_rounded_mode_a_idle`
-
-@function guard_rounded_mode_a_idle
-Fail if any Mode A (rounded daily) Job is active.
-
-### Function `guard_rounded_mode_c_idle`
-
-@function guard_rounded_mode_c_idle
-Fail if any Mode C (DeepSeek-V4.1-Flash) Job is active.
-
-### Function `lab_mgmt_ifname`
-
-@function lab_mgmt_ifname
-Management / NCCL OOB interface. Default enP7s7; override LAB_MGMT_IFNAME.
-Does not hard-fail if the live name differs — callers warn via doctor_fabric.
-
-### Command: doctor-fabric
-
-### Function `_rounded_node_count`
-
-@function _rounded_node_count
-
-### Function `_require_three_nodes`
-
-@function _require_three_nodes
-Require ≥3 nodes for rounded / Mode B / Mode C starts.
-
-### Function `litellm_overlay_for_backend`
-
-@function litellm_overlay_for_backend
-Prints the kustomize path for a LiteLLM backend id.
-@param $1  Backend id (rounded | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | glm-5.3-flash | deepseek-v4.1-flash).
-
-### Function `args_have_with_litellm`
-
-@function args_have_with_litellm
-Returns 0 if --with-litellm is among the given args.
-
-### Function `maybe_attach_litellm`
-
-@function maybe_attach_litellm
-Start LiteLLM with the given backend profile when --with-litellm is present.
-@param $1  Backend id. Remaining args are scanned for --with-litellm.
-
-### Command: start-litellm
-
-### Command: stop-litellm
-
-### Command: start-qwen38-27b
-
-### Command: stop-qwen38-27b
-
-### Command: start-qwen38-flash-next
-
-### Command: start-medgemma
-
-### Command: stop-medgemma
-
-### Command: start-stack-rounded
-
-### Command: stop-stack-rounded
-
-### Command: start-glm53-flash
-
-### Command: stop-glm53-flash
-
-### Command: start-dsv41-flash
-
-### Command: stop-dsv41-flash
-
-### Command: status-stack
-
-
-
-<!-- source: scripts/lib/open-webui.sh -->
-
-## Open WebUI stack helpers
-
-Helm deploy helpers; Hermes gateway backend via headless Service + Endpoints.
-
-### Function `openwebui_policy_path`
-
-@function openwebui_policy_path
-
-### Function `openwebui_policy_json_path`
-
-@function openwebui_policy_json_path
-
-### Function `_openwebui_load_policy_json`
-
-@function _openwebui_load_policy_json
-
-### Function `openwebui_control_plane_ip`
-
-@function openwebui_control_plane_ip
-Resolves spark0 InternalIP for Hermes host-network gateway bridge.
-
-### Function `openwebui_hermes_api_key`
-
-@function openwebui_hermes_api_key
-
-### Function `openwebui_ensure_secrets`
-
-@function openwebui_ensure_secrets
-
-### Function `openwebui_apply_hermes_gateway`
-
-@function openwebui_apply_hermes_gateway
-
-### Function `openwebui_check_prerequisites`
-
-@function openwebui_check_prerequisites
-
-### Function `get_openwebui_catalog_json`
-
-@function get_openwebui_catalog_json
-
-### Function `get_openwebui_status_json`
-
-@function get_openwebui_status_json
-
-### Function `start_openwebui_stack`
-
-@function start_openwebui_stack
-
-### Function `stop_openwebui_stack`
-
-@function stop_openwebui_stack
-
-
-
-<!-- source: scripts/lib/monitoring.sh -->
-
-## Monitoring stack logic
-
-Unified observability deploy: node-exporter, kube-state-metrics, blackbox-exporter,
-Prometheus, Grafana (provisioned), Headlamp, and lab-dashboard.
-
-Used by manage.sh start-monitoring and ansible/roles/monitoring.
-
-### Function `monitoring_helm_release_names`
-
-@function monitoring_helm_release_names
-
-### Function `monitoring_repo_root`
-
-@function monitoring_repo_root
-
-### Function `monitoring_probes_path`
-
-@function monitoring_probes_path
-
-### Function `monitoring_grafana_dashboards_dir`
-
-@function monitoring_grafana_dashboards_dir
-
-### Function `monitoring_spark0_ip`
-
-@function monitoring_spark0_ip
-
-### Function `ensure_monitoring_namespaces`
-
-@function ensure_monitoring_namespaces
-
-### Function `monitoring_helm_repo_add`
-
-@function monitoring_helm_repo_add
-
-### Function `monitoring_apply_grafana_dashboards_configmap`
-
-@function monitoring_apply_grafana_dashboards_configmap
-
-### Function `monitoring_generate_prometheus_scrape_config`
-
-@function monitoring_generate_prometheus_scrape_config
-Writes prometheus-scrape-config.yaml (override path via MONITORING_SCRAPE_CONFIG_OUT).
-
-### Function `monitoring_apply_prometheus_scrape_config`
-
-@function monitoring_apply_prometheus_scrape_config
-
-### Function `deploy_node_exporter`
-
-@function deploy_node_exporter
-
-### Function `deploy_kube_state_metrics`
-
-@function deploy_kube_state_metrics
-
-### Function `deploy_blackbox_exporter`
-
-@function deploy_blackbox_exporter
-
-### Function `deploy_prometheus`
-
-@function deploy_prometheus
-
-### Function `deploy_grafana_monitoring`
-
-@function deploy_grafana_monitoring
-
-### Function `deploy_headlamp_monitoring`
-
-@function deploy_headlamp_monitoring
-
-### Function `deploy_lab_dashboard_monitoring`
-
-@function deploy_lab_dashboard_monitoring
-
-### Function `deploy_monitoring_stack`
-
-@function deploy_monitoring_stack
-
-### Function `_monitoring_release_ready`
-
-@function _monitoring_release_ready
-
-### Function `_monitoring_dcgm_ready`
-
-@function _monitoring_dcgm_ready
-
-### Function `get_monitoring_status_json`
-
-@function get_monitoring_status_json
-
-### Function `verify_scrape_targets`
-
-@function verify_scrape_targets
-
-
-
-<!-- source: scripts/lib/hermes.sh -->
-
-## Hermes Agent helpers
-
-Docker deploy helpers for Spark host integration and policy gates.
-
-### Function `_hermes_repo_root`
-
-@function _hermes_repo_root
-
-### Function `hermes_policy_path`
-
-@function hermes_policy_path
-
-### Function `hermes_policy_json_path`
-
-@function hermes_policy_json_path
-
-### Function `hermes_data_dir`
-
-@function hermes_data_dir
-
-### Function `hermes_compose_file`
-
-@function hermes_compose_file
-
-### Function `hermes_port_forward_pid_file`
-
-@function hermes_port_forward_pid_file
-
-### Function `_hermes_load_policy_json`
-
-@function _hermes_load_policy_json
-
-### Function `hermes_ensure_data_dir`
-
-@function hermes_ensure_data_dir
-
-### Function `hermes_render_config`
-
-@function hermes_render_config
-Optional second arg: output config path (defaults to hermes/data/config.yaml).
-Optional third arg: url_mode override (host_localhost | in_cluster).
-
-### Function `hermes_check_prerequisites`
-
-@function hermes_check_prerequisites
-
-### Function `hermes_stop_port_forward`
-
-@function hermes_stop_port_forward
-
-### Function `hermes_start_port_forward`
-
-@function hermes_start_port_forward
-
-### Function `get_hermes_catalog_json`
-
-@function get_hermes_catalog_json
-
-### Function `get_hermes_status_json`
-
-@function get_hermes_status_json
-
-### Function `start_hermes_stack`
-
-@function start_hermes_stack
-
-### Function `stop_hermes_stack`
-
-@function stop_hermes_stack
-
-
-
-<!-- source: scripts/lib/disk_scan.sh -->
-
-## disk_scan
-
-Read-only filesystem / containerd / docker survey helpers for disk-wizard.
-Source after common.sh. Not executable.
-
-!!! warning
-
-    Safety:
-      Does not delete. Realpath jail. Hermetic tests set LAB_HERMETIC=1 and
-      DISK_WIZARD_HOME so $HOME is never walked on a developer laptop.
-
-### Function `disk_scan_home`
-
-@function disk_scan_home
-Home used for ~/.cache and ~/.ollama (tests override DISK_WIZARD_HOME).
-Globals:
-  DISK_WIZARD_HOME, HOME
-Outputs:
-  Absolute home path
-
-### Function `disk_scan_hermetic`
-
-@function disk_scan_hermetic
-True when this is a hermetic test run (no live docker/crictl/kubectl).
-Globals:
-  LAB_HERMETIC
-Returns:
-  0 hermetic
-
-### Function `disk_allowed_roots`
-
-@function disk_allowed_roots
-Print allowed root directories (one per line), existing only.
-Globals:
-  MODELS_DIR, DISK_WIZARD_ROOTS, DISK_WIZARD_SCAN_TMP, DISK_WIZARD_HOME
-Outputs:
-  Paths on stdout
-
-### Function `disk_root_is_allowed`
-
-@function disk_root_is_allowed
-True if realpath(path) is under one of the allowed roots.
-Arguments:
-  $1  path
-Returns:
-  0 allowed
-
-### Function `disk_realpath_under_any`
-
-@function disk_realpath_under_any
-Realpath; fail unless under an allowed root.
-Arguments:
-  $1  path
-Outputs:
-  realpath
-Returns:
-  0; 1 escape
-
-### Function `disk_df_json`
-
-@function disk_df_json
-Filesystem size JSON for MODELS_DIR (or LAB_MOCK_DF_JSON).
-Globals:
-  MODELS_DIR, LAB_MOCK_DF_JSON
-Outputs:
-  JSON object
-
-### Function `disk_df_report`
-
-@function disk_df_report
-Human df -h for MODELS_DIR (or mock).
-Globals:
-  MODELS_DIR, LAB_MOCK_DF
-
-### Function `disk_docker_df`
-
-@function disk_docker_df
-Docker disk usage JSON lines (or LAB_MOCK_DOCKER_DF).
-Globals:
-  LAB_MOCK_DOCKER_DF, LAB_HERMETIC
-
-### Function `disk_crictl_in_use`
-
-@function disk_crictl_in_use
-Image ids in use (one per line).
-Globals:
-  LAB_MOCK_CRICTL_IN_USE, LAB_HERMETIC
-
-### Function `disk_hf_pid_present`
-
-@function disk_hf_pid_present
-True if an hf download PID or pidfile is present.
-Globals:
-  MODELS_DIR, LAB_MOCK_HF_PID
-Returns:
-  0 running
-
-### Function `disk_factory_bittest_paths`
-
-@function disk_factory_bittest_paths
-Non-recursive *bittest* glob under DISK_WIZARD_ROOT_GLOB_BASE (default /).
-Hermetic runs skip unless DISK_WIZARD_ROOT_GLOB_BASE is set.
-Outputs:
-  JSONL path/size rows
-
-### Function `disk_crictl_image_rows`
-
-@function disk_crictl_image_rows
-containerd image JSONL (crictl://unused-image/ID or in-use). Hermetic unless mocked.
-Globals:
-  LAB_MOCK_CRICTL_IMAGES, LAB_HERMETIC
-Outputs:
-  JSONL path/size rows
-
-### Function `disk_live_workload_flags`
-
-@function disk_live_workload_flags
-Set LAB_MOCK_VISUAL / MODE_C / FLASH_NEXT from live kubectl (no-op when hermetic).
-Globals:
-  LAB_HERMETIC, LAB_MOCK_VISUAL, LAB_MOCK_MODE_C, LAB_MOCK_FLASH_NEXT
-
-### Function `disk_kubectl_pods_json`
-
-@function disk_kubectl_pods_json
+Seed and verify Hermes workspace-dev profile for Coder/Kasm workspaces.
 
 ```bash
-kubectl get pods -A -o json or LAB_MOCK_PODS_JSON.
+Usage:
+  ./scripts/utilities/workspace-hermes.sh status [--json]
+  ./scripts/utilities/workspace-hermes.sh seed <target-dir>
+  ./scripts/utilities/workspace-hermes.sh render <target-dir>
+  ./scripts/utilities/workspace-hermes.sh verify
 ```
 
-Globals:
-  LAB_MOCK_PODS_JSON, LAB_HERMETIC
+### Command: workspace-hermes
