@@ -32,47 +32,127 @@ echo "0B"
 MOCKDU
   chmod +x "$TEST_TMP_DIR/bin/du"
 
-  # Mock nvidia-smi for spark-clock (MOCK_SPARK_CLOCK_MODE: healthy|unlocked|pd_degraded)
+  # Mock nvidia-smi for spark-clock.
+  #   MOCK_SPARK_CLOCK_MODE: healthy|unlocked|apps_unknown|pd_degraded
+  #   MOCK_SPARK_CLOCK_LOCK_READBACK: 1 when the driver reflects -lgc in min/max clocks
+  #   MOCK_SPARK_CLOCK_REJECT_COMBINED: 1 to reject multi-field --query-gpu calls
   export MOCK_SPARK_CLOCK_MODE="${MOCK_SPARK_CLOCK_MODE:-healthy}"
+  export MOCK_SPARK_CLOCK_LOCK_READBACK="${MOCK_SPARK_CLOCK_LOCK_READBACK:-0}"
+  export MOCK_SPARK_CLOCK_REJECT_COMBINED="${MOCK_SPARK_CLOCK_REJECT_COMBINED:-0}"
+  export MOCK_SPARK_CLOCK_LOCK_FILE="$TEST_TMP_DIR/mock-gpu-lock"
+  export SPARK_CLOCK_STATE_FILE="$TEST_TMP_DIR/spark-clock-lock-record"
+  export SPARK_CLOCK_SERVICE_PATH="$TEST_TMP_DIR/nvidia-clock-optimize.service"
+  mkdir -p "$TEST_TMP_DIR/usrlocal"
+  export SPARK_CLOCK_SCRIPT_INSTALL_PATH="$TEST_TMP_DIR/usrlocal/spark-clock.sh"
+  export SYSTEMCTL_CALLS_LOG="$TEST_TMP_DIR/systemctl_calls.log"
   cat > "$TEST_TMP_DIR/bin/nvidia-smi" << 'MOCKNVIDIA'
 #!/usr/bin/env bash
 mode="${MOCK_SPARK_CLOCK_MODE:-healthy}"
+lock_readback="${MOCK_SPARK_CLOCK_LOCK_READBACK:-0}"
+reject_combined="${MOCK_SPARK_CLOCK_REJECT_COMBINED:-0}"
+lock_file="${MOCK_SPARK_CLOCK_LOCK_FILE:-/tmp/mock-spark-clock-lock}"
+supported_max_mhz=3003
 
-gpu_row() {
+# Column order mirrors GPU_QUERY_FIELDS in scripts/utilities/spark-clock.sh.
+query_fields="clocks.current.graphics,clocks.min.graphics,clocks.max.graphics,clocks.applications.graphics,temperature.gpu,temperature.gpu_tlimit_temp,power.draw,utilization.gpu,clocks_throttle_reasons.active,clocks_throttle_reasons.applications_clocks_setting,clocks_event_reasons.sw_power_capping,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_thermal_slowdown,persistence_mode"
+
+set_row() {
+  current=208; min="[N/A]"; max="$supported_max_mhz"; apps="N/A"
+  temp=45; tlimit=55; power=7.0; util=0
+  reason="Not Active"; apps_reason="Not Active"; q_apps_reason="$apps_reason"
+  swpc=0; swt=0; hwt=0; persist=Enabled
+
+  if [[ -f "$lock_file" ]]; then
+    # NVML has no getter for -lgc: the driver keeps reporting hardware clocks and
+    # the applications-clocks throttle reason stays Not Active.
+    current=208; temp=68; tlimit=42
+    if [[ "$lock_readback" == "1" ]]; then
+      min=$(cut -d, -f1 "$lock_file")
+      max=$(cut -d, -f2 "$lock_file")
+    fi
+    return 0
+  fi
+
   case "$mode" in
-    unlocked)
-      echo "208, [N/A], 3003, 2418, 45, 55, 7.0, 0, Not Active, Not Active, 0, 0, 0, Enabled"
+    unlocked|apps_unknown)
+      # apps_unknown: the CSV field is unsupported while -q still prints the reason.
+      [[ "$mode" == "apps_unknown" ]] && apps_reason="N/A"
       ;;
     pd_degraded)
-      echo "513, 300, 2200, 2418, 44, 50, 14.5, 96, Not Active, Active, 1369000000, 0, 0, Enabled"
+      current=513; min=300; max=2200; apps=2418
+      temp=44; tlimit=50; power=14.5; util=96
+      apps_reason="Active"; swpc=1369000000
       ;;
     healthy|*)
       # Idle GPU with lock range 300-2200 already applied
-      echo "208, 300, 2200, 2418, 68, 42, 7.0, 0, Not Active, Active, 0, 0, 0, Enabled"
+      min=300; max=2200; apps=2418
+      temp=68; tlimit=42
+      apps_reason="Active"
       ;;
   esac
 }
 
-case "$*" in
-  *--query-gpu=*clocks.current.graphics*)
-    gpu_row
-    ;;
-  *clocks.current.graphics*)
-    gpu_row
-    ;;
-  *clocks.max.graphics*)
-    echo "3003"
-    ;;
-  *-q*)
-    if [[ "$mode" == "unlocked" ]]; then
-      echo "Applications Clocks Setting : Not Active"
-    else
-      echo "Applications Clocks Setting : Active"
+gpu_row() {
+  set_row
+  echo "$current, $min, $max, $apps, $temp, $tlimit, $power, $util, $reason, $apps_reason, $swpc, $swt, $hwt, $persist"
+}
+
+query_list=""
+for arg in "$@"; do
+  case "$arg" in
+    --query-gpu=*) query_list="${arg#--query-gpu=}" ;;
+  esac
+done
+
+if [[ -n "$query_list" ]]; then
+  if [[ "$query_list" == *","* && "$reject_combined" == "1" ]]; then
+    echo "Invalid property name" >&2
+    exit 255
+  fi
+  row=$(gpu_row)
+  IFS=',' read -r -a values <<<"$row"
+  IFS=',' read -r -a wanted <<<"$query_list"
+  IFS=',' read -r -a known <<<"$query_fields"
+  out=()
+  for field in "${wanted[@]}"; do
+    idx=0
+    matched=""
+    for candidate in "${known[@]}"; do
+      [[ "$candidate" == "$field" ]] && { matched="yes"; break; }
+      idx=$((idx + 1))
+    done
+    if [[ -z "$matched" ]]; then
+      echo "Invalid property name: $field" >&2
+      exit 255
     fi
-    echo "Persistence Mode : Enabled"
+    value="${values[$idx]}"
+    out+=("$(printf '%s' "$value" | tr -d ' ')")
+  done
+  (IFS=,; printf '%s\n' "${out[*]}")
+  exit 0
+fi
+
+case "$*" in
+  *-q*)
+    set_row
+    echo "Applications Clocks Setting : $q_apps_reason"
+    echo "Persistence Mode : $persist"
     ;;
-  *-lgc*|-pm*|-rgc*)
-    exit 0
+  *-lgc*)
+    spec=""
+    prev=""
+    for arg in "$@"; do
+      [[ "$prev" == "-lgc" ]] && spec="$arg"
+      prev="$arg"
+    done
+    [[ "$spec" == *,* ]] || spec="300,2200"
+    printf '%s\n' "$spec" >"$lock_file"
+    echo "GPU clocks set to \"(gpuClkMin ${spec%%,*}, gpuClkMax ${spec##*,})\" for GPU 0000000F:01:00.0"
+    echo "All done."
+    ;;
+  *-rgc*)
+    rm -f "$lock_file"
+    echo "All done."
     ;;
   *)
     exit 0
@@ -80,6 +160,13 @@ case "$*" in
 esac
 MOCKNVIDIA
   chmod +x "$TEST_TMP_DIR/bin/nvidia-smi"
+
+  cat > "$TEST_TMP_DIR/bin/systemctl" << 'MOCKSYSTEMCTL'
+#!/usr/bin/env bash
+echo "systemctl $*" >>"${SYSTEMCTL_CALLS_LOG:-/dev/null}"
+exit 0
+MOCKSYSTEMCTL
+  chmod +x "$TEST_TMP_DIR/bin/systemctl"
 
   # Mock rsync + ssh for sync-ollama-models
   cat > "$TEST_TMP_DIR/bin/rsync" << 'MOCKRSYNC'
@@ -235,7 +322,15 @@ MOCKHELM
 setup() {
   export TEST_TMP_DIR UTILITIES_DIR REPO_ROOT HOME KUBECONFIG PATH REMOTE_HOST
   export LAB_MOCK_NODES_JSON LAB_MOCK_PODS_JSON
-  export MOCK_SPARK_CLOCK_MODE="${MOCK_SPARK_CLOCK_MODE:-healthy}"
+  export MOCK_SPARK_CLOCK_MODE MOCK_SPARK_CLOCK_LOCK_READBACK MOCK_SPARK_CLOCK_REJECT_COMBINED
+  export MOCK_SPARK_CLOCK_LOCK_FILE SPARK_CLOCK_STATE_FILE SPARK_CLOCK_SERVICE_PATH
+  export SPARK_CLOCK_SCRIPT_INSTALL_PATH SYSTEMCTL_CALLS_LOG
+  rm -f "$MOCK_SPARK_CLOCK_LOCK_FILE" "$SPARK_CLOCK_STATE_FILE"
+  rm -f "$SPARK_CLOCK_SCRIPT_INSTALL_PATH" "$SPARK_CLOCK_SERVICE_PATH"
+  if [[ -f "${TEST_TMP_DIR}/bin/nvidia-smi.disabled" ]]; then
+    mv "${TEST_TMP_DIR}/bin/nvidia-smi.disabled" "${TEST_TMP_DIR}/bin/nvidia-smi"
+  fi
+  : >"$SYSTEMCTL_CALLS_LOG"
   > "${TEST_TMP_DIR}/kubectl_calls.log" || true
 }
 
@@ -295,6 +390,103 @@ teardown_file() {
   run bash "${UTILITIES_DIR}/spark-clock.sh" not-a-command
   [ "$status" -eq 1 ]
   [[ "$output" == *"Usage:"* ]]
+}
+
+@test "spark-clock.sh runs standalone when copied outside the repo tree" {
+  # The systemd unit execs /usr/local/bin/spark-clock.sh, which has no ../lib sibling.
+  local standalone_dir="$TEST_TMP_DIR/standalone"
+  mkdir -p "$standalone_dir"
+  cp "${UTILITIES_DIR}/spark-clock.sh" "$standalone_dir/spark-clock.sh"
+  run bash "$standalone_dir/spark-clock.sh" status
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"DGX Spark GPU Clock Status"* ]]
+  [[ "$output" != *"No such file or directory"* ]]
+}
+
+@test "spark-clock.sh --enable-systemd-service installs a runnable script and unit" {
+  run bash "${UTILITIES_DIR}/spark-clock.sh" --enable-systemd-service
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"enabled and started"* ]]
+  [ -x "$SPARK_CLOCK_SCRIPT_INSTALL_PATH" ]
+  [ -f "$SPARK_CLOCK_SERVICE_PATH" ]
+  grep -q "ExecStart=${SPARK_CLOCK_SCRIPT_INSTALL_PATH} run" "$SPARK_CLOCK_SERVICE_PATH"
+  grep -q "systemctl start nvidia-clock-optimize.service" "$SYSTEMCTL_CALLS_LOG"
+  # The unit execs the installed copy with no repo ../lib available.
+  run bash "$SPARK_CLOCK_SCRIPT_INSTALL_PATH" status --json
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"\"health\""* ]]
+}
+
+@test "spark-clock.sh --enable-systemd-service stops before systemd when the copy fails" {
+  printf 'not a directory\n' >"$TEST_TMP_DIR/blocked"
+  SPARK_CLOCK_SCRIPT_INSTALL_PATH="$TEST_TMP_DIR/blocked/spark-clock.sh" \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" --enable-systemd-service
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"Could not install"* ]]
+  [ ! -f "$SPARK_CLOCK_SERVICE_PATH" ]
+  ! grep -q "systemctl start" "$SYSTEMCTL_CALLS_LOG"
+}
+
+@test "spark-clock.sh --enable-systemd-service refuses to enable when the installed copy cannot run" {
+  mv "$TEST_TMP_DIR/bin/nvidia-smi" "$TEST_TMP_DIR/bin/nvidia-smi.disabled"
+  run bash "${UTILITIES_DIR}/spark-clock.sh" --enable-systemd-service
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"cannot run"* ]]
+  [ -x "$SPARK_CLOCK_SCRIPT_INSTALL_PATH" ]
+  [ ! -f "$SPARK_CLOCK_SERVICE_PATH" ]
+  ! grep -q "systemctl start" "$SYSTEMCTL_CALLS_LOG"
+}
+
+@test "spark-clock.sh set reports the configured range when the driver cannot read back the lock" {
+  # nvidia-smi has no getter for -lgc, so the readback must not claim "unlocked"
+  # right after a successful lock.
+  run bash "${UTILITIES_DIR}/spark-clock.sh" set 300,2200
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Locking graphics clocks to 300,2200"* ]]
+  [[ "$output" == *"Success. Configured range: 300,2200"* ]]
+  [[ "$output" != *"Configured range: unlocked"* ]]
+}
+
+@test "spark-clock.sh run no-ops on a fresh lock record when the driver cannot read back the lock" {
+  MOCK_SPARK_CLOCK_MODE=unlocked run bash "${UTILITIES_DIR}/spark-clock.sh" run
+  [[ "$output" == *"Locking graphics clocks"* ]]
+  run bash "${UTILITIES_DIR}/spark-clock.sh" run
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Idempotent no-op"* ]]
+}
+
+@test "spark-clock.sh run re-applies the lock when live clocks contradict the record" {
+  printf '300,2200\n' >"$SPARK_CLOCK_STATE_FILE"
+  printf '300,2100\n' >"$MOCK_SPARK_CLOCK_LOCK_FILE"
+  MOCK_SPARK_CLOCK_LOCK_READBACK=1 run bash "${UTILITIES_DIR}/spark-clock.sh" run
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Locking graphics clocks to 300,2200"* ]]
+}
+
+@test "spark-clock.sh reset clears the lock record" {
+  run bash "${UTILITIES_DIR}/spark-clock.sh" set 300,2200
+  [ -f "$SPARK_CLOCK_STATE_FILE" ]
+  run bash "${UTILITIES_DIR}/spark-clock.sh" reset
+  [ "$status" -eq 0 ]
+  [ ! -f "$SPARK_CLOCK_STATE_FILE" ]
+  [ ! -f "$MOCK_SPARK_CLOCK_LOCK_FILE" ]
+  MOCK_SPARK_CLOCK_MODE=unlocked run bash "${UTILITIES_DIR}/spark-clock.sh" status
+  [[ "$output" == *"Configured range       : unlocked"* ]]
+}
+
+@test "spark-clock.sh status keeps telemetry when the driver rejects the combined query" {
+  MOCK_SPARK_CLOCK_REJECT_COMBINED=1 run bash "${UTILITIES_DIR}/spark-clock.sh" status --json
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"\"temperature_c\": 68"* ]]
+  [[ "$output" == *"\"power_w\": 7.0"* ]]
+  [[ "$output" == *"\"configured_ceiling_mhz\": \"2200\""* ]]
+}
+
+@test "spark-clock.sh status reports unlocked when apps clocks state is unknown" {
+  # The -q fallback must not read "Applications Clocks Setting : Not Active" as a lock.
+  MOCK_SPARK_CLOCK_MODE=apps_unknown run bash "${UTILITIES_DIR}/spark-clock.sh" status
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Configured range       : unlocked"* ]]
 }
 
 @test "sync-ollama-models.sh status exits 0" {
