@@ -21,19 +21,6 @@ if [[ -n ${BUILD_WORKSPACE_DIRECTORY:-} && -d "${BUILD_WORKSPACE_DIRECTORY}/docs
 else
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   cd "$SCRIPT_DIR"
-  # Under `bazelisk test` the package arrives as runfiles symlinks into the workspace. Vite
-  # resolves a module to its real path before serving it, so React, vitest and the setup file
-  # would each load twice -- once from the runfiles tree, once from the workspace -- and
-  # jest-dom's expect.extend would land on a different expect than the tests use
-  # (`Invalid Chai property: toBeInTheDocument`). Follow the links to the physical package
-  # directory, the same way tests/shell_coverage.sh does for kcov.
-  PHYSICAL=""
-  if [[ -f "${SCRIPT_DIR}/package.json" ]]; then
-    PHYSICAL="$(dirname "$(readlink -f "${SCRIPT_DIR}/package.json" 2>/dev/null || true)")"
-  fi
-  if [[ -n $PHYSICAL && -d $PHYSICAL ]]; then
-    cd "$PHYSICAL"
-  fi
 fi
 
 # Map the bazel target name (via $0 or first arg) to an npm script.
@@ -50,7 +37,32 @@ if [[ $# -gt 0 && $1 == "$SUBCMD" ]]; then
   shift
 fi
 
+# Vitest is the one consumer that must run out of the *physical* package directory. Vite
+# resolves a module to its real path before serving it, so under `bazelisk test` a suite run
+# from the runfiles tree loads React, vitest and vitest.setup.ts twice -- once per tree --
+# and jest-dom's expect.extend lands on a different expect than the specs use (`Invalid Chai
+# property: toBeInTheDocument`). tsc, the Next builds and the codemods read files instead of
+# importing them, so they keep working through runfiles; pulling them in here as well is what
+# stacked three `//:test-fast` targets onto a single node_modules.
+if [[ $SUBCMD == "unit" ]]; then
+  PHYSICAL=""
+  if [[ -f package.json ]]; then
+    PHYSICAL="$(dirname "$(readlink -f package.json 2>/dev/null || true)")"
+  fi
+  if [[ -n $PHYSICAL && -d $PHYSICAL && $PHYSICAL != "$PWD" ]]; then
+    cd "$PHYSICAL"
+  fi
+fi
+
 ensure_deps() {
+  # The lock is taken unconditionally, not only when the install is needed: holding it across
+  # the check and the run is what keeps a peer from deleting node_modules under a running
+  # suite. See docs-site/scripts/npm-install-lock.sh.
+  if [[ -f scripts/npm-install-lock.sh ]]; then
+    # shellcheck source=/dev/null
+    source ./scripts/npm-install-lock.sh
+    npm_install_lock "$PWD"
+  fi
   if [[ ! -x "node_modules/.bin/next" || ! -x "node_modules/.bin/vitest" ]]; then
     echo "→ docs-site: installing npm deps (node_modules missing)"
     npm ci --legacy-peer-deps

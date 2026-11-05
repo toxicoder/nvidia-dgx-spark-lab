@@ -493,3 +493,102 @@ PY
     return 1
   fi
 }
+
+# ## docs-site npm install lock
+#
+# `//:test-fast` runs `//docs-site:unit` and `//docs:test_command_vars` in parallel, and both
+# have to run Vitest out of the *physical* docs-site directory: Vite realpath-resolves every
+# module it serves, so a runfiles symlink tree splits one suite across two copies of React and
+# vitest. Sharing that directory means sharing one node_modules, and two first-run `npm ci`
+# calls in it race (`npm error ENOTEMPTY: directory not empty, rmdir node_modules/...`, seen
+# on the CI runner for PR #80). The lock in docs-site/scripts/npm-install-lock.sh is what keeps
+# them apart; these tests hold that contract.
+
+make_docs_site_fixture() {
+  local root="$1"
+  mkdir -p "$root/pkg" "$root/rf" "$root/bin" "$root/pkg/scripts"
+  printf '{"name":"docs-site-fixture"}\n' >"$root/pkg/package.json"
+  cp "${REPO_ROOT}/docs-site/run_npm.sh" "$root/pkg/run_npm.sh"
+  cp "${REPO_ROOT}/docs-site/scripts/npm-install-lock.sh" "$root/pkg/scripts/npm-install-lock.sh"
+  # Mimic the runfiles layout: the package arrives as a symlink into the real tree.
+  ln -s "$root/pkg" "$root/rf/docs-site"
+  cat >"$root/bin/npm" <<'FAKENPM'
+#!/usr/bin/env bash
+set -euo pipefail
+echo "$*" >>"${FAKE_NPM_LOG:?}"
+echo "$PWD" >>"${FAKE_NPM_PWD_LOG:-/dev/null}"
+if [[ ${1:-} == "ci" ]]; then
+  sleep "${FAKE_NPM_SLEEP:-0}"
+  mkdir -p node_modules/.bin
+  for bin in next vitest tsc; do
+    printf '#!/usr/bin/env bash\nexit 0\n' >"node_modules/.bin/$bin"
+    chmod +x "node_modules/.bin/$bin"
+  done
+fi
+FAKENPM
+  chmod +x "$root/bin/npm"
+}
+
+@test "docs-site npm install lock keeps concurrent installers apart" {
+  local helper="${REPO_ROOT}/docs-site/scripts/npm-install-lock.sh"
+  [[ -f $helper ]]
+  local marker="$TEST_TMP_DIR/in-flight"
+  local observed="$TEST_TMP_DIR/observed"
+  echo 0 >"$marker"
+  : >"$observed"
+  local i pid
+  for i in 1 2 3; do
+    (
+      # shellcheck source=/dev/null
+      source "$helper"
+      npm_install_lock "$TEST_TMP_DIR/pkg"
+      live=$(( $(<"$marker") + 1 ))
+      echo "$live" >"$marker"
+      echo "$live" >>"$observed"
+      sleep 1
+      echo $(( live - 1 )) >"$marker"
+    ) &
+    pid=$!
+  done
+  wait "$pid"
+  # The highest concurrency any holder observed was 1, so no two acquirers overlapped.
+  [ "$(sort -n "$observed" | tail -1)" = "1" ]
+}
+
+@test "run_npm.sh installs docs-site deps once when two Bazel tests share the package dir" {
+  local root="$TEST_TMP_DIR/shared"
+  make_docs_site_fixture "$root"
+  export FAKE_NPM_LOG="$TEST_TMP_DIR/npm.log"
+  export FAKE_NPM_PWD_LOG="$TEST_TMP_DIR/pwd.log"
+  export FAKE_NPM_SLEEP=1
+  : >"$FAKE_NPM_LOG"
+  local p1 p2
+  ( PATH="$root/bin:$PATH" bash "$root/rf/docs-site/run_npm.sh" unit ) &
+  p1=$!
+  ( PATH="$root/bin:$PATH" bash "$root/rf/docs-site/run_npm.sh" unit ) &
+  p2=$!
+  wait "$p1"
+  wait "$p2"
+  local ci_count
+  ci_count=$(grep -c '^ci ' "$FAKE_NPM_LOG" || true)
+  [ "$ci_count" = "1" ]
+}
+
+@test "run_npm.sh keeps non-Vitest subcommands out of the shared package dir" {
+  # Only Vitest needs the realpath'd tree. Pulling tsc, next build and the codemods in there
+  # too is what put three targets on one node_modules.
+  local root="$TEST_TMP_DIR/typecheck"
+  make_docs_site_fixture "$root"
+  export FAKE_NPM_LOG="$TEST_TMP_DIR/npm.log"
+  export FAKE_NPM_PWD_LOG="$TEST_TMP_DIR/pwd.log"
+  : >"$FAKE_NPM_LOG"
+  : >"$FAKE_NPM_PWD_LOG"
+  PATH="$root/bin:$PATH" bash "$root/rf/docs-site/run_npm.sh" typecheck
+  [ "$(sort -u "$FAKE_NPM_PWD_LOG")" = "$root/rf/docs-site" ]
+}
+
+@test "docs command-vars test shares the docs-site install lock" {
+  local script="${REPO_ROOT}/docs/test_command_vars.sh"
+  [[ -f $script ]]
+  grep -q 'npm-install-lock.sh' "$script"
+}

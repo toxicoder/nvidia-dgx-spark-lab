@@ -74,6 +74,9 @@ exports_files(
         "package.json",
         "package-lock.json",
         "run_npm.sh",
+        # Sourced by run_npm.sh and docs/test_command_vars.sh; //tests:bats_tooling_test
+        # exercises it directly, so it has to be referenceable from outside this package.
+        "scripts/npm-install-lock.sh",
     ],
     visibility = ["//visibility:public"],
 )
