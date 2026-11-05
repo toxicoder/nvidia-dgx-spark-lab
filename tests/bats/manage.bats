@@ -887,6 +887,7 @@ MOCKPS
 @test "start-monitoring now prefers helm chart for lab-dashboard (mocked)" {
   run bash -c "
     export SCRIPT_LIB_DIR=${REPO_ROOT}/scripts/lib
+    export MONITORING_SCRAPE_CONFIG_OUT=\"${BATS_TEST_TMPDIR}/prometheus-scrape-config.yaml\"
     source "$MANAGE_SH"
     helm() { echo \"helm \$*\"; }
     start_monitoring || true
@@ -897,12 +898,25 @@ MOCKPS
 @test "start-monitoring applies dashboard manifests (mocked)" {
   run bash -c "
     export SCRIPT_LIB_DIR=${REPO_ROOT}/scripts/lib
+    export MONITORING_SCRAPE_CONFIG_OUT=\"${BATS_TEST_TMPDIR}/prometheus-scrape-config.yaml\"
     source "$MANAGE_SH"
     kubectl() { echo \"kubectl \$*\"; }
     helm() { echo \"helm \$*\"; }
     start_monitoring || true
   "
   [[ "$output" == *"dashboard"* || "$output" == *"apply"* || "$output" == *"monitoring"* ]] || true
+}
+
+@test "start-monitoring tests leave tracked monitoring manifests untouched" {
+  # The mocked start-monitoring tests above source manage.sh for real, so the
+  # scrape-config generator runs unless MONITORING_SCRAPE_CONFIG_OUT redirects
+  # it. A suite that rewrites tracked files makes later gates read churn.
+  if ! git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    skip "not a git work tree"
+  fi
+  run bash -c "git -C '${REPO_ROOT}' status --porcelain -- k8s/monitoring"
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
 }
 
 @test "stop-dev calls helm uninstall and k8s delete" {
