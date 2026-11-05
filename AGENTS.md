@@ -183,6 +183,7 @@ These are **defaults on every task**, not optional follow-ups. `//:validate` / `
 | YAML manifests | `# Purpose` / `Source of truth` / `Regenerate` / `Safety` headers |
 | New docs pages | Add the file under `docs/`, register it in the nav (hand-edit `docs-site/lib/nav.json`, then `bazelisk test //docs-site:nav_test`), **and** list it in `_HAND_WRITTEN_MD` in `docs/BUILD.bazel` — `//tests:doc_coverage` fails otherwise |
 | Docs regen | After shell/API comment changes: `bazelisk run //docs:docs` (or dashboard docs) and commit generated deltas that belong |
+| Test coverage | Every lane holds its shipped code at 100% and Bazel gates it (`//:test-fast`, `//:verify`, `//:validate`, CI). New shipped code arrives with tests that keep its row at 100; a file that does not belong goes in the config's exclude list with its reason. See [project-conventions § Coverage](docs/project-conventions.md#coverage-100-enforced) |
 | TDD + validate | Red–green–refactor; finish with `bazelisk run //:validate` |
 
 When conventions are missing a rule, **add the automated check** (and document it in `docs/project-conventions.md`) rather than relying on human reminder.
