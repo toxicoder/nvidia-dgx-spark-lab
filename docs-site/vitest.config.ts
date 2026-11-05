@@ -1,6 +1,5 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
-import path from "path";
 
 /**
  * Unit-test scope for the documentation site.
@@ -18,7 +17,9 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, ".")
+      // `import.meta.dirname` over `__dirname`: Vite warns that `__dirname` is unsupported
+      // by the `native` config loader it plans to make the default.
+      "@": import.meta.dirname
     }
   },
   test: {
