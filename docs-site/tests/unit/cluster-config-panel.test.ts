@@ -84,6 +84,14 @@ describe("needsSubstitution", () => {
   it("survives a record whose nodes lack the optional members", () => {
     expect(needsSubstitution([{ addedNodes: [{ nodeType: 1 }] }] as never)).toBe(false);
   });
+
+  it("survives a record with no added nodes at all", () => {
+    expect(needsSubstitution([{}, { addedNodes: null }] as never)).toBe(false);
+  });
+
+  it("survives a callback handed no records", () => {
+    expect(needsSubstitution(undefined as never)).toBe(false);
+  });
 });
 
 
@@ -108,6 +116,10 @@ describe("cluster variable contract", () => {
     expect(mergeVars(DEFAULT_VARS, { SPARK0_IP: "" }).SPARK0_IP).toBe("localhost");
   });
 
+  it("matches no profile when the address is missing from the set entirely", () => {
+    expect(profileForVars({ NAMESPACE: "ai-inference" })).toBeUndefined();
+  });
+
   it("maps the known addresses to a profile and a custom one to none", () => {
     expect(profileForVars({ SPARK0_IP: "localhost" })).toBe("1node");
     expect(profileForVars({ SPARK0_IP: "127.0.0.1" })).toBe("1node");
@@ -125,6 +137,30 @@ describe("cluster variable contract", () => {
   it("leaves an unknown token untouched", () => {
     expect(substitutePlaceholders("{{SPARK0_IP}} {{NOT_A_VAR}}", mergeVars(DEFAULT_VARS, {})))
       .toBe("localhost {{NOT_A_VAR}}");
+  });
+
+  it("leaves a token untouched when its variable is blank, rather than publishing an empty address", () => {
+    expect(substitutePlaceholders("ssh root@{{SPARK0_IP}}", { SPARK0_IP: "" }))
+      .toBe("ssh root@{{SPARK0_IP}}");
+  });
+
+  it("leaves the variables alone when no profile is chosen", () => {
+    const vars = { ...DEFAULT_VARS, SPARK0_IP: "10.0.0.5" };
+    expect(applyProfile(undefined, vars)).toBe(vars);
+    expect(vars.SPARK0_IP).toBe("10.0.0.5");
+  });
+
+  it("forces localhost back on the one-node profile, whatever address was typed", () => {
+    const vars = applyProfile("1node", { ...DEFAULT_VARS, SPARK0_IP: "10.0.0.5" });
+    expect(vars.SPARK0_IP).toBe("localhost");
+    expect(profileForVars(vars)).toBe("1node");
+  });
+
+  it("fills the dashboard port from the profile only when the set has none", () => {
+    const filled = applyProfile("3node", { SPARK0_IP: "10.0.0.10", NAMESPACE: "ai-inference" });
+    expect(filled.DASHBOARD_PORT).toBe("32082");
+    const kept = applyProfile("3node", { ...DEFAULT_VARS, DASHBOARD_PORT: "30001" });
+    expect(kept.DASHBOARD_PORT).toBe("30001");
   });
 
   it("applies the two-node profile over a one-node set", () => {

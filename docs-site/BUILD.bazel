@@ -50,6 +50,7 @@ filegroup(
         "source.config.ts",
         "tsconfig.json",
         "vitest.config.ts",
+        "vitest.setup.ts",
     ],
     visibility = ["//visibility:public"],
 )
@@ -159,7 +160,16 @@ sh_test(
 )
 
 # Widget + content-transform unit suite (Vitest).  Fast and browser-free, so it belongs to
-# the default test set.
+# the default test set.  `npm run unit` passes `--coverage`, and
+# `docs-site/vitest.config.ts` holds lines/functions/branches/statements at 100, so this
+# target is the coverage gate: `bazelisk test //docs-site:unit` (and therefore
+# `//:test-fast`, `//:verify` and CI) fails when any file under `lib/`, `components/` or
+# `app/` drops below it.  `npm run unit:fast` is the same suite with the gate off, for
+# iterating on a single test.
+# `local` + `no-sandbox` because `run_npm.sh` follows the runfiles links to the physical
+# package directory (Vite cannot serve a suite whose modules resolve across two trees), so
+# the action reads the workspace rather than a sealed sandbox. Same shape as
+# `//tests:shell_coverage`, minus `manual`: this one has to stay in `//:test-fast`.
 sh_test(
     name = "unit",
     size = "medium",
@@ -169,6 +179,10 @@ sh_test(
     data = [
         ":sources",
         "//docs:content",
+    ],
+    tags = [
+        "local",
+        "no-sandbox",
     ],
     visibility = ["//visibility:public"],
 )

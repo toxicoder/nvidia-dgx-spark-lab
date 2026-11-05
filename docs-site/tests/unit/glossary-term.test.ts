@@ -34,4 +34,15 @@ describe("placeGlossaryTooltip", () => {
     const pos = placeGlossaryTooltip({ top: 400, left: 980, width: 20, height: 16 }, tooltip, viewport);
     expect(pos.left).toBe(1000 - 200 - 8);
   });
+
+  it("pins a definition taller than the viewport to the top margin", () => {
+    const tall = { width: 200, height: 900 };
+    const pos = placeGlossaryTooltip({ top: 400, left: 400, width: 80, height: 16 }, tall, viewport);
+    expect(pos.top).toBe(8);
+  });
+
+  it("honours a caller-supplied gap between the term and the surface", () => {
+    const pos = placeGlossaryTooltip({ top: 400, left: 400, width: 80, height: 16 }, tooltip, viewport, 24);
+    expect(pos.top).toBe(400 - 40 - 24);
+  });
 });

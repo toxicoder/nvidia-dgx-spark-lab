@@ -20,6 +20,17 @@ else
   REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 fi
 SITE_DIR="${REPO_ROOT}/docs-site"
+# Under `bazelisk test` the site arrives as runfiles symlinks into the workspace, and Vite
+# resolves modules to their real path. Running from the symlinked tree loads React, vitest and
+# the setup file twice -- once per tree -- so jest-dom registers its matchers on a different
+# expect than the specs use (`Invalid Chai property: toBeInTheDocument`). Follow the links to
+# the physical package directory, as tests/shell_coverage.sh does for kcov.
+if [[ -f "${SITE_DIR}/package.json" ]]; then
+  PHYSICAL_SITE_DIR="$(dirname "$(readlink -f "${SITE_DIR}/package.json" 2>/dev/null || true)")"
+  if [[ -n $PHYSICAL_SITE_DIR && -d $PHYSICAL_SITE_DIR ]]; then
+    SITE_DIR="$PHYSICAL_SITE_DIR"
+  fi
+fi
 
 failures=0
 
