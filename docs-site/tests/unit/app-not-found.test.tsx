@@ -32,6 +32,27 @@ describe("NotFound", () => {
     expect(back).toHaveAttribute("href", "/");
     expect(back).toHaveClass("underline");
   });
+
+  it("carries the published base path on an alias deploy", () => {
+    // next.config.ts feeds Next's basePath from DOCS_ALIAS, and Next applies that prefix to
+    // next/link but not to a plain anchor. Without the prefix here the 404 sends the reader to
+    // the Pages origin root, off the deployed site entirely.
+    const previous = process.env.DOCS_ALIAS;
+    process.env.DOCS_ALIAS = "latest";
+    try {
+      render(<NotFound />);
+      expect(screen.getByRole("link", { name: "overview" })).toHaveAttribute(
+        "href",
+        "/nvidia-dgx-spark-lab/latest/"
+      );
+    } finally {
+      if (previous === undefined) {
+        delete process.env.DOCS_ALIAS;
+      } else {
+        process.env.DOCS_ALIAS = previous;
+      }
+    }
+  });
 });
 
 describe("not-found metadata", () => {
