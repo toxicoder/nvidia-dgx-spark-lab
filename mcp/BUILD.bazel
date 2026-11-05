@@ -4,36 +4,96 @@
 
 package(default_visibility = ["//visibility:public"])
 
+# Manifests are listed by name (//tests:bazel_file_coverage): a new workload
+# manifest must be a deliberate, reviewable edit here.
 filegroup(
     name = "k8s_manifests",
-    srcs = glob(
-        [
-            "k8s/**/*.yaml",
-            "k8s/**/*.yml",
-            "k8s/**/*.json",
-            "k8s/**/*.sh",
-            "k8s/**/*.py",
-        ],
-        allow_empty = True,
-    ),
+    srcs = [
+        "k8s/base/kustomization.yaml",
+        "k8s/base/namespace.yaml",
+        "k8s/base/network-policy.yaml",
+        "k8s/dev/secrets.example.yaml",
+        "k8s/workloads/context7-proxy/config.yaml",
+        "k8s/workloads/context7-proxy/deployment.yaml",
+        "k8s/workloads/context7-proxy/kustomization.yaml",
+        "k8s/workloads/context7-proxy/server.py",
+        "k8s/workloads/context7-proxy/service.yaml",
+        "k8s/workloads/doc-ingest/cronjob.yaml",
+        "k8s/workloads/doc-ingest/doc-sources.json",
+        "k8s/workloads/doc-ingest/ingest.py",
+        "k8s/workloads/doc-ingest/kustomization.yaml",
+        "k8s/workloads/firecrawl/deployment.yaml",
+        "k8s/workloads/firecrawl/kustomization.yaml",
+        "k8s/workloads/firecrawl/service.yaml",
+        "k8s/workloads/mcp-fetch/deployment.yaml",
+        "k8s/workloads/mcp-fetch/kustomization.yaml",
+        "k8s/workloads/mcp-fetch/service.yaml",
+        "k8s/workloads/mcp-firecrawl/deployment.yaml",
+        "k8s/workloads/mcp-firecrawl/kustomization.yaml",
+        "k8s/workloads/mcp-firecrawl/service.yaml",
+        "k8s/workloads/mcp-gitea/deployment.yaml",
+        "k8s/workloads/mcp-gitea/kustomization.yaml",
+        "k8s/workloads/mcp-gitea/service.yaml",
+        "k8s/workloads/mcp-memory/deployment.yaml",
+        "k8s/workloads/mcp-memory/kustomization.yaml",
+        "k8s/workloads/mcp-memory/pvc.yaml",
+        "k8s/workloads/mcp-memory/service.yaml",
+        "k8s/workloads/mcp-qdrant/deployment.yaml",
+        "k8s/workloads/mcp-qdrant/kustomization.yaml",
+        "k8s/workloads/mcp-qdrant/service.yaml",
+        "k8s/workloads/mcp-searxng/deployment.yaml",
+        "k8s/workloads/mcp-searxng/kustomization.yaml",
+        "k8s/workloads/mcp-searxng/service.yaml",
+        "k8s/workloads/mem0/deployment.yaml",
+        "k8s/workloads/mem0/kustomization.yaml",
+        "k8s/workloads/mem0/service.yaml",
+        "k8s/workloads/qdrant/kustomization.yaml",
+        "k8s/workloads/qdrant/service.yaml",
+        "k8s/workloads/qdrant/statefulset.yaml",
+        "k8s/workloads/redis/deployment.yaml",
+        "k8s/workloads/redis/kustomization.yaml",
+        "k8s/workloads/redis/service.yaml",
+        "k8s/workloads/searxng/deployment.yaml",
+        "k8s/workloads/searxng/kustomization.yaml",
+        "k8s/workloads/searxng/service.yaml",
+        "k8s/workloads/searxng/settings.yml",
+    ],
 )
 
+# Client templates and policy; the live secrets.env stays untracked and unowned.
 filegroup(
     name = "config",
-    srcs = glob(
-        ["config/**"],
-        exclude = ["config/secrets.env"],
-    ),
+    srcs = [
+        "config/clients/coder-workspace.mcp.json.example",
+        "config/clients/cursor.mcp.json.example",
+        "config/clients/vscode.mcp.json.example",
+        "config/mcp-policy.json",
+        "config/mcp-policy.yaml",
+        "config/searxng/settings.yml",
+        "config/secrets.example.env",
+    ],
 )
 
 filegroup(
     name = "python_sources",
-    srcs = glob(["k8s/workloads/**/*.py"]),
+    srcs = [
+        "k8s/workloads/context7-proxy/server.py",
+        "k8s/workloads/doc-ingest/ingest.py",
+    ],
 )
 
 filegroup(
     name = "docker",
-    srcs = glob(["docker/**"]),
+    srcs = [
+        "docker/context7-proxy/Dockerfile",
+        "docker/doc-ingest/Dockerfile",
+        "docker/mcp-fetch/Dockerfile",
+        "docker/mcp-firecrawl/Dockerfile",
+        "docker/mcp-gitea/Dockerfile",
+        "docker/mcp-memory/Dockerfile",
+        "docker/mcp-qdrant/Dockerfile",
+        "docker/mcp-searxng/Dockerfile",
+    ],
 )
 
 filegroup(
@@ -47,4 +107,18 @@ filegroup(
         "k8s/workloads/qdrant/statefulset.yaml",
     ],
     visibility = ["//tests:__pkg__"],
+)
+
+# Package aggregate for //:everything: every tracked file in this package.
+filegroup(
+    name = "all",
+    srcs = [
+        "README.md",
+        ":config",
+        ":docker",
+        ":k8s_manifests",
+        ":python_sources",
+        ":safety_data",
+    ],
+    visibility = ["//visibility:public"],
 )

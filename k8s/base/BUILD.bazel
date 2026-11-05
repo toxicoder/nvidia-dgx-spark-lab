@@ -1,4 +1,4 @@
-"""Package purpose: Base Kubernetes namespace and resource-guard manifest filegroups."""
+"""Package purpose: Base namespace, resource-guard, kustomization, and GPU time-slicing manifests."""
 
 """Base Kubernetes resources."""
 
@@ -17,9 +17,35 @@ filegroup(
 
 filegroup(
     name = "resource_guard",
-    srcs = glob(["resource-guard/**"]) + [
+    srcs = [
         "namespaces-dev.yaml",
         "namespaces-sso.yaml",
+        "resource-guard/limit-ranges.yaml",
+        "resource-guard/pod-disruption-budgets.yaml",
+        "resource-guard/priority-classes.yaml",
+        "resource-guard/resource-quotas.yaml",
     ],
-    visibility = ["//tests:__pkg__"],
+    visibility = [
+        "//k8s:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+filegroup(
+    name = "kustomization",
+    srcs = [
+        "README.md",
+        "kustomization.yaml",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "gpu_time_slicing",
+    srcs = [
+        "gpu-time-slicing/README.md",
+        "gpu-time-slicing/any.yaml",
+        "gpu-time-slicing/kustomization.yaml",
+    ],
+    visibility = ["//visibility:public"],
 )

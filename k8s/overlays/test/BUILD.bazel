@@ -12,6 +12,7 @@ exports_files([
 filegroup(
     name = "overlay_test",
     srcs = [
+        "README.md",
         "kustomization.yaml",
         "patches/test-resources.yaml",
     ],

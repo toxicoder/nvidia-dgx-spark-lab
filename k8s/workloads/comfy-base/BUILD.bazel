@@ -5,6 +5,7 @@ package(default_visibility = ["//visibility:private"])
 filegroup(
     name = "comfy_base",
     srcs = [
+        "README.md",
         "comfy-base-deployment.yaml",
         "kustomization.yaml",
         "pvc.yaml",

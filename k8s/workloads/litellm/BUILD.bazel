@@ -4,7 +4,20 @@ package(default_visibility = ["//visibility:private"])
 
 filegroup(
     name = "litellm",
-    srcs = glob(["**/*"]),
+    srcs = [
+        "README.md",
+        "files/lab-med-frontier-fallback.txt",
+        "files/lab-med-system.txt",
+        "files/litellm_config.yaml",
+        "files/profiles/deepseek-v4.1-flash.yaml",
+        "files/profiles/glm-5.3-flash.yaml",
+        "files/profiles/qwen3.8-27b.yaml",
+        "files/profiles/qwen3.8-flash-next.yaml",
+        "kustomization.yaml",
+        "litellm-deployment.yaml",
+        "secrets.example.yaml",
+        "service.yaml",
+    ],
     visibility = [
         "//k8s:__subpackages__",
         "//lints:__pkg__",

@@ -22,28 +22,34 @@ package(default_visibility = ["//visibility:private"])
 
 filegroup(
     name = "sources",
+    # Patterns here are the trees Fumadocs/Next.js bundles wholesale; every
+    # other file in the package is named one by one in the list below.
     srcs = glob(
         [
             "app/**",
             "components/**",
             "lib/**",
             "scripts/**",
-            "tests/**",
-            "next-env.d.ts",
-            "next.config.ts",
-            "package.json",
-            "package-lock.json",
-            "playwright.config.mjs",
-            "postcss.config.mjs",
-            "source.config.ts",
-            "tsconfig.json",
-            "vitest.config.ts",
             "test_*.py",
-            "run_python_test.sh",
+            "tests/**",
         ],
+    ) + glob(
+        # Next writes this declaration file during typegen/build and it is
+        # gitignored, so it is matched rather than named: a fresh clone has no
+        # such file yet and the target must still load.
+        ["next-env.d.ts"],
         allow_empty = True,
     ) + [
+        "next.config.ts",
+        "package.json",
+        "package-lock.json",
+        "playwright.config.mjs",
+        "postcss.config.mjs",
         "run_npm.sh",
+        "run_python_test.sh",
+        "source.config.ts",
+        "tsconfig.json",
+        "vitest.config.ts",
     ],
     visibility = ["//visibility:public"],
 )

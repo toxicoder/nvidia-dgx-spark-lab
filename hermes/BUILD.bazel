@@ -1,18 +1,34 @@
-"""Package purpose: Hermes agent policy, profiles, and safety data filegroups."""
+"""Package purpose: Hermes agent policy, profiles, operator templates, and safety data filegroups."""
 
 """Hermes agent profiles, policy, and local compose stack."""
 
 package(default_visibility = ["//visibility:public"])
 
+# Safety-grepped policy and profiles, plus the operator-facing templates and the
+# local compose stack that ship with them (templates are documentation, so they
+# need a Bazel owner; a real .env stays untracked and unowned).
 filegroup(
     name = "safety_data",
     srcs = [
+        "README.md",
+        "config/SOUL.md.example",
+        "config/config.yaml.example",
+        "config/env.example",
         "config/hermes-policy.json",
         "config/hermes-policy.yaml",
+        "docker-compose.yaml",
+        "profiles/workspace-dev/.gitignore",
         "profiles/workspace-dev/SOUL.md",
         "profiles/workspace-dev/config.yaml",
         "profiles/workspace-dev/distribution.yaml",
         "profiles/workspace-dev/mcp.json",
     ],
     visibility = ["//tests:__pkg__"],
+)
+
+# Package aggregate for //:everything: every tracked file in this package.
+filegroup(
+    name = "all",
+    srcs = [":safety_data"],
+    visibility = ["//visibility:public"],
 )

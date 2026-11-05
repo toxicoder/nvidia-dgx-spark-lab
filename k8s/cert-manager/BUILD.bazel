@@ -1,0 +1,12 @@
+"""Package purpose: cert-manager cluster issuer and kustomization manifests."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "manifests",
+    srcs = [
+        "cluster-issuer.yaml",
+        "kustomization.yaml",
+    ],
+    visibility = ["//visibility:public"],
+)

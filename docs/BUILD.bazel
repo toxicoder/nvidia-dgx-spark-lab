@@ -218,3 +218,26 @@ sh_test(
     ],
     visibility = ["//visibility:public"],
 )
+
+# Leftover Material-for-MkDocs-era screenshot baselines. Nothing reads them: the
+# Playwright suites compare against docs-site/tests/visual/goldens/ (see
+# //docs-site:visual) and dashboard/tests/visual/goldens/ (see //dashboard). They
+# are owned here so no tracked file sits outside the Bazel graph; retiring them is
+# a maintainer decision, not this file's.
+filegroup(
+    name = "visual_goldens",
+    srcs = [
+        "tests/visual/goldens/.gitkeep",
+        "tests/visual/goldens/architecture.png",
+        "tests/visual/goldens/dev-workspaces.png",
+        "tests/visual/goldens/dgx-spark-notes.png",
+        "tests/visual/goldens/getting-started.png",
+        "tests/visual/goldens/gitea-ci-setup.png",
+        "tests/visual/goldens/index.png",
+        "tests/visual/goldens/models-catalog.png",
+        "tests/visual/goldens/monitoring-observability.png",
+        "tests/visual/goldens/reboot-safety.png",
+        "tests/visual/goldens/troubleshooting.png",
+    ],
+    visibility = ["//visibility:public"],
+)

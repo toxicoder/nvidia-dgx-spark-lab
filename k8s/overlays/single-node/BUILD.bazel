@@ -9,7 +9,11 @@ exports_files(["kustomization.yaml"])
 
 filegroup(
     name = "overlay_single",
-    srcs = glob(["**/*.yaml"]),
+    srcs = [
+        "README.md",
+        "kustomization.yaml",
+        "patches/single-node-tensor-parallel.yaml",
+    ],
     visibility = [
         "//k8s:__subpackages__",
         "//tests:__pkg__",

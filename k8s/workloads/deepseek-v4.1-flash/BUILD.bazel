@@ -6,6 +6,7 @@ filegroup(
     name = "dsv41_flash_job",
     srcs = [
         "Dockerfile",
+        "README.md",
         "deepseek-v4.1-flash-job.yaml",
         "deepseek-v4.1-flash-worker-1-job.yaml",
         "deepseek-v4.1-flash-worker-2-job.yaml",

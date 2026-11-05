@@ -1,0 +1,16 @@
+"""Package purpose: Authelia, OAuth2 proxy, and Redis deployment manifests for lab SSO."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "manifests",
+    srcs = [
+        "authelia-deployment.yaml",
+        "authelia-service.yaml",
+        "kustomization.yaml",
+        "oauth2-proxy-service.yaml",
+        "redis.yaml",
+        "secrets.example.yaml",
+    ],
+    visibility = ["//visibility:public"],
+)

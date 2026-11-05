@@ -6,6 +6,7 @@ filegroup(
     name = "glm_job",
     srcs = [
         "Dockerfile",
+        "README.md",
         "glm-5.2-job.yaml",
         "glm-5.2-rpc-job.yaml",
         "kustomization.yaml",

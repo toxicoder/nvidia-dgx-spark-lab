@@ -66,6 +66,16 @@ sh_binary(
         "//k8s/workloads/comfy-visual/ltx/quality:ltx_quality",
         "//k8s/workloads/comfy-visual/flux-to-ltx:flux_to_ltx",
         "//k8s/dev:dev_dashboard",
+        # Manifests scripts/lib/*.sh applies at runtime through ${REPO_ROOT} paths:
+        # sso.sh (-k k8s/auth, k8s/cert-manager, k8s/traefik/middlewares),
+        # manage.sh (-k k8s/base), models.sh (k8s/base/gpu-time-slicing),
+        # monitoring.sh (-k k8s/monitoring).
+        "//k8s/auth:manifests",
+        "//k8s/base:gpu_time_slicing",
+        "//k8s/base:kustomization",
+        "//k8s/cert-manager:manifests",
+        "//k8s/monitoring:manifests",
+        "//k8s/traefik:middlewares",
     ],
     visibility = ["//visibility:public"],
 )
@@ -186,5 +196,43 @@ exports_files(
 filegroup(
     name = "ci_install_lint_tools",
     srcs = ["ci/install-lint-tools.sh"],
+    visibility = ["//visibility:public"],
+)
+
+# Windows companion to utilities/install-operator-client.sh: the operator-client
+# installer for Windows workstations. Owned so it stays a declared build input.
+filegroup(
+    name = "windows_helpers",
+    srcs = ["utilities/install-operator-client.ps1"],
+    visibility = ["//visibility:public"],
+)
+
+# Every source file this package owns. `//:everything` builds against this
+# aggregate, and //tests:bazel_file_coverage proves each tracked file is named
+# by one of these targets. The lib/ and utilities/ trees keep the drop-in
+# convention used by :utilities and :doc_sources: a new file is wired by name.
+filegroup(
+    name = "all",
+    srcs = [
+        "README.md",
+        "ci_check_only.sh",
+        "manage.completion.bash",
+        "validate.sh",
+        "yaml_format.sh",
+        ":ci_install_lint_tools",
+        ":doc_sources",
+        ":render_domains_py",
+        ":utilities",
+        ":windows_helpers",
+    ] + glob(
+        ["lib/*.sh"],
+        allow_empty = True,
+    ) + glob(
+        ["lib/py/*.py"],
+        allow_empty = True,
+    ) + glob(
+        ["utilities/*.sh"],
+        allow_empty = True,
+    ),
     visibility = ["//visibility:public"],
 )

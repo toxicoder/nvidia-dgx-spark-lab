@@ -32,6 +32,31 @@ sh_test(
     ],
 )
 
+# Shell format check (shfmt -d; auto-fix via //:fix)
+sh_test(
+    name = "shfmt",
+    srcs = ["run_shfmt.sh"],
+    data = [
+        "//:devcontainer",
+        "//:fix.sh",
+        "//ansible:run_ansible_lint.sh",
+        "//ansible:run_playbook.sh",
+        "//ansible:run_syntax_check.sh",
+        "//dashboard:run_npm.sh",
+        "//scripts:doc_sources",
+        "//scripts:lib/check_tool.sh",
+        "//scripts:manage.sh",
+        "//scripts:utilities",
+        "//tests:bats_runner.sh",
+    ],
+    tags = [
+        "lint",
+        "local",
+        "manual",
+        "shfmt",
+    ],
+)
+
 # YAML format check (prettier --check; auto-fix via //:fix / scripts/yaml_format.sh --write)
 sh_test(
     name = "yaml_format",
@@ -162,6 +187,7 @@ test_suite(
         ":k8s",
         ":mypy",
         ":shell",
+        ":shfmt",
         ":yaml",
         ":yaml_format",
     ],

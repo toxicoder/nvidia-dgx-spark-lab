@@ -1,0 +1,15 @@
+"""Package purpose: Traefik middlewares (forward-auth, HTTPS redirect, rate limit, headers)."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "middlewares",
+    srcs = [
+        "middlewares/forwardauth-authelia.yaml",
+        "middlewares/kustomization.yaml",
+        "middlewares/rate-limit.yaml",
+        "middlewares/redirect-https.yaml",
+        "middlewares/security-headers.yaml",
+    ],
+    visibility = ["//visibility:public"],
+)

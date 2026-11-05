@@ -1,0 +1,12 @@
+"""Package purpose: Prometheus scrape config and monitoring kustomization manifests."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "manifests",
+    srcs = [
+        "kustomization.yaml",
+        "prometheus.yml",
+    ],
+    visibility = ["//visibility:public"],
+)

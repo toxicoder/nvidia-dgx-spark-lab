@@ -5,6 +5,7 @@ package(default_visibility = ["//visibility:private"])
 filegroup(
     name = "ray_head",
     srcs = [
+        "README.md",
         "kustomization.yaml",
         "ray-head-job.yaml",
         "ray-head-service.yaml",
