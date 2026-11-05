@@ -16,13 +16,22 @@ load("@rules_shell//shell:sh_test.bzl", "sh_test")
 package(default_visibility = ["//visibility:private"])
 
 # Original BATS sources (kept unchanged so `make test` continues to work)
+# Listed by name: adding a suite is a deliberate edit here plus its sh_test target.
 filegroup(
     name = "bats_sources",
-    srcs = glob(
-        ["bats/*.bats"],
-        allow_empty = False,
-    ) + [
+    srcs = [
+        "bats/check_tool.bats",
+        "bats/comfy_scripts.bats",
+        "bats/devcontainer.bats",
+        "bats/disk_wizard.bats",
+        "bats/domains.bats",
+        "bats/identities.bats",
+        "bats/manage.bats",
         "bats/test_helper.bash",
+        "bats/tooling.bats",
+        "bats/topology.bats",
+        "bats/utilities.bats",
+        "bats/visual.bats",
     ],
     visibility = ["//scripts:__pkg__"],
 )
@@ -390,6 +399,30 @@ sh_test(
     visibility = ["//visibility:public"],
 )
 
+# Bazel-first gate: every tracked file has a BUILD.bazel owner, each wildcard
+# glob() is sanctioned in writing, and no BUILD.bazel names a path that has gone
+# missing.
+sh_test(
+    name = "bazel_file_coverage",
+    size = "small",
+    timeout = "short",
+    srcs = ["bazel_file_coverage.sh"],
+    data = ["bazel_file_coverage.py"],
+    visibility = ["//visibility:public"],
+)
+
+sh_test(
+    name = "bazel_file_coverage_unit",
+    size = "small",
+    timeout = "short",
+    srcs = ["bazel_file_coverage_unit.sh"],
+    data = [
+        "bazel_file_coverage.py",
+        "test_bazel_file_coverage.py",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 sh_test(
     name = "doc_coverage_unit",
     size = "small",
@@ -435,6 +468,42 @@ sh_test(
         "local",
         "manual",
         "no-sandbox",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Every source file this package owns. `//:everything` builds against this aggregate,
+# and //tests:bazel_file_coverage proves each tracked file is named by one of them.
+filegroup(
+    name = "all",
+    srcs = [
+        "README.md",
+        "bats/check_tool.bats",
+        "bats/comfy_scripts.bats",
+        "bats/devcontainer.bats",
+        "bats/disk_wizard.bats",
+        "bats/domains.bats",
+        "bats/identities.bats",
+        "bats/manage.bats",
+        "bats/test_helper.bash",
+        "bats/tooling.bats",
+        "bats/topology.bats",
+        "bats/utilities.bats",
+        "bats/visual.bats",
+        "bats_runner.sh",
+        "bazel_file_coverage.py",
+        "bazel_file_coverage.sh",
+        "bazel_file_coverage_unit.sh",
+        "doc_coverage.py",
+        "doc_coverage.sh",
+        "doc_coverage_unit.sh",
+        "kustomize_build.sh",
+        "manifest_coverage.py",
+        "manifest_coverage.sh",
+        "safety_invariants.sh",
+        "shell_coverage.sh",
+        "test_bazel_file_coverage.py",
+        "test_doc_coverage.py",
     ],
     visibility = ["//visibility:public"],
 )

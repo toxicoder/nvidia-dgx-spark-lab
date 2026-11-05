@@ -8,15 +8,18 @@ This project includes a practical, robust test suite that can run locally and in
 # Primary (Bazel — recommended)
 bazelisk run //:validate                          # git-aware: core + docs/dashboard slices
 bazelisk run //:validate -- --all                   # full suite before merge
+bazelisk test //:verify                             # one command: is my work good to push
+bazelisk build //:everything                        # every Bazel-owned artifact
 bazelisk test //:test                              # Bazel test_suite (test-fast + docs render)
 bazelisk test //:lint --test_tag_filters=manual   # shellcheck, yamllint, kubeconform (when installed)
 
-# Legacy / direct tools (Debian/Ubuntu example)
+# Host tools the manual lints shell out to (Debian/Ubuntu example)
 sudo apt-get install shellcheck yamllint bats
 pip install ansible ansible-lint
 curl -sL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xz
 sudo mv kubeconform /usr/local/bin/
 
+# Makefile compatibility shim (delegates to Bazel when bazelisk is on PATH)
 make help
 make lint
 make test
@@ -30,7 +33,7 @@ make test-all
 | Shell scripts     | `//tests:bats` + shellcheck | `manage.sh` commands, safety, modular libs (models/dev/domains/status) |
 | Lab domains       | `//tests:bats_domains_test` | `lab-domains.yaml` render pipeline, FQDN helpers, generated SSO manifests; teardown restores tracked generated artifacts |
 | Devcontainer      | `//tests:bats_devcontainer_test` | Multi-arch pin SSOT, doctor/post-create help, no `releases/latest` in Dockerfile |
-| Shell line coverage | `//tests:shell_coverage` (`manual`) | kcov 100% on `scripts/**/*.sh`; **5 parallel BATS shards** merged into one report. Linux amd64 + `SYS_PTRACE`. Bazel `eternal` caps at **3600s** — on slow hosts (Docker Desktop amd64 emulation) run `bash tests/shell_coverage.sh` directly instead |
+| Shell line coverage | `//tests:shell_coverage` (`manual`) | kcov 100% on `scripts/**/*.sh`; **5 parallel BATS shards** merged into one report. Linux amd64 + `SYS_PTRACE`. Bazel `eternal` caps at **3600s** — on slow hosts (Docker Desktop amd64 emulation) run `bazelisk test //tests:shell_coverage --nocache_test_results` explicitly instead |
 | TypeScript/Next.js (dashboard) | `bazelisk run //dashboard:test` (Vitest; alias `//dashboard:unit-test`) | host services, actions, Treemap viz, panels (with mocks) |
 | Dashboard (fast)  | `bazelisk run //dashboard:fast-test` | Vitest + ESLint + typecheck on host (no Docker, no Playwright). Default in `//:validate` when dashboard paths change. |
 | Dashboard (full)  | `bazelisk run //dashboard:hermetic-test` | **Canonical** Docker path: Vitest + ESLint + typecheck + build + Playwright (Linux goldens). Requires Docker. Runs on `validate --all`. |
@@ -43,6 +46,7 @@ make test-all
 | Docs (visual)     | `bazelisk run //docs-site:visual` (`manual`) | Playwright screenshots of key pages vs goldens, desktop + mobile |
 | Safety invariants | `//tests:safety_invariants` + BATS + `make test-k8s` | No `Always` restart, low backoff, NCCL vars, GPU requests on ray, probes/securityContext on kimi, resource-policy registry sync |
 | Documentation coverage | `//tests:doc_coverage` + `//tests:doc_coverage_unit` (in `//:test-fast` / suite) | `manage.sh` `# @command`, shell `# @function` (incl. `k8s/workloads/**/*.sh`), Python docstrings, YAML headers, **no inline ConfigMap language embeds**, **no multi-line shell in mcp manifests**, nav pages listed in `docs/BUILD.bazel`, BUILD `Package purpose:`, dashboard export JSDoc |
+| Bazel file coverage | `//tests:bazel_file_coverage` + `//tests:bazel_file_coverage_unit` (in `//:test-fast` / suite) | Every `git ls-files` tracked file is owned by a Bazel rule (`srcs`/`data`/`tools`/`exports_files`/declared `outs`); every wildcard `glob()` pattern carries a written reason in `SANCTIONED_GLOBS` (unsanctioned **and** stale sanctions fail); hand-named paths exist on disk. Backs `bazelisk build //:everything` |
 
 ## Safety invariants
 
@@ -59,7 +63,7 @@ Run locally:
 bazelisk test //tests:bats_manage_test
 bazelisk test //tests:bats_visual_test
 bazelisk test //tests:bats_comfy_scripts_test
-make test-k8s          # or full make test-all
+bazelisk test //tests:safety_invariants   # the critical-manifest greps (make test-k8s is the shim)
 ```
 
 ## BATS Tests
@@ -79,7 +83,7 @@ They use a sophisticated mock of `kubectl` so that:
 ```bash
 bazelisk run //dashboard:hermetic-test
 # Regenerate goldens after intentional UI change:
-UPDATE_SNAPSHOTS=1 ./dashboard/scripts/run-hermetic-tests.sh
+UPDATE_SNAPSHOTS=1 bazelisk run //dashboard:hermetic-test
 ```
 
 Uses `dashboard/Dockerfile.test` + `dashboard/scripts/run-hermetic-tests.sh`. Local macOS dev can use `bazelisk run //dashboard:visual` as a shortcut; prefer the hermetic path before merging visual changes.
