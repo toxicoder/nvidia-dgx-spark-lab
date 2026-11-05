@@ -5,7 +5,7 @@
 # Orchestrates the dashboard CI pipeline inside the test Docker image.
 #
 # Modes (DASHBOARD_TEST_MODE):
-#   fast      — vitest run + lint + typecheck (no coverage, no visual)
+#   fast      — vitest under the 100% coverage gate + lint + typecheck (no visual)
 #   coverage  — vitest with 100% coverage gate only
 #   visual    — next build + Playwright only (unit already passed on host CI)
 #   full      — default: coverage + build + lint/tsc + Playwright visual
@@ -23,13 +23,11 @@ VISUAL_HARNESS_ENV=(
 )
 
 run_vitest() {
-  if [[ ${UPDATE_SNAPSHOTS:-0} == "1" ]]; then
-    UPDATE_SNAPSHOTS=1 npm run test:coverage
-  elif [[ $MODE == "fast" ]]; then
-    npm test -- --run
-  else
-    npm run test:coverage
-  fi
+  # The 100% thresholds live in vitest.config.ts, and only --coverage makes them bite, so
+  # every mode that runs the unit suite goes through the coverage gate.  `fast` used to
+  # skip it, which left the dashboard's own 100% bar unenforced on every CI push.
+  export UPDATE_SNAPSHOTS="${UPDATE_SNAPSHOTS:-0}"
+  npm run test:coverage
 }
 
 run_fast_checks() {

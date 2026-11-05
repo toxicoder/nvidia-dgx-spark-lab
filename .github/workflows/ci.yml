@@ -103,7 +103,7 @@ jobs:
         with:
           install-lint-tools: "false"
 
-      - name: Dashboard fast tests (Vitest + lint + typecheck)
+      - name: Dashboard tests (Vitest under the 100% coverage gate + lint + typecheck)
         run: bazelisk run //dashboard:fast-test
 
   dashboard-hermetic:
