@@ -913,6 +913,27 @@ Default workflow for non-trivial changes:
 | Dashboard | Vitest + Playwright (Docker) | `//dashboard:hermetic-test` |
 | Docs | content contract + widgets + typecheck + visual goldens | `//docs:test_docs_site_render`, `//docs-site:unit`, `//docs-site:typecheck`, `//docs-site:visual_tooling_test`, `//docs-site:visual` |
 
+### Coverage (100%, enforced)
+
+Every lane holds its shipped code at 100%, and Bazel is what turns that into a gate: a suite
+that passes below the bar fails its target, so `//:test-fast`, `//:verify`, `//:validate` and
+CI all go red together.
+
+| Lane | Measures | Threshold lives in | Gate |
+| --- | --- | --- | --- |
+| Shell | every line of `scripts/**/*.sh`, driven by the BATS suites | `tests/shell_coverage.sh` (kcov) | `bazelisk test //tests:shell_coverage --test_tag_filters=manual`, run by `//:validate`; it says so on stderr when kcov is absent rather than passing quietly |
+| Docs Python | the generators whose output the site ships | `--cov-fail-under=100` in `docs/test_python_coverage.sh` | `bazelisk test //docs:test_python_coverage` |
+| Dashboard | `actions/`, `app/`, `components/`, `lib/` | `thresholds` in `dashboard/vitest.config.ts` | `bazelisk run //dashboard:fast-test` (CI dashboard job) or `//dashboard:test-coverage` |
+| Docs site | `lib/`, `components/`, `app/` | `thresholds` in `docs-site/vitest.config.ts` | `bazelisk test //docs-site:unit` (`npm run unit` passes `--coverage`) |
+
+- New shipped code arrives with tests that keep its row at 100. The bar is not lowered to land
+  a change.
+- A file that genuinely does not belong in a lane goes into that config's `include` / `exclude`
+  list with its reason written next to it, the way `dashboard/vitest.config.ts` excludes the
+  generated `components/ui/**`. A file missing from the table is a gap, not a pass.
+- To iterate on one spec without paying for instrumentation: `npm run unit:fast` in `docs-site/`
+  and `npm test -- --run` in `dashboard/`.
+
 ### Efficiency (local + CI)
 
 Keep feedback fast without skipping safety:

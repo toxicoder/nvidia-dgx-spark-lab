@@ -63,7 +63,7 @@ bazelisk run //ansible:bootstrap
 # Specific targets
 bazelisk run //docs:docs           # static export of the docs site into docs-site/out/
 bazelisk run //docs:render-check   # checks against that export (run //docs:docs first)
-bazelisk run //docs-site:unit      # Vitest suite for the site widgets
+bazelisk run //docs-site:unit      # Vitest suite for the site widgets (100% coverage gate)
 bazelisk run //docs-site:typecheck # next typegen + tsc
 bazelisk run //docs-site:visual-linux # screenshot baselines in the CI image (needs Docker)
 bazelisk run //dashboard:dev
@@ -147,7 +147,8 @@ Docs checks are split by what they need, so a one-line edit does not pay for a b
 - `//docs:render-check` — the same file run against the **exported** HTML: search index and
   tags, Mermaid/callout elements, the edit-on-GitHub link, and the cluster-variables panel
   keeping its tokens editable. A `run` target, because it reads `docs-site/out/`
-- `//docs-site:unit` — Vitest over the ported widgets and the content transforms
+- `//docs-site:unit` — Vitest over the site's `lib/`, `components/` and `app/` under the 100%
+  coverage thresholds in `docs-site/vitest.config.ts`
 - `//docs-site:typecheck` — `next typegen` + `tsc --noEmit`
 - `//docs-site:visual-linux` — screenshot baselines rendered inside the pinned Playwright
   container, i.e. the same renderer the `docs-and-render` job compares against (needs Docker)
