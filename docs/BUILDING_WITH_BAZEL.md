@@ -181,6 +181,18 @@ baselines are reproducible.
   Under CI a page with no baseline is a hard failure rather than a silent self-capture, so no
   unreviewed screenshot can be committed. Pixel changes are reviewed like code.
 
+  A machine with no Docker daemon can still land a reviewed refresh. The `docs-and-render` job
+  uploads a `docs-visual-actuals` artifact holding the container's `*-actual.png` for every page
+  that failed, captured by the same renderer that compares against it:
+
+  ```bash
+  gh run download <run-id> --name docs-visual-actuals
+  # site-<page>-<project>/<page>-actual.png -> docs-site/tests/visual/goldens/<project>/<page>.png
+  ```
+
+  Open the images before committing them. `bazelisk run //docs-site:visual-linux -- --update`
+  stays the way to capture a page the suite has never baselined.
+
 `//:test-fast` deliberately excludes the browser work: it stays runnable without a Chromium
 download, which is what makes it the cheap default in `bazel-core`.
 
