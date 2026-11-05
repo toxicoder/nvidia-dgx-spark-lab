@@ -52,16 +52,17 @@ const PROFILE_LABELS: Record<string, string> = {
 };
 
 /**
- * Seed from defaults, then overlay non-empty stored values.
+ * Seed from defaults, then overlay stored values that carry something.
  *
  * @param defaults Values declared by the panel's inputs.
  * @param stored Values read from storage.
- * @returns The merged set; a blank stored value never clobbers a default.
+ * @returns The merged set; a blank, null or undefined stored value never clobbers a default,
+ *   so a half-written storage entry cannot put the literal "null" in front of a reader.
  */
 export function mergeVars(defaults: Record<string, string>, stored: Record<string, string>): Record<string, string> {
   const out: Record<string, string> = { ...defaults };
   for (const [key, value] of Object.entries(stored)) {
-    if (value === undefined || value === null || String(value).length > 0) out[key] = String(value);
+    if (value !== undefined && value !== null && String(value).length > 0) out[key] = String(value);
   }
   return out;
 }
