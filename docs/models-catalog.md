@@ -21,7 +21,7 @@ tags: [models, inference, safety, resources, vllm]
 - Using live `estimate <model>` (with \{\{PLACEHOLDER\}\} support) to get a ready-to-run command
 - Understanding safety and multi-node requirements before launching heavy jobs
 
-> Use `bazelisk run //:manage -- estimate <model>` (or the classic `bazelisk run //:manage -- estimate <model>`) for a live recommendation based on current cluster capacity.
+> Use `bazelisk run //:manage -- estimate <model>` for a live recommendation based on current cluster capacity.
 >
 > The full list of models, flags, and helpers is **auto-generated** from structured comments in the scripts — see [Shell Commands & Helpers](generated/shell/reference.md) (refreshed via `bazelisk run //docs:docs`).
 
