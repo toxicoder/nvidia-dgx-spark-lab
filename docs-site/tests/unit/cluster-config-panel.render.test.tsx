@@ -52,6 +52,46 @@ function example(fields: { shows: string; tag: string }): HTMLElement {
   return pre;
 }
 
+/**
+ * A block as the syntax highlighter actually publishes it: one `code` for the whole block, a
+ * `span.line` per line inside it, and a styled `span` per token inside each line. The colours a
+ * reader sees live on those token spans, so anything that rebuilds the block's children erases
+ * them.
+ */
+function shikiExample(fields: { lines: string[][]; tag: string }): HTMLElement {
+  const pre = document.createElement("pre");
+  pre.className = "min-w-full w-max *:flex *:flex-col";
+  pre.dataset.testExample = fields.tag;
+  const code = document.createElement("code");
+  for (const tokens of fields.lines) {
+    const line = document.createElement("span");
+    line.className = "line";
+    for (const token of tokens) {
+      const span = document.createElement("span");
+      span.style.setProperty("--shiki-light", "#032F62");
+      span.textContent = token;
+      line.append(span);
+    }
+    code.append(line);
+  }
+  pre.append(code);
+  return pre;
+}
+
+/** Replace a block's contents the way a re-render does: brand new nodes, same block element. */
+function rebuild(tag: string, lines: string[][]): void {
+  const block = document.querySelector<HTMLElement>(`[data-test-example="${tag}"]`);
+  expect(block, `block ${tag}`).not.toBeNull();
+  (block as HTMLElement).replaceChildren(...shikiExample({ lines, tag }).childNodes);
+}
+
+/** The token spans a block still shows, in order, with the text each carries. */
+function tokensOf(tag: string): (string | null)[] {
+  const block = document.querySelector<HTMLElement>(`[data-test-example="${tag}"]`);
+  expect(block, `block ${tag}`).not.toBeNull();
+  return Array.from((block as HTMLElement).querySelectorAll("span[style]")).map((n) => n.textContent);
+}
+
 /** Put an example where the reader would see it, inside the observed subtree. */
 function intoBody(node: HTMLElement): HTMLElement {
   document.body.append(node);
@@ -342,6 +382,88 @@ describe("ClusterConfigPanel profiles", () => {
 });
 
 describe("ClusterConfigPanel live examples", () => {
+  it("resolves the tokens of a highlighted block without rebuilding it", () => {
+    intoUnobservedCorner(
+      shikiExample({
+        lines: [
+          ["kubectl", " -n", " {{NAMESPACE}}", " get pods"],
+          ["ssh", " root@", "{{SPARK0_IP}}"]
+        ],
+        tag: "shiki"
+      })
+    );
+    render(<ClusterConfigPanel />);
+    expect(exampleText("shiki")).toBe("kubectl -n ai-inference get podsssh root@localhost");
+    // The pass used to assign textContent to the block it found, which resolved the tokens and
+    // dropped every line and token span with them: the reader watched the page colour a command
+    // and then saw it go plain. The tokens have to come back in place, one per span.
+    const block = document.querySelector<HTMLElement>('[data-test-example="shiki"]');
+    expect(block?.querySelectorAll("code")).toHaveLength(1);
+    expect(block?.querySelectorAll("span.line")).toHaveLength(2);
+    expect(tokensOf("shiki")).toEqual([
+      "kubectl",
+      " -n",
+      " ai-inference",
+      " get pods",
+      "ssh",
+      " root@",
+      "localhost"
+    ]);
+  });
+
+  it("leaves a token that is not a cluster variable exactly as the author wrote it", () => {
+    // Docs carry tokens for other tooling. A pass that blanked or half-resolved them would be
+    // worse than one that did nothing at all.
+    intoUnobservedCorner(
+      shikiExample({ lines: [["helm upgrade {{RELEASE}}", " {{NAMESPACE}}"]], tag: "unknown" })
+    );
+    render(<ClusterConfigPanel />);
+    expect(exampleText("unknown")).toBe("helm upgrade {{RELEASE}} ai-inference");
+    expect(tokensOf("unknown")).toEqual(["helm upgrade {{RELEASE}}", " ai-inference"]);
+  });
+
+  it("leaves a token standing while the reader has cleared its variable", () => {
+    // Emptying the address box must not publish `ssh root@`: the token stays put until the
+    // reader types something, while the rest of the block keeps following the variables.
+    intoUnobservedCorner(
+      shikiExample({ lines: [["ssh root@{{SPARK0_IP}}", " -n {{NAMESPACE}}"]], tag: "cleared" })
+    );
+    const { container } = render(<ClusterConfigPanel />);
+    expect(exampleText("cleared")).toBe("ssh root@localhost -n ai-inference");
+    fireEvent.change(inputOf(container, "SPARK0_IP"), { target: { value: "" } });
+    expect(exampleText("cleared")).toBe("ssh root@{{SPARK0_IP}} -n ai-inference");
+    expect(tokensOf("cleared")).toEqual(["ssh root@{{SPARK0_IP}}", " -n ai-inference"]);
+  });
+
+  it("re-resolves a block the page rebuilt underneath it", () => {
+    intoUnobservedCorner(shikiExample({ lines: [["ssh root@{{SPARK0_IP}}"]], tag: "rebuilt" }));
+    const { container } = render(<ClusterConfigPanel />);
+    expect(exampleText("rebuilt")).toBe("ssh root@localhost");
+    // Docs navigation hands the page a freshly highlighted tree for the same example. The panel
+    // has to resolve from those nodes, not from the split it cached for the old ones, whether the
+    // new tree has a different number of nodes or the same number with different text.
+    rebuild("rebuilt", [["ping", " {{NAMESPACE}}"]]);
+    fireEvent.change(inputOf(container, "NAMESPACE"), { target: { value: "vllm" } });
+    expect(exampleText("rebuilt")).toBe("ping vllm");
+
+    rebuild("rebuilt", [["curl http://{{SPARK0_IP}}:8080"]]);
+    fireEvent.change(inputOf(container, "SPARK0_IP"), { target: { value: "10.0.0.10" } });
+    expect(exampleText("rebuilt")).toBe("curl http://10.0.0.10:8080");
+  });
+
+  it("resolves a token the highlighter split across two spans", () => {
+    // Tokenizers own the boundaries: the same placeholder can arrive as two styled spans, and a
+    // per-node substitution would see `{{NAME` and `SPACE}}` and resolve neither.
+    intoUnobservedCorner(
+      shikiExample({ lines: [["kubectl -n {{NAME", "SPACE}} get pods"]], tag: "split" })
+    );
+    render(<ClusterConfigPanel />);
+    expect(exampleText("split")).toBe("kubectl -n ai-inference get pods");
+    // The token resolves where it starts, and the second span keeps only what followed the
+    // token's closing brace. Both spans survive; neither is rebuilt.
+    expect(tokensOf("split")).toEqual(["kubectl -n ai-inference", " get pods"]);
+  });
+
   it("rewrites an example the page inserts later, once the burst settles", async () => {
     render(<ClusterConfigPanel />);
     intoBody(example({ shows: "helm upgrade {{NAMESPACE}}", tag: "late" }));
