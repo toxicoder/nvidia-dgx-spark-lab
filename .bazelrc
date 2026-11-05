@@ -75,6 +75,9 @@ test:ci --keep_going
 # =============================================================================
 # Query & Analysis friendliness
 # =============================================================================
-query --query_file=-
+# Queries take the expression as a positional argument:
+#   bazelisk query 'kind("source file", deps(//...))'
+# Setting --query_file here would swallow that positional argument and make
+# every query return nothing, so it is deliberately left unset.
 
 # Keep the old Makefile working in parallel. Never break existing workflows.
