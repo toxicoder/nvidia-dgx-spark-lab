@@ -1,8 +1,12 @@
-"""Package purpose: Generated cert-manager certificate manifest filegroup."""
+"""Package purpose: Generated cert-manager certificate manifest filegroup.
+
+Written by scripts/lib/render_domains.py; `bazelisk run //:manage -- setup`
+regenerates it from the lab domain facts.
+"""
 
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
     name = "generated_certs",
-    srcs = glob(["*.yaml"]),
+    srcs = ["wildcard-certificate.yaml"],
 )

@@ -1,8 +1,18 @@
-"""Package purpose: Generated Kubernetes auth manifest filegroup."""
+"""Package purpose: Generated Kubernetes auth manifest filegroup.
+
+Written by scripts/lib/render_domains.py (see scripts/lib/sso.sh and
+`bazelisk run //:manage -- setup`). Listed by name on purpose: the earlier
+glob(["*.yaml"]) silently dropped configuration.yml, whose extension is .yml.
+"""
 
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
     name = "generated_auth",
-    srcs = glob(["*.yaml"]),
+    srcs = [
+        "authelia-configmap.yaml",
+        "configuration.yml",
+        "oauth2-proxy-deployment.yaml",
+        "routes.yaml",
+    ],
 )

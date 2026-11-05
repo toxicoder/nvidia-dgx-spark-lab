@@ -5,6 +5,7 @@ package(default_visibility = ["//visibility:private"])
 filegroup(
     name = "qwen3_5_397b_nvfp4_job",
     srcs = [
+        "README.md",
         "kustomization.yaml",
         "qwen3.5-397b-nvfp4-job.yaml",
         "qwen3.5-397b-nvfp4-worker-1-job.yaml",

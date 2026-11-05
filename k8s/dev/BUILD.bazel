@@ -1,4 +1,4 @@
-"""Package purpose: Dev environment dashboard reference and dev safety data filegroups."""
+"""Package purpose: Dev dashboard, secret examples, container images, and Hermes seed filegroups."""
 
 """k8s/dev: developer tools, workspaces dashboard, monitoring helpers.
 
@@ -27,5 +27,28 @@ filegroup(
         "open-webui/hermes-gateway.yaml",
         "templates/coder-spark-lab/main.tf",
     ],
-    visibility = ["//tests:__pkg__"],
+    visibility = [
+        "//k8s:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+filegroup(
+    name = "hermes_seed",
+    srcs = [
+        "templates/coder-spark-lab/hermes-seed/SOUL.md",
+        "templates/coder-spark-lab/hermes-seed/config.yaml",
+        "templates/coder-spark-lab/hermes-seed/distribution.yaml",
+        "templates/coder-spark-lab/hermes-seed/mcp.json",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "images",
+    srcs = [
+        "images/coder-workspace/workspace-init.sh",
+        "images/kasm-spark-desktop/custom_startup.sh",
+    ],
+    visibility = ["//visibility:public"],
 )

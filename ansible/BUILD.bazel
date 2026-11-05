@@ -21,20 +21,42 @@ filegroup(
     ],
 )
 
+# Playbooks are listed by name (//tests:bazel_file_coverage); the three globs are
+# sanctioned: cloud-init/files are generator output and roles/ is the upstream layout.
 filegroup(
     name = "all_playbooks",
-    srcs = glob(["playbooks/*.yml"]) + glob(["cloud-init/**"]) + glob(["files/**"]) + glob(["roles/**"]) + [
+    srcs = glob(["cloud-init/**"]) + glob(["files/**"]) + glob(["roles/**"]) + [
         "ansible.cfg",
         "inventory/group_vars/all.yml",
         "inventory/group_vars/generated/fabric.yml",
         "inventory/hosts.ini.example",
         "inventory/lab.yaml",
+        "playbooks/apply-cloud-init-prep.yml",
+        "playbooks/bootstrap-cluster.yml",
+        "playbooks/configure-identities.yml",
+        "playbooks/full-lab-setup.yml",
+        "playbooks/install-dev-workspaces.yml",
+        "playbooks/install-gpu-operator.yml",
+        "playbooks/install-sso.yml",
+        "playbooks/verify-cluster.yml",
     ],
     visibility = [
         "//lints:__pkg__",
         "//tests:__pkg__",
         "//visibility:private",
     ],
+)
+
+# Package aggregate for //:everything: every tracked file in this package.
+filegroup(
+    name = "all",
+    srcs = [
+        "run_ansible_lint.sh",
+        "run_playbook.sh",
+        "run_syntax_check.sh",
+        ":all_playbooks",
+    ],
+    visibility = ["//visibility:public"],
 )
 
 exports_files([

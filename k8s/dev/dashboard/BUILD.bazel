@@ -13,9 +13,11 @@ filegroup(
     name = "dashboard_all",
     srcs = [
         "README.md",
+        "auth-secret.yaml.example",
         "configmap.yaml",  # legacy placeholder only (old static+backend removed 2026-06-23; not mounted by current deployment)
         "deployment.yaml",
         "rbac.yaml",
+        "secrets-master.yaml.example",
         "service.yaml",
     ],
     visibility = [

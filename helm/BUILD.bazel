@@ -8,9 +8,26 @@ See helm/lab-dashboard/ for the chart.
 
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
+# Chart tree is listed by name (//tests:bazel_file_coverage): it is small and
+# changes only when the chart itself changes.
 filegroup(
     name = "all_charts",
-    srcs = glob(["**/*"]),
+    srcs = [
+        "chart_test.sh",
+        "lab-dashboard/Chart.yaml",
+        "lab-dashboard/README.md",
+        "lab-dashboard/templates/_helpers.tpl",
+        "lab-dashboard/templates/deployment.yaml",
+        "lab-dashboard/templates/service.yaml",
+        "lab-dashboard/values.yaml",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Package aggregate for //:everything: every tracked file in this package.
+filegroup(
+    name = "all",
+    srcs = [":all_charts"],
     visibility = ["//visibility:public"],
 )
 

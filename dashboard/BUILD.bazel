@@ -28,46 +28,34 @@ package(default_visibility = ["//visibility:private"])
 
 filegroup(
     name = "sources",
+    # The globs are the trees Next.js, Drizzle, Vitest and tsc consume wholesale;
+    # everything else in the package is named one by one below. Committed Playwright
+    # baselines are owned by :visual-goldens, not here.
     srcs = glob(
         [
             "**/*.ts",
             "**/*.tsx",
-            "**/*.js",
             "**/*.json",
             "**/*.css",
-            "Dockerfile",
-            "docker-compose.yml",
-            "typedoc.json",
-            "tsconfig.typedoc.json",
-            "vitest.config.ts",
-            "vitest.setup.ts",
-            "postcss.config.mjs",
-            "drizzle.config.ts",
-            "lib/db/migrations/**",
-            "scripts/*.cjs",
-            "scripts/*.sh",
             "app/dev/**",
-            "components/ui/label.tsx",
-            "components/ui/alert.tsx",
-            "components/ui/select.tsx",
-            "components/ui/sonner.tsx",
-            "lib/format.ts",
-            "lib/validation.ts",
-            "lib/toast.ts",
+            "lib/db/migrations/**",
             "lib/mocks/**",
             "lib/types/**",
-            "lib/path-security.ts",
-            "lib/require-session.ts",
-            "lib/env-guards.ts",
-            "lib/storage-stats.ts",
-            "hooks/**",
-            "actions/preferences-actions.ts",
-            "Dockerfile.test",
-            "eslint.config.mjs",
-            "next.config.ts",
+            "scripts/*.cjs",
+            "scripts/*.sh",
         ],
-        allow_empty = True,
-    ),
+    ) + [
+        ".dockerignore",
+        ".env.example",
+        "AGENTS.md",
+        "Dockerfile",
+        "Dockerfile.dockerignore",
+        "Dockerfile.test",
+        "docker-compose.yml",
+        "eslint.config.mjs",
+        "postcss.config.mjs",
+        "run_npm.sh",
+    ],
     # Note: full @shadcn_ui//:all_sources is NOT attached here — it bloated every
     # dashboard runner's runfiles. Hermetic proof is //dashboard:shadcn_hermetic
     # / :shadcn_imported (used where needed). Local components/ui is in the glob.
@@ -78,15 +66,16 @@ filegroup(
 # These committed baselines (under dashboard/tests/visual/goldens/) must be
 # available to the Playwright spec when run via Bazel.
 # Actuals are generated at runtime under tests/visual/actuals/ (gitignored).
+# The goldens README and the visual review-loop guide travel with the images.
 filegroup(
     name = "visual-goldens",
     srcs = glob(
-        [
-            "tests/visual/goldens/*.png",
-            "tests/visual/goldens/README.md",
-        ],
+        ["tests/visual/goldens/*.png"],
         allow_empty = True,
-    ),
+    ) + [
+        "tests/visual/REVIEW_LOOP.md",
+        "tests/visual/goldens/README.md",
+    ],
     visibility = ["//visibility:public"],
 )
 

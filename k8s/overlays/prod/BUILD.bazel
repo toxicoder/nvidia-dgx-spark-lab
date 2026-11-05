@@ -9,7 +9,10 @@ exports_files(["kustomization.yaml"])
 
 filegroup(
     name = "overlay_prod",
-    srcs = glob(["**/*.yaml"]),
+    srcs = [
+        "README.md",
+        "kustomization.yaml",
+    ],
     visibility = [
         "//k8s:__subpackages__",
         "//tests:__pkg__",
