@@ -220,6 +220,22 @@ class TestFormatBody(unittest.TestCase):
         self.assertIn("```bash", out)
         self.assertIn("After the example.", out)
 
+    def test_relative_script_line_opens_usage_block(self) -> None:
+        """A bare ``./script.sh --flag`` line is a command even outside the known set."""
+        from generate_shell_docs import _format_body
+
+        out = _format_body(["Run the formatter directly:", "./fix.sh --check", "Done."])
+        self.assertIn("```bash", out)
+        self.assertIn("./fix.sh --check", out)
+
+    def test_command_with_bare_dash_flag_opens_usage_block(self) -> None:
+        """A command opened by a bare dash token (a stdin heredoc) starts a bash fence."""
+        from generate_shell_docs import _format_body
+
+        out = _format_body(["Pipe the report through python3:", "python3 - <<'PY'"])
+        self.assertIn("```bash", out)
+        self.assertIn("python3 - <<'PY'", out)
+
     def test_subsection_orphan_and_function_docs(self) -> None:
         """Orphan subsections and function comment blocks are extracted correctly."""
         lines = [
