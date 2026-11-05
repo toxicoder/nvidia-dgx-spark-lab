@@ -2,11 +2,11 @@
 #
 # Bazel entry point wrapper for dashboard npm scripts.
 # Lets users do:
-#   bazel run //dashboard:install
-#   bazel run //dashboard:dev
-#   bazel run //dashboard:build
-#   bazel run //dashboard:test
-#   bazel run //dashboard:docs
+#   bazelisk run //dashboard:install
+#   bazelisk run //dashboard:dev
+#   bazelisk run //dashboard:build
+#   bazelisk run //dashboard:test
+#   bazelisk run //dashboard:docs
 #
 # All arguments after -- are passed through to the underlying npm command.
 set -euo pipefail
@@ -32,7 +32,7 @@ if [[ $SUBCMD == "run_npm.sh" || $SUBCMD == "npm" ]] && [[ $# -gt 0 ]]; then
   shift
 fi
 
-# bazel run //dashboard:build invokes "build build" — drop duplicate subcommand arg.
+# bazelisk run //dashboard:build invokes "build build" — drop duplicate subcommand arg.
 if [[ $# -gt 0 && $1 == "$SUBCMD" ]]; then
   shift
 fi
@@ -84,12 +84,12 @@ if [[ $# -gt 0 ]]; then
 fi
 
 echo "dashboard npm runner. Common:"
-echo "  bazel run //dashboard:install"
-echo "  bazel run //dashboard:dev"
-echo "  bazel run //dashboard:build"
-echo "  bazel run //dashboard:test"
-echo "  bazel run //dashboard:test-coverage"
-echo "  bazel run //dashboard:docs"
+echo "  bazelisk run //dashboard:install"
+echo "  bazelisk run //dashboard:dev"
+echo "  bazelisk run //dashboard:build"
+echo "  bazelisk run //dashboard:test"
+echo "  bazelisk run //dashboard:test-coverage"
+echo "  bazelisk run //dashboard:docs"
 echo ""
-echo "Pass extra flags after -- , e.g. bazel run //dashboard:build -- --debug"
+echo "Pass extra flags after -- , e.g. bazelisk run //dashboard:build -- --debug"
 exit 1

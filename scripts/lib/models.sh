@@ -419,7 +419,7 @@ start_qwen36_dual() {
   local overlay="${REPO_ROOT}/k8s/overlays/single-node/qwen36-dual"
   log "Applying dual overlay: ${overlay}"
   kubectl apply -k "$overlay" -n "${NAMESPACE}"
-  log "Qwen3.6 dual submitted. Monitor: ./scripts/manage.sh status-qwen36"
+  log "Qwen3.6 dual submitted. Monitor: bazelisk run //:manage -- status-qwen36"
   log "Open WebUI: ensure openaiBaseApiUrls includes both ai-inference services."
   wait_for_job "qwen3.6-27b-nvfp4" || true
   wait_for_job "qwen3.6-35b-a3b-nvfp4" || true

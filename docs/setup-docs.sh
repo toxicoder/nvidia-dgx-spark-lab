@@ -13,9 +13,9 @@
 # devcontainer (broken python symlinks).  This script detects unusable venvs and recreates
 # them with the current python3.
 #
-# Usage: ./docs/setup-docs.sh
-#        QUIET=true ./docs/setup-docs.sh
-#        VENV_DIR=/path/to/venv ./docs/setup-docs.sh   # tests / advanced
+# Usage: bazelisk run //docs-site:install
+#        QUIET=true bazelisk run //docs-site:install
+#        VENV_DIR=/path/to/venv bazelisk run //docs-site:install   # tests / advanced
 set -euo pipefail
 
 QUIET=${QUIET:-false}
@@ -181,11 +181,10 @@ if [[ $QUIET != "true" ]]; then
   echo "=== Setup complete ==="
   echo "Activate the Python toolchain: source ${VENV_DIR}/bin/activate"
   echo "Then:"
-  echo "  ./docs/manage-docs.sh serve              # dev server + hot reload, auto-opens browser"
-  echo "  ./docs/manage-docs.sh serve --port 3007 --no-browser"
-  echo "  ./docs/manage-docs.sh build               # static export into docs-site/out/"
-  echo "  ./docs/manage-docs.sh preview             # build + serve the export (final check)"
-  echo "Or with Bazel: bazelisk run //docs:serve"
+  echo "  bazelisk run //docs:serve              # dev server + hot reload, auto-opens browser"
+  echo "  bazelisk run //docs:serve -- --port 3007 --no-browser"
+  echo "  bazelisk run //docs:docs               # static export into docs-site/out/"
+  echo "  bazelisk run //docs:preview             # build + serve the export (final check)"
   echo ""
-  echo "Content lives in docs/; the sidebar is docs-site/lib/nav.json (hand-edit it, then npm run nav:check)."
+  echo "Content lives in docs/; the sidebar is docs-site/lib/nav.json (hand-edit it, then bazelisk test //docs-site:nav_test)."
 fi

@@ -28,7 +28,7 @@ NODE_EXPORTER_PORT=${NODE_EXPORTER_PORT:-32090}
 # Uses ansible/files/coder-values.yaml when present for customization.
 #
 # Usage:
-#   ./scripts/manage.sh start-coder
+#   bazelisk run //:manage -- start-coder
 #
 # Access:
 #   http://<spark0-ip>:32080 (tunnel or expose as needed)
@@ -67,7 +67,7 @@ start_coder() {
 # Deploys Kasm Workspaces via Helm for streamed desktops and applications.
 #
 # Usage:
-#   ./scripts/manage.sh start-kasm
+#   bazelisk run //:manage -- start-kasm
 #
 # Access:
 #   http://<spark0-ip>:32081
@@ -91,7 +91,7 @@ start_kasm() {
 # Frees dev management resources without touching inference workloads.
 #
 # Usage:
-#   ./scripts/manage.sh stop-coder
+#   bazelisk run //:manage -- stop-coder
 #
 # Safety:
 #   Only affects the coder namespace. Unsaved workspace sessions may be lost.
@@ -110,7 +110,7 @@ stop_coder() {
 # Removes the Kasm Helm release from the kasm namespace.
 #
 # Usage:
-#   ./scripts/manage.sh stop-kasm
+#   bazelisk run //:manage -- stop-kasm
 #
 # Safety:
 #   Only affects the kasm namespace. Active desktop sessions will disconnect.
@@ -211,8 +211,8 @@ get_all_workspaces_status() {
 # Falls back to raw k8s/dev/dashboard/ manifests.
 #
 # Usage:
-#   ./scripts/manage.sh start-monitoring
-#   ./scripts/manage.sh urls
+#   bazelisk run //:manage -- start-monitoring
+#   bazelisk run //:manage -- urls
 #
 # Safety:
 #   Dev components have resource limits to avoid starving inference.
@@ -229,7 +229,7 @@ start_monitoring() {
   fi
 
   if type sso_enabled &>/dev/null && sso_enabled; then
-    log "Observability stack ready behind Traefik SSO — run: ./scripts/manage.sh sso urls"
+    log "Observability stack ready behind Traefik SSO — run: bazelisk run //:manage -- sso urls"
   else
     log "Observability stack ready. Custom UI: http://<spark0>:${DASHBOARD_PORT:-32082}  Grafana: :${GRAFANA_PORT:-32083}  Headlamp: :${HEADLAMP_PORT:-32084}  node-exporter: :${NODE_EXPORTER_PORT:-32090}"
   fi

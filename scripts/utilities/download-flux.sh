@@ -10,8 +10,8 @@
 #   --tier all       fast + quality
 #
 # Usage:
-#   ./scripts/utilities/download-flux.sh status [--tier ...] [--json]
-#   ./scripts/utilities/download-flux.sh run [--tier ...]
+#   bazelisk run //scripts:run-utility -- download-flux status [--tier ...] [--json]
+#   bazelisk run //scripts:run-utility -- download-flux run [--tier ...]
 #
 # Weights land under MODELS_DIR (default /mnt/models) with Comfy-friendly layout.
 #

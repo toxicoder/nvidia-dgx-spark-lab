@@ -306,7 +306,7 @@ require_heavy_confirm() {
 guard_active_job() {
   local job="$1"
   if _is_job_active "$job"; then
-    warn "Job '$job' is still active. Stop it first: ./scripts/manage.sh stop"
+    warn "Job '$job' is still active. Stop it first: bazelisk run //:manage -- stop"
     return 1
   fi
   return 0

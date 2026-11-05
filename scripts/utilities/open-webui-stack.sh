@@ -5,10 +5,10 @@
 # Open WebUI Helm lifecycle — Hermes gateway agent chat UI.
 #
 # Usage:
-#   ./scripts/utilities/open-webui-stack.sh catalog [--json]
-#   ./scripts/utilities/open-webui-stack.sh status [--json]
-#   ./scripts/utilities/open-webui-stack.sh start <stack-id> --confirm yes
-#   ./scripts/utilities/open-webui-stack.sh stop
+#   bazelisk run //scripts:run-utility -- open-webui-stack catalog [--json]
+#   bazelisk run //scripts:run-utility -- open-webui-stack status [--json]
+#   bazelisk run //scripts:run-utility -- open-webui-stack start <stack-id> --confirm yes
+#   bazelisk run //scripts:run-utility -- open-webui-stack stop
 #
 # @command open-webui-stack
 

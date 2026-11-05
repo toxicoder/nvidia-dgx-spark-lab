@@ -66,7 +66,7 @@ docs_node_is_ready() {
         exit 1
       }
     elif [[ ! -x "$SITE_DIR/node_modules/.bin/next" ]]; then
-      error "docs-site/node_modules is missing. Run ./docs/setup-docs.sh first."
+      error "docs-site/node_modules is missing. Run bazelisk run //docs-site:install first."
       exit 1
     fi
   fi
@@ -259,7 +259,7 @@ case "${1:-help}" in
     if [[ -x "$SITE_DIR/node_modules/.bin/next" ]]; then
       echo "Dependencies:          installed ($(node -p "require('$SITE_DIR/node_modules/next/package.json').version" 2>/dev/null || echo '?'))"
     else
-      echo "Dependencies:          not installed (run ./docs/setup-docs.sh)"
+      echo "Dependencies:          not installed (run bazelisk run //docs-site:install)"
     fi
     if command -v node >/dev/null 2>&1; then
       echo "Node:                  $(node --version 2>/dev/null || echo 'not in PATH')"
@@ -297,10 +297,10 @@ Commands:
   clean          Remove docs-site/out, out-linux, .next and .source
 
 Examples:
-  ./docs/manage-docs.sh serve
-  ./docs/manage-docs.sh serve --port 3007 --no-browser
-  ./docs/manage-docs.sh build --version development
-  ./docs/manage-docs.sh preview
+  bazelisk run //docs:serve
+  bazelisk run //docs:serve -- --port 3007 --no-browser
+  bazelisk run //docs:docs -- --version development
+  bazelisk run //docs:preview
 EOF
     ;;
 esac

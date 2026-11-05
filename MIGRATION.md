@@ -62,12 +62,12 @@ The screenshot comparison needs Docker: the committed baselines are drawn by the
 Playwright container, and comparing them against a different Chromium would report every page as
 changed. See "Screenshot baselines" below.
 
-Without Bazel:
+Install the site dependencies once, then serve or build a specific version:
 
 ```bash
-./docs/setup-docs.sh                             # npm ci + python tooling
-./docs/manage-docs.sh serve
-./docs/manage-docs.sh build --version development
+bazelisk run //docs-site:install                             # npm ci + python tooling
+bazelisk run //docs:serve
+bazelisk run //docs:docs -- --version development
 ```
 
 Inside `docs-site/` the same steps are npm scripts: `npm run dev`, `npm run build`,

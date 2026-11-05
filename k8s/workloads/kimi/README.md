@@ -2,7 +2,7 @@
 
 Heavy production version for very large models (Kimi-K2.6 and similar). Scalable for 1-5 nodes (use inter-node parallelism for 2+).
 
-Deployed by `./scripts/manage.sh start-kimi` (or `start-full`).
+Deployed by `bazelisk run //:manage -- start-kimi` (or `start-full`).
 
 See the auto-generated [Shell reference](../../../docs/generated/shell/reference.md) for the exact `start-kimi` command, safety checks, and resource profile.
 
@@ -59,13 +59,13 @@ Verify on startup that NCCL picks up the links (or local GPUs for single-node).
 ## Before Deploying
 
 1. Ensure models are present at `/mnt/models` on the target nodes (or use a shared filesystem).
-2. Run `./scripts/manage.sh status` and confirm spare capacity.
+2. Run `bazelisk run //:manage -- status` and confirm spare capacity.
 3. Use the management script (it has confirmation prompt).
 
 ## Stopping
 
 ```bash
-./scripts/manage.sh stop
+bazelisk run //:manage -- stop
 # or manually
 kubectl delete job kimi -n ai-inference --ignore-not-found
 ```

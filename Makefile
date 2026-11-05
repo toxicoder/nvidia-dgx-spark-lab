@@ -1,7 +1,9 @@
 # nvidia-dgx-spark-lab Makefile (compatibility shim)
 #
 # Bazel is the primary / recommended entry point for the entire codebase.
-#   bazelisk test //:test
+#   bazelisk test //:verify        # one command: is my work good to push
+#   bazelisk build //:everything   # build every Bazel-owned artifact
+#   bazelisk run //:validate       # git-aware orchestrator, mirrors CI
 #   bazelisk test //:lint --test_tag_filters=manual
 #   bazelisk run //:manage -- status
 #   bazelisk run //docs:serve
@@ -38,6 +40,9 @@ help:
 	@echo "  bazelisk test //:lint --test_tag_filters=manual"
 	@echo "  bazelisk run //:fix                # formatters + auto-fix linters (trusted tools)"
 	@echo "  bazelisk run //:manage -- help"
+	@echo "  bazelisk run //:manage -- status"
+	@echo "  bazelisk run //:manage -- start-test"
+	@echo "  bazelisk run //:doctor"
 	@echo "  bazelisk run //docs:serve"
 	@echo "  bazelisk run //ansible:bootstrap"
 	@echo ""
@@ -47,10 +52,6 @@ help:
 	@echo "  make test"
 	@echo "  make test-all"
 	@echo "  make test-scripts"
-	@echo ""
-	@echo "Legacy direct convenience (after cluster bootstrap):"
-	@echo "  ./scripts/manage.sh status"
-	@echo "  ./scripts/manage.sh start-test"
 	@echo ""
 	@echo "Most targets are safe without a cluster."
 

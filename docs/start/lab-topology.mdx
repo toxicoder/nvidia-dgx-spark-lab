@@ -123,8 +123,8 @@ bazelisk run //:manage -- topology render
 bazelisk run //:manage -- topology check
 ```
 
-Classic: `./scripts/manage.sh topology <subcommand>` — or call the module directly:
-`python3 scripts/lib/py/lab_topology.py <validate|facts|render> ansible/inventory/lab.yaml`.
+Classic: `bazelisk run //:manage -- topology <subcommand>` — or call the module directly:
+`bazelisk run //:manage -- topology <validate|facts|render> ansible/inventory/lab.yaml`.
 
 ## Moving the orchestrator
 

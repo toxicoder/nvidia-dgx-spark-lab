@@ -17,8 +17,8 @@
 #   --tier all             All Qwen 3.5 tiers (default; does not include qwen36 or 3.8)
 #
 # Usage:
-#   ./scripts/utilities/download-qwen-models.sh status [--tier ...] [--json]
-#   ./scripts/utilities/download-qwen-models.sh run [--tier ...]
+#   bazelisk run //scripts:run-utility -- download-qwen-models status [--tier ...] [--json]
+#   bazelisk run //scripts:run-utility -- download-qwen-models run [--tier ...]
 #
 # @command download-qwen-models
 

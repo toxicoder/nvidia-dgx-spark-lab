@@ -2,7 +2,7 @@
 
 Lighter, safer version of the Kimi inference workload (scalable for 1-5 nodes).
 
-Deployed by `./scripts/manage.sh start-test`.
+Deployed by `bazelisk run //:manage -- start-test`.
 
 See the auto-generated [Shell Commands & Helpers reference](../../../docs/generated/shell/reference.md) and `estimate kimi-test` for current resource advice and the exact command.
 
@@ -42,7 +42,7 @@ See the auto-generated [Shell Commands & Helpers reference](../../../docs/genera
 Deploy via the management script:
 
 ```bash
-./scripts/manage.sh start-test
+bazelisk run //:manage -- start-test
 ```
 
 ## Customization

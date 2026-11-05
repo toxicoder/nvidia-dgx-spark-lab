@@ -61,9 +61,9 @@ Server connects via `--rpc 192.168.100.2:50052` (override with `RPC_PEER` env in
 ## Deploy
 
 ```bash
-./scripts/manage.sh start-test
-./scripts/manage.sh estimate glm-5.2
-./scripts/manage.sh start-glm-5.2
+bazelisk run //:manage -- start-test
+bazelisk run //:manage -- estimate glm-5.2
+bazelisk run //:manage -- start-glm-5.2
 ```
 
 Starts RPC on spark1 first, then server on spark0. **No Ray** required.
@@ -78,7 +78,7 @@ curl http://localhost:8000/v1/models
 - **Context**: default `262144` (256K); scale toward 1M carefully (throughput drops)
 - **KV cache**: `--cache-type-k q4_0 --cache-type-v q4_0` (try `q3_0` for more speed)
 - **Load time**: 15–30+ minutes on first start (ARM CPU repack)
-- **Stop**: `./scripts/manage.sh stop` (main server then RPC backend)
+- **Stop**: `bazelisk run //:manage -- stop` (main server then RPC backend)
 
 ## Safety
 

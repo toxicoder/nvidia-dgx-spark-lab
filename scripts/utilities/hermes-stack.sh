@@ -5,10 +5,10 @@
 # Hermes Agent Docker lifecycle on the Spark K3s node.
 #
 # Usage:
-#   ./scripts/utilities/hermes-stack.sh catalog [--json]
-#   ./scripts/utilities/hermes-stack.sh status [--json]
-#   ./scripts/utilities/hermes-stack.sh start <stack-id> --confirm yes
-#   ./scripts/utilities/hermes-stack.sh stop
+#   bazelisk run //scripts:run-utility -- hermes-stack catalog [--json]
+#   bazelisk run //scripts:run-utility -- hermes-stack status [--json]
+#   bazelisk run //scripts:run-utility -- hermes-stack start <stack-id> --confirm yes
+#   bazelisk run //scripts:run-utility -- hermes-stack stop
 #
 # @command hermes-stack
 

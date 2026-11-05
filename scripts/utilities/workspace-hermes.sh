@@ -5,10 +5,10 @@
 # Seed and verify Hermes workspace-dev profile for Coder/Kasm workspaces.
 #
 # Usage:
-#   ./scripts/utilities/workspace-hermes.sh status [--json]
-#   ./scripts/utilities/workspace-hermes.sh seed <target-dir>
-#   ./scripts/utilities/workspace-hermes.sh render <target-dir>
-#   ./scripts/utilities/workspace-hermes.sh verify
+#   bazelisk run //scripts:run-utility -- workspace-hermes status [--json]
+#   bazelisk run //scripts:run-utility -- workspace-hermes seed <target-dir>
+#   bazelisk run //scripts:run-utility -- workspace-hermes render <target-dir>
+#   bazelisk run //scripts:run-utility -- workspace-hermes verify
 #
 # @command workspace-hermes
 

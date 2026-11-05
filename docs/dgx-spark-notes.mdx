@@ -36,7 +36,7 @@ Large models (70B+, MoE like Kimi-K2.6) can quickly exhaust host memory and make
 
 - We do **not** use Deployments with high replica counts for heavy models.
 - We do **not** use `restartPolicy: Always` for the main inference container.
-- Workloads are started manually via `scripts/manage.sh`.
+- Workloads are started manually via `//:manage`.
 - After reboot you must explicitly re-deploy.
 
 ## High-Speed Interconnect

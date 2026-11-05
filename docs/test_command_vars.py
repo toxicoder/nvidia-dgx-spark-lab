@@ -83,7 +83,9 @@ class TestPanelWiring(unittest.TestCase):
         source = PANEL_COMPONENT.read_text(encoding="utf-8")
         for marker in ("data-var", "data-profile", "originalText", "MutationObserver"):
             self.assertIn(marker, source, f"panel component lost its {marker!r} wiring")
-        self.assertIn(STORAGE_KEY, source, "panel changed its storage key; readers lose saved values")
+        self.assertIn(
+            STORAGE_KEY, source, "panel changed its storage key; readers lose saved values"
+        )
 
     def test_tokens_are_not_frozen_into_literals(self) -> None:
         """Page sources keep `{{TOKEN}}` placeholders rather than baked-in addresses."""

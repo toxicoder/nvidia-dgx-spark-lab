@@ -12,7 +12,7 @@
 #   powershell -ExecutionPolicy Bypass -File .\scripts\utilities\install-operator-client.ps1
 #
 # After it finishes: open "Ubuntu", clone the lab repo, and run
-#   ./scripts/utilities/install-operator-client.sh run
+#   bazelisk run //scripts:run-utility -- install-operator-client run
 # inside WSL to install Ansible, kubectl, helm, bazelisk, and jq.
 
 $ErrorActionPreference = "Stop"
@@ -61,6 +61,6 @@ Write-Host "WSL + Ubuntu is ready. Next steps:"
 Write-Host "  1. Open 'Ubuntu' from the start menu and set a Linux user."
 Write-Host "  2. Clone the lab repo (e.g. into /home/<you>/nvidia-dgx-spark-lab)."
 Write-Host "  3. From the repo root, install the operator toolchain inside WSL:"
-Write-Host "       ./scripts/utilities/install-operator-client.sh run"
+Write-Host "       bazelisk run //scripts:run-utility -- install-operator-client run"
 Write-Host "  4. Verify with:"
-Write-Host "       ./scripts/utilities/install-operator-client.sh status"
+Write-Host "       bazelisk run //scripts:run-utility -- install-operator-client status"

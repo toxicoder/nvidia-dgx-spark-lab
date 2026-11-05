@@ -44,7 +44,7 @@ guard_active_visual() {
   done <<<"$names"
   if [[ -n ${other// /} ]]; then
     err "Another visual workload is active: ${other}"
-    err "Stop it first: ./scripts/manage.sh stop-visual  (or stop-comfy-base)"
+    err "Stop it first: bazelisk run //:manage -- stop-visual  (or stop-comfy-base)"
     return 1
   fi
   return 0

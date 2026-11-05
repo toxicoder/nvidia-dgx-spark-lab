@@ -23,7 +23,7 @@ tags: [bazel, testing, documentation, devcontainer]
 - Easy onboarding via the `.devcontainer`
 - Confidence that changes don't break the automation or docs pipeline
 
-The traditional Makefile and direct `ansible-playbook` / `./scripts/manage.sh` invocations remain available for compatibility and for people who have not installed bazelisk.
+The traditional Makefile and direct `ansible-playbook` / `bazelisk run //:manage --` invocations remain available for compatibility and for people who have not installed bazelisk.
 
 ## Prerequisites
 
@@ -50,10 +50,13 @@ The `.bazelversion` pins the version.
 # Primary day-to-day commands
 bazelisk run //:validate           # git-aware: core + docs/dashboard when paths change
 bazelisk run //:validate -- --all # full suite (docs Playwright + dashboard Docker)
+bazelisk test //:verify            # one command: is my work good to push (same set as //:test)
+bazelisk build //:everything       # every Bazel-owned artifact in the repo
 bazelisk test //:test              # Bazel test_suite (test-fast + docs render)
 bazelisk test //:test-fast         # CI core (excludes slow docs Playwright)
 bazelisk test //:lint --test_tag_filters=manual
 bazelisk run //:manage -- status
+bazelisk run //:doctor             # contributor toolchain check
 bazelisk run //docs:serve
 bazelisk run //ansible:bootstrap
 
@@ -128,7 +131,8 @@ extra wiring.
 Produced by TypeDoc from JSDoc in the Next.js/TypeScript code:
 
 ```bash
-bazel run //dashboard:docs     # after npm ci in dashboard/
+bazelisk run //dashboard:install   # npm ci for the dashboard (once)
+bazelisk run //dashboard:docs      # TypeDoc -> dashboard/docs/
 ```
 
 See `dashboard/typedoc.json` and the package.json `docs:generate` script.
@@ -239,7 +243,7 @@ bazelisk run //:validate -- --update-goldens  # regenerate visual baselines (rev
 bazelisk run //:fix                         # formatters + auto-fix linters (trusted tools)
 ```
 
-`//:validate` always runs core checks (`build //... --nobuild`, `//:test-fast`, `//:lint`, key builds). When docs-relevant paths change (`docs/**`, `docs-site/**`, shell doc sources under `scripts/manage.sh` / `lib` / `utilities`) it also runs `//docs:test_docs_site_render` + `//docs-site:unit` + `//docs-site:typecheck` + `//docs-site:visual_tooling_test` (fast, no browser). Use `--all` to add the static export, the export-backed `//docs:render-check`, the screenshot comparison in the CI container (`//docs-site:visual-linux`, needs Docker), and `//dashboard:hermetic-test` (Docker + Playwright). `--update-goldens` captures fresh baselines in that same container instead of comparing. Default dashboard slice uses `//dashboard:fast-test` (host Vitest + lint + typecheck).
+`//:validate` always runs core checks (`build //... --nobuild`, `//:test-fast`, `//:lint`, key builds). When docs-relevant paths change (`docs/**`, `docs-site/**`, shell doc sources under `//:manage` / `lib` / `utilities`) it also runs `//docs:test_docs_site_render` + `//docs-site:unit` + `//docs-site:typecheck` + `//docs-site:visual_tooling_test` (fast, no browser). Use `--all` to add the static export, the export-backed `//docs:render-check`, the screenshot comparison in the CI container (`//docs-site:visual-linux`, needs Docker), and `//dashboard:hermetic-test` (Docker + Playwright). `--update-goldens` captures fresh baselines in that same container instead of comparing. Default dashboard slice uses `//dashboard:fast-test` (host Vitest + lint + typecheck).
 
 `//:fix` uses only well-trusted software (buildifier, shfmt, ruff, prettier) and is the recommended one-command way to programmatically clean the tree.
 
@@ -253,7 +257,7 @@ CI uses path-filtered parallel jobs (optimized for wall time):
 | **docs-and-render** | docs/**, docs-site/**, shell doc sources, or CI graph | Docs gates without a browser, then the export + `//docs:render-check` + the screenshot comparison in the CI container |
 | **validate-gate** | always | Pure bash `scripts/ci_check_only.sh` (no Bazel cold start) |
 
-**Path filter notes:** `scripts/**` no longer always runs docs — only `scripts/manage.sh`, `scripts/lib/**`, and `scripts/utilities/**` (shell doc sources). Editing only `.github/workflows/*` runs bazel-core (and gate), not hermetic/docs. Shared setup: `.github/actions/setup-bazel` (pinned Bazelisk + disk/repo + lint-tool caches). See `.github/workflows/ci.yml`, `.gitea/workflows/ci.yml`, and `.bazelrc` (`--config=ci`).
+**Path filter notes:** `scripts/**` no longer always runs docs — only `//:manage`, `scripts/lib/**`, and `scripts/utilities/**` (shell doc sources). Editing only `.github/workflows/*` runs bazel-core (and gate), not hermetic/docs. Shared setup: `.github/actions/setup-bazel` (pinned Bazelisk + disk/repo + lint-tool caches). See `.github/workflows/ci.yml`, `.gitea/workflows/ci.yml`, and `.bazelrc` (`--config=ci`).
 
 Use queries heavily:
 
@@ -303,7 +307,7 @@ See the root `.gitignore` and `.bazelignore` for the full exclusion list.
 
 The following are modeled with first-class Bazel targets:
 
-- `scripts/manage.sh` as `sh_binary` (`//:manage`)
+- `//:manage` as `sh_binary` (`//:manage`)
 - Full hermetic BATS suite (vendored bats-core)
 - Kubernetes manifests and overlays as `filegroup` data
 - Documentation site (`//docs:serve`, `//docs:docs`, `//docs-site:*`)
@@ -312,13 +316,21 @@ The following are modeled with first-class Bazel targets:
     explicit approval via `//docs-site:visual-linux -- --update` + PR review).
 - Ansible validation + convenient playbook launchers (`//ansible:*`)
 - Dashboard dev / build / test wrappers (`//dashboard:*`)
+- Contributor environment check (`//:doctor`)
 - Comprehensive root aliases and test suites
+- Repo-wide ownership gate: `//tests:bazel_file_coverage` proves every tracked file is named by a
+  Bazel rule, and that each wildcard `glob()` carries a written reason in `SANCTIONED_GLOBS`.
+  `bazelisk build //:everything` is the artifact that gate protects; `//:verify` is the gate set.
 
-Runtime operations against real hardware (full Ansible playbooks with real inventories, heavy cluster workloads) intentionally remain outside pure Bazel "build" semantics and are launched via the sh_binary wrappers or classic commands.
+Runtime operations against real hardware (full Ansible playbooks with real inventories, heavy cluster workloads) intentionally remain outside pure Bazel "build" semantics and are launched through the `sh_binary` wrappers (`//:manage`, `//ansible:*`).
 
 ## Using Bazel for Daily Work
 
-Bazel is now the established primary system. The Makefile and direct commands remain available purely for compatibility and convenience.
+Bazel is the established entry point for every build, test, lint, docs, and operations command. The
+Makefile stays as a compatibility shim for people and jobs without `bazelisk`, and it delegates to
+Bazel whenever `bazelisk` is on `PATH`. The few places that still call a script directly (the
+devcontainer's `postStartCommand` bootstrap, the CI dependency warm-up, `scripts/ci_check_only.sh`)
+are listed with their reasons in [project-conventions.md](project-conventions.md#documented-direct-invocations).
 
 ## Development Container
 
@@ -342,7 +354,7 @@ Full onboarding: **[dev-environment.md](dev-environment.md)**.
 3. After `post-create` + doctor:
 
 ```bash
-bash .devcontainer/doctor.sh
+bazelisk run //:doctor
 bazelisk run //:fix
 bazelisk run //:validate
 bazelisk test //:test-fast --config=ci

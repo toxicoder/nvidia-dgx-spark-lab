@@ -131,7 +131,7 @@ openaiBaseApiUrls:
   - "http://qwen3.6-35b-a3b-nvfp4.ai-inference.svc.cluster.local:8000/v1"
 ```
 
-Redeploy Open WebUI after values change: `./scripts/manage.sh start-open-webui` (or utility).
+Redeploy Open WebUI after values change: `bazelisk run //:manage -- start-open-webui` (or utility).
 
 ## Thinking / vision
 

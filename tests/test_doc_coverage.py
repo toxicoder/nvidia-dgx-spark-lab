@@ -158,9 +158,7 @@ data = [
                     "pages": [{"title": "Shell", "path": "generated/shell/reference.md"}],
                 }
             ]
-            (root / "docs-site" / "lib" / "nav.json").write_text(
-                json.dumps(nav), encoding="utf-8"
-            )
+            (root / "docs-site" / "lib" / "nav.json").write_text(json.dumps(nav), encoding="utf-8")
 
             (root / "docs" / "BUILD.bazel").write_text(
                 '_RENDER_GENERATED = glob(\n    ["generated/shell/**"],\n)\n',
@@ -189,9 +187,7 @@ data = [
             (root / "docs-site" / "lib").mkdir(parents=True)
             (root / "docs").mkdir()
             nav = [{"title": "Home", "pages": [{"title": "Home", "path": "index.md"}]}]
-            (root / "docs-site" / "lib" / "nav.json").write_text(
-                json.dumps(nav), encoding="utf-8"
-            )
+            (root / "docs-site" / "lib" / "nav.json").write_text(json.dumps(nav), encoding="utf-8")
             # The page itself lives on disk under its renamed extension.
             (root / "docs" / "index.mdx").write_text("# Home\n", encoding="utf-8")
             (root / "docs" / "BUILD.bazel").write_text(

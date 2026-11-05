@@ -17,4 +17,4 @@ docker build -t lab-dashboard:local -f dashboard/Dockerfile .
 
 The old static nginx + ConfigMap HTML/Python backend was removed during 2026 legacy cleanup.
 
-See `dashboard/AGENTS.md`, `docs/dev-workspaces.md`, and `scripts/manage.sh start-monitoring`.
+See `dashboard/AGENTS.md`, `docs/dev-workspaces.md`, and `bazelisk run //:manage -- start-monitoring`.

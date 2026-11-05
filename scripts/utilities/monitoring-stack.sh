@@ -5,8 +5,8 @@
 # Observability stack status and verification for Grafana/Prometheus integration.
 #
 # Usage:
-#   ./scripts/utilities/monitoring-stack.sh status [--json]
-#   ./scripts/utilities/monitoring-stack.sh verify [--json]
+#   bazelisk run //scripts:run-utility -- monitoring-stack status [--json]
+#   bazelisk run //scripts:run-utility -- monitoring-stack verify [--json]
 #
 # @command monitoring-stack
 

@@ -45,14 +45,14 @@ flowchart LR
     One command installs and verifies everything (Homebrew, no sudo):
 
     ```bash
-    ./scripts/utilities/install-operator-client.sh run
+    bazelisk run //scripts:run-utility -- install-operator-client run
     ```
   </Tab>
   <Tab value="Linux">
     Same script, apt/dnf based:
 
     ```bash
-    ./scripts/utilities/install-operator-client.sh run
+    bazelisk run //scripts:run-utility -- install-operator-client run
     ```
   </Tab>
   <Tab value="Windows">
@@ -215,7 +215,7 @@ bazelisk run //:manage -- doctor
 bazelisk run //:manage -- estimate kimi-test
 ```
 
-Classic: `./scripts/manage.sh doctor`. Doctor is read-only. Fix anything it flags before a start.
+Classic: `bazelisk run //:manage -- doctor`. Doctor is read-only. Fix anything it flags before a start.
 
 ## Step 6 — First safe workload (kimi-test)
 

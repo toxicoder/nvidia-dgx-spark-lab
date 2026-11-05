@@ -1,6 +1,6 @@
 # Purpose: generated fabric facts for Ansible roles (regenerated from inventory/lab.yaml)
 # Source of truth: ansible/inventory/lab.yaml
-# Regenerate: ./scripts/manage.sh setup or scripts/lib/topology.sh topology_render
+# Regenerate: bazelisk run //:manage -- setup
 # Safety: reference facts only — workload manifests remain authoritative for NCCL env and resources
 
 # Generated — do not edit.

@@ -10,8 +10,8 @@
 #   --tier all       balanced + quality
 #
 # Usage:
-#   ./scripts/utilities/download-ltx.sh status [--tier ...] [--json]
-#   ./scripts/utilities/download-ltx.sh run [--tier ...]
+#   bazelisk run //scripts:run-utility -- download-ltx status [--tier ...] [--json]
+#   bazelisk run //scripts:run-utility -- download-ltx run [--tier ...]
 #
 # @command download-ltx
 

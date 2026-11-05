@@ -79,12 +79,12 @@ ansible-playbook -i inventory/hosts.ini playbooks/install-dev-workspaces.yml
 2. Use manage script (after KUBECONFIG set):
 
 ```bash
-./scripts/manage.sh start-coder
-./scripts/manage.sh start-kasm
-./scripts/manage.sh start-monitoring   # grafana + headlamp + custom portal
-./scripts/manage.sh status
-./scripts/manage.sh stop-dev
-./scripts/manage.sh help
+bazelisk run //:manage -- start-coder
+bazelisk run //:manage -- start-kasm
+bazelisk run //:manage -- start-monitoring   # grafana + headlamp + custom portal
+bazelisk run //:manage -- status
+bazelisk run //:manage -- stop-dev
+bazelisk run //:manage -- help
 ```
 
 3. Access:
@@ -93,7 +93,7 @@ ansible-playbook -i inventory/hosts.ini playbooks/install-dev-workspaces.yml
    - Grafana: :32083 (default admin/admin or per values)
    - Headlamp: :32084
 
-Inside Coder workspace template (see below): you get a full dev env with this repo, bazel, kubectl (via mounted kubeconfig or in-cluster SA), and can run `./scripts/manage.sh start-test` etc from inside the cluster.
+Inside Coder workspace template (see below): you get a full dev env with this repo, bazel, kubectl (via mounted kubeconfig or in-cluster SA), and can run `bazelisk run //:manage -- start-test` etc from inside the cluster.
 
 ## Ansible / Helm Details
 
@@ -170,7 +170,7 @@ Workspaces land in namespace `coder-workspaces` (see [`k8s/base/namespaces-dev.y
 Build on the Spark node (where the Kasm agent pulls images):
 
 ```bash
-./scripts/utilities/kasm-workspace-image.sh build
+bazelisk run //scripts:run-utility -- kasm-workspace-image build
 # Image tag: spark-lab-kasm-desktop:1.19.0
 ```
 
@@ -221,7 +221,7 @@ See `k8s/dev/dashboard/auth-secret.yaml.example` for the template.
 2. Create the secrets vault master key (separate from auth; loss is unrecoverable):
 
 ```bash
-./scripts/manage.sh secrets ensure-key
+bazelisk run //:manage -- secrets ensure-key
 # or: kubectl create secret generic lab-dashboard-secrets -n dev \
 #       --from-literal=master-key="$(openssl rand -base64 32)"
 ```
@@ -281,10 +281,10 @@ The **Workspaces** sidebar section (`#workspaces`) embeds Coder and Kasm in-tab 
 **CLI equivalents:**
 
 ```bash
-./scripts/manage.sh start-coder
-./scripts/manage.sh stop-coder
-./scripts/manage.sh start-kasm
-./scripts/manage.sh stop-kasm
+bazelisk run //:manage -- start-coder
+bazelisk run //:manage -- stop-coder
+bazelisk run //:manage -- start-kasm
+bazelisk run //:manage -- stop-kasm
 ```
 
 The dashboard utility `scripts/utilities/dev-workspaces.sh` wraps the same logic for the UI. RBAC in `k8s/dev/dashboard/rbac.yaml` grants the dashboard ServiceAccount Helm lifecycle in `coder` and `kasm` namespaces only.
@@ -301,7 +301,7 @@ See `dashboard/AGENTS.md` and `dashboard/Dockerfile` for stack details.
 - `manage.sh` new paths have preflight cluster checks; heavy prompts untouched.
 - After changes always validate: `bazelisk test //...`
 
-Before reboot: `./scripts/manage.sh stop-dev ; ./scripts/manage.sh stop`
+Before reboot: `bazelisk run //:manage -- stop-dev ; bazelisk run //:manage -- stop`
 
 ## Updating / Versions
 

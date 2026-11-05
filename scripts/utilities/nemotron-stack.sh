@@ -5,11 +5,11 @@
 # One-click Nemotron agentic stack lifecycle for the dashboard.
 #
 # Usage:
-#   ./scripts/utilities/nemotron-stack.sh catalog [--json]
-#   ./scripts/utilities/nemotron-stack.sh status [--json]
-#   ./scripts/utilities/nemotron-stack.sh check --action stack:<id> [--json]
-#   ./scripts/utilities/nemotron-stack.sh start <stack-id> --confirm yes
-#   ./scripts/utilities/nemotron-stack.sh stop <stack-id|all>
+#   bazelisk run //scripts:run-utility -- nemotron-stack catalog [--json]
+#   bazelisk run //scripts:run-utility -- nemotron-stack status [--json]
+#   bazelisk run //scripts:run-utility -- nemotron-stack check --action stack:<id> [--json]
+#   bazelisk run //scripts:run-utility -- nemotron-stack start <stack-id> --confirm yes
+#   bazelisk run //scripts:run-utility -- nemotron-stack stop <stack-id|all>
 #
 # @command nemotron-stack
 

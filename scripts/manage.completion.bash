@@ -1,4 +1,4 @@
-# Bash completion for ./scripts/manage.sh (and manage.sh)
+# Bash completion for bazelisk run //:manage -- (and manage.sh)
 #
 # ## manage.completion.bash
 #

@@ -14,9 +14,9 @@
 # - stop uninstalls a single Helm release.
 #
 # Usage:
-#   ./scripts/utilities/dev-workspaces.sh status [--json]
-#   ./scripts/utilities/dev-workspaces.sh run coder|kasm
-#   ./scripts/utilities/dev-workspaces.sh stop coder|kasm
+#   bazelisk run //scripts:run-utility -- dev-workspaces status [--json]
+#   bazelisk run //scripts:run-utility -- dev-workspaces run coder|kasm
+#   bazelisk run //scripts:run-utility -- dev-workspaces stop coder|kasm
 #
 # Dashboard integration: Workspaces panel calls status --json and run/stop subcommands.
 #

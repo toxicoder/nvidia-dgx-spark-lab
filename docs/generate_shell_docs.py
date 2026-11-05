@@ -18,8 +18,12 @@ Supported markers (use these for docs that will appear in the reference):
   #   - What it does
   #   - Safety / confirmation requirements
   #   - Usage:
-  #     ./scripts/manage.sh cmdname [args]
+  #     bazelisk run //:manage -- cmdname [args]
   #   - Examples (with {{PLACEHOLDER}} where appropriate)
+
+Command lines are written Bazel-first (see docs/project-conventions.md §15): name
+the target, never the script behind it. The generator still recognises the
+legacy ``./scripts/manage.sh`` spelling so older comment blocks keep rendering.
 
 The generator is intentionally simple and stdlib-only.
 It produces high-quality output with:
@@ -32,8 +36,6 @@ It preserves {{PLACEHOLDER}} for the interactive command-vars.js panel.
 
 Usage:
   bazelisk run //docs:docs
-  # or
-  python3 docs/generate_shell_docs.py
 """
 
 from __future__ import annotations

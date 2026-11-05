@@ -11,8 +11,8 @@
 #   --tier all         All of the above (default)
 #
 # Usage:
-#   ./scripts/utilities/download-rounded-models.sh status [--tier ...] [--json]
-#   ./scripts/utilities/download-rounded-models.sh run [--tier ...]
+#   bazelisk run //scripts:run-utility -- download-rounded-models status [--tier ...] [--json]
+#   bazelisk run //scripts:run-utility -- download-rounded-models run [--tier ...]
 #
 # @command download-rounded-models
 

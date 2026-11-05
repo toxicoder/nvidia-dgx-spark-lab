@@ -16,8 +16,8 @@
 # - Large download; run during off-peak.
 #
 # Usage:
-#   ./scripts/utilities/download-glm52-gguf.sh status [--json]
-#   ./scripts/utilities/download-glm52-gguf.sh run
+#   bazelisk run //scripts:run-utility -- download-glm52-gguf status [--json]
+#   bazelisk run //scripts:run-utility -- download-glm52-gguf run
 #
 # Dashboard can trigger download and show status.
 #

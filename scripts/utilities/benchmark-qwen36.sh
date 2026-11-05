@@ -6,9 +6,9 @@
 # Hermetic-friendly defaults use localhost port-forwards; no cluster required for --dry-run.
 #
 # Usage:
-#   ./scripts/utilities/benchmark-qwen36.sh run --model 27b [--concurrency 1,4]
-#   ./scripts/utilities/benchmark-qwen36.sh run --dual --concurrency 4
-#   ./scripts/utilities/benchmark-qwen36.sh run --dry-run
+#   bazelisk run //scripts:run-utility -- benchmark-qwen36 run --model 27b [--concurrency 1,4]
+#   bazelisk run //scripts:run-utility -- benchmark-qwen36 run --dual --concurrency 4
+#   bazelisk run //scripts:run-utility -- benchmark-qwen36 run --dry-run
 #
 # @command benchmark-qwen36
 

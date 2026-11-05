@@ -14,7 +14,7 @@ bazelisk run //:manage -- status
 Classic direct invocation also supported:
 
 ```bash
-./scripts/manage.sh help
+bazelisk run //:manage -- help
 ```
 
 See root README and docs/ for usage patterns. Full shell conventions: [docs/project-conventions.md](../docs/project-conventions.md#6-shell-scripts).

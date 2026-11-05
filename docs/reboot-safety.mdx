@@ -30,7 +30,7 @@ tags: [safety, reboot, operations, kubernetes]
 1. **From your workstation** (with working kubectl access):
    ```bash
    cd nvidia-dgx-spark-lab
-   ./scripts/manage.sh stop
+   bazelisk run //:manage -- stop
    ```
 
    Wait until:
@@ -71,9 +71,9 @@ tags: [safety, reboot, operations, kubernetes]
 
 5. Only then start workloads again:
    ```bash
-   ./scripts/manage.sh start-test
+   bazelisk run //:manage -- start-test
    # ... validate ...
-   ./scripts/manage.sh start-kimi
+   bazelisk run //:manage -- start-kimi
    ```
 
 ## If SSH is completely unresponsive

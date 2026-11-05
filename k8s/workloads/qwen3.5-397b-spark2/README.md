@@ -15,7 +15,7 @@ Substitutes for `nvidia/Qwen3.5-397B-A17B-NVFP4` on dual-Spark clusters. Proven 
 
 ```bash
 bazelisk run //scripts:run-utility -- download-qwen-models run --tier 397b-spark2
-./scripts/manage.sh start-qwen3.5-397b-spark2
+bazelisk run //:manage -- start-qwen3.5-397b-spark2
 # or full stack:
 bazelisk run //scripts:run-utility -- nemotron-stack start qwen-agentic-spark-2 --confirm yes
 ```

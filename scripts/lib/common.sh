@@ -177,7 +177,7 @@ print_access_info() {
   fi
   echo "  node-exporter: http://${base_ip}:${NODE_EXPORTER_PORT:-32090}"
   echo "  vLLM example (after start): kubectl port-forward svc/kimi -n ${NAMESPACE} 8000:8000"
-  echo "Tip: ./scripts/manage.sh status ; use browser on control machine or tunnel."
+  echo "Tip: bazelisk run //:manage -- status ; use browser on control machine or tunnel."
 }
 
 # @function require_jq
@@ -299,7 +299,7 @@ estimate_resources() {
   echo
   echo "Suggested next command (edit variables as needed):"
   echo "  {{SPARK0_IP:=<your-spark0>}}"
-  echo "  ./scripts/manage.sh start-${model}   # or start-test first if heavy"
+  echo "  bazelisk run //:manage -- start-${model}   # or start-test first if heavy"
   echo
-  echo "Or run: ./scripts/manage.sh doctor   for full preflight."
+  echo "Or run: bazelisk run //:manage -- doctor   for full preflight."
 }

@@ -93,7 +93,7 @@ flowchart LR
 | `config/resource-policy.yaml` | Human-readable policy (SoT for JSON twin) | Edit YAML, keep JSON in sync |
 | `ansible/inventory/group_vars/all.yml` | Bootstrap defaults, chart versions, NCCL reference | **Reference only** — not deployed resource limits |
 | `config/nemotron-catalog.yaml` | Display names, HF paths, agent roles | Capacity deferred to resource-policy |
-| `scripts/manage.sh` + `lib/*.sh` | Runtime behavior, confirmations, apply order | Structured comments feed generated docs |
+| `//:manage` + `lib/*.sh` | Runtime behavior, confirmations, apply order | Structured comments feed generated docs |
 | `*.example.yaml` | Secret templates | Never commit real secrets |
 
 **Policy twins:** Most policy files have a YAML (human) + JSON (machine) pair. When you change one, update the other and extend `tests/safety_invariants.sh` if you add models or stacks.
@@ -208,7 +208,7 @@ Run `bazelisk run //:fix` after sets of changes. Pure linters (shellcheck, kubec
 | **shfmt** | `*.sh` | `-w -s -i 2 -ci` (2-space indent, simplify, indent case); check via `//lints:shfmt` |
 | **ruff** | `docs/*.py`, root `*.py` | format + `check --fix` |
 | **mypy** | all tracked `*.py` | `strict = true` per `mypy.ini`; `//lints:mypy` (manual) |
-| **prettier** | dashboard TS/TSX/MD/JSON; repo YAML via `scripts/yaml_format.sh` | 2-space, 120 cols, double quotes (`prettier.config.mjs`) |
+| **prettier** | dashboard TS/TSX/MD/JSON; repo YAML via `//:fix` | 2-space, 120 cols, double quotes (`prettier.config.mjs`) |
 | **eslint** | dashboard | `no-explicit-any: error`; Next core-web-vitals |
 
 ### YAML linting
@@ -826,6 +826,8 @@ Every tracked source file must have stack-appropriate documentation. This is enf
 | --- | --- |
 | `//tests:doc_coverage` | `@command` / `@function` / YAML headers / no inline ConfigMap language embeds / no multi-line shell in mcp manifests / nav↔Bazel page lists / BUILD package purpose / dashboard JSDoc |
 | `//tests:doc_coverage_unit` | Unit tests for the pure helpers behind those rules |
+| `//tests:bazel_file_coverage` | Every tracked file is owned by a Bazel rule; wildcards are sanctioned; no BUILD file names a missing path |
+| `//tests:bazel_file_coverage_unit` | Unit tests for the pure helpers behind that gate |
 | `//lints:shell` (manual lint suite) | ShellCheck on real `.sh` files (warnings fail; another reason not to embed scripts in YAML) |
 | `//lints:shfmt` (manual lint suite) | Format drift check (`shfmt -d -s -i 2 -ci`) |
 
@@ -1006,6 +1008,82 @@ Management script confirmations and Resource Guard gates must not be bypassed in
 
 ---
 
+## 15. Bazel-first entry points
+
+Bazel is the only supported way to build, test, lint, document, and operate this
+repository. Scripts, `make`, `npm`, `pip`, and `python3` are implementation
+details behind a Bazel target. Documentation, docstrings, inline comments, and
+the text a tool prints all point at targets, never at the scripts behind them.
+
+### Entry points
+
+| Command | Use |
+| --- | --- |
+| `bazelisk run //:validate` | Day-to-day gate: git-aware build, test, lint, docs, dashboard slices |
+| `bazelisk test //:verify` | Every fast hermetic gate in one command |
+| `bazelisk build //:everything` | Build every Bazel-owned artifact |
+| `bazelisk test //:test` / `//:test-fast` | Full / CI-core test suites |
+| `bazelisk test //:lint --test_tag_filters=manual` | All lints (needs host tools) |
+| `bazelisk run //:manage -- <verb>` | The only cluster-operations entry point |
+| `bazelisk run //scripts:run-utility -- <name> <verb>` | Utility scripts (spark-clock, disk-wizard, …) |
+| `bazelisk run //docs:serve` / `//:docs` / `//:docs-preview` | Docs dev server, build, preview |
+| `bazelisk run //dashboard:dev` / `//:dashboard-test` | Dashboard dev server and tests |
+| `bazelisk run //:fix` | Format everything (buildifier, shfmt, ruff, prettier, yamllint) |
+| `bazelisk run //:doctor` | Contributor toolchain check (pinned CLI tools, venvs) |
+
+`Makefile` targets survive only as a compatibility shim that forwards to these
+targets; `make help` is the one thing it owns.
+
+### Documented direct invocations
+
+A script may be called directly only where the Bazel target cannot run yet, or
+where routing through Bazel would defeat the step. Each exception is listed here
+with its reason; anything else goes through a target.
+
+| Site | Direct call | Why |
+| --- | --- | --- |
+| `.devcontainer/devcontainer.json` `postStartCommand` | `bash .devcontainer/doctor.sh --quiet` | The doctor is the bootstrap that proves `bazelisk` is installed, so it cannot depend on `bazelisk`. Everywhere else uses `bazelisk run //:doctor`. |
+| CI `Install docs site dependencies` | `pip install -r docs/requirements.txt`, `npm ci`, `npx playwright install` | Provisions host tools and warms the npm/playwright caches that the later Bazel targets consume; no target installs a browser binary. |
+| CI `Validate gate (path-filter consistency)` | `bash scripts/ci_check_only.sh` | Deliberately Bazel-free so the gate needs no Bazel server or disk-cache cold start. |
+| `Makefile` fallback branches | `shellcheck`, `bats tests/bats/`, `cd dashboard && npm test`, `./fix.sh` | Reachable only when `bazelisk` is absent, which is the shim's stated purpose. |
+
+A new exception needs a row here plus a comment at the call site saying why.
+
+### Writing it Bazel-first
+
+- Every tracked file must be owned by a Bazel rule: a `srcs`/`data`/`tools`
+  entry, an `exports_files` entry, a module-level list, a declared `outs`, or a
+  sanctioned `glob()`. `//tests:bazel_file_coverage` enforces this.
+- **List files by name by default.** A wildcard is allowed only where the tree is
+  generated (`docs/generated/**`, `config/grafana/dashboards/*.json`), tool-owned
+  (`lib/db/migrations/**`, `**/*.png` goldens), copied wholesale by a framework
+  (`app/**`, `components/**`, `lib/**`, `**/*.tsx`), or follows the documented
+  drop-in convention (`scripts/lib/*.sh`, `scripts/utilities/*.sh`). Each one is
+  pinned with its reason in `SANCTIONED_GLOBS` in `tests/bazel_file_coverage.py`;
+  adding a wildcard without adding its justification fails the gate, and a
+  sanction whose pattern has disappeared fails it too.
+- A `glob()` whose pattern has no wildcard is a plain file name wearing a
+  disguise: write the string.
+- Anything a target reads at runtime belongs in its `data` list. When you add a
+  manifest that `scripts/lib/*.sh` applies, add its filegroup to `//scripts:manage`.
+- New package: give it a `"""Package purpose: …"""` docstring and a public `:all`
+  aggregate, then list that aggregate in `//:everything`.
+
+### Adding a check
+
+Follow the `doc_coverage` shape: `tests/<name>.py` with `_repo_root()` and
+`_tracked()`, a `main()` that prints `  - <path>: <reason>` to stderr and returns
+1, a three-line `tests/<name>.sh` wrapper, a `tests/test_<name>.py` unit suite run
+by `tests/<name>_unit.sh`, two `sh_test` targets in `tests/BUILD.bazel`, and the
+labels added to `_TEST_FAST` in the root `BUILD.bazel`. Then add a row to the
+coverage-gate table above and to [tests/README.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/tests/README.md).
+
+```bash
+bazelisk test //tests:bazel_file_coverage //tests:bazel_file_coverage_unit
+```
+
+---
+
 ## Quick-reference checklists
 
 ### Adding a new inference workload
@@ -1044,7 +1122,7 @@ Management script confirmations and Resource Guard gates must not be bypassed in
 ### Adding a docs page
 
 1. Create `docs/<name>.md` with frontmatter and required overview sections
-2. Register the page in the nav: hand-edit `docs-site/lib/nav.json`, then verify with `npm run nav:check` in `docs-site/` (the former `mkdocs.yml` nav is retired, so there is nothing to regenerate from)
+2. Register the page in the nav: hand-edit `docs-site/lib/nav.json`, then verify with `bazelisk test //docs-site:nav_test` (the former `mkdocs.yml` nav is retired, so there is nothing to regenerate from)
 3. List the file in `_HAND_WRITTEN_MD` in `docs/BUILD.bazel` (the coverage gate fails otherwise)
 4. Use language-tagged fences; blank line before lists
 5. Run `bazelisk test //docs:test_docs_site_render //docs-site:unit`, then `bazelisk run //docs:docs` for the export

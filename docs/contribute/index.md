@@ -20,7 +20,7 @@ tags: [contributing, bazel, documentation]
 ## Setup
 
 1. Open [`.devcontainer/`](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/.devcontainer/) (linux/amd64 + linux/arm64). Guide: [Developer environment](../dev-environment.md).
-2. `bash .devcontainer/doctor.sh`
+2. `bazelisk run //:doctor`
 3. `bazelisk run //:fix` then `bazelisk run //:validate`
 
 Branch from latest `development`. PR into `development`. Conventional commits. Never force-push protected branches. Full model: [CONTRIBUTING.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md).
@@ -43,7 +43,7 @@ Prose rules: [Contributing to docs](../CONTRIBUTING.md). Shared patterns: [Proje
 
 - Frontmatter `title` / `description` / `tags`
 - **What's on this page** and **What this enables** (bold markdown plus lists; the site renders the first pair as a two-column panel)
-- New pages in **both** `docs-site/lib/nav.json` (hand-edited, then `npm run nav:check`) and `docs/BUILD.bazel`
+- New pages in **both** `docs-site/lib/nav.json` (hand-edited, then `bazelisk test //docs-site:nav_test`) and `docs/BUILD.bazel`
 - Shell: `# ##` / `# @command` / `# @function` then `bazelisk run //docs:docs`
 - Dashboard JSDoc then `bazelisk run //dashboard:docs`
 - Do not hand-edit `docs/generated/**`

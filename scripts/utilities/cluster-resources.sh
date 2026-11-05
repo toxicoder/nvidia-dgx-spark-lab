@@ -5,9 +5,9 @@
 # Resource Guard status and pre-flight checks for the dashboard.
 #
 # Usage:
-#   ./scripts/utilities/cluster-resources.sh status [--json]
-#   ./scripts/utilities/cluster-resources.sh check --action model:kimi [--json]
-#   ./scripts/utilities/cluster-resources.sh suggest --action model:kimi [--json]
+#   bazelisk run //scripts:run-utility -- cluster-resources status [--json]
+#   bazelisk run //scripts:run-utility -- cluster-resources check --action model:kimi [--json]
+#   bazelisk run //scripts:run-utility -- cluster-resources suggest --action model:kimi [--json]
 #
 # @command cluster-resources
 

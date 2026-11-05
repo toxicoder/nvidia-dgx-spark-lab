@@ -53,7 +53,7 @@ guard_rounded_mode_b_idle() {
   local active
   active=$(_rounded_active_from_list <<<"$(rounded_mode_b_jobs)")
   if [[ -n $active ]]; then
-    err "Mode B frontier Job '$active' is active. Stop it first: ./scripts/manage.sh stop-glm53-flash"
+    err "Mode B frontier Job '$active' is active. Stop it first: bazelisk run //:manage -- stop-glm53-flash"
     return 1
   fi
   return 0
@@ -65,7 +65,7 @@ guard_rounded_mode_a_idle() {
   local active
   active=$(_rounded_active_from_list <<<"$(rounded_mode_a_jobs)")
   if [[ -n $active ]]; then
-    err "Mode A rounded Job '$active' is active. Stop it first: ./scripts/manage.sh stop-stack-rounded"
+    err "Mode A rounded Job '$active' is active. Stop it first: bazelisk run //:manage -- stop-stack-rounded"
     return 1
   fi
   return 0
@@ -77,7 +77,7 @@ guard_rounded_mode_c_idle() {
   local active
   active=$(_rounded_active_from_list <<<"$(rounded_mode_c_jobs)")
   if [[ -n $active ]]; then
-    err "Mode C DeepSeek-V4.1-Flash Job '$active' is active. Stop it first: ./scripts/manage.sh stop-dsv41-flash"
+    err "Mode C DeepSeek-V4.1-Flash Job '$active' is active. Stop it first: bazelisk run //:manage -- stop-dsv41-flash"
     return 1
   fi
   return 0
@@ -446,7 +446,7 @@ start_glm53_flash() {
   log "lab-frontier = glm-5.3-flash. lab-med falls back to lab-frontier with an explicit general-model prompt."
   maybe_attach_litellm "glm-5.3-flash" "$@"
   if ! args_have_with_litellm "$@"; then
-    log "LiteLLM should already be up, or run: ./scripts/manage.sh start-litellm --backend glm-5.3-flash"
+    log "LiteLLM should already be up, or run: bazelisk run //:manage -- start-litellm --backend glm-5.3-flash"
   fi
 }
 
@@ -468,7 +468,7 @@ start_dsv41_flash() {
   warn "Exclusive: refuses Mode A and Mode B. Official checkpoint only. Engram on NVMe."
   warn "Image dsv41-flash-tp3:local must be built on Spark (see k8s/workloads/deepseek-v4.1-flash/README.md)."
   warn "mem-fraction-static 0.95 is exclusive Mode C (MiaAI measured load). Hang line is MemAvailable ~8–12 GiB."
-  warn "If MemAvailable drops below 8 GiB on any rank: ./scripts/manage.sh stop-dsv41-flash immediately. Do not generate load from spark0."
+  warn "If MemAvailable drops below 8 GiB on any rank: bazelisk run //:manage -- stop-dsv41-flash immediately. Do not generate load from spark0."
 
   if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
     echo
@@ -500,7 +500,7 @@ start_dsv41_flash() {
   log "Soak: MemAvailable ≥ 8 GiB on every rank or run stop-dsv41-flash."
   maybe_attach_litellm "deepseek-v4.1-flash" "$@"
   if ! args_have_with_litellm "$@"; then
-    log "LiteLLM: ./scripts/manage.sh start-litellm --backend deepseek-v4.1-flash"
+    log "LiteLLM: bazelisk run //:manage -- start-litellm --backend deepseek-v4.1-flash"
   fi
 }
 
