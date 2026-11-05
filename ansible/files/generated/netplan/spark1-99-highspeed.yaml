@@ -1,6 +1,6 @@
 # Purpose: generated highspeed netplan for spark1 (fabric: switch)
 # Source of truth: ansible/inventory/lab.yaml
-# Regenerate: ./scripts/manage.sh setup or scripts/lib/topology.sh topology_render
+# Regenerate: bazelisk run //:manage -- setup
 # Safety: highspeed interfaces only; the management LAN is never touched
 
 version: 2

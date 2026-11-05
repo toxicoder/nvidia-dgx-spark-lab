@@ -1,6 +1,6 @@
 # Purpose: generated cloud-init user-data for spark2 (fabric: switch) — first-boot OS/netplan prep
 # Source of truth: ansible/inventory/lab.yaml + config/lab-identities.yaml
-# Regenerate: ./scripts/manage.sh setup or scripts/lib/topology.sh topology_render
+# Regenerate: bazelisk run //:manage -- setup
 # Safety: OS/netplan/SSH prep only; K3s is installed later by Ansible; applying this reboots the node; no authorized_keys
 
 #cloud-config
