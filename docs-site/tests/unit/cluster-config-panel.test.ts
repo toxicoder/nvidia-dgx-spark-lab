@@ -116,6 +116,20 @@ describe("cluster variable contract", () => {
     expect(mergeVars(DEFAULT_VARS, { SPARK0_IP: "" }).SPARK0_IP).toBe("localhost");
   });
 
+  it("ignores a stored null instead of putting the string null in an address", () => {
+    // A hand-edited or half-written localStorage entry can carry an explicit null. The reader
+    // must get the default back, not `ssh root@null`.
+    expect(mergeVars(DEFAULT_VARS, { SPARK0_IP: null as unknown as string }).SPARK0_IP).toBe(
+      "localhost"
+    );
+  });
+
+  it("ignores a stored undefined instead of putting the string undefined in a namespace", () => {
+    expect(mergeVars(DEFAULT_VARS, { NAMESPACE: undefined as unknown as string }).NAMESPACE).toBe(
+      "ai-inference"
+    );
+  });
+
   it("matches no profile when the address is missing from the set entirely", () => {
     expect(profileForVars({ NAMESPACE: "ai-inference" })).toBeUndefined();
   });
