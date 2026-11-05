@@ -182,13 +182,123 @@ function debounce<A extends readonly unknown[]>(fn: (...args: A) => void, delay:
 }
 
 
+/** One located token and the text that replaces it. */
+type Replacement = { start: number; end: number; text: string };
+
+/** The text a claimed block's nodes held before the panel wrote, and what it last wrote. */
+type BlockSource = { original: string[]; written: string[] };
+
+/**
+ * Per-node record of the blocks a substitution pass has claimed.
+ *
+ * Re-substitution has to run from the tokens rather than from what is on screen: a reader who
+ * types an address and then puts the old one back expects the command to follow. The block's
+ * `data-original-text` holds the whole text; this holds the same text split the way the
+ * highlighter split it, which is what lets the write-back land in the same nodes. A node whose
+ * current text is neither what it held nor what we wrote means the page rebuilt the block, and
+ * that block is taken afresh.
+ */
+const blockSources = new WeakMap<Node, BlockSource>();
+
+/** The text nodes of a block, in document order. */
+function textNodesOf(block: HTMLElement): Text[] {
+  const nodes: Text[] = [];
+  const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+    nodes.push(node as Text);
+  }
+  return nodes;
+}
+
+/**
+ * Rewrite one code block without rebuilding it.
+ *
+ * The highlighter publishes a block as `pre > code > span.line > span[token]`, so the text a
+ * reader sees is spread over many text nodes while a token is one contiguous run inside the
+ * block's whole text. Assigning `textContent` to the block resolved the tokens and destroyed the
+ * spans carrying the syntax colours along with them, which is what this function exists to
+ * avoid: it writes back into the existing text nodes, and a token that straddles two of them is
+ * resolved where it starts while its remaining characters simply vanish from the later node. No
+ * element is created, moved, or removed.
+ *
+ * @param block The outermost code block a substitution pass should bring up to date.
+ * @param vars Variables to resolve.
+ */
+function substituteInBlock(block: HTMLElement, vars: Record<string, string>): void {
+  const nodes = textNodesOf(block);
+  const source = blockSources.get(block);
+  const stillOurs =
+    source !== undefined &&
+    source.original.length === nodes.length &&
+    nodes.every((node, idx) => {
+      const current = node.data;
+      return current === source.original[idx] || current === source.written[idx];
+    });
+  const original = stillOurs ? (source as BlockSource).original : nodes.map((node) => node.data);
+  const full = original.join("");
+  const substituted = substitutePlaceholders(full, vars);
+  // Nothing known lives here, or the block already shows what the variables say. Blocks that
+  // never held a token are left completely alone, so a plain example keeps the document identity
+  // its Copy button may be watching.
+  if (substituted === full) return;
+
+  // Locate the tokens the same way `substitutePlaceholders` resolves them, over the variables we
+  // actually have. A token for an unknown or blank key is never located and so passes through as
+  // literal text, exactly as it would in the plain-string path.
+  const located: Replacement[] = [];
+  for (const [key, value] of Object.entries(vars)) {
+    if (value === undefined || value === null || value === "") continue;
+    const token = `{{${key}}}`;
+    let at = full.indexOf(token);
+    while (at !== -1) {
+      located.push({ start: at, end: at + token.length, text: String(value) });
+      at = full.indexOf(token, at + token.length);
+    }
+  }
+  located.sort((left, right) => left.start - right.start);
+
+  const written: string[] = [];
+  let next = 0; // how far into the block's original text the walk has accounted for
+  let piece = 0;
+  let prefix = 0; // where the current node starts inside that original text
+  for (let idx = 0; idx < nodes.length; idx += 1) {
+    const end = prefix + original[idx].length;
+    prefix = end;
+    let text = "";
+    while (piece < located.length && located[piece].start < end) {
+      const found = located[piece];
+      if (found.end <= next) {
+        piece += 1; // an earlier node already carried this token
+        continue;
+      }
+      if (found.start > next) text += full.slice(next, found.start);
+      // The token's replacement always belongs here: a token that spilled out of an earlier node
+      // was already retired by the guard above, so this node is where it begins.
+      text += found.text;
+      next = Math.max(next, found.end);
+      if (found.end > end) break; // the token spills past this node
+      piece += 1;
+    }
+    if (next < end) {
+      text += full.slice(next, end);
+      next = end;
+    }
+    written.push(text);
+    if (text !== nodes[idx].data) nodes[idx].data = text;
+  }
+
+  block.dataset.originalText = full;
+  blockSources.set(block, { original, written });
+}
+
 /** Rewrite every code block that still holds (or once held) a placeholder. */
 function updateAllBlocks(vars: Record<string, string>): void {
-  for (const code of Array.from(document.querySelectorAll<HTMLElement>(CODE_QUERY + " code"))) {
-    const text = code.dataset.originalText ?? code.textContent ?? "";
-    if (!code.dataset.originalText && !/\{\{.+\}\}/.test(text)) continue;
-    code.dataset.originalText ??= text;
-    code.textContent = substitutePlaceholders(text, vars);
+  for (const block of Array.from(document.querySelectorAll<HTMLElement>(CODE_QUERY))) {
+    // The query names a wrapper and the code inside it, so only the outermost match of a nested
+    // group is taken. Rewriting a wrapper is meaningless once its text nodes have been updated by
+    // the pass above it, and re-entering it would walk the same text nodes twice.
+    if (block.parentElement?.closest(CODE_QUERY)) continue;
+    substituteInBlock(block, vars);
   }
 }
 
