@@ -220,7 +220,7 @@ jobs:
           build_status=$?
           bazelisk run //docs:render-check --config=ci
           check_status=$?
-          bash docs-site/scripts/visual_linux.sh
+          bazelisk run //docs-site:visual-linux --config=ci
           status=$?
           set -e
           actuals="docs-site/tests/visual/actuals"

@@ -141,7 +141,7 @@ _ci_action_pins() {
     '//dashboard:fast-test' \
     'DASHBOARD_TEST_MODE=visual' \
     'DASHBOARD_TEST_MODE=full' \
-    'docs-site/scripts/visual_linux.sh' \
+    '//docs-site:visual-linux' \
     '//docs-site:visual_tooling_test' \
     'scripts/ci_check_only.sh'; do
     grep -qF "$cmd" "$gh"
