@@ -91,7 +91,10 @@ export function applyProfile(profile: string | undefined, vars: Record<string, s
   const preset = profile ? PROFILE_VARS[profile] : undefined;
   if (!preset) return vars;
   for (const [key, value] of Object.entries(preset)) {
-    if (key === "localhost" || key === "DASHBOARD_PORT") vars[key] ??= value;
+    // A reader who picked their own dashboard port keeps it; every other preset value is the
+    // profile's to set. The preset keys come from PROFILE_VARS, which declares only
+    // SPARK0_IP, NAMESPACE and DASHBOARD_PORT.
+    if (key === "DASHBOARD_PORT") vars[key] ??= value;
     else vars[key] = value;
   }
   if (profile === "1node") vars.SPARK0_IP = "localhost";
