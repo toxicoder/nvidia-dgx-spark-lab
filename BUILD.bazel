@@ -1,16 +1,23 @@
 """Package purpose: Root Bazel targets for test suites, lint aggregation, docs/dashboard/ansible aliases, and repo-wide entry points.
 
-Bazel is the primary entry point: build, test, lint, docs, and operational scripts.
+Bazel is the only entry point: build, test, lint, docs, and operational scripts.
+No script in this repository is meant to be invoked directly.
 
 Common entry points:
 
   bazelisk run //:validate              # git-aware build + test + lint + docs/dashboard
-  bazelisk test //:test                 # full hermetic suite (incl. docs gates)
+  bazelisk test  //:verify              # the pre-push gate (same suite as //:test)
+  bazelisk build //:everything          # build every Bazel-owned artifact
+  bazelisk test //:test                 # CI core + the heavier browser-free gates
   bazelisk test //:test-fast            # CI core (excludes slow docs Playwright)
   bazelisk test //:lint --test_tag_filters=manual   # all lints (requires host tools)
-  bazelisk run //:manage -- status      # cluster management (wraps scripts/manage.sh)
+  bazelisk run //:manage -- status      # cluster management (the only ops entry point)
+  bazelisk run //:doctor                # contributor toolchain check
   bazelisk run //docs:serve             # local docs dev server (Fumadocs / Next.js)
   bazelisk run //dashboard:hermetic-test  # Docker-isolated Vitest + build + Playwright
+
+//tests:bazel_file_coverage keeps this honest: every tracked file is named by a
+Bazel rule, and each wildcard glob() pattern is sanctioned in writing.
 
 See docs/BUILDING_WITH_BAZEL.md for the full guide.
 """
@@ -45,6 +52,7 @@ filegroup(
         ".devcontainer/host-llm.example.toml",
         ".devcontainer/install-agent-clis.sh",
         ".devcontainer/post-create.sh",
+        ".devcontainer/run_doctor.sh",
         ".devcontainer/sandbox.toml",
         ".devcontainer/tool-versions.env",
     ],
@@ -60,6 +68,7 @@ filegroup(
         ".github/actions/setup-bazel/action.yml",
         ".github/container-images.json",
         ".github/dependabot.yml",
+        ".github/scripts/install-lint-tools.sh",
         ".github/workflows/ci.yml",
         ".github/workflows/deploy-docs.yml",
         ".github/workflows/devcontainer-image.yml",
@@ -89,6 +98,18 @@ alias(
     visibility = ["//visibility:public"],
 )
 
+# Contributor-environment doctor (required CLI tools, pinned versions, venvs).
+# `bazelisk run //:doctor -- --quiet` passes flags through to the script.
+sh_binary(
+    name = "doctor",
+    srcs = [".devcontainer/run_doctor.sh"],
+    data = [
+        ".devcontainer/doctor.sh",
+        ".devcontainer/tool-versions.env",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # Fast hermetic core for CI (bazel-core). Browser-free by design: the Playwright visual
 # suite and the Next.js production build need a browser and a full npm install, so they run
 # in the docs-and-render job via //docs-site:visual instead of here.
@@ -108,6 +129,8 @@ _TEST_FAST = [
     "//tests:doc_coverage",
     "//tests:doc_coverage_unit",
     "//tests:safety_invariants",
+    "//tests:bazel_file_coverage",
+    "//tests:bazel_file_coverage_unit",
 ]
 
 test_suite(
@@ -116,12 +139,18 @@ test_suite(
     visibility = ["//visibility:public"],
 )
 
-# Full local/validation suite.  //docs-site:visual-test is tagged manual (Chromium cannot
-# launch inside the sandboxed test action); run it with //docs-site:visual or let the CI
-# docs job drive it after installing the browser.
+# Full local/validation suite: the CI core plus the heavier browser-free gates a
+# contributor should run before pushing. //docs:render-check is an sh_binary rather
+# than a test (it is driven by `bazelisk run //docs:render-check`, which //:validate
+# does after //docs:docs), and the browser suites are tagged manual (//docs-site:visual,
+# //dashboard:hermetic-test).
+_TEST = _TEST_FAST + [
+    "//docs-site:visual_tooling_test",
+]
+
 test_suite(
     name = "test",
-    tests = _TEST_FAST,
+    tests = _TEST,
     visibility = ["//visibility:public"],
 )
 
@@ -132,6 +161,87 @@ filegroup(
         ":manage",
         "//docs",
         "//docs-site:sources",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Every Bazel-owned artifact in the repository. `bazelisk build //:everything`
+# is the single build-everything entry point; //tests:bazel_file_coverage proves
+# that each tracked file is named by one of these package aggregates.
+filegroup(
+    name = "everything",
+    srcs = [
+        ":ci_workflows",
+        ":devcontainer",
+        ":editor_config",
+        ":repo_config",
+        ":repo_docs",
+        "//ansible:all",
+        "//config:all",
+        "//dashboard:sources",
+        "//docs",
+        "//docs-site:sources",
+        "//helm:all",
+        "//hermes:all",
+        "//k8s:all",
+        "//mcp:all",
+        "//scripts:all",
+        "//tests:all",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Single run-everything entry point: `bazelisk test //:verify`.
+#
+# Fast, hermetic gates that must stay green on every change, plus the heavier
+# browser-free gates. The host-tool lints (//lints:all) and the browser suites
+# (//docs-site:visual, //dashboard:hermetic-test) are tagged manual and are driven
+# by `bazelisk run //:validate`, which mirrors CI. Same set as //:test; this is the
+# name to type when you want one command that says "is my work good to push".
+test_suite(
+    name = "verify",
+    tests = _TEST,
+    visibility = ["//visibility:public"],
+)
+
+# Repository tooling configuration (repo hygiene hooks, editor/IDE settings).
+# Owned here so no tracked file sits outside the Bazel graph.
+filegroup(
+    name = "repo_config",
+    srcs = [
+        ".gitattributes",
+        ".gitignore",
+        ".pre-commit-config.yaml",
+        "mypy.ini",
+        "prettier.config.mjs",
+        "ruff.toml",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# Repository-level prose and the Makefile compatibility shim.
+filegroup(
+    name = "repo_docs",
+    srcs = [
+        "AGENTS.md",
+        "CONTRIBUTING.md",
+        "LICENSE",
+        "MIGRATION.md",
+        "Makefile",
+        "README.md",
+        "SECURITY.md",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# VS Code tasks, launch configs, and recommendations (see docs/dev-environment.mdx).
+filegroup(
+    name = "editor_config",
+    srcs = [
+        ".vscode/extensions.json",
+        ".vscode/launch.json",
+        ".vscode/settings.json",
+        ".vscode/tasks.json",
     ],
     visibility = ["//visibility:public"],
 )
