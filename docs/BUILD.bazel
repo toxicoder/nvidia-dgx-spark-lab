@@ -26,6 +26,13 @@ Material for MkDocs.
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
+# Referenceable from //tests so the bats suite can read the gate it pins (the lock contract
+# between this script and docs-site/run_npm.sh has to be checked from outside this package).
+exports_files(
+    ["test_command_vars.sh"],
+    visibility = ["//visibility:public"],
+)
+
 # Keep in sync with docs-site/lib/nav.json (enforced by //tests:doc_coverage).
 # Subdir pages must be listed by path so runfiles and the coverage gate both see them.
 # Names are the on-disk spellings: pages that needed JSX are .mdx, the rest are .md.
@@ -189,6 +196,10 @@ sh_test(
 )
 
 # Interactive cluster-vars panel (seed/merge/profile contract + export token fidelity).
+# `local` + `no-sandbox` because the Vitest half runs out of the physical docs-site directory
+# (Vite realpath-resolves modules, so a runfiles symlink tree splits one suite across two
+# copies of React) and may have to install into it. Same shape as `//docs-site:unit` and
+# `//tests:shell_coverage`.
 sh_test(
     name = "test_command_vars",
     srcs = ["test_command_vars.sh"],
@@ -197,6 +208,10 @@ sh_test(
         "test_command_vars.sh",
         ":content",
         "//docs-site:sources",
+    ],
+    tags = [
+        "local",
+        "no-sandbox",
     ],
     visibility = ["//visibility:public"],
 )

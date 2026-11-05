@@ -35,13 +35,22 @@ fi
 failures=0
 
 echo "→ Vitest: docs-site unit suite (cluster-variables contract)"
-if [[ -x "${SITE_DIR}/node_modules/.bin/vitest" ]]; then
-  (cd "$SITE_DIR" && ./node_modules/.bin/vitest run) || failures=$((failures + 1))
-else
-  echo "  node_modules missing; installing" >&2
-  (cd "$SITE_DIR" && npm ci --legacy-peer-deps) >/dev/null 2>&1 || true
-  (cd "$SITE_DIR" && ./node_modules/.bin/vitest run) || failures=$((failures + 1))
-fi
+(
+  cd "$SITE_DIR"
+  # The same lock //docs-site:unit takes. Both targets resolve to this one physical package
+  # directory, and two first-run `npm ci` calls in it race (`npm error ENOTEMPTY`). It is held
+  # for the rest of this subshell, so the install cannot land under a running suite.
+  if [[ -f scripts/npm-install-lock.sh ]]; then
+    # shellcheck source=/dev/null
+    source ./scripts/npm-install-lock.sh
+    npm_install_lock "$SITE_DIR"
+  fi
+  if [[ ! -x node_modules/.bin/vitest ]]; then
+    echo "  node_modules missing; installing" >&2
+    npm ci --legacy-peer-deps
+  fi
+  ./node_modules/.bin/vitest run
+) || failures=$((failures + 1))
 
 echo "→ Python: docs-site panel wiring checks"
 python3 "${SCRIPT_DIR}/test_command_vars.py" || failures=$((failures + 1))
