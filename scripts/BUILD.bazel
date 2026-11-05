@@ -24,6 +24,7 @@ sh_binary(
     name = "manage",
     srcs = ["manage.sh"],
     data = [
+        ":lib_srcs",
         # The manifests that manage.sh deploys / references.
         "//k8s/workloads/glm-5.2:glm_job",
         "//k8s/workloads/kimi:kimi_job",
@@ -118,6 +119,36 @@ exports_files(
         "//lints:__pkg__",
         "//tests:__pkg__",
     ],
+)
+
+# The libraries manage.sh sources at startup, plus paths.sh (sourced directly)
+# and the topology renderer topology.sh shells out to. Listed by name because
+# manage.sh hard-codes the same list in its sourcing loop: a new library has to
+# be added in both places on purpose. Without this the `bazel run` launcher gets
+# a scripts/ directory with no lib/ beside it, and every verb dies on
+# "log: command not found".
+filegroup(
+    name = "lib_srcs",
+    srcs = [
+        "lib/check_tool.sh",
+        "lib/common.sh",
+        "lib/dev.sh",
+        "lib/domains.sh",
+        "lib/hermes.sh",
+        "lib/mcp.sh",
+        "lib/models.sh",
+        "lib/monitoring.sh",
+        "lib/open-webui.sh",
+        "lib/paths.sh",
+        "lib/py/lab_topology.py",
+        "lib/resources.sh",
+        "lib/secrets.sh",
+        "lib/sso.sh",
+        "lib/stack-rounded.sh",
+        "lib/topology.sh",
+        "lib/visual.sh",
+    ],
+    visibility = ["//visibility:public"],
 )
 
 # Shell sources containing structured comments used by docs/generate_shell_docs.py.

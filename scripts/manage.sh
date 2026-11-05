@@ -38,6 +38,20 @@
 
 set -euo pipefail
 
+# `bazel run //:manage` executes the generated launcher under bazel-bin/scripts,
+# which has no lib/ directory beside it, so every verb used to die on
+# "log: command not found". Point the library directory at the checkout Bazel was
+# invoked from, or at the runfiles copy of this package. Both variables are unset
+# when this script runs straight from a checkout, so that path is untouched, and a
+# caller that already set SCRIPT_LIB_DIR (the BATS suites) still wins.
+if [[ -z ${SCRIPT_LIB_DIR:-} ]]; then
+  if [[ -n ${BUILD_WORKSPACE_DIRECTORY:-} && -d ${BUILD_WORKSPACE_DIRECTORY}/scripts/lib ]]; then
+    SCRIPT_LIB_DIR="${BUILD_WORKSPACE_DIRECTORY}/scripts/lib"
+  elif [[ -n ${RUNFILES_DIR:-} && -d ${RUNFILES_DIR}/_main/scripts/lib ]]; then
+    SCRIPT_LIB_DIR="${RUNFILES_DIR}/_main/scripts/lib"
+  fi
+fi
+
 # kcov clears BASH_SOURCE in instrumented shells — resolve paths without it.
 if [[ -n ${SCRIPT_LIB_DIR:-} && -d ${SCRIPT_LIB_DIR} ]]; then
   SCRIPT_DIR="$(dirname "${SCRIPT_LIB_DIR}")"
