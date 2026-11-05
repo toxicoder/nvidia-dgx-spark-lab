@@ -14,6 +14,10 @@ setup() {
 
 # @function _restore_domain_artifacts
 # Restore tracked generated domain artifacts after render pipeline tests.
+# The generated directories also hold hand-authored files (a BUILD.bazel in
+# k8s/auth/generated and k8s/cert-manager/generated), so BUILD files are
+# excluded from the checkout: a plain directory restore reverts uncommitted
+# edits to them, which silently destroyed a coverage fix once.
 _restore_domain_artifacts() {
   if ! git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     return 0
@@ -22,7 +26,8 @@ _restore_domain_artifacts() {
     config/lab-domains.json \
     k8s/auth/generated \
     k8s/cert-manager/generated \
-    ansible/files/generated 2>/dev/null || true
+    ansible/files/generated \
+    ':(exclude)*/BUILD.bazel' 2>/dev/null || true
 }
 
 teardown() {
@@ -45,6 +50,27 @@ teardown() {
   run lab_service_url dashboard "/" local
   [ "$status" -eq 0 ]
   [[ "$output" == https://dashboard.lab.local:32443/ ]]
+}
+
+@test "restore keeps hand-written files in a generated tree" {
+  # The generated dirs also hold a hand-authored BUILD.bazel. A teardown that
+  # checks the whole directory out reverts uncommitted edits to it, which is how
+  # a coverage fix in k8s/auth/generated/BUILD.bazel silently disappeared once.
+  local build="${REPO_ROOT}/k8s/auth/generated/BUILD.bazel"
+  if [[ ! -f $build ]]; then
+    skip "no BUILD file in the generated tree"
+  fi
+  local original marker
+  original="$(cat "$build")"
+  marker="# restore-scope probe"
+  printf '%s\n%s\n' "$original" "$marker" > "$build"
+
+  _restore_domain_artifacts
+  local after
+  after="$(cat "$build")"
+  printf '%s\n' "$original" > "$build"
+
+  [[ "$after" == *"$marker"* ]]
 }
 
 @test "render-domains generates auth routes manifest" {
