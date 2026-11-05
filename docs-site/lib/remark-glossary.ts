@@ -63,6 +63,8 @@ function loadDefinitions(): Map<string, string> {
   const source = readFileSync(file, "utf8");
   for (const match of source.matchAll(DEFINITION_LINE)) {
     const [, term, definition] = match;
+    /* istanbul ignore next -- defensive: DEFINITION_LINE requires at least one character in
+       each group, so neither capture can ever be empty. */
     if (term && definition) cache.set(term.trim(), definition.trim());
   }
   return cache;
@@ -82,6 +84,8 @@ const REGEX_METACHARACTERS = new Set([".", "*", "+", "?", "^", "$", "{", "}", "(
  * @param terms Terms to match, case-sensitively, as MkDocs' `abbr` does.
  */
 function buildMatcher(terms: string[]): RegExp | undefined {
+  /* istanbul ignore next -- defensive: the only caller passes sortedTerms() of a map it has
+     already checked is non-empty, so the list is never empty here. */
   if (terms.length === 0) return undefined;
   const escaped = terms.map((term) =>
     [...term].map((char) => (REGEX_METACHARACTERS.has(char) ? `\\${char}` : char)).join("")
@@ -126,6 +130,8 @@ export function remarkGlossaryTooltips() {
     const definitions = loadDefinitions();
     if (definitions.size === 0) return;
     const matcher = buildMatcher(sortedTerms(definitions));
+    /* istanbul ignore next -- defensive: buildMatcher only returns undefined for an empty
+       list, which the size guard above already ruled out. */
     if (!matcher) return;
 
     visit(tree, "text", (node, index, rawParent) => {
@@ -146,6 +152,8 @@ export function remarkGlossaryTooltips() {
       let cursor = 0;
       for (const match of text.matchAll(matcher)) {
         const [found, term] = match;
+        /* istanbul ignore next -- defensive: the matcher carries exactly one capture group
+           and it always participates, so `term` is never nullish. */
         const definition = definitions.get(term ?? found);
         if (!definition) continue;
         if (match.index > cursor) children.push({ type: "text", value: text.slice(cursor, match.index) });

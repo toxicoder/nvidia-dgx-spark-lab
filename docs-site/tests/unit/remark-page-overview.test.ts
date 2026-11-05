@@ -28,6 +28,11 @@ function labelParagraph(text: string): Node {
   };
 }
 
+/** Paragraph of plain prose, which is what a label looks like when the bold is missing. */
+function prose(text: string): Node {
+  return { type: "paragraph", children: [{ type: "text", value: text }] };
+}
+
 /** Unordered list of one-item paragraphs. */
 function bulletList(items: string[]): Node {
   return {
@@ -180,5 +185,96 @@ describe("remarkPageOverview", () => {
     ]);
     expect(tree.children?.[0]?.name).toBe("ClusterConfigPanel");
     expect(tree.children?.[2]?.name).toBe("PageOverview");
+  });
+
+  it("ignores whitespace the parser leaves around the label", () => {
+    const tree = apply([
+      {
+        type: "paragraph",
+        children: [
+          { type: "text", value: " " },
+          { type: "strong", children: [{ type: "text", value: "What's on this page" }] },
+          { type: "text", value: "\n" }
+        ]
+      },
+      bulletList(["sections"]),
+      ...overviewPair().slice(2)
+    ]);
+    expect(tree.children?.[0]?.name).toBe("PageOverview");
+    expect(tree.children?.[0]?.children?.[0]?.attributes).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: "title", value: "What's on this page" })])
+    );
+  });
+
+  it("reads a label even when the parse leaves a hole among the strong children", () => {
+    const tree = apply([
+      {
+        type: "paragraph",
+        children: [
+          {
+            type: "strong",
+            children: [undefined, { type: "text", value: "What's on this page" }] as unknown as Node[]
+          }
+        ]
+      },
+      bulletList(["sections"]),
+      ...overviewPair().slice(2)
+    ]);
+    expect(tree.children?.[0]?.name).toBe("PageOverview");
+    expect(tree.children?.[0]?.children?.[0]?.attributes).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: "title", value: "What's on this page" })])
+    );
+  });
+
+  it("does not wrap a paragraph that has no children at all", () => {
+    const tree = apply([
+      { type: "paragraph" },
+      prose("What's on this page"),
+      prose("What this enables"),
+      bulletList(["items"])
+    ]);
+    expect(tree.children?.some((child) => child.type === "mdxJsxFlowElement")).toBe(false);
+  });
+
+  it("does not wrap a label that carries no text of its own", () => {
+    const tree = apply([
+      { type: "paragraph", children: [{ type: "strong" }] },
+      bulletList(["items"]),
+      prose("What this enables"),
+      bulletList(["benefit"])
+    ]);
+    expect(tree.children?.some((child) => child.type === "mdxJsxFlowElement")).toBe(false);
+  });
+
+  it("does not wrap a paragraph whose only content is prose", () => {
+    const tree = apply([
+      prose("What's on this page"),
+      bulletList(["items"]),
+      prose("What this enables"),
+      bulletList(["benefit"])
+    ]);
+    expect(tree.children?.some((child) => child.type === "mdxJsxFlowElement")).toBe(false);
+  });
+
+  it("does not wrap a paragraph that stacks two labels", () => {
+    const tree = apply([
+      {
+        type: "paragraph",
+        children: [
+          { type: "strong", children: [{ type: "text", value: "What's on this page" }] },
+          { type: "strong", children: [{ type: "text", value: "What this enables" }] }
+        ]
+      },
+      bulletList(["items"]),
+      prose("What this enables"),
+      bulletList(["benefit"])
+    ]);
+    expect(tree.children?.some((child) => child.type === "mdxJsxFlowElement")).toBe(false);
+  });
+
+  it("does nothing to a tree that has no children to walk", () => {
+    const tree: Node = { type: "root" };
+    expect(() => (remarkPageOverview() as (tree: unknown) => void)(tree)).not.toThrow();
+    expect(tree.children).toBeUndefined();
   });
 });

@@ -21,6 +21,19 @@ if [[ -n ${BUILD_WORKSPACE_DIRECTORY:-} && -d "${BUILD_WORKSPACE_DIRECTORY}/docs
 else
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   cd "$SCRIPT_DIR"
+  # Under `bazelisk test` the package arrives as runfiles symlinks into the workspace. Vite
+  # resolves a module to its real path before serving it, so React, vitest and the setup file
+  # would each load twice -- once from the runfiles tree, once from the workspace -- and
+  # jest-dom's expect.extend would land on a different expect than the tests use
+  # (`Invalid Chai property: toBeInTheDocument`). Follow the links to the physical package
+  # directory, the same way tests/shell_coverage.sh does for kcov.
+  PHYSICAL=""
+  if [[ -f "${SCRIPT_DIR}/package.json" ]]; then
+    PHYSICAL="$(dirname "$(readlink -f "${SCRIPT_DIR}/package.json" 2>/dev/null || true)")"
+  fi
+  if [[ -n $PHYSICAL && -d $PHYSICAL ]]; then
+    cd "$PHYSICAL"
+  fi
 fi
 
 # Map the bazel target name (via $0 or first arg) to an npm script.
