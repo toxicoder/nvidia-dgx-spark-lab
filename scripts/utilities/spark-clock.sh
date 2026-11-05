@@ -28,14 +28,14 @@
 # - Detects PD-degraded states (513–650 MHz / ~15W) and advises power-cycle.
 #
 # Usage (CLI):
-#   ./scripts/utilities/spark-clock.sh status [--json]
-#   ./scripts/utilities/spark-clock.sh run                 # idempotent optimize to target
-#   ./scripts/utilities/spark-clock.sh reset
-#   ./scripts/utilities/spark-clock.sh set 2100            # ceiling only
-#   ./scripts/utilities/spark-clock.sh set 300,2100        # floor,ceiling range
-#   ./scripts/utilities/spark-clock.sh diagnose
-#   ./scripts/utilities/spark-clock.sh --enable-systemd-service
-#   ./scripts/utilities/spark-clock.sh --disable-systemd-service
+#   bazelisk run //scripts:run-utility -- spark-clock status [--json]
+#   bazelisk run //scripts:run-utility -- spark-clock run                 # idempotent optimize to target
+#   bazelisk run //scripts:run-utility -- spark-clock reset
+#   bazelisk run //scripts:run-utility -- spark-clock set 2100            # ceiling only
+#   bazelisk run //scripts:run-utility -- spark-clock set 300,2100        # floor,ceiling range
+#   bazelisk run //scripts:run-utility -- spark-clock diagnose
+#   bazelisk run //scripts:run-utility -- spark-clock --enable-systemd-service
+#   bazelisk run //scripts:run-utility -- spark-clock --disable-systemd-service
 #
 # Env overrides: CLOCK_FLOOR_MHZ, CLOCK_CEILING_MHZ (TARGET_CLOCK_MHZ aliases ceiling),
 # THERMAL_WARN_C, THERMAL_HOT_C, PD_* thresholds.

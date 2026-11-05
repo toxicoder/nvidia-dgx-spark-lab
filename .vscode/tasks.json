@@ -4,7 +4,7 @@
     {
       "label": "Dev: Doctor",
       "type": "shell",
-      "command": "bash .devcontainer/doctor.sh",
+      "command": "bazelisk run //:doctor",
       "options": { "cwd": "${workspaceFolder}" },
       "presentation": { "reveal": "always", "panel": "shared", "focus": true },
       "problemMatcher": []
@@ -65,8 +65,8 @@
     {
       "label": "Dashboard: Dev Server",
       "type": "shell",
-      "command": "npm run dev",
-      "options": { "cwd": "${workspaceFolder}/dashboard" },
+      "command": "bazelisk run //dashboard:dev",
+      "options": { "cwd": "${workspaceFolder}" },
       "isBackground": true,
       "presentation": { "reveal": "always", "panel": "dedicated" },
       "problemMatcher": {

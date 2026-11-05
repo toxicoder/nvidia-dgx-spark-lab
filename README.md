@@ -109,7 +109,7 @@ nvidia-dgx-spark-lab/
 
 1. **Operator client + topology file**
    ```bash
-   ./scripts/utilities/install-operator-client.sh run   # one command: Ansible, kubectl, helm, bazelisk
+   bazelisk run //scripts:run-utility -- install-operator-client run   # one command: Ansible, kubectl, helm, bazelisk
    # Declare the lab (fabric, node IPs, switch port map, orchestrator) in ansible/inventory/lab.yaml,
    # then render the inventory / netplan / cloud-init from it:
    bazelisk run //:manage -- setup            # guided wizard (prompts, then writes + renders)
@@ -120,19 +120,12 @@ nvidia-dgx-spark-lab/
 
 2. **Bootstrap the Cluster** (works for 1 or 2-5 nodes)
    ```bash
-   # Preferred when working Bazel-first:
    bazelisk run //ansible:bootstrap -- -i inventory/hosts.ini
-
-   # Classic direct:
-   cd ansible
-   ansible-playbook -i inventory/hosts.ini playbooks/bootstrap-cluster.yml
    ```
 
 3. **Install GPU Operator**
    ```bash
    bazelisk run //ansible:gpu-operator -- -i inventory/hosts.ini
-   # or
-   ansible-playbook -i inventory/hosts.ini playbooks/install-gpu-operator.yml
    ```
 
 4. **Verify cluster**
@@ -146,10 +139,10 @@ nvidia-dgx-spark-lab/
    bazelisk run //:manage -- start-test
    bazelisk run //:manage -- start-kimi   # heavy; after kimi-test
    bazelisk run //:manage -- stop
-   # classic: ./scripts/manage.sh start-test
+   # classic: bazelisk run //:manage -- start-test
    ```
 
-See the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/) for the gold path (1-5 node topologies, cloud-init, Ansible, GPU Operator, `doctor`, first `kimi-test`, dashboard URL, reboot reminder). Prefer `bazelisk run //:manage -- <verb>` (equivalent: `./scripts/manage.sh <verb>`).
+See the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/) for the gold path (1-5 node topologies, cloud-init, Ansible, GPU Operator, `doctor`, first `kimi-test`, dashboard URL, reboot reminder). Prefer `bazelisk run //:manage -- <verb>` (equivalent: `bazelisk run //:manage -- <verb>`).
 
 The auto-generated command reference is [Shell Commands & Helpers](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/generated/shell/reference/) (`bazelisk run //docs:docs`). Workload numbers: [Workload catalog](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/operate/workload-catalog/). `group_vars/all.yml` is reference only.
 
@@ -173,9 +166,9 @@ The auto-generated command reference is [Shell Commands & Helpers](https://toxic
 All day-to-day operations go through the management script:
 
 ```bash
-./scripts/manage.sh help
-./scripts/manage.sh doctor
-./scripts/manage.sh estimate kimi-test
+bazelisk run //:manage -- help
+bazelisk run //:manage -- doctor
+bazelisk run //:manage -- estimate kimi-test
 ```
 
 Common operations:
@@ -194,10 +187,10 @@ Common operations:
 For browser-based agent chat with MCP tool orchestration, deploy the backing stacks then Open WebUI:
 
 ```bash
-./scripts/manage.sh start-nemotron   # or nemotron-stack preset
-./scripts/manage.sh start-mcp
-./scripts/manage.sh start-hermes
-./scripts/manage.sh start-open-webui
+bazelisk run //:manage -- start-nemotron   # or nemotron-stack preset
+bazelisk run //:manage -- start-mcp
+bazelisk run //:manage -- start-hermes
+bazelisk run //:manage -- start-open-webui
 ```
 
 See [Open WebUI](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/open-webui/) and [Hermes Agent](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/hermes-agent/).
@@ -207,7 +200,7 @@ See [Open WebUI](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/open-we
 See [Dev Workspaces & Dashboard](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/dev-workspaces/) for:
 
 - Setup with Ansible + Helm (Coder, Kasm, Headlamp + Grafana for metrics, custom lab portal).
-- `scripts/manage.sh` commands: `start-coder`, `start-kasm`, `start-monitoring`, `stop-dev` etc.
+- `//:manage` commands: `start-coder`, `start-kasm`, `start-monitoring`, `stop-dev` etc.
 - NodePort access (e.g. 32080 for Coder) or VPN notes (traefik disabled by design for stability).
 - Example Coder templates, Grafana dashboards for GPUs (via GPU Operator DCGM), safety/resource notes.
 - How the custom dashboard provides quick status, copyable commands, and links (Headlamp for K8s, Grafana graphs, workspace launch).
@@ -218,12 +211,12 @@ See [Dev Workspaces & Dashboard](https://toxicoder.github.io/nvidia-dgx-spark-la
 
 1. Stop workloads first:
    ```bash
-   ./scripts/manage.sh stop
+   bazelisk run //:manage -- stop
    ```
 2. Reboot nodes (order doesn't strictly matter but prefer spark1 then spark0).
 3. After nodes are up, re-apply cluster config if needed:
    ```bash
-   ansible-playbook -i inventory/hosts.ini playbooks/bootstrap-cluster.yml
+   bazelisk run //ansible:bootstrap -- -i inventory/hosts.ini
    ```
 4. Manually start the workload you need.
 
@@ -232,13 +225,14 @@ See [Dev Workspaces & Dashboard](https://toxicoder.github.io/nvidia-dgx-spark-la
 **Bazel** is the main build system and entry point for the entire codebase (tests, lint, docs, validation).
 
 ```bash
-bazelisk test //:test                     # recommended: hermetic BATS + safety checks
+bazelisk test //:verify                   # recommended pre-push: every hermetic gate
+bazelisk test //:test                     # hermetic BATS + safety checks
 bazelisk test //:lint --test_tag_filters=manual   # all linters (shell/yaml/k8s/ansible)
 bazelisk run //:manage -- status          # the cluster management tool
 bazelisk run //docs:serve                 # local documentation site (live reload)
 bazelisk run //ansible:bootstrap          # (uses example inventory; pass -i for real)
 bazelisk run //dashboard:dev
-bazelisk build //...
+bazelisk build //:everything              # every Bazel-owned artifact
 ```
 
 Makefile (thin compatibility shim — most targets delegate to Bazel):
@@ -250,17 +244,16 @@ make test
 make test-all
 ```
 
-Direct tools (still fully supported for day-to-day cluster ops, especially runtime ops):
+Cluster operations (runtime work against a real cluster, still one target):
 
 ```bash
-./scripts/manage.sh help
-./scripts/manage.sh status
+bazelisk run //:manage -- help
+bazelisk run //:manage -- status
 ```
-
 See `docs/BUILDING_WITH_BAZEL.md`, the [Getting Started guide](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/getting-started/), and `docs/CONTRIBUTING.md`.
 
 ### What the tests cover
-- Shell script correctness and safety logic (`scripts/manage.sh`)
+- Shell script correctness and safety logic (`//:manage`)
 - All Kubernetes manifests are valid against Kubernetes schemas
 - Critical production invariants (correct `restartPolicy`, `backoffLimit`, NCCL vars, resource limits)
 - Ansible playbook syntax and basic linting
@@ -274,7 +267,7 @@ See [tests/README.md](tests/README.md) and the BUILD.bazel files.
 The documentation site is **Fumadocs** on the Next.js App Router, published at [https://toxicoder.github.io/nvidia-dgx-spark-lab](https://toxicoder.github.io/nvidia-dgx-spark-lab)
 
 - **Read online:** [Documentation site](https://toxicoder.github.io/nvidia-dgx-spark-lab)
-- **Serve locally:** `bazelisk run //docs:serve` (hot reload; `./docs/manage-docs.sh serve` is the same thing)
+- **Serve locally:** `bazelisk run //docs:serve` (hot reload; `bazelisk run //docs:serve` is the same thing)
 - **Static export:** `bazelisk run //docs:docs` → `docs-site/out/`
 - **Preview the export:** `bazelisk run //docs:preview`
 - **Checks:** `bazelisk test //docs:test_docs_site_render //docs-site:unit //docs-site:typecheck`

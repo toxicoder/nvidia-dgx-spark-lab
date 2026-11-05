@@ -15,7 +15,7 @@ Requires spark0 (leader) + spark1..spark3 (workers), each with 1 GPU and ~115 Gi
 
 ```bash
 bazelisk run //scripts:run-utility -- download-qwen-models run --tier 397b-nvfp4
-./scripts/manage.sh start-qwen3.5-397b-nvfp4
+bazelisk run //:manage -- start-qwen3.5-397b-nvfp4
 # or full stack:
 bazelisk run //scripts:run-utility -- nemotron-stack start qwen-agentic-spark-4 --confirm yes
 ```

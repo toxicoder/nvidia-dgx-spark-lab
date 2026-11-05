@@ -42,10 +42,10 @@ flowchart LR
 ## Quick start
 
 ```bash
-./scripts/manage.sh sso ensure-secrets
-./scripts/manage.sh start-sso
-./scripts/manage.sh start-monitoring   # also starts SSO when SSO_ENABLED=1 (default)
-./scripts/manage.sh sso urls
+bazelisk run //:manage -- sso ensure-secrets
+bazelisk run //:manage -- start-sso
+bazelisk run //:manage -- start-monitoring   # also starts SSO when SSO_ENABLED=1 (default)
+bazelisk run //:manage -- sso urls
 ```
 
 Or via Ansible:
@@ -65,9 +65,9 @@ Add to `/etc/hosts` on your workstation (replace `<node-ip>`):
 Configure domains (local + public): edit [`config/lab-domains.yaml`](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/config/lab-domains.yaml) or:
 
 ```bash
-./scripts/manage.sh domains set --local lab.local --public mydomain.com --acme-email ops@mydomain.com
-./scripts/manage.sh domains apply
-./scripts/manage.sh domains show
+bazelisk run //:manage -- domains set --local lab.local --public mydomain.com --acme-email ops@mydomain.com
+bazelisk run //:manage -- domains apply
+bazelisk run //:manage -- domains show
 ```
 
 Legacy override: `export LAB_SSO_DOMAIN=my.lab` (alias for `LAB_LOCAL_DOMAIN`)
@@ -133,6 +133,6 @@ bazelisk run //:manage -- sso urls
 
 ```bash
 export SSO_ENABLED=0
-./scripts/manage.sh start-monitoring   # direct NodePorts only
-./scripts/manage.sh stop-sso
+bazelisk run //:manage -- start-monitoring   # direct NodePorts only
+bazelisk run //:manage -- stop-sso
 ```

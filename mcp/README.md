@@ -16,7 +16,7 @@ kubectl create secret generic mcp-secrets -n agent-tools \
 bazelisk run //scripts:run-utility -- mcp-stack start mcp-agent-toolkit --confirm yes
 
 # Or via manage.sh
-./scripts/manage.sh start-mcp
+bazelisk run //:manage -- start-mcp
 ```
 
 ## Stacks

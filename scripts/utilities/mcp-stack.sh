@@ -5,10 +5,10 @@
 # One-click MCP agent toolkit lifecycle.
 #
 # Usage:
-#   ./scripts/utilities/mcp-stack.sh catalog [--json]
-#   ./scripts/utilities/mcp-stack.sh status [--json]
-#   ./scripts/utilities/mcp-stack.sh start <stack-id> --confirm yes
-#   ./scripts/utilities/mcp-stack.sh stop <stack-id|all>
+#   bazelisk run //scripts:run-utility -- mcp-stack catalog [--json]
+#   bazelisk run //scripts:run-utility -- mcp-stack status [--json]
+#   bazelisk run //scripts:run-utility -- mcp-stack start <stack-id> --confirm yes
+#   bazelisk run //scripts:run-utility -- mcp-stack stop <stack-id|all>
 #
 # @command mcp-stack
 

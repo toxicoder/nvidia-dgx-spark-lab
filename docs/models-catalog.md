@@ -21,7 +21,7 @@ tags: [models, inference, safety, resources, vllm]
 - Using live `estimate <model>` (with \{\{PLACEHOLDER\}\} support) to get a ready-to-run command
 - Understanding safety and multi-node requirements before launching heavy jobs
 
-> Use `bazelisk run //:manage -- estimate <model>` (or the classic `./scripts/manage.sh estimate <model>`) for a live recommendation based on current cluster capacity.
+> Use `bazelisk run //:manage -- estimate <model>` (or the classic `bazelisk run //:manage -- estimate <model>`) for a live recommendation based on current cluster capacity.
 >
 > The full list of models, flags, and helpers is **auto-generated** from structured comments in the scripts — see [Shell Commands & Helpers](generated/shell/reference.md) (refreshed via `bazelisk run //docs:docs`).
 
@@ -85,9 +85,9 @@ Never let these jobs auto-restart.
 ### kimi-test (recommended starting point)
 
 ```bash
-./scripts/manage.sh start-test
+bazelisk run //:manage -- start-test
 # or
-./scripts/manage.sh estimate kimi-test
+bazelisk run //:manage -- estimate kimi-test
 ```
 
 - Lightweight tensor-parallel
@@ -150,8 +150,8 @@ bazelisk run //:manage -- stop-qwen36
 Nemotron Ultra (legacy profile) requires a healthy Ray cluster first:
 
 ```bash
-./scripts/manage.sh start-ray
-./scripts/manage.sh start-nemotron-3-ultra
+bazelisk run //:manage -- start-ray
+bazelisk run //:manage -- start-nemotron-3-ultra
 ```
 
 ### GLM-5.2 (1-bit UD-IQ1_M + llama.cpp RPC)
@@ -161,7 +161,7 @@ Nemotron Ultra (legacy profile) requires a healthy Ray cluster first:
 ```bash
 bazelisk run //scripts:run-utility -- download-glm52-gguf run
 docker build -t lab/llama-cpp-gb10:rpc k8s/workloads/glm-5.2/
-./scripts/manage.sh start-glm-5.2
+bazelisk run //:manage -- start-glm-5.2
 ```
 
 **GLM-5.2 ultra (2-node DGX Spark)**: See `k8s/workloads/glm-5.2/` for the 1-bit UD-IQ1_M llama.cpp RPC config (~228 GB model, ~8 tok/s @ 256K). Quality trade-off vs nemotron NVFP4 — use when footprint is the constraint.
@@ -193,8 +193,8 @@ Always keep `restartPolicy: OnFailure` + low backoff for anything > ~4 GPUs.
 ## Resource Estimator Usage
 
 ```bash
-./scripts/manage.sh estimate kimi
-./scripts/manage.sh estimate nemotron-3-ultra
+bazelisk run //:manage -- estimate kimi
+bazelisk run //:manage -- estimate nemotron-3-ultra
 ```
 
 It prints:
@@ -208,4 +208,4 @@ It prints:
 - [getting-started.md](getting-started.md)
 - [troubleshooting.md](troubleshooting.md)
 - Workload yamls under `k8s/workloads/`
-- `scripts/manage.sh doctor`
+- `bazelisk run //:manage -- doctor`

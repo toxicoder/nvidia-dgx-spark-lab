@@ -5,10 +5,10 @@
 # Dashboard-controllable inference lifecycle (start/stop/status) with Resource Guard gates.
 #
 # Usage:
-#   ./scripts/utilities/inference-workloads.sh status [--json]
-#   ./scripts/utilities/inference-workloads.sh check --action model:kimi [--json]
-#   ./scripts/utilities/inference-workloads.sh start <model> --confirm yes
-#   ./scripts/utilities/inference-workloads.sh stop <model|all|ray>
+#   bazelisk run //scripts:run-utility -- inference-workloads status [--json]
+#   bazelisk run //scripts:run-utility -- inference-workloads check --action model:kimi [--json]
+#   bazelisk run //scripts:run-utility -- inference-workloads start <model> --confirm yes
+#   bazelisk run //scripts:run-utility -- inference-workloads stop <model|all|ray>
 #
 # @command inference-workloads
 

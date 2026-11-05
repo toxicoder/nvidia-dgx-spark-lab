@@ -5,8 +5,8 @@
 # Build the Spark Lab Kasm desktop image with Hermes workspace-dev preinstalled.
 #
 # Usage:
-#   ./scripts/utilities/kasm-workspace-image.sh build [--tag TAG]
-#   ./scripts/utilities/kasm-workspace-image.sh info
+#   bazelisk run //scripts:run-utility -- kasm-workspace-image build [--tag TAG]
+#   bazelisk run //scripts:run-utility -- kasm-workspace-image info
 #
 # @command kasm-workspace-image
 

@@ -51,7 +51,7 @@ flowchart TD
 | **Agents** | `start-mcp`, `start-hermes`, `start-open-webui` | any | Plus Nemotron nano/super Jobs. See agent docs. |
 | **Safe auto-pick** | `start-default` / `start-safe` | any | Always delegates to `start-test`. |
 
-Classic equivalent: `./scripts/manage.sh <verb>`.
+Classic equivalent: `bazelisk run //:manage -- <verb>`.
 
 <Callout type="warning" title="Modes collide">
   `start-stack-rounded`, `start-glm53-flash`, and `start-dsv41-flash` **refuse each other**. Recover: stop the running mode, `doctor`, then start the one you want. Details: [LiteLLM rounded stack](../litellm-rounded-stack.md).

@@ -154,7 +154,7 @@ Non-negotiable invariants: [docs/project-conventions.md § Safety invariants](do
 
 - Prefer `.devcontainer/` (multi-arch **linux/amd64 + linux/arm64**): Apple Silicon, Windows Docker Desktop, Linux, NVIDIA DGX Spark (Grace ARM). The container is always Linux.
 - Tool pins: `.devcontainer/tool-versions.env` (shared with CI via `scripts/ci/install-lint-tools.sh`).
-- After open: `bash .devcontainer/doctor.sh` then `//:fix` / `//:validate`.
+- After open: `bazelisk run //:doctor` then `//:fix` / `//:validate`.
 - **Grok Build** is baked at `/usr/local/bin/grok` (`GROK_SANDBOX=lab`, host LLMs via `host.docker.internal`). **Hermes Agent** is optional post-create. Auth is interactive only — **never** commit API keys, `GROK_DEPLOYMENT_KEY`, or `~/.grok` / `~/.hermes` state.
 - Full guide: [docs/dev-environment.md](docs/dev-environment.md).
 
@@ -181,7 +181,7 @@ These are **defaults on every task**, not optional follow-ups. `//:validate` / `
 | Shell tooling | `//lints:shell` (ShellCheck) + `//lints:shfmt`; format with `//:fix` |
 | Utility scripts | `status` / `run` contract; `# @command` entrypoint; main source guard when defining `main()` |
 | YAML manifests | `# Purpose` / `Source of truth` / `Regenerate` / `Safety` headers |
-| New docs pages | Add the file under `docs/`, register it in the nav (hand-edit `docs-site/lib/nav.json`, then `npm run nav:check` in `docs-site/`), **and** list it in `_HAND_WRITTEN_MD` in `docs/BUILD.bazel` — `//tests:doc_coverage` fails otherwise |
+| New docs pages | Add the file under `docs/`, register it in the nav (hand-edit `docs-site/lib/nav.json`, then `bazelisk test //docs-site:nav_test`), **and** list it in `_HAND_WRITTEN_MD` in `docs/BUILD.bazel` — `//tests:doc_coverage` fails otherwise |
 | Docs regen | After shell/API comment changes: `bazelisk run //docs:docs` (or dashboard docs) and commit generated deltas that belong |
 | TDD + validate | Red–green–refactor; finish with `bazelisk run //:validate` |
 

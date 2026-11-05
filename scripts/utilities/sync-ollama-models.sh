@@ -17,8 +17,8 @@
 # - --delete not used by default (conservative for models).
 #
 # Usage:
-#   ./scripts/utilities/sync-ollama-models.sh status [--json]
-#   ./scripts/utilities/sync-ollama-models.sh run [to-remote|from-remote]
+#   bazelisk run //scripts:run-utility -- sync-ollama-models status [--json]
+#   bazelisk run //scripts:run-utility -- sync-ollama-models run [to-remote|from-remote]
 #
 # Dashboard can trigger sync and show status.
 #

@@ -22,7 +22,6 @@ from __future__ import annotations
 
 import json
 import re
-import sys
 import unittest
 from pathlib import Path
 
@@ -53,8 +52,8 @@ ASCII_FLOW_RE = re.compile(r"[→├└│]")
 # Asset references the exported HTML asks the browser to fetch, used to prove the export is
 # self-consistent with the prefix it is served under.
 _ASSET_REF_RE = re.compile(
-    r'''(?:"|')((?:/[A-Za-z0-9._@~-][A-Za-z0-9._@~+/%-]*|_next/[A-Za-z0-9._@~+/%-]+))'''
-    r'''(?:"|')'''
+    r"""(?:"|')((?:/[A-Za-z0-9._@~-][A-Za-z0-9._@~+/%-]*|_next/[A-Za-z0-9._@~+/%-]+))"""
+    r"""(?:"|')"""
 )
 # Spark CX-7 is 200 Gb/s per QSFP port. This lab uses one 200G cable or a 200G ring.
 # CRS804 "400G QSFP-DD" switch-port language is allowed (no dual- / ~400G / "400G each").
@@ -306,7 +305,9 @@ class TestDocsSiteRender(unittest.TestCase):
         # former mkdocs.yml published them; the generators that fill them are covered by
         # //docs:test_generate_shell_docs, not here.
         for expected in ("generated/shell/reference.md", "generated/dashboard-api/README.md"):
-            self.assertIn(expected, pages, f"generated reference is missing from the nav: {expected}")
+            self.assertIn(
+                expected, pages, f"generated reference is missing from the nav: {expected}"
+            )
 
     def test_frontmatter_on_nav_pages(self) -> None:
         """Every hand-written navigable page carries title, description and tags frontmatter.
@@ -341,9 +342,13 @@ class TestDocsSiteRender(unittest.TestCase):
                 violations.append(f"{rel}:{line_no}")
         generated = DOCS_DIR / "generated/shell/reference.md"
         if generated.exists():
-            for line_no in bare_fence_openings(generated.read_text(encoding="utf-8", errors="replace")):
+            for line_no in bare_fence_openings(
+                generated.read_text(encoding="utf-8", errors="replace")
+            ):
                 violations.append(f"generated/shell/reference.md:{line_no}")
-        self.assertEqual(violations, [], "Bare code fences without a language tag: " + ", ".join(violations))
+        self.assertEqual(
+            violations, [], "Bare code fences without a language tag: " + ", ".join(violations)
+        )
 
     def test_prose_lists_are_separated(self) -> None:
         """A list that follows prose is separated from it by a blank line."""
@@ -355,7 +360,9 @@ class TestDocsSiteRender(unittest.TestCase):
             for match in BAD_PROSE_LIST_RE.finditer(text):
                 line = text[: match.start()].count("\n") + 1
                 violations.append(f"{path.relative_to(REPO_ROOT)}:{line}")
-        self.assertEqual(violations, [], "Prose immediately followed by a list: " + ", ".join(violations))
+        self.assertEqual(
+            violations, [], "Prose immediately followed by a list: " + ", ".join(violations)
+        )
 
     def test_mermaid_labels_are_quoted(self) -> None:
         """Mermaid node labels that contain braces are quoted, else the browser errors."""
@@ -368,7 +375,11 @@ class TestDocsSiteRender(unittest.TestCase):
                 if BAD_MERMAID_LABEL_RE.search(match.group(1)):
                     offenders.append(path.relative_to(REPO_ROOT).as_posix())
         self.assertGreater(blocks, 0, "no mermaid diagrams found; the port lost them")
-        self.assertEqual(offenders, [], "Unquoted {…} in a mermaid node label: " + ", ".join(sorted(set(offenders))))
+        self.assertEqual(
+            offenders,
+            [],
+            "Unquoted {…} in a mermaid node label: " + ", ".join(sorted(set(offenders))),
+        )
 
     def test_architecture_headings_have_mermaid(self) -> None:
         """A ## Architecture section on a published page is drawn as Mermaid, not prose or ASCII."""
@@ -388,7 +399,9 @@ class TestDocsSiteRender(unittest.TestCase):
     def test_forbidden_400g_hits_allows_switch_hardware(self) -> None:
         """CRS804 400G QSFP-DD port language is switch hardware, not a Spark dual-400G pair."""
         self.assertEqual(forbidden_400g_hits("managed 4-port 400G QSFP-DD device"), [])
-        self.assertEqual(forbidden_400g_hits("one 400G port split into two 200G breakout lanes"), [])
+        self.assertEqual(
+            forbidden_400g_hits("one 400G port split into two 200G breakout lanes"), []
+        )
         self.assertIn("~400G", forbidden_400g_hits("dual QSFP ~400G aggregate"))
         self.assertEqual(forbidden_400g_hits("400G aggregate"), ["400G aggregate"])
         self.assertTrue(forbidden_400g_hits("dual-400G pair"))
@@ -404,10 +417,16 @@ class TestDocsSiteRender(unittest.TestCase):
             text = path.read_text(encoding="utf-8", errors="replace")
             hits = forbidden_400g_hits(text)
             if hits:
-                rel = path.relative_to(REPO_ROOT).as_posix() if path.is_relative_to(REPO_ROOT) else str(path)
+                rel = (
+                    path.relative_to(REPO_ROOT).as_posix()
+                    if path.is_relative_to(REPO_ROOT)
+                    else str(path)
+                )
                 offenders.append(f"{rel}: {', '.join(hits[:4])}")
         self.assertGreater(scanned, 20, "wording scan found too few markdown files")
-        self.assertEqual(offenders, [], "dual-400G Spark interconnect wording: " + "; ".join(offenders))
+        self.assertEqual(
+            offenders, [], "dual-400G Spark interconnect wording: " + "; ".join(offenders)
+        )
 
     def test_no_ascii_flow_diagrams(self) -> None:
         """Arrow flows and box-drawing trees in ```text fences must be Mermaid instead.
@@ -417,13 +436,19 @@ class TestDocsSiteRender(unittest.TestCase):
         offenders: list[str] = []
         for path in hand_written_doc_paths():
             rel = path.relative_to(REPO_ROOT).as_posix()
-            offenders.extend(ascii_flow_offenders(path.read_text(encoding="utf-8", errors="replace"), rel))
-        self.assertEqual(offenders, [], "ASCII architecture diagram in a text fence: " + ", ".join(offenders))
+            offenders.extend(
+                ascii_flow_offenders(path.read_text(encoding="utf-8", errors="replace"), rel)
+            )
+        self.assertEqual(
+            offenders, [], "ASCII architecture diagram in a text fence: " + ", ".join(offenders)
+        )
 
     def test_no_mistakes_in_information_architecture(self) -> None:
         """The six top-level sections of the old site are all present."""
         groups = [group["title"] for group in json.loads(NAV_JSON.read_text(encoding="utf-8"))]
-        self.assertEqual(groups, ["Home", "Start", "Concepts", "Operate", "Reference", "Contribute"])
+        self.assertEqual(
+            groups, ["Home", "Start", "Concepts", "Operate", "Reference", "Contribute"]
+        )
 
     def test_search_index_is_generated_and_tagged(self) -> None:
         """The build emits a search index, and it carries the frontmatter tags."""

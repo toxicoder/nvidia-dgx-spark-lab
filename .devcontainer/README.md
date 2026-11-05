@@ -34,7 +34,7 @@ YAML, dashboard unit tests, docs). Cluster ops remain separate
 5. Run:
 
 ```bash
-bash .devcontainer/doctor.sh
+bazelisk run //:doctor
 bazelisk run //:fix
 bazelisk run //:validate
 ```
@@ -55,6 +55,7 @@ Full guide: [docs/dev-environment.md](../docs/dev-environment.md).
 | `post-create.sh` | Workspace deps (`npm ci`, docs, Playwright) — not image layers |
 | `install-agent-clis.sh` | Skips grok when `/usr/local/bin/grok` matches the pin; Hermes optional |
 | `doctor.sh` | Verify required tools (`grok` required inside the container) |
+| `run_doctor.sh` | Re-roots `doctor.sh` for `bazelisk run //:doctor`; the `postStartCommand` still calls `doctor.sh` directly because it is the bootstrap that proves `bazelisk` exists |
 | `docker-bake.hcl` | Local `docker buildx bake` for linux/amd64+arm64 |
 
 ### Feature lockfile

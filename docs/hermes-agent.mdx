@@ -76,8 +76,8 @@ bazelisk run //scripts:run-utility -- hermes-stack status
 Or via `manage.sh`:
 
 ```bash
-./scripts/manage.sh start-hermes
-./scripts/manage.sh stop-hermes
+bazelisk run //:manage -- start-hermes
+bazelisk run //:manage -- stop-hermes
 ```
 
 On first start, `hermes-stack` seeds `hermes/data/` from templates and generates `API_SERVER_KEY` and dashboard auth secrets if missing.
@@ -94,7 +94,7 @@ On first start, `hermes-stack` seeds `hermes/data/` from templates and generates
 Deploy Open WebUI after Hermes is running:
 
 ```bash
-./scripts/manage.sh start-open-webui
+bazelisk run //:manage -- start-open-webui
 ```
 
 Retrieve credentials:
@@ -180,7 +180,7 @@ Data in `hermes/data/` is preserved across image upgrades.
 
 | Symptom | Cause | Action | Verify |
 | --- | --- | --- | --- |
-| `start-hermes` refuses | Missing `hermes/data/.env` or confirm | Copy `hermes/config/env.example`; type `yes` / `LAB_CONFIRM_TOKEN` | `./scripts/manage.sh start-hermes` then `curl -fsS http://127.0.0.1:8642/v1/models` |
+| `start-hermes` refuses | Missing `hermes/data/.env` or confirm | Copy `hermes/config/env.example`; type `yes` / `LAB_CONFIRM_TOKEN` | `bazelisk run //:manage -- start-hermes` then `curl -fsS http://127.0.0.1:8642/v1/models` |
 | Gateway 401 | Rotated `API_SERVER_KEY` | Restart Open WebUI to re-sync Secret | Open WebUI models list |
 | Port-forward dead after reboot | Hermes is Docker `restart: no` equivalent posture — **manual start** | `start-hermes` again; inference Jobs stay off | `docker ps` on spark0 |
 

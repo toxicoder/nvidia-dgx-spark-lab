@@ -83,7 +83,7 @@ EOF
       --from-literal=storage_encryption_key="${storage_key}" \
       --from-literal=oidc_hmac_secret="${oidc_hmac}" \
       --dry-run=client -o yaml | kubectl apply -f -
-    warn "Default admin password is preset — run: ./scripts/manage.sh sso set-password <user> after Authelia is up"
+    warn "Default admin password is preset — run: bazelisk run //:manage -- sso set-password <user> after Authelia is up"
     log "Created authelia-secrets"
   fi
 

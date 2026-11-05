@@ -17,8 +17,8 @@ bazelisk run //scripts:run-utility -- hermes-stack status
 Or via `manage.sh`:
 
 ```bash
-./scripts/manage.sh start-hermes
-./scripts/manage.sh stop-hermes
+bazelisk run //:manage -- start-hermes
+bazelisk run //:manage -- stop-hermes
 ```
 
 ## Layout

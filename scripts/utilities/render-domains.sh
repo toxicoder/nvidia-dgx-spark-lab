@@ -6,7 +6,7 @@
 # Kubernetes, Ansible, and Grafana artifacts.
 #
 # Usage:
-#   ./scripts/utilities/render-domains.sh
+#   bazelisk run //scripts:run-utility -- render-domains
 #
 # @command render-domains
 # @description Regenerate SSO routes, TLS certs, Helm values, and Grafana links from lab-domains config.

@@ -13,8 +13,8 @@
 # pointer to it.
 #
 # Usage:
-#   ./scripts/utilities/install-operator-client.sh status
-#   ./scripts/utilities/install-operator-client.sh run
+#   bazelisk run //scripts:run-utility -- install-operator-client status
+#   bazelisk run //scripts:run-utility -- install-operator-client run
 #   bazelisk run //scripts:run-utility -- install-operator-client status
 #
 # @command install-operator-client
@@ -105,7 +105,7 @@ cmd_status() {
   if [[ $missing -eq 0 ]]; then
     echo "Operator client is ready: 'bazelisk run //:manage -- setup'."
   else
-    echo "Tools above marked '--' are missing — run: ./scripts/utilities/install-operator-client.sh run"
+    echo "Tools above marked '--' are missing — run: bazelisk run //scripts:run-utility -- install-operator-client run"
   fi
 }
 

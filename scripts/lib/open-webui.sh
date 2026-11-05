@@ -63,7 +63,7 @@ openwebui_ensure_secrets() {
   local api_key
   api_key=$(openwebui_hermes_api_key || true)
   if [[ -z $api_key ]]; then
-    err "Hermes API_SERVER_KEY not found — run: ./scripts/manage.sh start-hermes"
+    err "Hermes API_SERVER_KEY not found — run: bazelisk run //:manage -- start-hermes"
     return 1
   fi
 
@@ -119,7 +119,7 @@ print(p.get('container_name', 'hermes'))
   state=$(docker inspect -f '{{.State.Status}}' "$container_name" 2>/dev/null || echo "missing")
   if [[ $state != "running" ]]; then
     err "Hermes container '${container_name}' is not running (state: ${state})"
-    err "Start Hermes first: ./scripts/manage.sh start-hermes"
+    err "Start Hermes first: bazelisk run //:manage -- start-hermes"
     return 1
   fi
 
@@ -207,7 +207,7 @@ start_openwebui_stack() {
   local litellm_ready
   litellm_ready=$(kubectl get deploy litellm -n ai-inference -o jsonpath='{.status.readyReplicas}' 2>/dev/null || true)
   if [[ -z ${litellm_ready} || ${litellm_ready} -lt 1 ]]; then
-    warn "LiteLLM is not Ready in ai-inference. Open WebUI default model lab-auto will 503 until: ./scripts/manage.sh start-litellm"
+    warn "LiteLLM is not Ready in ai-inference. Open WebUI default model lab-auto will 503 until: bazelisk run //:manage -- start-litellm"
     warn "Hermes agent chat on the second OpenAI base URL still works."
   fi
 

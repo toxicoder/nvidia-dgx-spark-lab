@@ -6,14 +6,14 @@
 # Does not overload manage.sh cleanup (namespaces) or the dashboard treemap.
 #
 # Usage:
-#   ./scripts/utilities/disk-wizard.sh status [--json]
-#   ./scripts/utilities/disk-wizard.sh plan [--json] [--deep]
-#   ./scripts/utilities/disk-wizard.sh recommend [--target-gib N] [--json]
-#   ./scripts/utilities/disk-wizard.sh largest [--path DIR] [--n 30] [--json]
-#   ./scripts/utilities/disk-wizard.sh explain PATH [--json]
-#   ./scripts/utilities/disk-wizard.sh run [--json]
-#   ./scripts/utilities/disk-wizard.sh apply --yes [--step A|B] [--id ID] [--path P]
-#   ./scripts/utilities/disk-wizard.sh restore --from DIR
+#   bazelisk run //scripts:run-utility -- disk-wizard status [--json]
+#   bazelisk run //scripts:run-utility -- disk-wizard plan [--json] [--deep]
+#   bazelisk run //scripts:run-utility -- disk-wizard recommend [--target-gib N] [--json]
+#   bazelisk run //scripts:run-utility -- disk-wizard largest [--path DIR] [--n 30] [--json]
+#   bazelisk run //scripts:run-utility -- disk-wizard explain PATH [--json]
+#   bazelisk run //scripts:run-utility -- disk-wizard run [--json]
+#   bazelisk run //scripts:run-utility -- disk-wizard apply --yes [--step A|B] [--id ID] [--path P]
+#   bazelisk run //scripts:run-utility -- disk-wizard restore --from DIR
 #
 # Safety:
 #   Default is plan/status (read-only). apply requires --yes.

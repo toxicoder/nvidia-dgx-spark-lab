@@ -6,9 +6,9 @@
 #
 # @command secrets
 # Usage:
-#   ./scripts/manage.sh secrets status
-#   ./scripts/manage.sh secrets ensure-key
-#   ./scripts/manage.sh secrets list [--db-path PATH]
+#   bazelisk run //:manage -- secrets status
+#   bazelisk run //:manage -- secrets ensure-key
+#   bazelisk run //:manage -- secrets list [--db-path PATH]
 #
 # Safety:
 #   Read-only status/list (metadata only). ensure-key is idempotent and never echoes the key.
@@ -32,7 +32,7 @@ secrets_status() {
   if kubectl get secret "${SECRETS_MASTER_SECRET}" -n "${SECRETS_NS}" >/dev/null 2>&1; then
     echo "Master key secret: present"
   else
-    warn "Master key secret: missing (run: ./scripts/manage.sh secrets ensure-key)"
+    warn "Master key secret: missing (run: bazelisk run //:manage -- secrets ensure-key)"
   fi
 
   local db_path="${1:-}"

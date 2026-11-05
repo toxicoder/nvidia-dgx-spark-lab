@@ -30,13 +30,13 @@ Bring up the agent stack before Open WebUI:
 ```bash
 bazelisk run //scripts:run-utility -- nemotron-stack start nemotron-agentic-spark-1 --confirm yes
 bazelisk run //scripts:run-utility -- mcp-stack start mcp-agent-toolkit --confirm yes
-./scripts/manage.sh start-hermes
+bazelisk run //:manage -- start-hermes
 ```
 
 ## Deploy (standalone)
 
 ```bash
-./scripts/manage.sh start-open-webui
+bazelisk run //:manage -- start-open-webui
 # or
 bazelisk run //scripts:run-utility -- open-webui-stack start open-webui-lab --confirm yes
 ```
@@ -44,7 +44,7 @@ bazelisk run //scripts:run-utility -- open-webui-stack start open-webui-lab --co
 Stop:
 
 ```bash
-./scripts/manage.sh stop-open-webui
+bazelisk run //:manage -- stop-open-webui
 ```
 
 Open WebUI is **not** auto-started with `start-monitoring` or `start-hermes`.

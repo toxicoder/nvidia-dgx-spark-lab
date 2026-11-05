@@ -20,8 +20,8 @@
 # - Uses shared helpers for logging and cluster checks.
 #
 # Usage:
-#   ./scripts/utilities/system-update.sh status [--json]
-#   ./scripts/utilities/system-update.sh run [--reboot]
+#   bazelisk run //scripts:run-utility -- system-update status [--json]
+#   bazelisk run //scripts:run-utility -- system-update run [--reboot]
 #
 # Dashboard will call status --json and run.
 #
@@ -136,7 +136,7 @@ JSON
   echo "Active inference items (jobs/pods in ai-inference): ${active_jobs}"
   echo "Safe to reboot now?  : $([[ $active_jobs == "0" ]] && echo "YES (after manage stop)" || echo "NO - stop workloads first!")"
   echo "------------------------------------------------"
-  echo "Reminder: ALWAYS run './scripts/manage.sh stop' and verify clean before reboot."
+  echo "Reminder: ALWAYS run 'bazelisk run //:manage -- stop' and verify clean before reboot."
 }
 
 # @function run
@@ -153,7 +153,7 @@ run() {
 
   if [[ $active != "0" && $active != "unknown" ]]; then
     warn "Active inference items detected ($active). Refusing to proceed to reboot phase."
-    warn "Run './scripts/manage.sh stop' first and re-check."
+    warn "Run 'bazelisk run //:manage -- stop' first and re-check."
   fi
 
   log "Phase 1: apt update + dist-upgrade"
@@ -170,7 +170,7 @@ run() {
 
   if [[ $reboot_req == "yes" ]]; then
     warn "Reboot is required."
-    warn "To reboot safely: ./scripts/manage.sh stop && sudo reboot"
+    warn "To reboot safely: bazelisk run //:manage -- stop && sudo reboot"
     warn "See docs/reboot-safety.md and always verify no ai-inference pods remain."
   else
     log "No reboot flag detected. Update complete."

@@ -8,8 +8,8 @@ and dashboard TypeScript exports. Fails fast with a concise violation list.
 from __future__ import annotations
 
 import ast
-import os
 import json
+import os
 import pathlib
 import re
 import subprocess

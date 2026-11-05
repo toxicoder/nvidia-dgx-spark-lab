@@ -45,7 +45,7 @@ See `tests/visual/REVIEW_LOOP.md`. After UI changes:
 ```bash
 bazelisk run //dashboard:build
 bazelisk run //dashboard:hermetic-test          # Docker: Vitest + build + Playwright (preferred)
-UPDATE_SNAPSHOTS=1 ./dashboard/scripts/run-hermetic-tests.sh   # regenerate Linux goldens
+UPDATE_SNAPSHOTS=1 bazelisk run //dashboard:hermetic-test   # regenerate Linux goldens
 bazelisk run //dashboard:visual                 # local Playwright only (macOS dev)
 ```
 
@@ -55,8 +55,8 @@ Per-ui goldens capture from `/dev/ui`; panel goldens from `/dev/panels` — not 
 
 - **Fast path (default validate slice):** `bazelisk run //dashboard:fast-test` (host Vitest + ESLint + typecheck; no Playwright)
 - **Canonical hermetic path:** `bazelisk run //dashboard:hermetic-test` (Docker: Vitest + ESLint + typecheck + build + Playwright)
-- Vitest (local): `cd dashboard && npm run test`
-- Lint / typecheck: `npm run lint` (ESLint), `npm run typecheck` (tsc)
+- Vitest: `bazelisk run //dashboard:test`
+- Lint / typecheck: `bazelisk run //dashboard:fast-test` (Vitest + ESLint + tsc in one pass)
 - Vitest defaults: `USE_MOCKS=1` via `vitest.setup.ts` (includes `next/navigation` mock)
 - Playwright: `USE_MOCKS=1` + `AUTH_BYPASS=1`
 - `//dashboard:visual-test` is `manual` in Bazel — use `bazelisk run //dashboard:visual`

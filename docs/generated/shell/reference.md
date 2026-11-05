@@ -50,12 +50,12 @@ See:
 Basic usage examples:
 
 ```bash
-  ./scripts/manage.sh status
-  ./scripts/manage.sh doctor
-  ./scripts/manage.sh start-test
-  ./scripts/manage.sh estimate kimi
-  ./scripts/manage.sh stop
-  ./scripts/manage.sh help
+  bazelisk run //:manage -- status
+  bazelisk run //:manage -- doctor
+  bazelisk run //:manage -- start-test
+  bazelisk run //:manage -- estimate kimi
+  bazelisk run //:manage -- stop
+  bazelisk run //:manage -- help
 
 ```
 
@@ -81,7 +81,7 @@ Usage:
   bazelisk run //:manage -- setup
   bazelisk run //:manage -- setup --interactive
   bazelisk run //:manage -- topology facts
-  ./scripts/manage.sh init
+  bazelisk run //:manage -- init
 
 ```
 
@@ -131,7 +131,7 @@ Falls back to the lightest test workload.
 
 ```bash
 Usage:
-  ./scripts/manage.sh start-default
+  bazelisk run //:manage -- start-default
 
 ```
 
@@ -154,8 +154,8 @@ and tips for SSH tunneling.
 
 ```bash
 Usage:
-  ./scripts/manage.sh urls
-  ./scripts/manage.sh access
+  bazelisk run //:manage -- urls
+  bazelisk run //:manage -- access
 ```
 
 @function urls
@@ -169,7 +169,7 @@ Waits for a specific job to complete.
 
 ```bash
 Usage:
-  ./scripts/manage.sh wait <job-name>
+  bazelisk run //:manage -- wait <job-name>
 ```
 
 @function wait_for
@@ -188,7 +188,7 @@ Read-only; never starts or stops workloads.
 ```bash
 Usage:
   bazelisk run //:manage -- doctor
-  ./scripts/manage.sh doctor
+  bazelisk run //:manage -- doctor
 
 ```
 
@@ -217,7 +217,7 @@ Safe to run before node reboot.
 ```bash
 Usage:
   bazelisk run //:manage -- stop
-  ./scripts/manage.sh stop
+  bazelisk run //:manage -- stop
 
 ```
 
@@ -240,7 +240,7 @@ Uses lower resources (2 GPUs) for validation. Includes pre-flights.
 ```bash
 Usage:
   bazelisk run //:manage -- start-test
-  ./scripts/manage.sh start-test
+  bazelisk run //:manage -- start-test
 
 ```
 
@@ -261,10 +261,10 @@ Requests 8 GPUs + 128Gi+ memory. Only after start-test + start-ray on sufficient
 
 ```bash
 Usage:
-  ./scripts/manage.sh start-kimi
+  bazelisk run //:manage -- start-kimi
 ```
 
-  {{SPARK0_IP:=<your-spark0>}} ./scripts/manage.sh start-kimi
+  {{SPARK0_IP:=<your-spark0>}} bazelisk run //:manage -- start-kimi
 
 !!! warning
 
@@ -279,7 +279,7 @@ Prerequisite for large models like nemotron/glm.
 
 ```bash
 Usage:
-  ./scripts/manage.sh start-ray
+  bazelisk run //:manage -- start-ray
 
 ```
 
@@ -297,7 +297,7 @@ Heavy NVFP4 Nemotron model (validate first; 2+ nodes preferred).
 
 ```bash
 Usage:
-  ./scripts/manage.sh start-nemotron
+  bazelisk run //:manage -- start-nemotron
 
 ```
 
@@ -315,7 +315,7 @@ Heavy GLM-5.2 1-bit UD-IQ1_M via llama.cpp RPC (validate first; 2 nodes required
 
 ```bash
 Usage:
-  ./scripts/manage.sh start-glm
+  bazelisk run //:manage -- start-glm
 
 ```
 
@@ -639,7 +639,7 @@ Uses ansible/files/coder-values.yaml when present for customization.
 
 ```bash
 Usage:
-  ./scripts/manage.sh start-coder
+  bazelisk run //:manage -- start-coder
 
 ```
 
@@ -656,7 +656,7 @@ Deploys Kasm Workspaces via Helm for streamed desktops and applications.
 
 ```bash
 Usage:
-  ./scripts/manage.sh start-kasm
+  bazelisk run //:manage -- start-kasm
 
 ```
 
@@ -674,7 +674,7 @@ Frees dev management resources without touching inference workloads.
 
 ```bash
 Usage:
-  ./scripts/manage.sh stop-coder
+  bazelisk run //:manage -- stop-coder
 
 ```
 
@@ -693,7 +693,7 @@ Removes the Kasm Helm release from the kasm namespace.
 
 ```bash
 Usage:
-  ./scripts/manage.sh stop-kasm
+  bazelisk run //:manage -- stop-kasm
 
 ```
 
@@ -747,8 +747,8 @@ Falls back to raw k8s/dev/dashboard/ manifests.
 
 ```bash
 Usage:
-  ./scripts/manage.sh start-monitoring
-  ./scripts/manage.sh urls
+  bazelisk run //:manage -- start-monitoring
+  bazelisk run //:manage -- urls
 
 ```
 
@@ -1575,9 +1575,9 @@ Never prints secret values.
 
 ```bash
 Usage:
-  ./scripts/manage.sh secrets status
-  ./scripts/manage.sh secrets ensure-key
-  ./scripts/manage.sh secrets list [--db-path PATH]
+  bazelisk run //:manage -- secrets status
+  bazelisk run //:manage -- secrets ensure-key
+  bazelisk run //:manage -- secrets list [--db-path PATH]
 
 ```
 
@@ -1961,9 +1961,9 @@ Hermetic-friendly defaults use localhost port-forwards; no cluster required for 
 
 ```bash
 Usage:
-  ./scripts/utilities/benchmark-qwen36.sh run --model 27b [--concurrency 1,4]
-  ./scripts/utilities/benchmark-qwen36.sh run --dual --concurrency 4
-  ./scripts/utilities/benchmark-qwen36.sh run --dry-run
+  bazelisk run //scripts:run-utility -- benchmark-qwen36 run --model 27b [--concurrency 1,4]
+  bazelisk run //scripts:run-utility -- benchmark-qwen36 run --dual --concurrency 4
+  bazelisk run //scripts:run-utility -- benchmark-qwen36 run --dry-run
 ```
 
 ### Command: benchmark-qwen36
@@ -2045,9 +2045,9 @@ Resource Guard status and pre-flight checks for the dashboard.
 
 ```bash
 Usage:
-  ./scripts/utilities/cluster-resources.sh status [--json]
-  ./scripts/utilities/cluster-resources.sh check --action model:kimi [--json]
-  ./scripts/utilities/cluster-resources.sh suggest --action model:kimi [--json]
+  bazelisk run //scripts:run-utility -- cluster-resources status [--json]
+  bazelisk run //scripts:run-utility -- cluster-resources check --action model:kimi [--json]
+  bazelisk run //scripts:run-utility -- cluster-resources suggest --action model:kimi [--json]
 ```
 
 ### Command: cluster-resources
@@ -2074,9 +2074,9 @@ resources without using stop-dev (which removes the whole dev stack).
 
 ```bash
 Usage:
-  ./scripts/utilities/dev-workspaces.sh status [--json]
-  ./scripts/utilities/dev-workspaces.sh run coder|kasm
-  ./scripts/utilities/dev-workspaces.sh stop coder|kasm
+  bazelisk run //scripts:run-utility -- dev-workspaces status [--json]
+  bazelisk run //scripts:run-utility -- dev-workspaces run coder|kasm
+  bazelisk run //scripts:run-utility -- dev-workspaces stop coder|kasm
 
 ```
 
@@ -2095,14 +2095,14 @@ Does not overload manage.sh cleanup (namespaces) or the dashboard treemap.
 
 ```bash
 Usage:
-  ./scripts/utilities/disk-wizard.sh status [--json]
-  ./scripts/utilities/disk-wizard.sh plan [--json] [--deep]
-  ./scripts/utilities/disk-wizard.sh recommend [--target-gib N] [--json]
-  ./scripts/utilities/disk-wizard.sh largest [--path DIR] [--n 30] [--json]
-  ./scripts/utilities/disk-wizard.sh explain PATH [--json]
-  ./scripts/utilities/disk-wizard.sh run [--json]
-  ./scripts/utilities/disk-wizard.sh apply --yes [--step A|B] [--id ID] [--path P]
-  ./scripts/utilities/disk-wizard.sh restore --from DIR
+  bazelisk run //scripts:run-utility -- disk-wizard status [--json]
+  bazelisk run //scripts:run-utility -- disk-wizard plan [--json] [--deep]
+  bazelisk run //scripts:run-utility -- disk-wizard recommend [--target-gib N] [--json]
+  bazelisk run //scripts:run-utility -- disk-wizard largest [--path DIR] [--n 30] [--json]
+  bazelisk run //scripts:run-utility -- disk-wizard explain PATH [--json]
+  bazelisk run //scripts:run-utility -- disk-wizard run [--json]
+  bazelisk run //scripts:run-utility -- disk-wizard apply --yes [--step A|B] [--id ID] [--path P]
+  bazelisk run //scripts:run-utility -- disk-wizard restore --from DIR
 
 ```
 
@@ -2326,8 +2326,8 @@ Never OFFLOAD_MODE=ram.
 
 ```bash
 Usage:
-  ./scripts/utilities/download-dsv41-flash.sh status [--json]
-  ./scripts/utilities/download-dsv41-flash.sh run
+  bazelisk run //scripts:run-utility -- download-dsv41-flash status [--json]
+  bazelisk run //scripts:run-utility -- download-dsv41-flash run
 ```
 
 ### Command: download-dsv41-flash
@@ -2382,8 +2382,8 @@ Tiers:
 
 ```bash
 Usage:
-  ./scripts/utilities/download-flux.sh status [--tier ...] [--json]
-  ./scripts/utilities/download-flux.sh run [--tier ...]
+  bazelisk run //scripts:run-utility -- download-flux status [--tier ...] [--json]
+  bazelisk run //scripts:run-utility -- download-flux run [--tier ...]
 
 ```
 
@@ -2470,8 +2470,8 @@ Download unsloth/GLM-5.2-GGUF UD-IQ1_M shards (~228 GB) for the glm-5.2 llama.cp
 
 ```bash
 Usage:
-  ./scripts/utilities/download-glm52-gguf.sh status [--json]
-  ./scripts/utilities/download-glm52-gguf.sh run
+  bazelisk run //scripts:run-utility -- download-glm52-gguf status [--json]
+  bazelisk run //scripts:run-utility -- download-glm52-gguf run
 
 ```
 
@@ -2496,8 +2496,8 @@ Tiers:
 
 ```bash
 Usage:
-  ./scripts/utilities/download-ltx.sh status [--tier ...] [--json]
-  ./scripts/utilities/download-ltx.sh run [--tier ...]
+  bazelisk run //scripts:run-utility -- download-ltx status [--tier ...] [--json]
+  bazelisk run //scripts:run-utility -- download-ltx run [--tier ...]
 ```
 
 ### Command: download-ltx
@@ -2579,8 +2579,8 @@ Qwen3.6 dual stack (1× Spark):
 
 ```bash
 Usage:
-  ./scripts/utilities/download-qwen-models.sh status [--tier ...] [--json]
-  ./scripts/utilities/download-qwen-models.sh run [--tier ...]
+  bazelisk run //scripts:run-utility -- download-qwen-models status [--tier ...] [--json]
+  bazelisk run //scripts:run-utility -- download-qwen-models run [--tier ...]
 ```
 
 ### Command: download-qwen-models
@@ -2601,8 +2601,8 @@ Tiers:
 
 ```bash
 Usage:
-  ./scripts/utilities/download-rounded-models.sh status [--tier ...] [--json]
-  ./scripts/utilities/download-rounded-models.sh run [--tier ...]
+  bazelisk run //scripts:run-utility -- download-rounded-models status [--tier ...] [--json]
+  bazelisk run //scripts:run-utility -- download-rounded-models run [--tier ...]
 ```
 
 ### Command: download-rounded-models
@@ -2667,10 +2667,10 @@ Hermes Agent Docker lifecycle on the Spark K3s node.
 
 ```bash
 Usage:
-  ./scripts/utilities/hermes-stack.sh catalog [--json]
-  ./scripts/utilities/hermes-stack.sh status [--json]
-  ./scripts/utilities/hermes-stack.sh start <stack-id> --confirm yes
-  ./scripts/utilities/hermes-stack.sh stop
+  bazelisk run //scripts:run-utility -- hermes-stack catalog [--json]
+  bazelisk run //scripts:run-utility -- hermes-stack status [--json]
+  bazelisk run //scripts:run-utility -- hermes-stack start <stack-id> --confirm yes
+  bazelisk run //scripts:run-utility -- hermes-stack stop
 ```
 
 ### Command: hermes-stack
@@ -2686,12 +2686,12 @@ Replaces the factory ubuntu account as the day-2 Ansible principal.
 
 ```bash
 Usage:
-  ./scripts/utilities/identities.sh status [--json]
-  ./scripts/utilities/identities.sh plan
-  ./scripts/utilities/identities.sh run
-  ./scripts/utilities/identities.sh ensure-keys
-  ./scripts/utilities/identities.sh apply --yes
-  ./scripts/utilities/identities.sh ping
+  bazelisk run //scripts:run-utility -- identities status [--json]
+  bazelisk run //scripts:run-utility -- identities plan
+  bazelisk run //scripts:run-utility -- identities run
+  bazelisk run //scripts:run-utility -- identities ensure-keys
+  bazelisk run //scripts:run-utility -- identities apply --yes
+  bazelisk run //scripts:run-utility -- identities ping
 
 ```
 
@@ -2845,10 +2845,10 @@ Dashboard-controllable inference lifecycle (start/stop/status) with Resource Gua
 
 ```bash
 Usage:
-  ./scripts/utilities/inference-workloads.sh status [--json]
-  ./scripts/utilities/inference-workloads.sh check --action model:kimi [--json]
-  ./scripts/utilities/inference-workloads.sh start <model> --confirm yes
-  ./scripts/utilities/inference-workloads.sh stop <model|all|ray>
+  bazelisk run //scripts:run-utility -- inference-workloads status [--json]
+  bazelisk run //scripts:run-utility -- inference-workloads check --action model:kimi [--json]
+  bazelisk run //scripts:run-utility -- inference-workloads start <model> --confirm yes
+  bazelisk run //scripts:run-utility -- inference-workloads stop <model|all|ray>
 ```
 
 ### Command: inference-workloads
@@ -2865,8 +2865,8 @@ Linux, DGX Spark).
 
 ```bash
 Usage:
-  ./scripts/utilities/install-dev-tools.sh status
-  ./scripts/utilities/install-dev-tools.sh run
+  bazelisk run //scripts:run-utility -- install-dev-tools status
+  bazelisk run //scripts:run-utility -- install-dev-tools run
 ```
 
 ### Command: install-dev-tools
@@ -2904,8 +2904,8 @@ pointer to it.
 
 ```bash
 Usage:
-  ./scripts/utilities/install-operator-client.sh status
-  ./scripts/utilities/install-operator-client.sh run
+  bazelisk run //scripts:run-utility -- install-operator-client status
+  bazelisk run //scripts:run-utility -- install-operator-client run
   bazelisk run //scripts:run-utility -- install-operator-client status
 ```
 
@@ -2964,8 +2964,8 @@ Build the Spark Lab Kasm desktop image with Hermes workspace-dev preinstalled.
 
 ```bash
 Usage:
-  ./scripts/utilities/kasm-workspace-image.sh build [--tag TAG]
-  ./scripts/utilities/kasm-workspace-image.sh info
+  bazelisk run //scripts:run-utility -- kasm-workspace-image build [--tag TAG]
+  bazelisk run //scripts:run-utility -- kasm-workspace-image info
 ```
 
 ### Command: kasm-workspace-image
@@ -2980,10 +2980,10 @@ One-click MCP agent toolkit lifecycle.
 
 ```bash
 Usage:
-  ./scripts/utilities/mcp-stack.sh catalog [--json]
-  ./scripts/utilities/mcp-stack.sh status [--json]
-  ./scripts/utilities/mcp-stack.sh start <stack-id> --confirm yes
-  ./scripts/utilities/mcp-stack.sh stop <stack-id|all>
+  bazelisk run //scripts:run-utility -- mcp-stack catalog [--json]
+  bazelisk run //scripts:run-utility -- mcp-stack status [--json]
+  bazelisk run //scripts:run-utility -- mcp-stack start <stack-id> --confirm yes
+  bazelisk run //scripts:run-utility -- mcp-stack stop <stack-id|all>
 ```
 
 ### Command: mcp-stack
@@ -2998,8 +2998,8 @@ Observability stack status and verification for Grafana/Prometheus integration.
 
 ```bash
 Usage:
-  ./scripts/utilities/monitoring-stack.sh status [--json]
-  ./scripts/utilities/monitoring-stack.sh verify [--json]
+  bazelisk run //scripts:run-utility -- monitoring-stack status [--json]
+  bazelisk run //scripts:run-utility -- monitoring-stack verify [--json]
 ```
 
 ### Command: monitoring-stack
@@ -3014,11 +3014,11 @@ One-click Nemotron agentic stack lifecycle for the dashboard.
 
 ```bash
 Usage:
-  ./scripts/utilities/nemotron-stack.sh catalog [--json]
-  ./scripts/utilities/nemotron-stack.sh status [--json]
-  ./scripts/utilities/nemotron-stack.sh check --action stack:<id> [--json]
-  ./scripts/utilities/nemotron-stack.sh start <stack-id> --confirm yes
-  ./scripts/utilities/nemotron-stack.sh stop <stack-id|all>
+  bazelisk run //scripts:run-utility -- nemotron-stack catalog [--json]
+  bazelisk run //scripts:run-utility -- nemotron-stack status [--json]
+  bazelisk run //scripts:run-utility -- nemotron-stack check --action stack:<id> [--json]
+  bazelisk run //scripts:run-utility -- nemotron-stack start <stack-id> --confirm yes
+  bazelisk run //scripts:run-utility -- nemotron-stack stop <stack-id|all>
 ```
 
 ### Command: nemotron-stack
@@ -3033,10 +3033,10 @@ Open WebUI Helm lifecycle — Hermes gateway agent chat UI.
 
 ```bash
 Usage:
-  ./scripts/utilities/open-webui-stack.sh catalog [--json]
-  ./scripts/utilities/open-webui-stack.sh status [--json]
-  ./scripts/utilities/open-webui-stack.sh start <stack-id> --confirm yes
-  ./scripts/utilities/open-webui-stack.sh stop
+  bazelisk run //scripts:run-utility -- open-webui-stack catalog [--json]
+  bazelisk run //scripts:run-utility -- open-webui-stack status [--json]
+  bazelisk run //scripts:run-utility -- open-webui-stack start <stack-id> --confirm yes
+  bazelisk run //scripts:run-utility -- open-webui-stack stop
 ```
 
 ### Command: open-webui-stack
@@ -3052,7 +3052,7 @@ Kubernetes, Ansible, and Grafana artifacts.
 
 ```bash
 Usage:
-  ./scripts/utilities/render-domains.sh
+  bazelisk run //scripts:run-utility -- render-domains
 ```
 
 ### Command: render-domains
@@ -3121,14 +3121,14 @@ the range applied during the current boot is read from `SPARK_CLOCK_STATE_FILE`
 Usage (CLI):
 
 ```bash
-  ./scripts/utilities/spark-clock.sh status [--json]
-  ./scripts/utilities/spark-clock.sh run                 # idempotent optimize to target
-  ./scripts/utilities/spark-clock.sh reset
-  ./scripts/utilities/spark-clock.sh set 2100            # ceiling only
-  ./scripts/utilities/spark-clock.sh set 300,2100        # floor,ceiling range
-  ./scripts/utilities/spark-clock.sh diagnose
-  ./scripts/utilities/spark-clock.sh --enable-systemd-service
-  ./scripts/utilities/spark-clock.sh --disable-systemd-service
+  bazelisk run //scripts:run-utility -- spark-clock status [--json]
+  bazelisk run //scripts:run-utility -- spark-clock run                 # idempotent optimize to target
+  bazelisk run //scripts:run-utility -- spark-clock reset
+  bazelisk run //scripts:run-utility -- spark-clock set 2100            # ceiling only
+  bazelisk run //scripts:run-utility -- spark-clock set 300,2100        # floor,ceiling range
+  bazelisk run //scripts:run-utility -- spark-clock diagnose
+  bazelisk run //scripts:run-utility -- spark-clock --enable-systemd-service
+  bazelisk run //scripts:run-utility -- spark-clock --disable-systemd-service
 
 ```
 
@@ -3153,7 +3153,7 @@ mirrors tracked files into `k8s/dev/templates/coder-spark-lab/hermes-seed/`.
 ```bash
 Usage:
   bazelisk run //scripts:run-utility -- sync-hermes-seed
-  ./scripts/utilities/sync-hermes-seed.sh
+  bazelisk run //scripts:run-utility -- sync-hermes-seed
 ```
 
 ### Command: sync-hermes-seed
@@ -3187,8 +3187,8 @@ without re-downloading large models. Uses the high-speed interconnect links when
 
 ```bash
 Usage:
-  ./scripts/utilities/sync-ollama-models.sh status [--json]
-  ./scripts/utilities/sync-ollama-models.sh run [to-remote|from-remote]
+  bazelisk run //scripts:run-utility -- sync-ollama-models status [--json]
+  bazelisk run //scripts:run-utility -- sync-ollama-models run [to-remote|from-remote]
 
 ```
 
@@ -3230,8 +3230,8 @@ Always stop jobs first (manage.sh stop) and verify clean before reboot.
 
 ```bash
 Usage:
-  ./scripts/utilities/system-update.sh status [--json]
-  ./scripts/utilities/system-update.sh run [--reboot]
+  bazelisk run //scripts:run-utility -- system-update status [--json]
+  bazelisk run //scripts:run-utility -- system-update run [--reboot]
 
 ```
 
@@ -3253,10 +3253,10 @@ Seed and verify Hermes workspace-dev profile for Coder/Kasm workspaces.
 
 ```bash
 Usage:
-  ./scripts/utilities/workspace-hermes.sh status [--json]
-  ./scripts/utilities/workspace-hermes.sh seed <target-dir>
-  ./scripts/utilities/workspace-hermes.sh render <target-dir>
-  ./scripts/utilities/workspace-hermes.sh verify
+  bazelisk run //scripts:run-utility -- workspace-hermes status [--json]
+  bazelisk run //scripts:run-utility -- workspace-hermes seed <target-dir>
+  bazelisk run //scripts:run-utility -- workspace-hermes render <target-dir>
+  bazelisk run //scripts:run-utility -- workspace-hermes verify
 ```
 
 ### Command: workspace-hermes

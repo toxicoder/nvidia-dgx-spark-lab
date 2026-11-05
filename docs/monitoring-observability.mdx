@@ -53,13 +53,13 @@ flowchart LR
 ## Starting the Stack
 
 ```bash
-./scripts/manage.sh start-monitoring
+bazelisk run //:manage -- start-monitoring
 # Verify scrape targets
-./scripts/manage.sh monitoring verify
+bazelisk run //:manage -- monitoring verify
 # or
-./scripts/utilities/monitoring-stack.sh verify --json
+bazelisk run //scripts:run-utility -- monitoring-stack verify --json
 
-./scripts/manage.sh urls
+bazelisk run //:manage -- urls
 ```
 
 Ansible path (same underlying `scripts/lib/monitoring.sh`):
@@ -98,7 +98,7 @@ All dashboards live in `config/grafana/dashboards/` and are loaded via ConfigMap
 Regenerate dashboard JSON after edits:
 
 ```bash
-python3 config/grafana/generate-dashboards.py
+bazelisk run //config:generate-dashboards
 ```
 
 ## Lab Dashboard Integration
@@ -127,7 +127,7 @@ DCGM is explicitly enabled in the GPU Operator role. If GPU metrics are missing:
 ```bash
 kubectl get pods -n gpu-operator | grep dcgm
 kubectl logs -n gpu-operator -l app=nvidia-dcgm-exporter --tail=20
-./scripts/manage.sh monitoring verify
+bazelisk run //:manage -- monitoring verify
 ```
 
 ## What red means
@@ -146,9 +146,9 @@ Entry: `bazelisk run //:manage -- urls` then Grafana. DCGM comes from GPU Operat
 
 **Grafana empty / no data**
 
-1. Run `./scripts/manage.sh monitoring verify` — check `missingRequiredJobs`
+1. Run `bazelisk run //:manage -- monitoring verify` — check `missingRequiredJobs`
 2. Confirm Prometheus pod: `kubectl get pods -n monitoring -l app.kubernetes.io/name=prometheus`
-3. Re-deploy: `./scripts/manage.sh start-monitoring`
+3. Re-deploy: `bazelisk run //:manage -- start-monitoring`
 
 **Probe failures for Hermes/MCP**
 

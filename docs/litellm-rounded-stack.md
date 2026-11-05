@@ -95,8 +95,8 @@ Documented Apache-2 swap if HAI-DEF is a problem: Baichuan-M2-32B (docs only). D
 
     ```bash
     bazelisk run //:manage -- stop-stack-rounded
-    ./scripts/manage.sh stop-glm53-flash
-    ./scripts/manage.sh stop-dsv41-flash
+    bazelisk run //:manage -- stop-glm53-flash
+    bazelisk run //:manage -- stop-dsv41-flash
     ```
 
 3. `doctor` then start **one** of A, B, or C.

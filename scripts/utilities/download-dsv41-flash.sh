@@ -13,8 +13,8 @@
 # Never OFFLOAD_MODE=ram.
 #
 # Usage:
-#   ./scripts/utilities/download-dsv41-flash.sh status [--json]
-#   ./scripts/utilities/download-dsv41-flash.sh run
+#   bazelisk run //scripts:run-utility -- download-dsv41-flash status [--json]
+#   bazelisk run //scripts:run-utility -- download-dsv41-flash run
 #
 # @command download-dsv41-flash
 

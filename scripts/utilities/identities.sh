@@ -6,12 +6,12 @@
 # Replaces the factory ubuntu account as the day-2 Ansible principal.
 #
 # Usage:
-#   ./scripts/utilities/identities.sh status [--json]
-#   ./scripts/utilities/identities.sh plan
-#   ./scripts/utilities/identities.sh run
-#   ./scripts/utilities/identities.sh ensure-keys
-#   ./scripts/utilities/identities.sh apply --yes
-#   ./scripts/utilities/identities.sh ping
+#   bazelisk run //scripts:run-utility -- identities status [--json]
+#   bazelisk run //scripts:run-utility -- identities plan
+#   bazelisk run //scripts:run-utility -- identities run
+#   bazelisk run //scripts:run-utility -- identities ensure-keys
+#   bazelisk run //scripts:run-utility -- identities apply --yes
+#   bazelisk run //scripts:run-utility -- identities ping
 #
 # Safety:
 #   Default is status (read-only). apply requires --yes.

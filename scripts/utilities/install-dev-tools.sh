@@ -7,8 +7,8 @@
 # Linux, DGX Spark).
 #
 # Usage:
-#   ./scripts/utilities/install-dev-tools.sh status
-#   ./scripts/utilities/install-dev-tools.sh run
+#   bazelisk run //scripts:run-utility -- install-dev-tools status
+#   bazelisk run //scripts:run-utility -- install-dev-tools run
 #
 # @command install-dev-tools
 set -euo pipefail
@@ -56,7 +56,7 @@ print_platform() {
 cmd_status() {
   print_platform
   echo ""
-  echo "Tool PATH check (not a full doctor — use bash .devcontainer/doctor.sh in-container):"
+  echo "Tool PATH check (not a full doctor — use bazelisk run //:doctor in-container):"
   for t in bazelisk buildifier shfmt shellcheck yamllint kubeconform ruff mypy node npm jq docker; do
     if command -v "${t}" >/dev/null 2>&1; then
       echo "  OK  ${t}"

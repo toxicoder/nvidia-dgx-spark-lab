@@ -84,7 +84,7 @@ Tool pins live in [`.devcontainer/tool-versions.env`](https://github.com/toxicod
 4. Wait for image build (first time) + `post-create` (npm + docs + doctor).
 
 ```bash
-bash .devcontainer/doctor.sh
+bazelisk run //:doctor
 bazelisk run //:fix
 bazelisk run //:validate
 ```
@@ -167,7 +167,7 @@ bazelisk run //:validate                    # git-aware checks
 bazelisk run //:validate -- --all           # before merge
 bazelisk test //:test-fast --config=ci      # CI core suite
 bazelisk run //docs:serve -- --port 8080    # docs (port forwarded)
-cd dashboard && npm run dev                 # portal on :3000
+bazelisk run //dashboard:dev                # portal on :3000
 bazelisk run //dashboard:fast-test          # Vitest + lint + tsc
 bazelisk run //dashboard:hermetic-test      # needs host Docker
 ```
@@ -197,17 +197,17 @@ checkouts are not forced onto Linux paths.
 Prefer the container for parity. If you must work on the host:
 
 ```bash
-./scripts/utilities/install-dev-tools.sh status
-./scripts/utilities/install-dev-tools.sh run     # Linux/macOS best-effort
+bazelisk run //scripts:run-utility -- install-dev-tools status
+bazelisk run //scripts:run-utility -- install-dev-tools run     # Linux/macOS best-effort
 ```
 
 Linux CI-style lint install (amd64 **and** arm64):
 
 ```bash
-bash scripts/ci/install-lint-tools.sh
+bazelisk run //scripts:ci_install_lint_tools
 ```
 
-Then install **Node 22+** and run `cd dashboard && npm ci`, plus `docs/setup-docs.sh` for the docs site.
+Then install the dashboard and docs-site dependencies with `bazelisk run //dashboard:install` and `bazelisk run //docs-site:install`.
 
 On **Windows**, use WSL2 Ubuntu and either the devcontainer or the Linux host path above—not native PowerShell for Bazel/lint.
 
@@ -241,7 +241,7 @@ flowchart LR
 
 | Symptom | Fix |
 | --- | --- |
-| Create failed / doctor red | **Rebuild Container**; check Docker is running; run `bash .devcontainer/doctor.sh` |
+| Create failed / doctor red | **Rebuild Container**; check Docker is running; run `bazelisk run //:doctor` |
 | `docker` missing in container | Host Docker must be running (docker-outside-of-docker uses the host socket) |
 | Apple Silicon slow first build | Expected; caches make rebuilds much faster |
 | Windows path issues | Clone under WSL filesystem (`\\wsl$\...`), not a slow `/mnt/c` tree |
@@ -254,8 +254,8 @@ flowchart LR
 | Host LiteLLM unreachable | Use `http://host.docker.internal:<port>/v1`, not `127.0.0.1` (that is the container). Docker Engine needs Docker 20.10+ (`host-gateway`). |
 | Grok cannot run `docker` | Expected under `GROK_SANDBOX=lab`. Run docker yourself, or `GROK_SANDBOX=off` for that session. |
 | Feature lockfile drift | Commit `.devcontainer/devcontainer-lock.json`; regenerate via Dev Containers rebuild / CLI when changing features. |
-| Mypy / Pylance `ENOENT` on `.venv-docs/bin/python` | Host macOS/Windows venv bind-mounted into Linux. Fix: `rm -rf .venv-docs && bash docs/setup-docs.sh` (post-create also recreates unusable venvs). IDE uses system Python 3.11 by default. |
-| `docs/manage-docs.sh status` says venv unusable | Same host venv issue; run `docs/setup-docs.sh`. |
+| Mypy / Pylance `ENOENT` on `.venv-docs/bin/python` | Host macOS/Windows venv bind-mounted into Linux. Fix: `rm -rf .venv-docs && bazelisk run //docs-site:install` (post-create also recreates unusable venvs). IDE uses system Python 3.11 by default. |
+| `docs/manage-docs.sh status` says venv unusable | Same host venv issue; run `//docs-site:install`. |
 | Hermes “tools disabled” / missing API keys at create | Expected — create installs the CLI with `--skip-setup --non-interactive`. Run `hermes setup` only when you want Hermes. |
 | Bazel extension “query failed” right after open | First download of Bazel binary; post-create prewarms `bazelisk version`. Retry or wait for prewarm. |
 

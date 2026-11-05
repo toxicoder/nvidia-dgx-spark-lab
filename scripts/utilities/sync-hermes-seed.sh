@@ -7,7 +7,7 @@
 #
 # Usage:
 #   bazelisk run //scripts:run-utility -- sync-hermes-seed
-#   ./scripts/utilities/sync-hermes-seed.sh
+#   bazelisk run //scripts:run-utility -- sync-hermes-seed
 #
 # @command sync-hermes-seed
 # @description Sync Hermes workspace-dev profile files into the Coder spark-lab template seed directory.

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
 # Thin Bazel-friendly wrapper for running ansible playbooks.
-# This provides `bazel run //ansible:<target>` entry points while still
+# This provides `bazelisk run //ansible:<target>` entry points while still
 # allowing full flexibility for real inventories.
 #
 # Usage (via Bazel - recommended for Bazel-centric workflows):
-#   bazel run //ansible:bootstrap
-#   bazel run //ansible:bootstrap -- -i ansible/inventory/hosts.ini -l spark0
+#   bazelisk run //ansible:bootstrap
+#   bazelisk run //ansible:bootstrap -- -i ansible/inventory/hosts.ini -l spark0
 #
 # Direct ansible still works and is fully supported:
 #   ansible-playbook -i ansible/inventory/hosts.ini playbooks/bootstrap-cluster.yml
@@ -21,8 +21,8 @@ cd "$SCRIPT_DIR"
 PLAYBOOK="${1:-}"
 if [[ -z $PLAYBOOK ]]; then
   echo "Usage: $0 <playbook-name.yml> [extra ansible-playbook args...]"
-  echo "Example: bazel run //ansible:bootstrap"
-  echo "         bazel run //ansible:bootstrap -- -i inventory/hosts.ini"
+  echo "Example: bazelisk run //ansible:bootstrap"
+  echo "         bazelisk run //ansible:bootstrap -- -i inventory/hosts.ini"
   exit 1
 fi
 shift || true

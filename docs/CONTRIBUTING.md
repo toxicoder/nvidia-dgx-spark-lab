@@ -37,13 +37,7 @@ bazelisk run //docs-site:unit                 # Widget + content-transform unit 
 bazelisk run //docs-site:typecheck            # next typegen + tsc
 ```
 
-Classic scripts (the `manage-docs.sh` wrapper installs npm dependencies when missing):
-
-```bash
-./docs/manage-docs.sh serve
-./docs/manage-docs.sh build
-./docs/manage-docs.sh preview
-```
+The docs targets install missing npm dependencies on first run, so a fresh clone needs no separate setup step.
 
 Inside `docs-site/` the same things are npm scripts: `npm run dev`, `npm run build`,
 `npm run visual`, `npm run nav:check`.  Screenshot baselines are refreshed with
@@ -55,7 +49,7 @@ or the `--help` output for all options.
 
 Sidebar groups live in `docs-site/lib/nav.json`, transcribed once from the former
 `mkdocs.yml` nav.  That file is gone, so `nav.json` is the source of truth: edit it by hand
-and verify with `npm run nav:check` (which fails if an entry has no page on disk).  The
+and verify with `bazelisk test //docs-site:nav_test` (which fails if an entry has no page on disk).  The
 groups are:
 
 - **Home** — path cards, default stack, safety table
@@ -120,7 +114,7 @@ The [Shell Commands & Helpers](generated/shell/reference.md) page is **not** wri
 # Talk about what it does, safety properties, when to use it.
 #
 # Usage:
-#   ./scripts/manage.sh foo --bar
+#   bazelisk run //:manage -- foo --bar
 #
 # Safety:
 #   Always run stop before reboot.
@@ -134,7 +128,7 @@ The [Shell Commands & Helpers](generated/shell/reference.md) page is **not** wri
 
 **Full workflow**
 
-1. Edit `scripts/manage.sh` or `scripts/lib/*.sh`.
+1. Edit `//:manage` or `scripts/lib/*.sh`.
 2. Add or improve a `# ##` / `# @command` block with rich, accurate docs (over-document — the user asked for this).
 3. `bazelisk run //docs:docs` (or serve).
 4. Check `docs/generated/shell/reference.md` and the rendered site page.
@@ -145,7 +139,7 @@ See the Mermaid pipeline in [BUILDING_WITH_BAZEL.md](BUILDING_WITH_BAZEL.md#docu
 
 The generator lives in `docs/generate_shell_docs.py`. It is intentionally kept simple (stdlib only) but is being improved for even nicer output formatting.
 
-**Dashboard API docs** are generated the same way via TypeDoc — see `dashboard/typedoc.json` and `bazel run //dashboard:docs`.
+**Dashboard API docs** are generated the same way via TypeDoc — see `dashboard/typedoc.json` and `bazelisk run //dashboard:docs`.
 
 Always keep the generated reference and the prose docs about it in sync with reality. Prefer over-documenting.
 
@@ -163,7 +157,7 @@ For fast local checks before commit, install [pre-commit](https://pre-commit.com
 ```bash
 pip install --user pre-commit
 pre-commit install
-pre-commit run --all-files   # optional dry run
+bazelisk test //:lint --test_tag_filters=manual   # optional dry run
 ```
 
 The devcontainer image already includes these CLIs; on the host, install them or use the devcontainer.

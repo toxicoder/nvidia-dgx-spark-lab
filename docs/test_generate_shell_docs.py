@@ -493,7 +493,9 @@ class TestDeterministicOrdering(unittest.TestCase):
                 for name in sorted(names)
                 if name.endswith(".sh")
             ]
-            positions = [outputs[0].index(f"<!-- source: scripts/{rel} -->") for rel in expected_order]
+            positions = [
+                outputs[0].index(f"<!-- source: scripts/{rel} -->") for rel in expected_order
+            ]
             self.assertEqual(positions, sorted(positions))
 
 
