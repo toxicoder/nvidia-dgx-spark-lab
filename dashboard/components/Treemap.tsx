@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertDialog } from "@/components/ui/dialog";
@@ -161,17 +161,20 @@ function toRechartsData(node: TreeNode, depth = 0): RechartsDataNode {
     node.children && node.children.length > 0 ? node.children.map((c) => toRechartsData(c, depth + 1)) : undefined;
   const hasChildren = Boolean(children?.length);
   // Container nodes paint the gap between rounded child tiles — use surface, not primary.
+  // Palette is a non-empty const array and depth is a non-negative counter, so the modulo index is in range.
   const fill = hasChildren
     ? "var(--md-sys-color-surface)"
-    : TREEMAP_COLOR_PALETTE[depth % TREEMAP_COLOR_PALETTE.length];
-  return {
+    : TREEMAP_COLOR_PALETTE[depth % TREEMAP_COLOR_PALETTE.length]!;
+  const data: RechartsDataNode = {
     name: node.name,
     value: Math.max(node.size || 0, 1),
     path: node.path,
     isDir: node.isDir,
-    fill,
-    children
+    fill
   };
+  // Leave `children` absent for leaves rather than setting it to undefined.
+  if (children) data.children = children;
+  return data;
 }
 
 interface TreemapCellContentProps extends RechartsChartNode {
@@ -294,14 +297,17 @@ export default function Treemap({ root, onDelete, onFindDuplicates }: TreemapPro
       .map((c, i) => {
         const displayName = c.name || "";
         const isSelected = selected.has(c.path);
-        const baseFill = SUNBURST_SEGMENT_PALETTE[i % SUNBURST_SEGMENT_PALETTE.length];
+        // Non-empty const palette indexed by a modulo of the map counter, so the index is in range.
+        const baseFill = SUNBURST_SEGMENT_PALETTE[i % SUNBURST_SEGMENT_PALETTE.length]!;
+        // Built field by field so `children` stays absent: the sunburst renders one ring of top-level segments.
         return {
-          ...c,
           name: displayName,
-          displayName,
-          shortName: truncateSunburstName(displayName),
+          value: c.value,
+          path: c.path,
+          isDir: c.isDir,
           fill: isSelected ? SUNBURST_SELECTED_FILL : baseFill,
-          children: undefined
+          displayName,
+          shortName: truncateSunburstName(displayName)
         };
       });
   }, [chartData, selected]);
@@ -463,7 +469,13 @@ export default function Treemap({ root, onDelete, onFindDuplicates }: TreemapPro
             className="h-8 max-w-[200px] text-xs"
           />
 
-          <Button onClick={handleFindDupes} disabled={isLoading} variant="secondary" size="sm" className="text-xs">
+          <Button
+            onClick={() => void handleFindDupes()}
+            disabled={isLoading}
+            variant="secondary"
+            size="sm"
+            className="text-xs"
+          >
             Find Duplicates
           </Button>
 
@@ -481,7 +493,13 @@ export default function Treemap({ root, onDelete, onFindDuplicates }: TreemapPro
           </Select>
 
           {selected.size > 0 && (
-            <Button onClick={handleBulkDelete} disabled={isLoading} variant="destructive" size="sm" className="text-xs">
+            <Button
+              onClick={() => void handleBulkDelete()}
+              disabled={isLoading}
+              variant="destructive"
+              size="sm"
+              className="text-xs"
+            >
               Delete {selected.size} selected
             </Button>
           )}
@@ -599,7 +617,7 @@ export default function Treemap({ root, onDelete, onFindDuplicates }: TreemapPro
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
-                          onDelete(node.path);
+                          void onDelete(node.path);
                         }}
                         variant="destructive"
                         size="icon"

@@ -126,7 +126,7 @@ export function StoragePanel({
         <div className="min-w-0 text-xs text-muted-foreground">
           Disk usage — toggle Treemap / Sunburst. Click tiles to drill or select.
         </div>
-        <Button onClick={refresh} disabled={isRefreshing} variant="outline" size="sm" className="text-xs">
+        <Button onClick={() => void refresh()} disabled={isRefreshing} variant="outline" size="sm" className="text-xs">
           <RefreshCw className="mr-1 h-3 w-3" /> {isRefreshing ? "Refreshing..." : "Refresh"}
         </Button>
       </div>

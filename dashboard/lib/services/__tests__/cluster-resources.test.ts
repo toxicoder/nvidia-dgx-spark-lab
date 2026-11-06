@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import type { FreeResourceSuggestion } from "@/lib/types";
 import { getServiceMocks, mockUtilityExists, resetRealPathEnv } from "./real-path-mocks";
 import * as cluster from "../cluster-resources";
 
@@ -108,11 +109,48 @@ describe("cluster-resources service (real path)", () => {
   });
 
   it("suggestFreeResources parses suggestions JSON", async () => {
-    const suggestions = [{ action: "stop:kimi-test", frees: { gpus: 2 } }];
+    const suggestions: FreeResourceSuggestion[] = [
+      {
+        id: "stop-kimi-test",
+        label: "Stop kimi-test jobs",
+        action: "stop:kimi-test",
+        reversible: true,
+        impact: "Stops the kimi-test jobs",
+        applicable: true,
+        frees: { cpu: "8", memory: "32Gi", gpus: 2 }
+      }
+    ];
     getServiceMocks().execFileAsync.mockResolvedValue({ stdout: JSON.stringify(suggestions), stderr: "" });
 
     const result = await cluster.suggestFreeResources("model:kimi");
     expect(result).toEqual(suggestions);
+  });
+
+  it("suggestFreeResources keeps numeric frees values numeric", async () => {
+    const suggestions = [
+      {
+        id: "stop-coder",
+        label: "Stop Coder workspaces",
+        action: "dev:coder",
+        reversible: true,
+        impact: "Frees dev environments",
+        applicable: true,
+        frees: { gpus: 0, memory: "all", gpus_note: "approx" }
+      }
+    ];
+    getServiceMocks().execFileAsync.mockResolvedValue({ stdout: JSON.stringify(suggestions), stderr: "" });
+
+    const result = await cluster.suggestFreeResources("model:kimi");
+    expect(result[0]?.frees.gpus).toBe(0);
+    expect(result[0]?.frees.memory).toBe("all");
+  });
+
+  it("suggestFreeResources returns empty array when a row is missing required keys", async () => {
+    const partial = [{ action: "stop:kimi-test", frees: { gpus: 2 } }];
+    getServiceMocks().execFileAsync.mockResolvedValue({ stdout: JSON.stringify(partial), stderr: "" });
+
+    const result = await cluster.suggestFreeResources("model:kimi");
+    expect(result).toEqual([]);
   });
 
   it("suggestFreeResources returns empty array on failure", async () => {

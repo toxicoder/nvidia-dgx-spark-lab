@@ -6,6 +6,10 @@ import path from "node:path";
 import { mockNemotronCatalog, mockNemotronStackStatus } from "../mocks/fixtures";
 import type { NemotronCatalog, NemotronStackStatus } from "../types";
 import { withMock } from "../host";
+import { parseNemotronCatalog, parseNemotronStackStatus } from "./cli-json";
+
+/** Name used in diagnostics when the utility's payload is unusable. */
+const UTILITY_NAME = "nemotron-stack.sh";
 
 const execFileAsync = promisify(execFile);
 
@@ -55,7 +59,7 @@ export async function getNemotronCatalog(): Promise<NemotronCatalog> {
   return withMock(mockNemotronCatalog(), async () => {
     const { stdout, exitCode } = await runNemotronStack(["catalog", "--json"]);
     if (exitCode !== 0) throw new Error(stdout || "nemotron-stack catalog failed");
-    return JSON.parse(stdout.trim()) as NemotronCatalog;
+    return parseNemotronCatalog(stdout, UTILITY_NAME);
   });
 }
 
@@ -68,7 +72,7 @@ export async function getNemotronStackStatus(): Promise<NemotronStackStatus> {
   return withMock(mockNemotronStackStatus(), async () => {
     const { stdout, exitCode } = await runNemotronStack(["status", "--json"]);
     if (exitCode !== 0) throw new Error(stdout || "nemotron-stack status failed");
-    return JSON.parse(stdout.trim()) as NemotronStackStatus;
+    return parseNemotronStackStatus(stdout, UTILITY_NAME);
   });
 }
 

@@ -6,6 +6,10 @@ import fs from "fs";
 import { withMock } from "../host";
 import { fakeDevWorkspacesStatus } from "../mocks/fixtures";
 import type { DevWorkspaceName, DevWorkspacesStatus } from "../types";
+import { parseDevWorkspacesStatus } from "./cli-json";
+
+/** Name used in diagnostics when the utility's payload is unusable. */
+const UTILITY_NAME = "dev-workspaces.sh";
 
 const execFileAsync = promisify(execFile);
 
@@ -81,7 +85,7 @@ export async function getDevWorkspacesStatus(): Promise<DevWorkspacesStatus> {
         timeout: 15000,
         maxBuffer: 1024 * 64
       });
-      const parsed = JSON.parse(stdout.trim()) as DevWorkspacesStatus;
+      const parsed = parseDevWorkspacesStatus(stdout, UTILITY_NAME);
       return applyUrlOverrides(parsed);
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);

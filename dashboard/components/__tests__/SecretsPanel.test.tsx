@@ -3,6 +3,10 @@ import { render, screen, fireEvent, waitFor, within } from "@testing-library/rea
 import { SecretsPanel } from "../SecretsPanel";
 import { fakeSecrets } from "@/lib/mocks/fixtures";
 
+// Fixture invariant: tests below address the first secret directly.
+const [firstSecret] = fakeSecrets;
+if (!firstSecret) throw new Error("fakeSecrets fixture must not be empty");
+
 const secretMocks = vi.hoisted(() => ({
   createSecretAction: vi.fn(),
   updateSecretValueAction: vi.fn(),
@@ -18,7 +22,6 @@ const selectMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/components/ui/select", () => {
-  const React = require("react");
   return {
     Select: ({
       children,
@@ -155,16 +158,13 @@ describe("SecretsPanel", () => {
     fireEvent.change(screen.getByPlaceholderText("KEY"), { target: { value: "TOKEN" } });
     fireEvent.click(screen.getByRole("button", { name: /Save encrypted/i }));
 
+    const expectedSync: unknown = expect.objectContaining({
+      namespace: "ai-inference",
+      secretName: "lab-sync",
+      key: "TOKEN"
+    });
     await waitFor(() => {
-      expect(secretMocks.createSecretAction).toHaveBeenCalledWith(
-        expect.objectContaining({
-          k8sSync: expect.objectContaining({
-            namespace: "ai-inference",
-            secretName: "lab-sync",
-            key: "TOKEN"
-          })
-        })
-      );
+      expect(secretMocks.createSecretAction).toHaveBeenCalledWith(expect.objectContaining({ k8sSync: expectedSync }));
     });
   });
 
@@ -190,9 +190,10 @@ describe("SecretsPanel", () => {
     fireEvent.change(screen.getByLabelText(/^Value$/i), { target: { value: "v" } });
     fireEvent.click(screen.getByRole("button", { name: /Save encrypted/i }));
 
+    const expectedSyncError: unknown = expect.stringContaining("cluster unreachable");
     await waitFor(() => {
       expect(toastMock).toHaveBeenCalledWith(
-        expect.objectContaining({ variant: "error", description: expect.stringContaining("cluster unreachable") })
+        expect.objectContaining({ variant: "error", description: expectedSyncError })
       );
     });
   });
@@ -229,7 +230,7 @@ describe("SecretsPanel", () => {
 
     await waitFor(() => {
       expect(secretMocks.updateSecretValueAction).toHaveBeenCalledWith({
-        id: fakeSecrets[0].id,
+        id: firstSecret.id,
         value: "rotated"
       });
       expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({ title: "Value updated" }));
@@ -421,7 +422,7 @@ describe("SecretsPanel", () => {
     fireEvent.click(within(row).getByTitle("Sync to Kubernetes"));
 
     await waitFor(() => {
-      expect(secretMocks.syncSecretToK8sAction).toHaveBeenCalledWith({ id: fakeSecrets[0].id });
+      expect(secretMocks.syncSecretToK8sAction).toHaveBeenCalledWith({ id: firstSecret.id });
       expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({ title: "Synced to Kubernetes" }));
     });
   });
@@ -445,9 +446,10 @@ describe("SecretsPanel", () => {
     const row = screen.getByText("hf-token").closest("tr")!;
     fireEvent.click(within(row).getByTitle("Sync to Kubernetes"));
 
+    const expectedSyncFailure: unknown = expect.stringContaining("network");
     await waitFor(() => {
       expect(toastMock).toHaveBeenCalledWith(
-        expect.objectContaining({ title: "Sync failed", description: expect.stringContaining("network") })
+        expect.objectContaining({ title: "Sync failed", description: expectedSyncFailure })
       );
     });
   });
@@ -476,11 +478,14 @@ describe("SecretsPanel", () => {
     fireEvent.change(screen.getByPlaceholderText("KEY"), { target: { value: "KEY" } });
     fireEvent.click(screen.getByRole("button", { name: /Save encrypted/i }));
 
+    const expectedNamespaceSync: unknown = expect.objectContaining({
+      namespace: "dev",
+      secretName: "lab-dev",
+      key: "KEY"
+    });
     await waitFor(() => {
       expect(secretMocks.createSecretAction).toHaveBeenCalledWith(
-        expect.objectContaining({
-          k8sSync: expect.objectContaining({ namespace: "dev", secretName: "lab-dev", key: "KEY" })
-        })
+        expect.objectContaining({ k8sSync: expectedNamespaceSync })
       );
     });
   });
@@ -512,7 +517,7 @@ describe("SecretsPanel", () => {
 
   it("shows raw category label when category is unknown", () => {
     const oddSecret = {
-      ...fakeSecrets[0],
+      ...firstSecret,
       category: "legacy-cat" as (typeof fakeSecrets)[0]["category"]
     };
     render(<SecretsPanel initialSecrets={[oddSecret]} />);

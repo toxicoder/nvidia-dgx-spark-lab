@@ -20,7 +20,6 @@ const alertDialogMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/components/ui/dialog", async () => {
-  const React = await import("react");
   const actual = await vi.importActual<typeof import("@/components/ui/dialog")>("@/components/ui/dialog");
   return {
     ...actual,

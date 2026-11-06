@@ -52,7 +52,9 @@ export async function getStorageTree(targetPath = "/mnt/models", maxDepth = 3): 
           if (isDir) {
             const sub = await walk(full, depth + 1);
             node.size = sub.size || 0;
-            node.children = sub.children;
+            // Assigned only when present: `children` is optional and
+            // exactOptionalPropertyTypes forbids writing an explicit undefined.
+            if (sub.children) node.children = sub.children;
           }
           total += node.size;
           children.push(node);
@@ -139,7 +141,7 @@ export async function findDuplicates(
             const stat = await fs.stat(full);
             if (stat.size >= minSize) {
               if (!sizeMap[stat.size]) sizeMap[stat.size] = [];
-              sizeMap[stat.size].push(full);
+              sizeMap[stat.size]?.push(full);
             }
           }
         }

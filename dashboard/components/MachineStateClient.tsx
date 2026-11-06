@@ -55,7 +55,7 @@ export function MachineStateClient({ initialData }: { initialData: MachineStateD
   return (
     <div data-testid="machine-state-client">
       <div className="mb-4 flex justify-end">
-        <Button onClick={refresh} disabled={loading} variant="outline" size="sm" className="text-xs">
+        <Button onClick={() => void refresh()} disabled={loading} variant="outline" size="sm" className="text-xs">
           {loading ? "..." : "Refresh"}
         </Button>
       </div>

@@ -8,7 +8,15 @@ import path from "path";
 import fs from "fs";
 import { withMock } from "../host";
 import { mockClusterCapacity, mockCapacityCheck, fakeFreeResourceSuggestions } from "../mocks/fixtures";
+import {
+  parseCapacityCheck,
+  parseClusterCapacity,
+  parseFreeResourceSuggestions
+} from "./cli-json";
 import type { CapacityCheck, ClusterCapacity, FreeResourceSuggestion } from "../types";
+
+/** Name used in diagnostics when a utility's payload is unusable. */
+const UTILITY_NAME = "cluster-resources.sh";
 
 const execFileAsync = promisify(execFile);
 
@@ -47,7 +55,7 @@ export async function getClusterCapacity(): Promise<ClusterCapacity> {
         timeout: 20000,
         maxBuffer: 1024 * 256
       });
-      return JSON.parse(stdout.trim()) as ClusterCapacity;
+      return parseClusterCapacity(stdout, UTILITY_NAME);
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
       return { ...mockCapacity, error: message };
@@ -68,12 +76,12 @@ export async function checkCapacity(action: string): Promise<CapacityCheck> {
         timeout: 20000,
         maxBuffer: 1024 * 128
       });
-      return JSON.parse(stdout.trim()) as CapacityCheck;
+      return parseCapacityCheck(stdout, UTILITY_NAME);
     } catch (e: unknown) {
       const err = e as { stdout?: string; message?: string };
       if (err.stdout) {
         try {
-          return JSON.parse(err.stdout.trim()) as CapacityCheck;
+          return parseCapacityCheck(err.stdout, UTILITY_NAME);
         } catch {
           /* fall through */
         }
@@ -103,7 +111,7 @@ export async function suggestFreeResources(action: string): Promise<FreeResource
         timeout: 15000,
         maxBuffer: 1024 * 128
       });
-      return JSON.parse(stdout.trim()) as FreeResourceSuggestion[];
+      return parseFreeResourceSuggestions(stdout, UTILITY_NAME);
     } catch {
       return [];
     }

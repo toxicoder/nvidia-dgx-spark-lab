@@ -2,12 +2,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { ResourcesPanel } from "../ResourcesPanel";
 import { fakeClusterCapacity, fakeMonitoringStackStatus } from "@/lib/mocks/fixtures";
+import type { ClusterCapacity } from "@/lib/types";
 
-const getClusterCapacityAction = vi.fn();
+const getClusterCapacityAction = vi.fn<() => Promise<ClusterCapacity>>();
 const toastMock = vi.fn();
 
 vi.mock("@/actions/host-actions", () => ({
-  getClusterCapacityAction: (...args: unknown[]) => getClusterCapacityAction(...args)
+  getClusterCapacityAction: () => getClusterCapacityAction()
 }));
 
 vi.mock("@/components/ui/toast", () => ({

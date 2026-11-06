@@ -74,8 +74,8 @@ export async function createSecret(input: {
   name: string;
   category: SecretCategory;
   value: string;
-  description?: string;
-  k8sSync?: K8sSyncTarget;
+  description?: string | undefined;
+  k8sSync?: K8sSyncTarget | undefined;
   actorEmail: string;
 }): Promise<LabSecretMeta> {
   if (process.env.USE_MOCKS === "1") {
@@ -152,8 +152,9 @@ export async function updateSecretValue(input: {
 /** Update non-value secret metadata such as description or K8s sync target. */
 export async function updateSecretMeta(input: {
   id: string;
-  description?: string | null;
-  k8sSync?: K8sSyncTarget | null;
+  /** Omitted or `undefined` keeps the stored value; `null` clears it. */
+  description?: string | null | undefined;
+  k8sSync?: K8sSyncTarget | null | undefined;
   actorEmail: string;
 }): Promise<LabSecretMeta> {
   if (process.env.USE_MOCKS === "1") {

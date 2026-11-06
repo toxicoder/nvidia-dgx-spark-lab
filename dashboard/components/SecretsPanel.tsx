@@ -139,7 +139,7 @@ export function SecretsPanel({ initialSecrets }: SecretsPanelProps): React.JSX.E
       setUpdateValue("");
       toast({
         title: "Value updated",
-        description: syncError ? `Updated, but K8s sync failed: ${syncError}` : undefined,
+        ...(syncError ? { description: `Updated, but K8s sync failed: ${syncError}` } : {}),
         variant: syncError ? "error" : "default"
       });
     } catch (e) {

@@ -5,7 +5,11 @@ import path from "path";
 import fs from "fs";
 import { withMock } from "../host";
 import { mockInferenceWorkloadsStatus } from "../mocks/fixtures";
+import { parseInferenceWorkloadsStatus } from "./cli-json";
 import type { InferenceModelName, InferenceWorkloadsStatus } from "../types";
+
+/** Name used in diagnostics when the utility's payload is unusable. */
+const UTILITY_NAME = "inference-workloads.sh";
 
 const execFileAsync = promisify(execFile);
 
@@ -44,7 +48,7 @@ export async function getInferenceWorkloadsStatus(): Promise<InferenceWorkloadsS
         timeout: 20000,
         maxBuffer: 1024 * 256
       });
-      return JSON.parse(stdout.trim()) as InferenceWorkloadsStatus;
+      return parseInferenceWorkloadsStatus(stdout, UTILITY_NAME);
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
       return { ...mockStatus, error: message };

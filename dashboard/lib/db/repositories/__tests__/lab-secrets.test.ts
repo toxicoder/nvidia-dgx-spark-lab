@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import fs from "fs";
 import os from "os";
@@ -16,6 +16,7 @@ import {
 } from "../lab-secrets";
 import { labSecrets, secretAuditEvents } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { itemAt } from "../../../__tests__/test-assert";
 
 describe("lab-secrets repository", () => {
   let dbPath: string;
@@ -49,9 +50,10 @@ describe("lab-secrets repository", () => {
 
     const rows = await listSecrets();
     expect(rows).toHaveLength(1);
-    expect(rows[0].name).toBe("test-key");
-    expect(rows[0].valueHint).toBe("alue");
-    expect(rows[0]).not.toHaveProperty("ciphertext");
+    const firstRow = itemAt(rows, 0);
+    expect(firstRow.name).toBe("test-key");
+    expect(firstRow.valueHint).toBe("alue");
+    expect(firstRow).not.toHaveProperty("ciphertext");
   });
 
   it("decrypts stored value server-side only", async () => {

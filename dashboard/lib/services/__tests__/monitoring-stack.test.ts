@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { getServiceMocks, mockUtilityExists, resetRealPathEnv } from "./real-path-mocks";
 import * as monitoring from "../monitoring-stack";
+import { itemAt } from "../../__tests__/test-assert";
 
 describe("monitoring-stack service (mock)", () => {
   beforeEach(() => {
@@ -26,8 +27,8 @@ describe("monitoring-stack service (real path)", () => {
 
   it("getMonitoringStackStatus parses status JSON", async () => {
     const payload = {
-      grafana: { name: "grafana", state: "running", readyPods: 1, totalPods: 1, helmInstalled: true, urls: {} },
-      headlamp: { name: "headlamp", state: "stopped", readyPods: 0, totalPods: 1, helmInstalled: true, urls: {} },
+      grafana: { name: "grafana", state: "running", readyPods: 1, totalPods: 1, helmInstalled: true },
+      headlamp: { name: "headlamp", state: "stopped", readyPods: 0, totalPods: 1, helmInstalled: true },
       prometheus: { name: "prometheus", state: "running", readyPods: 1, totalPods: 1, helmInstalled: true },
       nodeExporter: { name: "node-exporter", state: "running", readyPods: 2, totalPods: 2, helmInstalled: true },
       kubeStateMetrics: {
@@ -51,7 +52,7 @@ describe("monitoring-stack service (real path)", () => {
 
     const status = await monitoring.getMonitoringStackStatus();
     expect(status.grafana.state).toBe("running");
-    expect(status.dashboards[0].uid).toBe("spark-overview");
+    expect(itemAt(status.dashboards, 0).uid).toBe("spark-overview");
   });
 
   it("getMonitoringStackStatus throws when utility exits non-zero", async () => {
@@ -64,8 +65,8 @@ describe("monitoring-stack service (real path)", () => {
     getServiceMocks().existsSync.mockReturnValue(false);
     getServiceMocks().execFileAsync.mockResolvedValue({
       stdout: JSON.stringify({
-        grafana: { name: "grafana", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false, urls: {} },
-        headlamp: { name: "headlamp", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false, urls: {} },
+        grafana: { name: "grafana", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false },
+        headlamp: { name: "headlamp", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false },
         prometheus: { name: "prometheus", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false },
         nodeExporter: { name: "node-exporter", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false },
         kubeStateMetrics: {
@@ -96,8 +97,8 @@ describe("monitoring-stack service (real path)", () => {
     mockUtilityExists("monitoring-stack.sh", "/workspace");
     getServiceMocks().execFileAsync.mockResolvedValue({
       stdout: JSON.stringify({
-        grafana: { name: "grafana", state: "running", readyPods: 1, totalPods: 1, helmInstalled: true, urls: {} },
-        headlamp: { name: "headlamp", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false, urls: {} },
+        grafana: { name: "grafana", state: "running", readyPods: 1, totalPods: 1, helmInstalled: true },
+        headlamp: { name: "headlamp", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false },
         prometheus: { name: "prometheus", state: "running", readyPods: 1, totalPods: 1, helmInstalled: true },
         nodeExporter: { name: "node-exporter", state: "running", readyPods: 2, totalPods: 2, helmInstalled: true },
         kubeStateMetrics: {
@@ -138,8 +139,8 @@ describe("monitoring-stack service (real path)", () => {
     );
     getServiceMocks().execFileAsync.mockResolvedValue({
       stdout: JSON.stringify({
-        grafana: { name: "grafana", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false, urls: {} },
-        headlamp: { name: "headlamp", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false, urls: {} },
+        grafana: { name: "grafana", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false },
+        headlamp: { name: "headlamp", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false },
         prometheus: { name: "prometheus", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false },
         nodeExporter: { name: "node-exporter", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false },
         kubeStateMetrics: {
@@ -171,8 +172,8 @@ describe("monitoring-stack service (real path)", () => {
     getServiceMocks().existsSync.mockReturnValue(false);
     getServiceMocks().execFileAsync.mockResolvedValue({
       stdout: JSON.stringify({
-        grafana: { name: "grafana", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false, urls: {} },
-        headlamp: { name: "headlamp", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false, urls: {} },
+        grafana: { name: "grafana", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false },
+        headlamp: { name: "headlamp", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false },
         prometheus: { name: "prometheus", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false },
         nodeExporter: { name: "node-exporter", state: "stopped", readyPods: 0, totalPods: 0, helmInstalled: false },
         kubeStateMetrics: {

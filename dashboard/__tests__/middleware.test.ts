@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { NextRequest } from "next/server";
 
-const getSessionCookie = vi.fn();
+const getSessionCookie = vi.fn<(...args: unknown[]) => string | undefined>();
 
 vi.mock("better-auth/cookies", () => ({
   getSessionCookie: (...args: unknown[]) => getSessionCookie(...args)

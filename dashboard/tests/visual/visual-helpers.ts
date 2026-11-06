@@ -199,7 +199,8 @@ export async function captureElement(
   page: Page,
   el: Locator,
   filename: string,
-  options?: { hideChrome?: boolean; extraWait?: number }
+  // Callers forward fields destructured from MAIN_PAGE_ELEMENTS, where absent keys read as undefined.
+  options?: { hideChrome?: boolean | undefined; extraWait?: number | undefined }
 ) {
   const { expect } = await import("@playwright/test");
   if (options?.hideChrome) {

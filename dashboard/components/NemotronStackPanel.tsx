@@ -170,6 +170,16 @@ export function NemotronStackPanel({
     toast({ title: "Copied endpoint", description: url, variant: "success" });
   };
 
+  const handleFreed = async () => {
+    const recheck = await checkCapacityAction(`stack:${activeStackId}`);
+    setLastCheck(recheck);
+    if (recheck.ok) {
+      setGateOpen(false);
+      if (preset?.heavy) setHeavyOpen(true);
+      else await runStart(activeStackId);
+    }
+  };
+
   if (!preset) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -304,15 +314,7 @@ export function NemotronStackPanel({
         open={gateOpen}
         onOpenChange={setGateOpen}
         check={lastCheck}
-        onFreed={async () => {
-          const recheck = await checkCapacityAction(`stack:${activeStackId}`);
-          setLastCheck(recheck);
-          if (recheck.ok) {
-            setGateOpen(false);
-            if (preset?.heavy) setHeavyOpen(true);
-            else await runStart(activeStackId);
-          }
-        }}
+        onFreed={() => void handleFreed()}
       />
 
       <HeavyConfirmDialog

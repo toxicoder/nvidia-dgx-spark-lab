@@ -9,6 +9,7 @@ import {
   getLatestUtilityRunsByName,
   listRecentUtilityRuns
 } from "@/lib/db/repositories/utility-runs";
+import { itemAt } from "../../../__tests__/test-assert";
 
 const dbFile = "/tmp/lab-dashboard-test.db";
 
@@ -115,6 +116,6 @@ describe("utility-runs repository", () => {
 
     const rows = await listRecentUtilityRuns(1);
     expect(rows).toHaveLength(1);
-    expect(rows[0].name).toBe("second");
+    expect(itemAt(rows, 0).name).toBe("second");
   });
 });

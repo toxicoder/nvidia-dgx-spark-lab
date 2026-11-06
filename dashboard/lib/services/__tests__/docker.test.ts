@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { getServiceMocks, resetRealPathEnv } from "./real-path-mocks";
 import * as docker from "../docker";
+import { itemAt } from "../../__tests__/test-assert";
 
 describe("docker service (mock)", () => {
   beforeEach(() => {
@@ -37,13 +38,38 @@ describe("docker service (real path)", () => {
 
     const result = await docker.listContainers();
     expect(result).toHaveLength(2);
-    expect((result as { ID: string }[])[0].ID).toBe("abc");
+    if (!Array.isArray(result)) {
+      throw new Error(`expected a container list, got ${JSON.stringify(result)}`);
+    }
+    expect(itemAt(result, 0).ID).toBe("abc");
   });
 
   it("listContainers returns error shape when docker unavailable", async () => {
     getServiceMocks().execAsync.mockRejectedValue(new Error("permission denied"));
     const result = await docker.listContainers();
     expect(result).toEqual({ error: "docker not available or permission denied" });
+  });
+
+  it("listContainers names the utility when a ps line does not match the schema", async () => {
+    // A line the dashboard cannot render is not "docker missing"; the message has to
+    // say which utility returned what, or an operator debugs the wrong thing.
+    getServiceMocks().execAsync.mockResolvedValue({ stdout: '{"ID":"abc"}\n', stderr: "" });
+    const result = await docker.listContainers();
+    if (Array.isArray(result)) {
+      throw new Error(`expected an error shape, got ${result.length} container(s)`);
+    }
+    expect(result.error).toContain("docker ps");
+    expect(result.error).toContain("Names");
+  });
+
+  it("listContainers says which line was unreadable, not that docker is missing", async () => {
+    getServiceMocks().execAsync.mockResolvedValue({ stdout: "cannot connect to daemon\n", stderr: "" });
+    const result = await docker.listContainers();
+    if (Array.isArray(result)) {
+      throw new Error(`expected an error shape, got ${result.length} container(s)`);
+    }
+    expect(result.error).toContain("docker ps");
+    expect(result.error).toContain("not JSON");
   });
 
   it("stopContainer invokes docker stop on real path", async () => {

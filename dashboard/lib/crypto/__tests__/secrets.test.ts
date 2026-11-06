@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { decryptSecret, encryptSecret, valueHint } from "../secrets";
+import { itemAt } from "../../__tests__/test-assert";
 
 describe("secrets crypto", () => {
   const prev = process.env.LAB_SECRETS_MASTER_KEY;
@@ -21,7 +22,9 @@ describe("secrets crypto", () => {
   it("detects tampering", () => {
     const blob = encryptSecret("secret");
     const buf = Buffer.from(blob, "base64");
-    buf[buf.length - 1] ^= 0xff;
+    const lastByteIndex = buf.length - 1;
+    const lastByte = itemAt(Array.from(buf), lastByteIndex);
+    buf[lastByteIndex] = lastByte ^ 0xff;
     expect(() => decryptSecret(buf.toString("base64"))).toThrow();
   });
 
