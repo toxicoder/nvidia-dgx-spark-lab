@@ -6,6 +6,7 @@
  * into this package, so `bazelisk run //docs:docs` style generators keep working unchanged.
  */
 
+import { z } from "zod";
 import { loader, PathUtils } from "fumadocs-core/source";
 import { createFromSource } from "fumadocs-core/search/server";
 import type { AdvancedIndex } from "fumadocs-core/search/server";
@@ -79,22 +80,62 @@ export const source = loader({
 });
 
 /**
+ * What a contributor may write in the `tags` frontmatter field.
+ *
+ * The two shapes the corpus actually carries: a YAML list, or one comma-separated string.
+ * A YAML list is not guaranteed to hold only strings -- an unquoted value arrives as
+ * whatever YAML made of it -- so the members stay `unknown` until {@link toTagList} has
+ * looked at them.
+ */
+export type RawTags = string | readonly unknown[];
+
+/** The shapes `tags` is allowed to take; anything else is not a tag list at all. */
+const rawTagsSchema = z.union([z.string(), z.array(z.unknown())]);
+
+/**
  * Normalise the `tags` frontmatter field to a list.
  *
  * Contributors write either `tags: [a, b]` or `tags: a, b`; both have to reach the search
  * index as a list so a reader can find a page by any of its tags.
+ *
+ * @param tags The frontmatter value, in either accepted shape, or absent.
+ * @returns The non-blank tags, or `undefined` when the page carries none worth indexing.
  */
-function toTagList(tags: unknown): string[] | undefined {
-  if (typeof tags === "string") {
-    const parts = tags.split(",").map((part) => part.trim()).filter((part) => part.length > 0);
-    return parts.length > 0 ? parts : undefined;
-  }
-  if (Array.isArray(tags)) {
-    const parts = tags.filter((tag): tag is string => typeof tag === "string" && tag.trim().length > 0);
-    return parts.length > 0 ? parts : undefined;
-  }
-  return undefined;
+export function toTagList(tags: RawTags | undefined): string[] | undefined {
+  const parsed = rawTagsSchema.safeParse(tags);
+  if (!parsed.success) return undefined;
+  // A comma-separated string is split and trimmed; a list is already split, and its entries
+  // are indexed exactly as the contributor wrote them.
+  const parts =
+    typeof parsed.data === "string"
+      ? parsed.data.split(",").map((part) => part.trim()).filter((part) => part.length > 0)
+      : parsed.data.filter((tag): tag is string => typeof tag === "string" && tag.trim().length > 0);
+  return parts.length > 0 ? parts : undefined;
 }
+
+/**
+ * Structured data as the MDX compiler attaches it to a page: either the value itself, or a
+ * loader resolved on demand (the built-in index builder loads the compiled document lazily).
+ */
+const structuredDataSchema = z.union([
+  z.custom<AdvancedIndex["structuredData"]>((value) => typeof value === "object" && value !== null),
+  z.custom<() => Promise<AdvancedIndex["structuredData"]>>((value) => typeof value === "function")
+]);
+
+/**
+ * The page fields the search index reads, out of the loader's opaque `data` record.
+ *
+ * `lib/content.ts` already validates frontmatter against these shapes; re-reading it through
+ * a schema here is what keeps the index builder from addressing that record through an
+ * assumption.  A field of the wrong type degrades to absent, which is what the code below
+ * already treats as "this page has none".
+ */
+const searchIndexDataSchema = z.object({
+  title: z.string().optional().catch(undefined),
+  description: z.string().optional().catch(undefined),
+  tags: rawTagsSchema.optional().catch(undefined),
+  structuredData: structuredDataSchema.optional().catch(undefined)
+});
 
 /**
  * Index a page for search.
@@ -107,23 +148,21 @@ function toTagList(tags: unknown): string[] | undefined {
  * @returns The record to insert into the search database.
  */
 export async function buildSearchIndex(page: Page): Promise<AdvancedIndex> {
-  const data = page.data as {
-    title?: string;
-    description?: string;
-    tags?: unknown;
-    structuredData?: AdvancedIndex["structuredData"] | (() => Promise<AdvancedIndex["structuredData"]>);
-  };
+  const data = searchIndexDataSchema.parse(page.data);
   const structured =
     typeof data.structuredData === "function" ? await data.structuredData() : data.structuredData;
   if (!structured) throw new Error(`cannot build a search index for ${page.path}: no structured data`);
 
+  const tag = toTagList(data.tags);
+  // `AdvancedIndex` takes these two as plain optional props, so an absent one is left out
+  // rather than written as `undefined`.
   return {
     id: page.url,
     title: data.title ?? page.path,
-    description: data.description,
     url: page.url,
     structuredData: structured,
-    tag: toTagList(data.tags)
+    ...(data.description === undefined ? {} : { description: data.description }),
+    ...(tag === undefined ? {} : { tag })
   };
 }
 

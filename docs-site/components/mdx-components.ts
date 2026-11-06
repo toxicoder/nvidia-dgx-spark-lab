@@ -11,6 +11,8 @@
  */
 
 import { createElement } from "react";
+import type { ComponentProps, ReactElement } from "react";
+import type { MDXComponents } from "mdx/types";
 import Link from "fumadocs-core/link";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import { Banner } from "fumadocs-ui/components/banner";
@@ -29,7 +31,7 @@ import type { Page } from "fumadocs-core/source";
  * @param page Page being rendered; links in its content resolve relative to it.
  * @returns The `components` object for the compiled MDX component.
  */
-export function mdxComponentsFor(page: Page) {
+export function mdxComponentsFor(page: Page): MDXComponents {
   /**
    * Anchor used by links inside page content.
    *
@@ -37,7 +39,7 @@ export function mdxComponentsFor(page: Page) {
    * file-relative targets (`resource-guard.md`) that have to become real routes, while
    * off-site links keep opening in a new tab.
    */
-  function ContentLink(props: { href?: string } & Record<string, unknown>) {
+  function ContentLink(props: ComponentProps<"a">): ReactElement {
     const { href, ...rest } = props;
     const resolved = resolveDocHref(href, page);
     if (resolved.external) {

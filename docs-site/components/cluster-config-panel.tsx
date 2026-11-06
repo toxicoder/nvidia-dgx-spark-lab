@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { z } from "zod";
 
 /**
  * Interactive cluster-variables panel, ported from `docs/assets/javascripts/command-vars.js`.
@@ -118,10 +119,43 @@ export function substitutePlaceholders(text: string, vars: Record<string, string
   return out;
 }
 
+/**
+ * What browser storage is allowed to hold: an object with string keys.
+ *
+ * The value is reader-editable (devtools, another extension, the MkDocs widget that used the
+ * same key), so nothing is trusted past the key.
+ */
+const storedVarsSchema = z.record(z.string(), z.unknown());
+
+/**
+ * Read the variables a reader left in browser storage.
+ *
+ * @param raw The raw string from storage, or `null` when nothing was ever stored.
+ * @returns The entries that really are string-to-string. Corrupt JSON, a non-object, or an
+ *   entry whose value is not a string yields nothing for that entry rather than discarding
+ *   the rest, so one bad key cannot cost a reader the values they typed.
+ */
+export function parseStoredVars(raw: string | null): Record<string, string> {
+  if (raw === null) return {};
+  let decoded: unknown;
+  try {
+    decoded = JSON.parse(raw);
+  } catch {
+    return {};
+  }
+  const envelope = storedVarsSchema.safeParse(decoded);
+  if (!envelope.success) return {};
+  const vars: Record<string, string> = {};
+  for (const [key, value] of Object.entries(envelope.data)) {
+    if (typeof value === "string") vars[key] = value;
+  }
+  return vars;
+}
+
 /** Read persisted variables, tolerating private-mode storage failures. */
 function loadVars(): Record<string, string> {
   try {
-    return JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "{}") as Record<string, string>;
+    return parseStoredVars(window.localStorage.getItem(STORAGE_KEY));
   } catch {
     return {};
   }
@@ -191,6 +225,9 @@ type Replacement = { start: number; end: number; text: string };
 /** The text a claimed block's nodes held before the panel wrote, and what it last wrote. */
 type BlockSource = { original: string[]; written: string[] };
 
+/** One text node of a block, paired with the text it held before the panel wrote. */
+type BlockCell = { node: Text; original: string };
+
 /**
  * Per-node record of the blocks a substitution pass has claimed.
  *
@@ -214,6 +251,33 @@ function textNodesOf(block: HTMLElement): Text[] {
 }
 
 /**
+ * Pair a block's text nodes with the text they held before the panel first wrote them.
+ *
+ * A block the panel claimed keeps the text it recorded, split the way the highlighter split
+ * it, which is what lets the write-back land in the same nodes. A block it has not claimed --
+ * or that the page rebuilt, so a node now holds neither the recorded text nor what the panel
+ * wrote -- is taken afresh from what the nodes hold.
+ *
+ * @param block The block a substitution pass is about to rewrite.
+ * @returns One cell per text node of the block, in document order.
+ */
+function claimedCells(block: HTMLElement): BlockCell[] {
+  const nodes = textNodesOf(block);
+  const source = blockSources.get(block);
+  if (source === undefined) return nodes.map((node) => ({ node, original: node.data }));
+  const stillOurs =
+    source.original.length === nodes.length &&
+    nodes.every((node, idx) => {
+      const current = node.data;
+      return current === source.original[idx] || current === source.written[idx];
+    });
+  const original = stillOurs ? source.original : nodes.map((node) => node.data);
+  return nodes
+    .map((node, idx) => ({ node, original: original[idx] }))
+    .filter((cell): cell is BlockCell => cell.original !== undefined);
+}
+
+/**
  * Rewrite one code block without rebuilding it.
  *
  * The highlighter publishes a block as `pre > code > span.line > span[token]`, so the text a
@@ -228,16 +292,8 @@ function textNodesOf(block: HTMLElement): Text[] {
  * @param vars Variables to resolve.
  */
 function substituteInBlock(block: HTMLElement, vars: Record<string, string>): void {
-  const nodes = textNodesOf(block);
-  const source = blockSources.get(block);
-  const stillOurs =
-    source !== undefined &&
-    source.original.length === nodes.length &&
-    nodes.every((node, idx) => {
-      const current = node.data;
-      return current === source.original[idx] || current === source.written[idx];
-    });
-  const original = stillOurs ? (source as BlockSource).original : nodes.map((node) => node.data);
+  const cells = claimedCells(block);
+  const original = cells.map((cell) => cell.original);
   const full = original.join("");
   const substituted = substitutePlaceholders(full, vars);
   // Nothing known lives here, or the block already shows what the variables say. Blocks that
@@ -264,14 +320,15 @@ function substituteInBlock(block: HTMLElement, vars: Record<string, string>): vo
   let next = 0; // how far into the block's original text the walk has accounted for
   let piece = 0;
   let prefix = 0; // where the current node starts inside that original text
-  for (let idx = 0; idx < nodes.length; idx += 1) {
-    const end = prefix + original[idx].length;
+  for (const cell of cells) {
+    const end = prefix + cell.original.length;
     prefix = end;
     let text = "";
-    while (piece < located.length && located[piece].start < end) {
-      const found = located[piece];
+    let found = located[piece];
+    while (found !== undefined && found.start < end) {
       if (found.end <= next) {
         piece += 1; // an earlier node already carried this token
+        found = located[piece];
         continue;
       }
       if (found.start > next) text += full.slice(next, found.start);
@@ -281,13 +338,14 @@ function substituteInBlock(block: HTMLElement, vars: Record<string, string>): vo
       next = Math.max(next, found.end);
       if (found.end > end) break; // the token spills past this node
       piece += 1;
+      found = located[piece];
     }
     if (next < end) {
       text += full.slice(next, end);
       next = end;
     }
     written.push(text);
-    if (text !== nodes[idx].data) nodes[idx].data = text;
+    if (text !== cell.node.data) cell.node.data = text;
   }
 
   block.dataset.originalText = full;

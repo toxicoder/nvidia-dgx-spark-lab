@@ -45,7 +45,7 @@ vi.mock("fumadocs-core/source", async (importOriginal) => ({
   loader: h.loader
 }));
 
-import { DOCS_ROUTE, buildSearchIndex, resolveDocHref, search, source } from "../../lib/source";
+import { DOCS_ROUTE, buildSearchIndex, resolveDocHref, source } from "../../lib/source";
 
 /** Options the module handed to `loader()`. */
 interface LoaderOptions {

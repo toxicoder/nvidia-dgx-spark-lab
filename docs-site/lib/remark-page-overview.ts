@@ -60,7 +60,7 @@ function labelOf(node: Node | undefined, pattern: RegExp): string | undefined {
  * @param node Candidate node.
  * @returns True when the node is a list.
  */
-function isList(node: Node | undefined): boolean {
+function isList(node: Node | undefined): node is Node {
   return node?.type === "list";
 }
 

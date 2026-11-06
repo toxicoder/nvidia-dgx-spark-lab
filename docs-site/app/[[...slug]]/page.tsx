@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { z } from "zod";
 import type { ReactNode } from "react";
+import type { MDXComponents } from "mdx/types";
 import type { TOCItemType } from "fumadocs-core/toc";
 
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
@@ -42,6 +44,33 @@ interface PageProps {
   params: Promise<{ slug?: string[] }>;
 }
 
+/** The compiled MDX component the compiler attaches to a page. */
+type CompiledBody = (props: { components: MDXComponents }) => ReactNode;
+
+/**
+ * The frontmatter the route renders, re-checked on the way in.
+ *
+ * `lib/content.ts` validates the corpus against these fields, so a page that arrives with
+ * anything else is a defect worth failing the build over rather than one whose title is
+ * quietly coerced.
+ */
+const frontmatterSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional()
+});
+
+/**
+ * Frontmatter plus what the MDX compiler attaches to it.
+ *
+ * The loader hands `page.data` over as an opaque record, so the compiled component and the
+ * table of contents are checked here rather than assumed.
+ */
+const pageDataSchema = frontmatterSchema.extend({
+  full: z.boolean().optional(),
+  body: z.custom<CompiledBody>((value) => typeof value === "function", { error: "compiled body is not a component" }),
+  toc: z.custom<TOCItemType[]>((value) => Array.isArray(value), { error: "table of contents is not a list" })
+});
+
 /**
  * Render one documentation page.
  *
@@ -54,13 +83,7 @@ export default async function DocsRoute({ params }: PageProps) {
   const page = source.getPage(slug);
   if (!page) notFound();
 
-  const data = page.data as unknown as {
-    title?: string;
-    description?: string;
-    full?: boolean;
-    body: (props: { components: Record<string, unknown> }) => ReactNode;
-    toc: TOCItemType[];
-  };
+  const data = pageDataSchema.parse(page.data);
 
   const Body = data.body;
   const title = data.title ?? page.path;
@@ -112,7 +135,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug = [] } = await params;
   const page = source.getPage(slug);
   if (!page) return {};
-  const data = page.data as unknown as { title?: string; description?: string };
+  const data = frontmatterSchema.parse(page.data);
   return {
     title: data.title ?? page.path,
     description: data.description
