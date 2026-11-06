@@ -24,6 +24,7 @@ import json
 import re
 import unittest
 from pathlib import Path
+from typing import TypedDict, cast
 
 SCRIPT_DIR = Path(__file__).parent
 REPO_ROOT = SCRIPT_DIR.parent
@@ -63,6 +64,44 @@ FORBIDDEN_400G_RE = re.compile(
 )
 
 
+class NavPage(TypedDict):
+    """One sidebar leaf of ``docs-site/lib/nav.json``."""
+
+    title: str
+    path: str
+
+
+class NavGroup(TypedDict):
+    """One top-level tab of ``docs-site/lib/nav.json``."""
+
+    title: str
+    pages: list[NavPage]
+
+
+class SearchRecord(TypedDict, total=False):
+    """One document entry of the exported search index.
+
+    ``tags`` is absent for a page whose frontmatter declares none, which is exactly what
+    the tag-derived assertions are meant to catch.
+    """
+
+    type: str
+    tags: list[str]
+
+
+class SearchIndexBody(TypedDict, total=False):
+    """The ``docs`` container of the exported search index."""
+
+    docs: dict[str, SearchRecord]
+
+
+class SearchIndex(TypedDict, total=False):
+    """Top level of the exported ``api/search`` index document."""
+
+    type: str
+    docs: SearchIndexBody
+
+
 def load_nav_pages() -> list[str]:
     """Return the content paths listed in the site navigation, as repo-relative paths.
 
@@ -78,7 +117,7 @@ def load_nav_pages() -> list[str]:
         FileNotFoundError: If the generated navigation file is missing.
         AssertionError: If the navigation lists no pages at all.
     """
-    tree = json.loads(NAV_JSON.read_text(encoding="utf-8"))
+    tree = cast("list[NavGroup]", json.loads(NAV_JSON.read_text(encoding="utf-8")))
     pages: list[str] = []
     for group in tree:
         for entry in group.get("pages", []):
@@ -445,7 +484,8 @@ class TestDocsSiteRender(unittest.TestCase):
 
     def test_no_mistakes_in_information_architecture(self) -> None:
         """The six top-level sections of the old site are all present."""
-        groups = [group["title"] for group in json.loads(NAV_JSON.read_text(encoding="utf-8"))]
+        tree = cast("list[NavGroup]", json.loads(NAV_JSON.read_text(encoding="utf-8")))
+        groups = [group["title"] for group in tree]
         self.assertEqual(
             groups, ["Home", "Start", "Concepts", "Operate", "Reference", "Contribute"]
         )
@@ -456,11 +496,12 @@ class TestDocsSiteRender(unittest.TestCase):
         index = next((c for c in candidates if c.is_file()), None)
         if index is None:
             self.skipTest("No exported search index; run the docs-site build first.")
-        data = json.loads(index.read_text(encoding="utf-8"))
+        data = cast("SearchIndex", json.loads(index.read_text(encoding="utf-8")))
         self.assertEqual(data.get("type"), "advanced", "unexpected search index flavour")
         body = data.get("docs") or {}
-        records = body.get("docs") if isinstance(body, dict) else None
+        records = body.get("docs")
         self.assertIsInstance(records, dict, "search index has no document table")
+        assert records is not None, "search index has no document table"
         self.assertGreater(len(records), 100, "search index looks empty")
         pages = [r for r in records.values() if r.get("type") == "page"]
         tagged = [r for r in records.values() if r.get("type") == "page" and r.get("tags")]

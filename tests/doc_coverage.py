@@ -14,6 +14,7 @@ import pathlib
 import re
 import subprocess
 import sys
+from typing import TypeAlias
 
 _SHELL_FUNCTION_RE = re.compile(r"^(?:function\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\(\)\s*\{")
 _SHELL_AT_FUNCTION_RE = re.compile(r"^#\s*@function\s+(\S+)")
@@ -82,6 +83,9 @@ _DASHBOARD_TS_EXCLUDE = (
     "dashboard/vitest.config.ts",
     "dashboard/drizzle.config.ts",
 )
+
+#: One value ``json.loads`` can produce, which is what the nav tree walk has to accept.
+JsonValue: TypeAlias = "bool | float | int | str | None | list[JsonValue] | dict[str, JsonValue]"
 
 
 def _repo_root() -> pathlib.Path:
@@ -369,7 +373,7 @@ def nav_json_pages(nav_json_text: str) -> list[str]:
     """
     pages: set[str] = set()
 
-    def walk(node: object) -> None:
+    def walk(node: JsonValue) -> None:
         if isinstance(node, dict):
             path = node.get("path")
             if isinstance(path, str) and not path.startswith("http"):

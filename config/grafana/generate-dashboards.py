@@ -12,13 +12,175 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Any
+from typing import TypeAlias, TypedDict, cast
 
 OUT = Path(__file__).parent / "dashboards"
 OUT.mkdir(parents=True, exist_ok=True)
 
 
-def _load_domains() -> dict[str, Any]:
+class _DomainsSso(TypedDict, total=False):
+    """SSO block of ``config/lab-domains.yaml``."""
+
+    https_port: int
+
+
+class _DomainsConfig(TypedDict, total=False):
+    """Subset of ``config/lab-domains.yaml`` read for external links."""
+
+    local_domain: str
+    public_domain: str
+    primary: str
+    sso: _DomainsSso
+
+
+class _Datasource(TypedDict):
+    """Prometheus datasource reference attached to every panel and variable."""
+
+    type: str
+    uid: str
+
+
+class _GridPos(TypedDict):
+    """Panel placement on the Grafana 24-column grid."""
+
+    h: int
+    w: int
+    x: int
+    y: int
+
+
+class _Target(TypedDict, total=False):
+    """Prometheus query target of a panel."""
+
+    expr: str
+    refId: str
+    legendFormat: str
+
+
+class _ThresholdStep(TypedDict):
+    """Colour step applied to a stat value."""
+
+    color: str
+    value: float | None
+
+
+class _Thresholds(TypedDict):
+    """Absolute threshold steps of a stat panel."""
+
+    mode: str
+    steps: list[_ThresholdStep]
+
+
+class _FieldDefaults(TypedDict, total=False):
+    """Field configuration defaults shared by stat and time-series panels."""
+
+    unit: str
+    thresholds: _Thresholds
+
+
+class _FieldConfig(TypedDict):
+    """Panel field configuration block."""
+
+    defaults: _FieldDefaults
+
+
+class _ReduceOptions(TypedDict):
+    """Reduction calculation of a stat panel."""
+
+    calcs: list[str]
+
+
+class _StatOptions(TypedDict):
+    """Display options of a stat panel."""
+
+    reduceOptions: _ReduceOptions
+    colorMode: str
+
+
+class _StatPanel(TypedDict):
+    """Grafana stat panel."""
+
+    id: int
+    type: str
+    title: str
+    gridPos: _GridPos
+    datasource: _Datasource
+    targets: list[_Target]
+    fieldConfig: _FieldConfig
+    options: _StatOptions
+
+
+class _TimeseriesPanel(TypedDict):
+    """Grafana time-series panel."""
+
+    id: int
+    type: str
+    title: str
+    gridPos: _GridPos
+    datasource: _Datasource
+    targets: list[_Target]
+    fieldConfig: _FieldConfig
+
+
+class _RowPanel(TypedDict):
+    """Grafana row that groups the panels below it."""
+
+    id: int
+    type: str
+    title: str
+    gridPos: _GridPos
+    collapsed: bool
+
+
+_Panel: TypeAlias = _StatPanel | _TimeseriesPanel | _RowPanel
+
+
+class _DashboardLink(TypedDict, total=False):
+    """Dashboard link; Grafana's ``targetBlank`` is a JSON boolean."""
+
+    title: str
+    url: str
+    type: str
+    targetBlank: bool
+
+
+class _TemplateVar(TypedDict):
+    """Dashboard template variable used to filter node-scoped queries."""
+
+    name: str
+    type: str
+    datasource: _Datasource
+    query: str
+    refresh: int
+    includeAll: bool
+    multi: bool
+
+
+class _Templating(TypedDict):
+    """Templating block of a dashboard."""
+
+    list: list[_TemplateVar]
+
+
+class _Dashboard(TypedDict):
+    """Complete Grafana dashboard document written under ``dashboards/``."""
+
+    uid: str
+    title: str
+    tags: list[str]
+    timezone: str
+    schemaVersion: int
+    version: int
+    refresh: str
+    editable: bool
+    graphTooltip: int
+    time: dict[str, str]
+    links: list[dict[str, str]]
+    templating: _Templating
+    panels: list[_Panel]
+
+
+def _load_domains() -> dict[str, str]:
     """Load lab domain config for external dashboard links.
 
     Returns:
@@ -38,9 +200,9 @@ def _load_domains() -> dict[str, Any]:
     try:
         import yaml
 
-        data = yaml.safe_load(cfg_path.read_text()) or {}
+        data = cast(_DomainsConfig, yaml.safe_load(cfg_path.read_text()) or {})
     except Exception:
-        data = json.loads(cfg_path.with_suffix(".json").read_text())
+        data = cast(_DomainsConfig, json.loads(cfg_path.with_suffix(".json").read_text()))
     local = data.get("local_domain", "lab.local")
     public = data.get("public_domain") or ""
     primary = data.get("primary", "local")
@@ -55,7 +217,7 @@ def _load_domains() -> dict[str, Any]:
     return {"dashboard_url": url}
 
 
-DS: dict[str, str] = {"type": "prometheus", "uid": "Prometheus"}
+DS: _Datasource = {"type": "prometheus", "uid": "Prometheus"}
 
 
 def panel_stat(
@@ -67,7 +229,7 @@ def panel_stat(
     w: int = 4,
     h: int = 4,
     unit: str = "none",
-) -> dict[str, Any]:
+) -> _StatPanel:
     """Build a Grafana stat panel definition.
 
     Args:
@@ -116,7 +278,7 @@ def panel_timeseries(
     w: int = 12,
     h: int = 8,
     unit: str = "none",
-) -> dict[str, Any]:
+) -> _TimeseriesPanel:
     """Build a Grafana time-series panel definition.
 
     Args:
@@ -143,7 +305,7 @@ def panel_timeseries(
     }
 
 
-def panel_row(id_: int, title: str, y: int) -> dict[str, Any]:
+def panel_row(id_: int, title: str, y: int) -> _RowPanel:
     """Build a Grafana row panel used to group related panels.
 
     Args:
@@ -167,10 +329,10 @@ def base(
     uid: str,
     title: str,
     tags: list[str],
-    panels: list[dict[str, Any]],
+    panels: list[_Panel],
     refresh: str = "30s",
     links: list[dict[str, str]] | None = None,
-) -> dict[str, Any]:
+) -> _Dashboard:
     """Build the top-level Grafana dashboard object.
 
     Args:
@@ -232,22 +394,23 @@ def dashboard_links(current_uid: str) -> list[dict[str, str]]:
         ("spark-dev-agent", "Dev & Agent"),
         ("spark-storage-net", "Storage & Network"),
     ]
-    links: list[dict[str, Any]] = []
+    links: list[dict[str, str]] = []
     for uid, title in all_dash:
         if uid != current_uid:
             links.append({"title": title, "url": f"/d/{uid}", "type": "link"})
-    links.append(
-        {
-            "title": "Lab Dashboard",
-            "url": _load_domains()["dashboard_url"],
-            "type": "link",
-            "targetBlank": True,
-        }
-    )
+    lab_link: _DashboardLink = {
+        "title": "Lab Dashboard",
+        "url": _load_domains()["dashboard_url"],
+        "type": "link",
+        "targetBlank": True,
+    }
+    # The public signature declares str link values, but Grafana's targetBlank is
+    # a JSON boolean; the cast is a no-op, so the emitted JSON stays as it was.
+    links.append(cast(dict[str, str], lab_link))
     return links
 
 
-DASHBOARDS: dict[str, dict[str, Any]] = {
+DASHBOARDS: dict[str, _Dashboard] = {
     "00-lab-overview.json": base(
         "spark-overview",
         "DGX Spark Lab — Enterprise Overview",
