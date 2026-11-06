@@ -109,6 +109,7 @@ To assert a value is present and narrow it, return `NoReturn` from the failure h
 ```python
 def _reject(verdict: CapacityVerdict, action: str) -> NoReturn: ...
 
+
 if not stack:
     _reject(CapacityVerdict.UNKNOWN_STACK, action)
 # stack is narrowed here, and the check survives `python -O`, which strips asserts.

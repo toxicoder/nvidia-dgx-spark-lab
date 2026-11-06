@@ -176,7 +176,7 @@ require_integer() {
 require_positive_integer() {
   local value="${1-}"
   local name="${2:-value}"
-  if ! is_integer "$value" || (($value <= 0)); then
+  if ! is_integer "$value" || ((value <= 0)); then
     lab_type_fail "$name" "an integer greater than zero" "$value"
     return 1
   fi

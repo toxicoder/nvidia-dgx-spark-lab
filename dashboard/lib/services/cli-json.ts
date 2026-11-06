@@ -442,10 +442,7 @@ export function parseClusterCapacity(stdout: string, utility: string): ClusterCa
  * @returns One row per applicable suggestion.
  * @throws CliPayloadError When the payload is unusable.
  */
-export function parseFreeResourceSuggestions(
-  stdout: string,
-  utility: string
-): FreeResourceSuggestion[] {
+export function parseFreeResourceSuggestions(stdout: string, utility: string): FreeResourceSuggestion[] {
   return parseCliJson(z.array(FreeResourceSuggestionSchema), stdout, utility);
 }
 
@@ -458,10 +455,7 @@ export function parseFreeResourceSuggestions(
  *   absent or malformed is rejected rather than read as an empty list, so the
  *   panel cannot render "nothing is deployed" when the truth is unknown.
  */
-export function parseInferenceWorkloadsStatus(
-  stdout: string,
-  utility: string
-): InferenceWorkloadsStatus {
+export function parseInferenceWorkloadsStatus(stdout: string, utility: string): InferenceWorkloadsStatus {
   return parseCliJson(InferenceWorkloadsStatusSchema, stdout, utility);
 }
 
@@ -487,7 +481,9 @@ export function parseDockerContainers(stdout: string, utility: string): DockerLi
     }
     const parsed = DockerContainerSchema.safeParse(raw);
     if (!parsed.success) {
-      return { error: `${utility} returned a payload the dashboard cannot use: ${describeIssues(parsed.error.issues)}` };
+      return {
+        error: `${utility} returned a payload the dashboard cannot use: ${describeIssues(parsed.error.issues)}`
+      };
     }
     containers.push(parsed.data);
   }
