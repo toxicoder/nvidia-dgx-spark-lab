@@ -16,6 +16,7 @@ vi.mock("fs/promises", () => ({
 }));
 
 import * as storage from "../storage";
+import { itemAt } from "../../__tests__/test-assert";
 
 function makeDirent(name: string, isDir: boolean) {
   return {
@@ -168,8 +169,8 @@ describe("storage service (real path)", () => {
     stat.mockResolvedValue({ size: 0 });
 
     const tree = await storage.getStorageTree("/mnt/models", 0);
-    expect(tree.children?.[0].size).toBe(0);
-    expect(tree.children?.[0].children).toBeUndefined();
+    expect(itemAt(tree.children ?? [], 0).size).toBe(0);
+    expect(itemAt(tree.children ?? [], 0).children).toBeUndefined();
   });
 
   it("getStorageTree handles unreadable directories", async () => {
@@ -184,7 +185,7 @@ describe("storage service (real path)", () => {
     stat.mockResolvedValueOnce({ size: 3 });
 
     const tree = await storage.getStorageTree("/mnt/models", 1);
-    expect(tree.children?.[0].ext).toBe("hidden");
+    expect(itemAt(tree.children ?? [], 0).ext).toBe("hidden");
   });
 
   it("getStorageTree handles files with empty extension segment", async () => {
@@ -192,7 +193,7 @@ describe("storage service (real path)", () => {
     stat.mockResolvedValueOnce({ size: 7 });
 
     const tree = await storage.getStorageTree("/mnt/models", 1);
-    expect(tree.children?.[0].ext).toBe("noext");
+    expect(itemAt(tree.children ?? [], 0).ext).toBe("noext");
   });
 
   it("getStorageTree handles files without extension", async () => {
@@ -200,7 +201,7 @@ describe("storage service (real path)", () => {
     stat.mockResolvedValueOnce({ size: 42 });
 
     const tree = await storage.getStorageTree("/mnt/models", 1);
-    expect(tree.children?.[0].ext).toBe("readme");
+    expect(itemAt(tree.children ?? [], 0).ext).toBe("readme");
   });
 
   it("deletePath rejects disallowed paths on real path", async () => {
@@ -261,7 +262,7 @@ describe("storage service (real path)", () => {
     stat.mockResolvedValueOnce({ size: 11 });
 
     const tree = await storage.getStorageTree("/mnt/models", 1);
-    expect(tree.children?.[0].ext).toBe("");
+    expect(itemAt(tree.children ?? [], 0).ext).toBe("");
   });
 
   it("getStorageTree sorts children with missing and zero sizes", async () => {
@@ -277,7 +278,7 @@ describe("storage service (real path)", () => {
     });
 
     const tree = await storage.getStorageTree("/mnt/models", 1);
-    expect(tree.children?.[0].name).toBe("large");
+    expect(itemAt(tree.children ?? [], 0).name).toBe("large");
   });
 
   it("findDuplicates uses default path on real path", async () => {

@@ -516,7 +516,14 @@ export const fakeOpenWebUICatalog: OpenWebUICatalog = {
   ports: { nodeport: 32085, container: 8080, service: 80 },
   sso: { host: "chat" },
   backends: {
-    hermes_gateway: { port: 8642, path: "/v1", requires_hermes_stack: "hermes-lab" }
+    // Mirrors config/open-webui-policy.json "backends"; keep the two in step.
+    hermes_gateway: {
+      service: "hermes-gateway",
+      namespace: "dev",
+      port: 8642,
+      path: "/v1",
+      requires_hermes_stack: "hermes-lab"
+    }
   },
   stacks: {
     "open-webui-lab": {

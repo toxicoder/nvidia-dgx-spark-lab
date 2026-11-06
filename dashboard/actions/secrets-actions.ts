@@ -70,7 +70,7 @@ export async function createSecretAction(input: unknown): Promise<{ meta: LabSec
 
   const syncError = await maybeSyncToK8s(meta, parsed.value, user.email);
   revalidatePath("/");
-  return { meta, syncError: syncError ?? undefined };
+  return syncError === null ? { meta } : { meta, syncError };
 }
 
 /**
@@ -91,7 +91,7 @@ export async function updateSecretValueAction(input: unknown): Promise<{ meta: L
 
   const syncError = await maybeSyncToK8s(meta, parsed.value, user.email);
   revalidatePath("/");
-  return { meta, syncError: syncError ?? undefined };
+  return syncError === null ? { meta } : { meta, syncError };
 }
 
 /**

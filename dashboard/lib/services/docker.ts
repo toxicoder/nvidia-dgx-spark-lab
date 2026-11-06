@@ -3,7 +3,11 @@ import { promisify } from "util";
 import { withMock } from "../host";
 import { fakeContainers } from "../mocks/fixtures";
 import { ContainerIdSchema } from "../validation";
-import type { DockerContainer, DockerListResult } from "../types";
+import type { DockerListResult } from "../types";
+import { parseDockerContainers } from "./cli-json";
+
+/** Name used in diagnostics when a `docker ps` line is unusable. */
+const UTILITY_NAME = "docker ps";
 
 /**
  * Docker integration service for the Tasks panel.
@@ -51,11 +55,7 @@ export async function listContainers(): Promise<DockerListResult> {
       const { stdout } = await execAsync('docker ps --format "{{json .}}"', {
         timeout: 4000
       });
-      return stdout
-        .trim()
-        .split("\n")
-        .filter(Boolean)
-        .map((l: string) => JSON.parse(l) as DockerContainer);
+      return parseDockerContainers(stdout, UTILITY_NAME);
     } catch {
       // Explicit error object so callers never throw and UI can show friendly state.
       return { error: "docker not available or permission denied" };

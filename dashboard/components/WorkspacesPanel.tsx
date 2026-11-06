@@ -126,7 +126,7 @@ export function WorkspacesPanel({ initialStatus }: WorkspacesPanelProps): React.
             workspace={status.coder}
             pendingState={pending.coder ?? null}
             busy={busy}
-            onToggle={handleToggle}
+            onToggle={(name, enabled) => void handleToggle(name, enabled)}
           />
         </TabsContent>
 
@@ -135,7 +135,7 @@ export function WorkspacesPanel({ initialStatus }: WorkspacesPanelProps): React.
             workspace={status.kasm}
             pendingState={pending.kasm ?? null}
             busy={busy}
-            onToggle={handleToggle}
+            onToggle={(name, enabled) => void handleToggle(name, enabled)}
           />
         </TabsContent>
       </Tabs>

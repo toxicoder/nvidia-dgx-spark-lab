@@ -4,7 +4,8 @@ export type ToastVariant = "default" | "success" | "error" | "warning";
 
 export interface ToastInput {
   title?: string;
-  description?: string;
+  /** `| undefined` so a caller can pass a value that may be absent; it is destructured. */
+  description?: string | undefined;
   variant?: ToastVariant;
 }
 

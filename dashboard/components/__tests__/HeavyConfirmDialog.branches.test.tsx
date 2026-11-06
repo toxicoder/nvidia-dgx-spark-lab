@@ -3,7 +3,6 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { HeavyConfirmDialog } from "../HeavyConfirmDialog";
 
 vi.mock("@/components/ui/dialog", () => {
-  const React = require("react");
   return {
     Dialog: ({
       children,

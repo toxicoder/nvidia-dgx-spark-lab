@@ -11,6 +11,7 @@ import { ALLOWED_UTILITIES } from "../allowed-utilities";
 import { fakeUtilities, fakeUtilityStatus } from "../mocks/fixtures";
 import { recordUtilityRun } from "../db/repositories/utility-runs";
 import type { UtilityInfo, UtilityRunResult, UtilityStatus } from "../types";
+import { parseUtilityStatus } from "./cli-json";
 
 const execFileAsync = promisify(execFile);
 
@@ -72,7 +73,7 @@ export async function getUtilityStatus(name: string): Promise<UtilityStatus> {
         timeout: 8000,
         maxBuffer: 1024 * 64
       });
-      return JSON.parse(stdout.trim()) as UtilityStatus;
+      return parseUtilityStatus(stdout, info.name);
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
       return { error: message };

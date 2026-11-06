@@ -26,7 +26,8 @@ interface ErrorBoundaryProps {
 
 interface ErrorBoundaryState {
   hasError: boolean;
-  error?: Error;
+  // Retry clears the captured error by assigning undefined explicitly, so undefined is a valid value.
+  error?: Error | undefined;
 }
 
 /** React error boundary that isolates render failures in dashboard subtrees. */
@@ -40,12 +41,12 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // In real use could forward to toast/log service; keep minimal here.
     console.error("ErrorBoundary caught:", error, errorInfo);
   }
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
         return this.props.fallback;

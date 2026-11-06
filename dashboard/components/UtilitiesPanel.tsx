@@ -36,7 +36,7 @@ export async function UtilitiesPanel(): Promise<React.JSX.Element> {
       <div className="space-y-3">
         {utils.map((u) => (
           <div key={u.name} className="rounded-[var(--md-sys-shape-corner-medium)] border border-border bg-card p-4">
-            <UtilityRow utility={u} lastRun={latestByName.get(u.name)} />
+            <UtilityRow utility={u} lastRun={latestByName.get(u.name) ?? null} />
           </div>
         ))}
       </div>

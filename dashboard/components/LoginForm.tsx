@@ -48,7 +48,7 @@ export function LoginForm() {
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={(e) => void onSubmit(e)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input

@@ -2,6 +2,15 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { NemotronStackPanel } from "@/components/NemotronStackPanel";
 import { fakeClusterCapacity, fakeNemotronCatalog, fakeNemotronStackStatus } from "@/lib/mocks/fixtures";
+import type { NemotronCatalogModel, NemotronStackPreset } from "@/lib/types";
+
+// Fixtures are non-empty literals; the tests below address these entries directly.
+const [firstStackStatus] = fakeNemotronStackStatus.stacks;
+if (!firstStackStatus) throw new Error("fakeNemotronStackStatus fixture must not be empty");
+const spark1Preset = fakeNemotronCatalog.stacks["nemotron-agentic-spark-1"];
+if (!spark1Preset) throw new Error("fakeNemotronCatalog is missing the nemotron-agentic-spark-1 preset");
+const nanoModel = fakeNemotronCatalog.models["nemotron-3-nano-omni-30b"];
+if (!nanoModel) throw new Error("fakeNemotronCatalog is missing the nemotron-3-nano-omni-30b model");
 
 const hostMocks = vi.hoisted(() => ({
   checkCapacityAction: vi.fn(),
@@ -197,7 +206,7 @@ describe("NemotronStackPanel", () => {
       ...fakeNemotronStackStatus,
       stacks: [
         {
-          ...fakeNemotronStackStatus.stacks[0],
+          ...firstStackStatus,
           healthy: true,
           components: [{ model: "nemotron-3-nano-omni-30b", state: "running" as const }]
         }
@@ -223,7 +232,7 @@ describe("NemotronStackPanel", () => {
   it("copies endpoint URL when stack is healthy", async () => {
     const runningStatus = {
       ...fakeNemotronStackStatus,
-      stacks: [{ ...fakeNemotronStackStatus.stacks[0], healthy: true, components: [] }]
+      stacks: [{ ...firstStackStatus, healthy: true, components: [] }]
     };
 
     render(
@@ -321,7 +330,7 @@ describe("NemotronStackPanel", () => {
       ...fakeNemotronStackStatus,
       stacks: [
         {
-          ...fakeNemotronStackStatus.stacks[0],
+          ...firstStackStatus,
           healthy: false,
           components: [{ model: "nemotron-3-nano-omni-30b", state: "running" as const }]
         }
@@ -351,7 +360,7 @@ describe("NemotronStackPanel", () => {
       stacks: {
         ...fakeNemotronCatalog.stacks,
         "nemotron-agentic-spark-1": {
-          ...fakeNemotronCatalog.stacks["nemotron-agentic-spark-1"],
+          ...spark1Preset,
           heavy: false
         }
       }
@@ -425,19 +434,18 @@ describe("NemotronStackPanel", () => {
   });
 
   it("omits endpoint rows when model has no openai service", () => {
+    const noSvcModel: NemotronCatalogModel = { ...nanoModel };
+    delete noSvcModel.openai_svc;
     const catalogWithoutSvc = {
       ...fakeNemotronCatalog,
       models: {
         ...fakeNemotronCatalog.models,
-        "nemotron-3-nano-omni-30b": {
-          ...fakeNemotronCatalog.models["nemotron-3-nano-omni-30b"],
-          openai_svc: undefined
-        }
+        "nemotron-3-nano-omni-30b": noSvcModel
       }
     };
     const runningStatus = {
       ...fakeNemotronStackStatus,
-      stacks: [{ ...fakeNemotronStackStatus.stacks[0], healthy: true, components: [] }]
+      stacks: [{ ...firstStackStatus, healthy: true, components: [] }]
     };
 
     render(
@@ -448,7 +456,7 @@ describe("NemotronStackPanel", () => {
       />
     );
     expect(screen.getAllByRole("button", { name: /Copy URL/i }).length).toBeLessThan(
-      fakeNemotronCatalog.stacks["nemotron-agentic-spark-1"].stack_with?.length ?? 0
+      spark1Preset.stack_with?.length ?? 0
     );
   });
 
@@ -478,7 +486,7 @@ describe("NemotronStackPanel", () => {
       stacks: {
         ...fakeNemotronCatalog.stacks,
         "nemotron-agentic-spark-1": {
-          ...fakeNemotronCatalog.stacks["nemotron-agentic-spark-1"],
+          ...spark1Preset,
           quality_notes: "Expect longer cold start on single-node labs.",
           pillars: ["orchestrator", "custom-pillar"]
         }
@@ -500,7 +508,7 @@ describe("NemotronStackPanel", () => {
       ...fakeNemotronStackStatus,
       stacks: [
         {
-          ...fakeNemotronStackStatus.stacks[0],
+          ...firstStackStatus,
           healthy: false,
           components: [{ model: "nemotron-3-nano-omni-30b", state: "running" as const }]
         }
@@ -521,7 +529,7 @@ describe("NemotronStackPanel", () => {
       ...fakeNemotronStackStatus,
       stacks: [
         {
-          ...fakeNemotronStackStatus.stacks[0],
+          ...firstStackStatus,
           healthy: false,
           components: [
             { model: "nemotron-3-nano-omni-30b", state: "stopped" as const },
@@ -546,7 +554,7 @@ describe("NemotronStackPanel", () => {
       stacks: {
         ...fakeNemotronCatalog.stacks,
         "nemotron-agentic-spark-1": {
-          ...fakeNemotronCatalog.stacks["nemotron-agentic-spark-1"],
+          ...spark1Preset,
           heavy: false
         }
       }
@@ -638,7 +646,7 @@ describe("NemotronStackPanel", () => {
       ...fakeNemotronStackStatus,
       stacks: [
         {
-          ...fakeNemotronStackStatus.stacks[0],
+          ...firstStackStatus,
           healthy: true,
           components: [{ model: "nemotron-3-nano-omni-30b", state: "running" as const }]
         }
@@ -699,7 +707,7 @@ describe("NemotronStackPanel", () => {
       stacks: {
         ...fakeNemotronCatalog.stacks,
         "nemotron-agentic-spark-1": {
-          ...fakeNemotronCatalog.stacks["nemotron-agentic-spark-1"],
+          ...spark1Preset,
           heavy: false
         }
       }
@@ -732,9 +740,7 @@ describe("NemotronStackPanel", () => {
         "nemotron-agentic-spark-1": {
           label: undefined as unknown as string,
           description: "Sparse preset",
-          heavy: false,
-          stack_with: undefined,
-          pillars: undefined
+          heavy: false
         }
       }
     };
@@ -759,18 +765,18 @@ describe("NemotronStackPanel", () => {
           family: "llm",
           runtime: "vllm",
           openai_svc: "bare-svc"
-        } as (typeof fakeNemotronCatalog.models)[string]
+        } as NemotronCatalogModel
       },
       stacks: {
         "nemotron-agentic-spark-1": {
-          ...fakeNemotronCatalog.stacks["nemotron-agentic-spark-1"],
+          ...spark1Preset,
           stack_with: ["bare-model"]
         }
       }
     };
     const runningStatus = {
       ...fakeNemotronStackStatus,
-      stacks: [{ ...fakeNemotronStackStatus.stacks[0], healthy: true, components: [] }]
+      stacks: [{ ...firstStackStatus, healthy: true, components: [] }]
     };
 
     render(
@@ -822,18 +828,17 @@ describe("NemotronStackPanel", () => {
   });
 
   it("renders healthy stack with undefined stack_with as empty endpoints", () => {
+    const noStackWithPreset: NemotronStackPreset = { ...spark1Preset };
+    delete noStackWithPreset.stack_with;
     const noStackWithCatalog = {
       ...fakeNemotronCatalog,
       stacks: {
-        "nemotron-agentic-spark-1": {
-          ...fakeNemotronCatalog.stacks["nemotron-agentic-spark-1"],
-          stack_with: undefined
-        }
+        "nemotron-agentic-spark-1": noStackWithPreset
       }
     };
     const runningStatus = {
       ...fakeNemotronStackStatus,
-      stacks: [{ ...fakeNemotronStackStatus.stacks[0], healthy: true, components: [] }]
+      stacks: [{ ...firstStackStatus, healthy: true, components: [] }]
     };
 
     render(
@@ -853,7 +858,7 @@ describe("NemotronStackPanel", () => {
       ...fakeNemotronCatalog,
       stacks: {
         "nemotron-agentic-spark-1": {
-          ...fakeNemotronCatalog.stacks["nemotron-agentic-spark-1"],
+          ...spark1Preset,
           label: undefined as unknown as string,
           heavy: false
         }

@@ -78,10 +78,16 @@ export function UtilityRow({
           <div className="truncate text-[10px] text-muted-foreground">{utility.path}</div>
         </div>
         <div className="flex shrink-0 gap-2">
-          <Button onClick={runAction} disabled={isRunning} variant="tonal" size="sm" className="text-xs">
+          <Button onClick={() => void runAction()} disabled={isRunning} variant="tonal" size="sm" className="text-xs">
             {isRunning ? "..." : "Run"}
           </Button>
-          <Button onClick={statusAction} disabled={isRunning} variant="outline" size="sm" className="text-xs">
+          <Button
+            onClick={() => void statusAction()}
+            disabled={isRunning}
+            variant="outline"
+            size="sm"
+            className="text-xs"
+          >
             {isRunning ? "..." : "Status"}
           </Button>
         </div>

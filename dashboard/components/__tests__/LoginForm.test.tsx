@@ -4,7 +4,7 @@ import { LoginForm } from "../LoginForm";
 
 const push = vi.fn();
 const refresh = vi.fn();
-const signInEmail = vi.fn();
+const signInEmail = vi.fn<(input: { email: string; password: string }) => Promise<unknown>>();
 let nextParam: string | null = "//evil.com";
 let visualError: string | null = null;
 
@@ -21,7 +21,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/auth-client", () => ({
   authClient: {
-    signIn: { email: (...args: unknown[]) => signInEmail(...args) }
+    signIn: { email: (input: { email: string; password: string }) => signInEmail(input) }
   }
 }));
 

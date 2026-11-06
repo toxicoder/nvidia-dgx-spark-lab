@@ -6,6 +6,10 @@ import path from "node:path";
 import { mockOpenWebUICatalog, mockOpenWebUIStatus } from "../mocks/fixtures";
 import type { OpenWebUICatalog, OpenWebUIStatus } from "../types";
 import { withMock } from "../host";
+import { parseOpenWebUICatalog, parseOpenWebUIStatus } from "./cli-json";
+
+/** Name used in diagnostics when the utility's payload is unusable. */
+const UTILITY_NAME = "open-webui-stack.sh";
 
 const execFileAsync = promisify(execFile);
 
@@ -55,7 +59,7 @@ export async function getOpenWebUICatalog(): Promise<OpenWebUICatalog> {
   return withMock(mockOpenWebUICatalog(), async () => {
     const { stdout, exitCode } = await runOpenWebUIStack(["catalog", "--json"]);
     if (exitCode !== 0) throw new Error(stdout || "open-webui-stack catalog failed");
-    return JSON.parse(stdout.trim()) as OpenWebUICatalog;
+    return parseOpenWebUICatalog(stdout, UTILITY_NAME);
   });
 }
 
@@ -68,7 +72,7 @@ export async function getOpenWebUIStatus(): Promise<OpenWebUIStatus> {
   return withMock(mockOpenWebUIStatus(), async () => {
     const { stdout, exitCode } = await runOpenWebUIStack(["status", "--json"]);
     if (exitCode !== 0) throw new Error(stdout || "open-webui-stack status failed");
-    return JSON.parse(stdout.trim()) as OpenWebUIStatus;
+    return parseOpenWebUIStatus(stdout, UTILITY_NAME);
   });
 }
 

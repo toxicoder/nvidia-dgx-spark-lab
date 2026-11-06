@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { ObservabilityPanel } from "@/components/ObservabilityPanel";
 import { fakeMonitoringStackStatus } from "@/lib/mocks/fixtures";
+import type { MonitoringServiceStatus } from "@/lib/types";
 
 const hostMocks = vi.hoisted(() => ({
   getMonitoringStackStatusAction: vi.fn()
@@ -137,12 +138,11 @@ describe("ObservabilityPanel", () => {
   });
 
   it("handles missing URL objects without crashing", () => {
-    const noUrls = {
-      ...fakeMonitoringStackStatus,
-      grafana: { ...fakeMonitoringStackStatus.grafana, state: "stopped" as const, urls: undefined },
-      headlamp: { ...fakeMonitoringStackStatus.headlamp, state: "stopped" as const, urls: undefined }
-    };
-    render(<ObservabilityPanel initialStatus={noUrls as typeof fakeMonitoringStackStatus} />);
+    const grafana: MonitoringServiceStatus = { ...fakeMonitoringStackStatus.grafana, state: "stopped" };
+    const headlamp: MonitoringServiceStatus = { ...fakeMonitoringStackStatus.headlamp, state: "stopped" };
+    delete grafana.urls;
+    delete headlamp.urls;
+    render(<ObservabilityPanel initialStatus={{ ...fakeMonitoringStackStatus, grafana, headlamp }} />);
     expect(screen.queryByRole("link", { name: /Open Grafana/i })).not.toBeInTheDocument();
   });
 

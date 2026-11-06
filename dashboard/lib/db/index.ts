@@ -40,12 +40,15 @@ export function resetDbForTests(dbPath?: string): void {
   }
 }
 
+/** A method read off the lazily-created database, bound to it. */
+type BoundMethod = (...args: unknown[]) => unknown;
+
 /** Proxy so `db.select()` works while allowing lazy init + test resets. */
 export const db = new Proxy({} as BetterSQLite3Database<typeof schema>, {
-  get(_target, prop) {
+  get(_target, prop): unknown {
     const real = getDb() as unknown as Record<string | symbol, unknown>;
     const value = real[prop];
-    return typeof value === "function" ? (value as Function).bind(real) : value;
+    return typeof value === "function" ? (value as BoundMethod).bind(real) : value;
   }
 });
 

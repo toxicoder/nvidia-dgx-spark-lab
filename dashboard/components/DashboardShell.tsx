@@ -96,7 +96,12 @@ function NavContent({ isMobile = false, active, setActive, onMobileClose, onSign
 
       <div className="mt-auto space-y-2 p-2">
         <ThemeSelector compact className="w-full max-w-full" />
-        <Button variant="outline" size="sm" className="w-full justify-start gap-2 text-xs" onClick={onSignOut}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full justify-start gap-2 text-xs"
+          onClick={() => void onSignOut()}
+        >
           <LogOut className="h-3.5 w-3.5" />
           Sign out
         </Button>

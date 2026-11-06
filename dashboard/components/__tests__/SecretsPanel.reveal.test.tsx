@@ -3,7 +3,6 @@ import { render, screen, fireEvent, within } from "@testing-library/react";
 import { fakeSecrets } from "@/lib/mocks/fixtures";
 
 vi.mock("@/components/ui/dialog", () => {
-  const React = require("react");
   return {
     Dialog: ({
       children,

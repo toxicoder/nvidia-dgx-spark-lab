@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { getServiceMocks, mockUtilityExists, resetRealPathEnv } from "./real-path-mocks";
 import * as inference from "../inference-workloads";
+import { itemAt } from "../../__tests__/test-assert";
 
 describe("inference-workloads service (mock)", () => {
   beforeEach(() => {
@@ -41,7 +42,7 @@ describe("inference-workloads service (real path)", () => {
     getServiceMocks().execFileAsync.mockResolvedValue({ stdout: JSON.stringify(payload), stderr: "" });
 
     const status = await inference.getInferenceWorkloadsStatus();
-    expect(status.jobs[0].model).toBe("kimi-test");
+    expect(itemAt(status.jobs, 0).model).toBe("kimi-test");
   });
 
   it("getUtilityPath resolves through candidate paths", async () => {

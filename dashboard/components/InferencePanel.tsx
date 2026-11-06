@@ -17,6 +17,7 @@ import { panelSubheaderClass } from "@/components/panel-styles";
 import { CapacityGateDialog } from "@/components/CapacityGateDialog";
 import { HeavyConfirmDialog } from "@/components/HeavyConfirmDialog";
 import type { CapacityCheck, InferenceModelName, InferenceWorkloadsStatus } from "@/lib/types";
+import { isInferenceModelName } from "@/lib/types";
 import { Loader2, Play, Square } from "lucide-react";
 
 const POLL_MS = 10000;
@@ -137,6 +138,18 @@ export function InferencePanel({ initialStatus }: InferencePanelProps): React.JS
     }
   };
 
+  const handleFreed = async () => {
+    if (!pendingModel) return;
+    const recheck = await checkCapacityAction(`model:${pendingModel}`);
+    setLastCheck(recheck);
+    if (recheck.ok) {
+      setGateOpen(false);
+      const heavy = STARTABLE_MODELS.find((m) => m.id === pendingModel)?.heavy;
+      if (heavy) setHeavyOpen(true);
+      else await runStart(pendingModel);
+    }
+  };
+
   return (
     <div data-testid="inference-panel" className="space-y-4">
       <div className={panelSubheaderClass}>
@@ -147,7 +160,12 @@ export function InferencePanel({ initialStatus }: InferencePanelProps): React.JS
 
       <div className="space-y-2">
         {status.jobs.map((job) => {
-          const startable = STARTABLE_MODELS.find((m) => m.id === job.model);
+          // A live Job can name a model the catalog no longer lists, so the name is
+          // narrowed here and only a catalogued model gets a Start button.
+          const reportedModel = job.model;
+          const startable = isInferenceModelName(reportedModel)
+            ? STARTABLE_MODELS.find((m) => m.id === reportedModel)
+            : undefined;
           return (
             <div
               key={job.job}
@@ -166,7 +184,7 @@ export function InferencePanel({ initialStatus }: InferencePanelProps): React.JS
                     size="sm"
                     variant="outline"
                     disabled={busy !== null}
-                    onClick={() => void beginStart(job.model as InferenceModelName, startable.heavy)}
+                    onClick={() => void beginStart(startable.id, startable.heavy)}
                   >
                     {busy === job.model ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -209,17 +227,7 @@ export function InferencePanel({ initialStatus }: InferencePanelProps): React.JS
         open={gateOpen}
         onOpenChange={setGateOpen}
         check={lastCheck}
-        onFreed={async () => {
-          if (!pendingModel) return;
-          const recheck = await checkCapacityAction(`model:${pendingModel}`);
-          setLastCheck(recheck);
-          if (recheck.ok) {
-            setGateOpen(false);
-            const heavy = STARTABLE_MODELS.find((m) => m.id === pendingModel)?.heavy;
-            if (heavy) setHeavyOpen(true);
-            else await runStart(pendingModel);
-          }
-        }}
+        onFreed={() => void handleFreed()}
       />
 
       <HeavyConfirmDialog

@@ -3,12 +3,19 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { TasksContainerList } from "../TasksContainerList";
 import { fakeContainers } from "@/lib/mocks/fixtures";
 
-const stopContainerAction = vi.fn();
+const stopContainerAction = vi.fn<(id: string) => Promise<{ stopped: string }>>();
 const refresh = vi.fn();
 const toastMock = vi.fn();
 
+/** First element of a testing-library query; fails the test when the query matched nothing. */
+function first<T>(items: T[]): T {
+  const [firstItem] = items;
+  if (firstItem === undefined) throw new Error("expected at least one matching element");
+  return firstItem;
+}
+
 vi.mock("@/actions/host-actions", () => ({
-  stopContainerAction: (...args: unknown[]) => stopContainerAction(...args)
+  stopContainerAction: (id: string) => stopContainerAction(id)
 }));
 
 vi.mock("@/components/ui/toast", () => ({
@@ -33,7 +40,7 @@ describe("TasksContainerList", () => {
     expect(screen.queryByText(/Stop container\?/i)).not.toBeInTheDocument();
 
     const stopButtons = screen.getAllByRole("button", { name: /stop/i });
-    fireEvent.click(stopButtons[0]);
+    fireEvent.click(first(stopButtons));
 
     expect(screen.getByText(/Stop container\?/i)).toBeInTheDocument();
     expect(screen.getByText(/This will stop kimi-test/i)).toBeInTheDocument();
@@ -43,7 +50,7 @@ describe("TasksContainerList", () => {
   it("calls stop action only after confirming", async () => {
     render(<TasksContainerList data={fakeContainers} />);
 
-    fireEvent.click(screen.getAllByRole("button", { name: /stop/i })[0]);
+    fireEvent.click(first(screen.getAllByRole("button", { name: /stop/i })));
     fireEvent.click(screen.getByRole("button", { name: /Stop container/i }));
 
     await waitFor(() => {
@@ -55,7 +62,7 @@ describe("TasksContainerList", () => {
   it("does not stop when confirmation is cancelled", async () => {
     render(<TasksContainerList data={fakeContainers} />);
 
-    fireEvent.click(screen.getAllByRole("button", { name: /stop/i })[0]);
+    fireEvent.click(first(screen.getAllByRole("button", { name: /stop/i })));
     fireEvent.click(screen.getByRole("button", { name: /Cancel/i }));
 
     expect(stopContainerAction).not.toHaveBeenCalled();
@@ -92,7 +99,7 @@ describe("TasksContainerList", () => {
     stopContainerAction.mockRejectedValue(new Error("docker down"));
 
     render(<TasksContainerList data={fakeContainers} />);
-    fireEvent.click(screen.getAllByRole("button", { name: /stop/i })[0]);
+    fireEvent.click(first(screen.getAllByRole("button", { name: /stop/i })));
     fireEvent.click(screen.getByRole("button", { name: /Stop container/i }));
 
     await waitFor(() => {

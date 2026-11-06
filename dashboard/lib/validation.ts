@@ -8,6 +8,7 @@
 import { z } from "zod";
 import { isPathAllowed } from "@/lib/path-security";
 import { ALLOWED_UTILITIES } from "@/lib/allowed-utilities";
+import { INFERENCE_MODEL_NAMES, NEMOTRON_STACK_IDS } from "@/lib/types";
 
 /** Docker container ID / name (safe chars only). */
 export const ContainerIdSchema = z.string().regex(/^[a-z0-9][a-z0-9_.-]{0,127}$/i);
@@ -26,53 +27,17 @@ export const UtilityNameSchema = z
 /** Dev workspace identifier (`coder` or `kasm`). */
 export const DevWorkspaceNameSchema = z.enum(["coder", "kasm"]);
 
-/** Inference model id allowlist for workload start/stop. */
-export const InferenceModelNameSchema = z.enum([
-  "kimi-test",
-  "kimi",
-  "ray-head",
-  "nemotron-3-ultra",
-  "nemotron-3-nano-30b",
-  "nemotron-3-nano-omni-30b",
-  "nemotron-3-super-120b",
-  "nemotron-retriever-embed",
-  "nemotron-retriever-rerank",
-  "nemotron-parse",
-  "nemotron-safety-guard",
-  "nemotron-speech-asr",
-  "nemotron-speech-tts",
-  "glm-5.2",
-  "qwen3.5-122b-a10b-nvfp4",
-  "qwen3.5-397b-spark2",
-  "qwen3.5-397b-nvfp4",
-  "qwen3.6-27b-nvfp4",
-  "qwen3.6-35b-a3b-nvfp4",
-  "qwen3.8-27b-nvfp4",
-  "qwen3.8-flash-next-nvfp4",
-  "glm-5.3-flash",
-  "deepseek-v4.1-flash",
-  "litellm",
-  "comfy-base",
-  "flux-fast",
-  "flux-quality",
-  "ltx-balanced",
-  "ltx-quality",
-  "flux-to-ltx"
-]);
+/**
+ * Inference model id allowlist for workload start/stop.
+ *
+ * Derived from {@link INFERENCE_MODEL_NAMES}, the single source of truth shared
+ * with the `InferenceModelName` type. Listing the names twice let the runtime
+ * check and the compile-time type drift.
+ */
+export const InferenceModelNameSchema = z.enum(INFERENCE_MODEL_NAMES);
 
-/** Nemotron agentic stack id allowlist. */
-export const NemotronStackIdSchema = z.enum([
-  "nemotron-agentic-spark-1",
-  "nemotron-agentic-spark-1-reasoning",
-  "nemotron-agentic-spark-2-agent",
-  "nemotron-agentic-spark-2-reasoning",
-  "nemotron-agentic-spark-3",
-  "nemotron-agentic-spark-4",
-  "qwen-agentic-spark-1",
-  "qwen-agentic-spark-2",
-  "qwen-agentic-spark-4",
-  "qwen36-dual-spark-1"
-]);
+/** Nemotron agentic stack id allowlist; derived from {@link NEMOTRON_STACK_IDS}. */
+export const NemotronStackIdSchema = z.enum(NEMOTRON_STACK_IDS);
 
 /** Resource Guard action token (`model:…`, `stack:…`, or `dev:…`). */
 export const CapacityActionSchema = z

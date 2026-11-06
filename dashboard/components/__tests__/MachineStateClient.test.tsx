@@ -2,11 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MachineStateClient } from "../MachineStateClient";
 import { fakeMachineIdentity, fakePackages, fakeServices } from "@/lib/mocks/fixtures";
+import type { MachineState } from "@/lib/types";
 
-const getMachineStateAction = vi.fn();
+const getMachineStateAction = vi.fn<() => Promise<MachineState>>();
 
 vi.mock("@/actions/host-actions", () => ({
-  getMachineStateAction: (...args: unknown[]) => getMachineStateAction(...args)
+  getMachineStateAction: () => getMachineStateAction()
 }));
 
 const toastMock = vi.fn();

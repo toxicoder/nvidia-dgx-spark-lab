@@ -6,7 +6,7 @@ import { ThemeProvider } from "../ThemeProvider";
 
 const push = vi.fn();
 const refresh = vi.fn();
-const signOut = vi.fn();
+const signOut = vi.fn<() => Promise<void>>();
 
 function renderShell(ui: React.ReactNode = <div>content</div>) {
   return render(
@@ -21,7 +21,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/lib/auth-client", () => ({
-  authClient: { signOut: (...args: unknown[]) => signOut(...args) }
+  authClient: { signOut: () => signOut() }
 }));
 
 describe("DashboardShell", () => {

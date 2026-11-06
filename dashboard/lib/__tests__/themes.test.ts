@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { getThemeById, isValidThemeId, DASHBOARD_THEMES, DEFAULT_THEME_ID } from "../themes";
+import { itemAt } from "./test-assert";
 
 describe("themes", () => {
   it("getThemeById returns known theme", () => {
@@ -12,7 +13,7 @@ describe("themes", () => {
   });
 
   it("isValidThemeId checks membership", () => {
-    expect(isValidThemeId(DASHBOARD_THEMES[0].id)).toBe(true);
+    expect(isValidThemeId(itemAt(DASHBOARD_THEMES, 0).id)).toBe(true);
     expect(isValidThemeId("bogus")).toBe(false);
   });
 });

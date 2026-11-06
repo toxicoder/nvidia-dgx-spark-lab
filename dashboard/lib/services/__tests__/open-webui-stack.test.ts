@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { getServiceMocks, mockUtilityExists, resetRealPathEnv } from "./real-path-mocks";
 import * as openWebUI from "../open-webui-stack";
+import { keyIn } from "../../__tests__/test-assert";
 
 describe("open-webui-stack service (mock)", () => {
   beforeEach(() => {
@@ -43,7 +44,7 @@ describe("open-webui-stack service (real path)", () => {
         state: "stopped",
         helm_installed: false,
         pod_ready: false,
-        urls: {},
+        urls: { sso: "https://chat.lab.local", nodeport: "http://10.0.0.9:32085" },
         backend: { hermes_gateway: { url: "", reachable: false, endpoint_ip: "" } },
         prerequisites: { hermes_stack: "hermes-lab" }
       }),
@@ -68,7 +69,7 @@ describe("open-webui-stack service (real path)", () => {
     });
 
     const catalog = await openWebUI.getOpenWebUICatalog();
-    expect(catalog.stacks["open-webui-lab"].label).toBe("Chat");
+    expect(keyIn(catalog.stacks, "open-webui-lab").label).toBe("Chat");
   });
 
   it("resolveOpenWebUIStackScript falls back when workspace path missing", async () => {
@@ -81,7 +82,7 @@ describe("open-webui-stack service (real path)", () => {
         state: "stopped",
         helm_installed: false,
         pod_ready: false,
-        urls: {},
+        urls: { sso: "https://chat.lab.local", nodeport: "http://10.0.0.9:32085" },
         backend: { hermes_gateway: { url: "", reachable: false, endpoint_ip: "" } },
         prerequisites: { hermes_stack: "hermes-lab" }
       }),
@@ -105,13 +106,21 @@ describe("open-webui-stack service (real path)", () => {
       helm: { release: "open-webui", namespace: "dev", chart: "open-webui" },
       ports: { nodeport: 32085, container: 8080, service: 80 },
       sso: { host: "chat" },
-      backends: { hermes_gateway: { port: 8642, path: "/v1", requires_hermes_stack: "hermes-lab" } },
+      backends: {
+        hermes_gateway: {
+          service: "hermes-gateway",
+          namespace: "dev",
+          port: 8642,
+          path: "/v1",
+          requires_hermes_stack: "hermes-lab"
+        }
+      },
       stacks: { "open-webui-lab": { label: "Chat", description: "desc", requires_hermes_stack: "hermes-lab" } }
     };
     getServiceMocks().execFileAsync.mockResolvedValue({ stdout: JSON.stringify(payload), stderr: "" });
 
     const catalog = await openWebUI.getOpenWebUICatalog();
-    expect(catalog.stacks["open-webui-lab"].label).toBe("Chat");
+    expect(keyIn(catalog.stacks, "open-webui-lab").label).toBe("Chat");
   });
 
   it("getOpenWebUICatalog throws when utility exits non-zero", async () => {

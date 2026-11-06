@@ -6,6 +6,10 @@ import path from "node:path";
 import { mockMonitoringStackStatus } from "../mocks/fixtures";
 import type { MonitoringStackStatus } from "../types";
 import { withMock } from "../host";
+import { parseMonitoringStackStatus } from "./cli-json";
+
+/** Name used in diagnostics when the utility's payload is unusable. */
+const UTILITY_NAME = "monitoring-stack.sh";
 
 const execFileAsync = promisify(execFile);
 
@@ -55,6 +59,6 @@ export async function getMonitoringStackStatus(): Promise<MonitoringStackStatus>
   return withMock(mockMonitoringStackStatus(), async () => {
     const { stdout, exitCode } = await runMonitoringStack(["status", "--json"]);
     if (exitCode !== 0) throw new Error(stdout || "monitoring-stack status failed");
-    return JSON.parse(stdout.trim()) as MonitoringStackStatus;
+    return parseMonitoringStackStatus(stdout, UTILITY_NAME);
   });
 }

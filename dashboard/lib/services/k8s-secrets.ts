@@ -5,11 +5,17 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { withMock } from "../host";
-import type { K8sSyncTarget } from "../types";
+import type { K8sSecretNamespace, K8sSyncTarget } from "../types";
+import { K8S_SECRET_NAMESPACES } from "../types";
+import { parseK8sSecretPayload } from "./cli-json";
 
 const execFileAsync = promisify(execFile);
 
-const ALLOWED_NAMESPACES = new Set(["dev", "ai-inference"]);
+/** The allowlist is derived from the same list the `K8sSyncTarget` type is. */
+const ALLOWED_NAMESPACES: ReadonlySet<K8sSecretNamespace> = new Set(K8S_SECRET_NAMESPACES);
+
+/** Name used in diagnostics when kubectl's payload is unusable. */
+const KUBECTL_GET_SECRET = "kubectl get secret";
 
 /** Result of a kubectl secret sync or key removal operation. */
 export interface K8sSecretSyncResult {
@@ -99,10 +105,7 @@ export async function removeK8sSecretKey(target: K8sSyncTarget): Promise<K8sSecr
         { timeout: 20000, maxBuffer: 1024 * 256 }
       );
 
-      const secret = JSON.parse(stdout) as {
-        metadata?: { name?: string; namespace?: string };
-        data?: Record<string, string>;
-      };
+      const secret = parseK8sSecretPayload(stdout, KUBECTL_GET_SECRET);
 
       if (!secret.data || !(target.key in secret.data)) {
         return { ok: true };

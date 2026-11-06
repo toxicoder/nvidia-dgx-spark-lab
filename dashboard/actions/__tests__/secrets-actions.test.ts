@@ -228,6 +228,19 @@ describe("secrets-actions", () => {
     );
   });
 
+  it("updateSecretValueAction reports a failed k8s sync and skips the audit", async () => {
+    vi.mocked(updateSecretValue).mockResolvedValue(mockMetaWithK8s);
+    vi.mocked(syncSecretToK8s).mockResolvedValue({ ok: false, error: "kubectl apply failed" });
+
+    const result = await updateSecretValueAction({
+      id: "00000000-0000-4000-8000-000000000099",
+      value: "rotated"
+    });
+
+    expect(result.syncError).toBe("kubectl apply failed");
+    expect(appendAuditEvent).not.toHaveBeenCalled();
+  });
+
   it("createSecretAction skips k8s sync when meta has no target", async () => {
     const result = await createSecretAction({
       name: "local-only",
