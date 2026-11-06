@@ -132,13 +132,27 @@ jobs:
 
       # Unit already ran Vitest+lint+tsc on the host; hermetic focuses on
       # production build + Playwright (and coverage when visual mode needs it).
+      # The actuals dir is bind-mounted (it is gitignored) so a failed
+      # comparison leaves the container-rendered PNGs behind: those are the only
+      # acceptable source for a golden refresh, since baselines must come from
+      # this pinned browser and not from a host Chromium.
       - name: Run hermetic tests (build + visual; unit skipped when host unit passed)
         run: |
+          mkdir -p dashboard/tests/visual/actuals
+          actuals_mount="$PWD/dashboard/tests/visual/actuals:/app/tests/visual/actuals"
           if [[ "${{ needs.dashboard-unit.result }}" == "success" ]]; then
-            docker run --rm -e DASHBOARD_TEST_MODE=visual lab-dashboard-test:ci
+            docker run --rm -e DASHBOARD_TEST_MODE=visual -v "$actuals_mount" lab-dashboard-test:ci
           else
-            docker run --rm -e DASHBOARD_TEST_MODE=full lab-dashboard-test:ci
+            docker run --rm -e DASHBOARD_TEST_MODE=full -v "$actuals_mount" lab-dashboard-test:ci
           fi
+
+      - name: Upload dashboard visual actuals
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-visual-actuals
+          path: dashboard/tests/visual/actuals/
+          if-no-files-found: warn
 
   docs-and-render:
     needs: changes
