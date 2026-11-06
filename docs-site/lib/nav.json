@@ -183,6 +183,10 @@
         "path": "project-conventions.md"
       },
       {
+        "title": "Strong Types",
+        "path": "strong-types.md"
+      },
+      {
         "title": "Contributing to Docs",
         "path": "CONTRIBUTING.md"
       },
