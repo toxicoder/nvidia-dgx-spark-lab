@@ -78,13 +78,7 @@ export const NEMOTRON_STACK_IDS = [
  * Source of truth for {@link K8sNamespaceName} and for the namespace field of
  * `OpenWebUIBackendSchema` in `lib/services/cli-json.ts`.
  */
-export const K8S_NAMESPACE_NAMES = [
-  "dev",
-  "ai-inference",
-  "monitoring",
-  "kube-system",
-  "gpu-operator"
-] as const;
+export const K8S_NAMESPACE_NAMES = ["dev", "ai-inference", "monitoring", "kube-system", "gpu-operator"] as const;
 
 /** Kubernetes namespace name; derived from {@link K8S_NAMESPACE_NAMES}. */
 export type K8sNamespaceName = (typeof K8S_NAMESPACE_NAMES)[number];
@@ -376,12 +370,14 @@ export interface NemotronCatalog {
   models: Record<string, NemotronCatalogModel>;
   pillars: Record<string, { label: string; icon: string }>;
   stacks: Record<string, NemotronStackPreset>;
-  qwen_tiers?: {
-    frontier_target?: string | undefined;
-    spark_1?: QwenTierInfo | undefined;
-    spark_2?: QwenTierInfo | undefined;
-    spark_4?: QwenTierInfo | undefined;
-  } | undefined;
+  qwen_tiers?:
+    | {
+        frontier_target?: string | undefined;
+        spark_1?: QwenTierInfo | undefined;
+        spark_2?: QwenTierInfo | undefined;
+        spark_4?: QwenTierInfo | undefined;
+      }
+    | undefined;
 }
 
 export interface NemotronStackComponentStatus {

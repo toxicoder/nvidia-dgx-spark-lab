@@ -8,11 +8,7 @@ import path from "path";
 import fs from "fs";
 import { withMock } from "../host";
 import { mockClusterCapacity, mockCapacityCheck, fakeFreeResourceSuggestions } from "../mocks/fixtures";
-import {
-  parseCapacityCheck,
-  parseClusterCapacity,
-  parseFreeResourceSuggestions
-} from "./cli-json";
+import { parseCapacityCheck, parseClusterCapacity, parseFreeResourceSuggestions } from "./cli-json";
 import type { CapacityCheck, ClusterCapacity, FreeResourceSuggestion } from "../types";
 
 /** Name used in diagnostics when a utility's payload is unusable. */

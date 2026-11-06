@@ -101,7 +101,10 @@ describe("nemotron-stack service (real path)", () => {
     getServiceMocks().existsSync.mockImplementation(
       (p: string) => p.endsWith("/scripts/utilities/nemotron-stack.sh") && !p.startsWith("/workspace")
     );
-    getServiceMocks().execFileAsync.mockResolvedValue({ stdout: '{"stacks":[],"namespace":"ai-inference"}', stderr: "" });
+    getServiceMocks().execFileAsync.mockResolvedValue({
+      stdout: '{"stacks":[],"namespace":"ai-inference"}',
+      stderr: ""
+    });
 
     await nemotron.getNemotronStackStatus();
     expect(getServiceMocks().execFileAsync).toHaveBeenCalled();
@@ -115,7 +118,10 @@ describe("nemotron-stack service (real path)", () => {
     getServiceMocks().existsSync.mockImplementation(
       (p: string) => p === "/workspace/scripts/utilities/nemotron-stack.sh"
     );
-    getServiceMocks().execFileAsync.mockResolvedValue({ stdout: '{"stacks":[],"namespace":"ai-inference"}', stderr: "" });
+    getServiceMocks().execFileAsync.mockResolvedValue({
+      stdout: '{"stacks":[],"namespace":"ai-inference"}',
+      stderr: ""
+    });
 
     await nemotron.getNemotronStackStatus();
     expect(getServiceMocks().execFileAsync).toHaveBeenCalledWith(
@@ -133,7 +139,10 @@ describe("nemotron-stack service (real path)", () => {
   it("resolveNemotronStackScript falls back through candidates", async () => {
     delete process.env.BUILD_WORKSPACE_DIRECTORY;
     getServiceMocks().existsSync.mockImplementation((p: string) => p.endsWith("/scripts/utilities/nemotron-stack.sh"));
-    getServiceMocks().execFileAsync.mockResolvedValue({ stdout: '{"stacks":[],"namespace":"ai-inference"}', stderr: "" });
+    getServiceMocks().execFileAsync.mockResolvedValue({
+      stdout: '{"stacks":[],"namespace":"ai-inference"}',
+      stderr: ""
+    });
 
     await nemotron.getNemotronStackStatus();
     expect(getServiceMocks().existsSync).toHaveBeenCalled();

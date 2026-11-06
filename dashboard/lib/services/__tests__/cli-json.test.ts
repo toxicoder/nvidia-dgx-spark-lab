@@ -250,7 +250,14 @@ function validContainer(): Record<string, unknown> {
 
 /** One dev-workspace row. */
 function workspace(name: "coder" | "kasm"): Record<string, unknown> {
-  return { name, state: "running", readyPods: 2, totalPods: 2, url: `http://10.0.0.9:30${name === "coder" ? "80" : "88"}`, helmInstalled: true };
+  return {
+    name,
+    state: "running",
+    readyPods: 2,
+    totalPods: 2,
+    url: `http://10.0.0.9:30${name === "coder" ? "80" : "88"}`,
+    helmInstalled: true
+  };
 }
 
 /** One monitoring service row. */
@@ -322,24 +329,18 @@ describe("parseDockerContainers", () => {
 describe("parseDevWorkspacesStatus", () => {
   it("accepts both workspace rows", () => {
     const payload = { coder: workspace("coder"), kasm: workspace("kasm") };
-    expect(parseDevWorkspacesStatus(JSON.stringify(payload), "dev-workspaces.sh").kasm.state).toBe(
-      "running"
-    );
+    expect(parseDevWorkspacesStatus(JSON.stringify(payload), "dev-workspaces.sh").kasm.state).toBe("running");
   });
 
   it("rejects a payload that lost a row rather than rendering half a panel", () => {
     const payload = { coder: workspace("coder") };
-    expect(() => parseDevWorkspacesStatus(JSON.stringify(payload), "dev-workspaces.sh")).toThrow(
-      /kasm/
-    );
+    expect(() => parseDevWorkspacesStatus(JSON.stringify(payload), "dev-workspaces.sh")).toThrow(/kasm/);
   });
 
   it("rejects a state outside the closed set", () => {
     const payload = { coder: workspace("coder"), kasm: workspace("kasm") };
     payload.coder = { ...payload.coder, state: "draining" };
-    expect(() => parseDevWorkspacesStatus(JSON.stringify(payload), "dev-workspaces.sh")).toThrow(
-      /state/
-    );
+    expect(() => parseDevWorkspacesStatus(JSON.stringify(payload), "dev-workspaces.sh")).toThrow(/state/);
   });
 });
 
@@ -352,9 +353,7 @@ describe("parseMonitoringStackStatus", () => {
   it("rejects a payload that dropped a service the panel renders", () => {
     const payload = validMonitoring();
     delete payload.dcgmExporter;
-    expect(() => parseMonitoringStackStatus(JSON.stringify(payload), "monitoring-stack.sh")).toThrow(
-      /dcgmExporter/
-    );
+    expect(() => parseMonitoringStackStatus(JSON.stringify(payload), "monitoring-stack.sh")).toThrow(/dcgmExporter/);
   });
 
   it("accepts a service that has no urls yet", () => {
@@ -386,9 +385,7 @@ describe("parseNemotronCatalog", () => {
   it("rejects a model entry with no runtime", () => {
     const payload = validNemotronCatalog();
     payload.models = { "nemotron-3-ultra": { display_name: "Ultra", family: "llm" } };
-    expect(() => parseNemotronCatalog(JSON.stringify(payload), "nemotron-stack.sh")).toThrow(
-      /runtime/
-    );
+    expect(() => parseNemotronCatalog(JSON.stringify(payload), "nemotron-stack.sh")).toThrow(/runtime/);
   });
 });
 
@@ -410,9 +407,7 @@ describe("parseNemotronStackStatus", () => {
   });
 
   it("rejects a status with no namespace", () => {
-    expect(() =>
-      parseNemotronStackStatus(JSON.stringify({ stacks: [] }), "nemotron-stack.sh")
-    ).toThrow(/namespace/);
+    expect(() => parseNemotronStackStatus(JSON.stringify({ stacks: [] }), "nemotron-stack.sh")).toThrow(/namespace/);
   });
 });
 
@@ -461,9 +456,7 @@ describe("parseOpenWebUIStatus", () => {
   }
 
   it("accepts a running stack", () => {
-    expect(parseOpenWebUIStatus(JSON.stringify(validStatus()), "open-webui-stack.sh").state).toBe(
-      "running"
-    );
+    expect(parseOpenWebUIStatus(JSON.stringify(validStatus()), "open-webui-stack.sh").state).toBe("running");
   });
 
   it("rejects a state outside the closed set", () => {
@@ -491,8 +484,6 @@ describe("parseK8sSecretPayload", () => {
 
   it("rejects a data map holding a non-string, which would be written straight back", () => {
     const payload = { data: { HF_TOKEN: 7 } };
-    expect(() => parseK8sSecretPayload(JSON.stringify(payload), "kubectl get secret")).toThrow(
-      /HF_TOKEN/
-    );
+    expect(() => parseK8sSecretPayload(JSON.stringify(payload), "kubectl get secret")).toThrow(/HF_TOKEN/);
   });
 });

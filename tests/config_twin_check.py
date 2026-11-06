@@ -116,9 +116,7 @@ def first_difference(left: JsonValue, right: JsonValue, at: str) -> str | None:
         A human-readable description of the first difference, or ``None`` when the
         two are equal.
     """
-    if type(left) is not type(right) and not (
-        _is_number(left) and _is_number(right)
-    ):
+    if type(left) is not type(right) and not (_is_number(left) and _is_number(right)):
         return f"{at}: YAML has {type(left).__name__}, JSON has {type(right).__name__}"
     if isinstance(left, dict) and isinstance(right, dict):
         missing = sorted(set(left) - set(right))
