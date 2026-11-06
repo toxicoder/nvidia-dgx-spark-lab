@@ -1,0 +1,176 @@
+# Purpose: DeepSeek-V4-Flash DSpark TP=2 worker rank 1 on spark1 (2-node Spark pair, DSpark spec decode)
+# Source of truth: k8s/workloads/deepseek-v4-flash-dspark/
+# Regenerate: n/a
+# Safety: exclusive frontier; hostNetwork + pair NCCL; GPU_MEMORY_UTILIZATION_TEXT 0.835 only, never hand-set util
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: deepseek-v4-flash-dspark-worker-1
+  namespace: ai-inference
+  labels:
+    app: deepseek-v4-flash-dspark-worker-1
+    workload: inference
+    mode: production
+    family: deepseek-v4-flash
+    role: worker
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 7200
+  template:
+    metadata:
+      labels:
+        app: deepseek-v4-flash-dspark-worker-1
+        workload: inference
+        mode: production
+        family: deepseek-v4-flash
+        role: worker
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      restartPolicy: OnFailure
+      hostNetwork: true
+      hostIPC: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/hostname: spark1
+      containers:
+        - name: inference
+          # Anemll DSpark vLLM build for GB10 (Stage C padded NVFP4 sparse-MLA KV path).
+          # Same image tag required on both Sparks; earlyoom must be disabled on both hosts.
+          image: ghcr.io/anemll/dspark-vllm-gx10:0.1.1
+          imagePullPolicy: IfNotPresent
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+          resources:
+            requests:
+              cpu: "12"
+              memory: "100Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "20"
+              memory: "112Gi"
+              nvidia.com/gpu: "1"
+          env:
+            # 2-node pair block (matches ansible group_vars highspeed_*/nccl_env). Confirm names
+            # with ibdev2netdev on both nodes. Do not copy the Mode B 3-node ring vars.
+            - name: NCCL_SOCKET_IFNAME
+              value: "enp1s0f0np0,enp1s0f1np1"
+            - name: NCCL_IB_HCA
+              value: "mlx5_0,mlx5_1"
+            - name: NCCL_DEBUG
+              value: "INFO"
+            - name: NCCL_DEBUG_SUBSYS
+              value: "ALL"
+            - name: NCCL_P2P_DISABLE
+              value: "0"
+            - name: NCCL_SHM_DISABLE
+              value: "0"
+            - name: NCCL_IB_DISABLE
+              value: "0"
+            - name: NCCL_SOCKET_NTHREADS
+              value: "4"
+            - name: NCCL_NSOCKS_PERTHREAD
+              value: "4"
+            - name: PYTORCH_CUDA_ALLOC_CONF
+              value: "expandable_segments:True"
+            - name: MODEL_NAME
+              value: "deepseek-ai/DeepSeek-V4-Flash-Vision-Exp"
+            - name: HF_HOME
+              value: "/models"
+            - name: HF_HUB_OFFLINE
+              value: "1"
+            # Upstream never sets GPU_MEMORY_UTILIZATION by hand; 0.835 is the measured pair budget.
+            - name: GPU_MEMORY_UTILIZATION_TEXT
+              value: "0.835"
+            - name: MTP_NUM_TOKENS
+              value: "6"
+            - name: VLLM_USE_BREAKABLE_CUDAGRAPH
+              value: "0"
+            - name: DEFAULT_THINKING
+              value: "low"
+            - name: LIMIT_MM_PER_PROMPT
+              value: '{"image":8}'
+            # Hostnames of the pair: MASTER_ADDR is always rank 0 (spark0), WORKER_HOST names rank 1.
+            - name: WORKER_HOST
+              value: "spark1"
+            - name: MASTER_ADDR
+              value: "spark0"
+            - name: MASTER_PORT
+              value: "29521"
+            - name: NODE_RANK
+              value: "1"
+            - name: VLLM_PORT
+              value: "8000"
+            - name: VLLM_HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 900
+            periodSeconds: 30
+            timeoutSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 900
+            periodSeconds: 60
+            timeoutSeconds: 10
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              exec vllm serve "${MODEL_NAME}"
+              --host 0.0.0.0
+              --port 8000
+              --served-model-name deepseek-v4-flash
+              --trust-remote-code
+              --tensor-parallel-size 2
+              --pipeline-parallel-size 1
+              --nnodes 2
+              --node-rank "${NODE_RANK}"
+              --master-addr "${MASTER_ADDR}"
+              --master-port "${MASTER_PORT}"
+              --distributed-executor-backend mp
+              --gpu-memory-utilization "${GPU_MEMORY_UTILIZATION_TEXT}"
+              --kv-cache-dtype nvfp4_ds_mla
+              --block-size 256
+              --max-model-len 1048576
+              --max-num-seqs 6
+              --max-num-batched-tokens 8192
+              --enable-chunked-prefill
+              --async-scheduling
+              --long-prefill-token-threshold 1024
+              --moe-backend flashinfer_b12x
+              --generation-config vllm
+              --limit-mm-per-prompt "${LIMIT_MM_PER_PROMPT}"
+              --speculative-config '{"method":"dspark","num_speculative_tokens":6,"draft_sample_method":"probabilistic"}'
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 32Gi

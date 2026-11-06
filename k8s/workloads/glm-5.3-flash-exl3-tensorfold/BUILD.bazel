@@ -1,0 +1,27 @@
+"""Package purpose: GLM-5.3-Flash EXL3 TensorFold pair inference jobs and service exports."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "glm53_flash_exl3_tensorfold_job",
+    srcs = [
+        "README.md",
+        "glm-5.3-flash-exl3-tensorfold-job.yaml",
+        "glm-5.3-flash-exl3-tensorfold-worker-1-job.yaml",
+        "kustomization.yaml",
+        "service.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+exports_files([
+    "glm-5.3-flash-exl3-tensorfold-job.yaml",
+    "glm-5.3-flash-exl3-tensorfold-worker-1-job.yaml",
+    "kustomization.yaml",
+    "service.yaml",
+])

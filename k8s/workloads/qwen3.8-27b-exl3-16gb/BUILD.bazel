@@ -1,0 +1,27 @@
+"""Package purpose: Qwen3.8-27B EXL3 (ExLlamaV3) 16 GB GPU job manifests, image, and service exports."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "qwen3_8_27b_exl3_16gb_job",
+    srcs = [
+        "Dockerfile",
+        "README.md",
+        "kustomization.yaml",
+        "qwen3.8-27b-exl3-16gb-job.yaml",
+        "service.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+exports_files([
+    "Dockerfile",
+    "kustomization.yaml",
+    "qwen3.8-27b-exl3-16gb-job.yaml",
+    "service.yaml",
+])

@@ -1,0 +1,13 @@
+"""Package purpose: LiteLLM kustomize overlay for the single-Spark TensorFold Qwen3.8-27B lane."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "litellm_qwen38_27b_tensorfold",
+    srcs = ["kustomization.yaml"],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)

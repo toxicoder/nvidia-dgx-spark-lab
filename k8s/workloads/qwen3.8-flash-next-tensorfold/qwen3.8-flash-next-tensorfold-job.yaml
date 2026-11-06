@@ -1,0 +1,154 @@
+# Purpose: Qwen3.8 Flash Next TensorFold Job on one DGX Spark (GB10 128 GB UMA)
+# Source of truth: k8s/workloads/qwen3.8-flash-next-tensorfold/
+# Regenerate: n/a
+# Safety: exclusive single-Spark lane, manual start, heavy confirm, one lane at a time
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: qwen3.8-flash-next-tensorfold
+  namespace: ai-inference
+  labels:
+    app: qwen3.8-flash-next-tensorfold
+    workload: inference
+    mode: production
+    family: qwen3.8
+    role: leader
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 7200
+  template:
+    metadata:
+      labels:
+        app: qwen3.8-flash-next-tensorfold
+        workload: inference
+        mode: production
+        family: qwen3.8
+        role: leader
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      restartPolicy: OnFailure
+      # Single Spark only - the ~96 GiB NVFP4/MXFP8 checkpoint plus the engine-sized
+      # KV pool assumes one GB10 with 128 GB unified memory and the GPU to itself.
+      # No hostNetwork/hostIPC: matches the house single-node lanes.
+      nodeSelector:
+        kubernetes.io/hostname: spark0
+      containers:
+        - name: inference
+          # TensorFold v1.1.4 (Zig) recipe image, built or pulled on spark0 by the
+          # upstream ./start.sh / scripts/prepare.sh, then tagged locally. Upstream also
+          # publishes prebuilt GHCR tags v1.1.4-eab8582-4baf16137ecd and latest, but
+          # publication is unconfirmed, so the lane never pulls at start.
+          image: qwen38-flash-next-tf:local
+          imagePullPolicy: IfNotPresent
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+          resources:
+            requests:
+              cpu: "8"
+              memory: "96Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "16"
+              memory: "110Gi"
+              nvidia.com/gpu: "1"
+          # The image entrypoint is configured entirely by env (upstream runs the
+          # container with docker run -e flags), so there is no command/args override.
+          env:
+            # Concurrent streams. There is no pinned KV pool: the engine sizes it with a
+            # 9 GiB reserve plus 2 GiB for the vision helper, and refuses a PARALLEL whose
+            # windows (4.78 GiB each at fp8) do not fit.
+            - name: PARALLEL
+              value: "5"
+            # Native window. CONTEXT=1048576 enables the YaRN factor-4 1M window.
+            - name: CONTEXT
+              value: "262144"
+            # MTP drafts ship inside the checkpoint - no separate drafter repo.
+            - name: DRAFTS
+              value: "1"
+            - name: TF_FLASHNEXT_DRAFTS
+              value: "6"
+            - name: THINKING
+              value: "1"
+            - name: MAX_TOKENS
+              value: "32768"
+            # e4m3 KV (~1.8x the pool); KV_DTYPE=bf16 is exact and roughly halves it.
+            - name: KV_DTYPE
+              value: "fp8"
+            # Host headroom; VISION=0 hands the extra 2 GiB vision helper back.
+            - name: TENSORFOLD_MEMORY_RESERVE_GIB
+              value: "9"
+            - name: TENSORFOLD_MAX_IMAGES
+              value: "50"
+            - name: TENSORFOLD_MAX_VIDEOS
+              value: "4"
+            - name: VISION
+              value: "1"
+            # 512-expert MoE NVFP4/MXFP8 snapshot from download-qwen38-flash-next-tensorfold
+            # (hostPath /mnt/models -> /models, HF_HOME=/models, offline).
+            - name: MODEL_DIR
+              value: "/models/nvidia__Qwen3.8-Flash-Next-FP4-Local"
+            - name: MODEL_ID
+              value: "nvidia/Qwen3.8-Flash-Next-FP4-Local"
+            - name: MODEL_REVISION
+              value: "b9ce18a6887e18c089fdea8509a33e63429a3300"
+            - name: SERVED_NAME
+              value: "Qwen3.8-Flash-Next"
+            # Upstream default is 8888; pinned to 8000 for the Service and the probes.
+            - name: PORT
+              value: "8000"
+            - name: HOST
+              value: "0.0.0.0"
+            - name: HF_HOME
+              value: "/models"
+            - name: HF_HUB_OFFLINE
+              value: "1"
+            # Gated opt-in, off by default: ABLIT=1 loads the drowzeys Keys house-qsa
+            # abliteration overlay. It needs HF_TOKEN at download time and the ablit
+            # dir pre-fetched under /models by download-qwen38-flash-next-tensorfold.
+            # Read the overlay's own Responsible Use Agreement before enabling.
+            # - name: ABLIT
+            #   value: "1"
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          # A ~96 GiB checkpoint load outruns the twin's 600s; both probes wait 900s.
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 900
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 900
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 10
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 32Gi

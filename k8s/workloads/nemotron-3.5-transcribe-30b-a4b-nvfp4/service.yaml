@@ -1,0 +1,27 @@
+# Purpose: Kubernetes Service for Nemotron 3.5 Transcribe 30B-A4B NVFP4 inference endpoint
+# Source of truth: k8s/workloads/nemotron-3.5-transcribe-30b-a4b-nvfp4/
+# Regenerate: n/a
+# Safety: exposes inference API; protect with SSO ingress
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+  name: nemotron-3.5-transcribe-30b-a4b-nvfp4
+  namespace: ai-inference
+  labels:
+    app: nemotron-3.5-transcribe-30b-a4b-nvfp4
+    workload: inference
+    family: speech
+    runtime: vllm
+spec:
+  selector:
+    app: nemotron-3.5-transcribe-30b-a4b-nvfp4
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: http
+  type: ClusterIP

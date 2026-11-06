@@ -1,0 +1,11 @@
+# Purpose: Kustomize bundle for qwen3.8-27b-exl3-16gb workload
+# Source of truth: k8s/workloads/qwen3.8-27b-exl3-16gb/
+# Regenerate: n/a
+# Safety: manual start via manage.sh; one GPU requested when the Job runs
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - qwen3.8-27b-exl3-16gb-job.yaml
+  - service.yaml
