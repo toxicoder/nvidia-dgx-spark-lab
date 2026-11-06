@@ -6,7 +6,7 @@
 
 # Interface: DevWorkspaceInfo
 
-Defined in: [lib/types/index.ts:77](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L77)
+Defined in: [lib/types/index.ts:224](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L224)
 
 ## Properties
 
@@ -14,15 +14,15 @@ Defined in: [lib/types/index.ts:77](https://github.com/toxicoder/nvidia-dgx-spar
 
 > **helmInstalled**: `boolean`
 
-Defined in: [lib/types/index.ts:83](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L83)
+Defined in: [lib/types/index.ts:230](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L230)
 
 ***
 
 ### name
 
-> **name**: [`DevWorkspaceName`](../type-aliases/DevWorkspaceName.md)
+> **name**: `"coder"` \| `"kasm"`
 
-Defined in: [lib/types/index.ts:78](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L78)
+Defined in: [lib/types/index.ts:225](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L225)
 
 ***
 
@@ -30,15 +30,15 @@ Defined in: [lib/types/index.ts:78](https://github.com/toxicoder/nvidia-dgx-spar
 
 > **readyPods**: `number`
 
-Defined in: [lib/types/index.ts:80](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L80)
+Defined in: [lib/types/index.ts:227](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L227)
 
 ***
 
 ### state
 
-> **state**: [`DevWorkspaceState`](../type-aliases/DevWorkspaceState.md)
+> **state**: `"error"` \| `"stopped"` \| `"starting"` \| `"running"` \| `"stopping"`
 
-Defined in: [lib/types/index.ts:79](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L79)
+Defined in: [lib/types/index.ts:226](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L226)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [lib/types/index.ts:79](https://github.com/toxicoder/nvidia-dgx-spar
 
 > **totalPods**: `number`
 
-Defined in: [lib/types/index.ts:81](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L81)
+Defined in: [lib/types/index.ts:228](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L228)
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: [lib/types/index.ts:81](https://github.com/toxicoder/nvidia-dgx-spar
 
 > **url**: `string`
 
-Defined in: [lib/types/index.ts:82](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L82)
+Defined in: [lib/types/index.ts:229](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L229)

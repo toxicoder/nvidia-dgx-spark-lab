@@ -355,6 +355,12 @@ qwen3.8-flash-next-nvfp4: 1-node Qwen3.8-Flash-Next NVFP4 (spark1, PLE mmap)
 medgemma-27b / medgemma-4b: spark2 medical lane + optional sidecar
 glm-5.3-flash: 3-node TP=3 NVFP4 on the QSFP ring (Mode B)
 deepseek-v4.1-flash: 3-node TP=3 official MXFP4 + Engram NVMe (Mode C, SGLang)
+deepseek-v4-flash-dspark: 2-node pair DeepSeek-V4-Flash vLLM TP=2 (DSpark spec decode, 1M ctx)
+glm-5.3-flash-exl3-tensorfold: 2-node pair GLM-5.3-Flash EXL3 4bpw (TensorFold ranks, 1M ctx)
+qwen3.8-27b-exl3-16gb: Qwen3.8-27B EXL3 on 16 GB+ consumer NVIDIA GPUs (ExLlamaV3 v1.6.0)
+qwen3.8-27b-tensorfold: 1-node Qwen3.8-27B TensorFold (MLX-4bit + DFlash2, 262k ctx)
+qwen3.8-flash-next-tensorfold: 1-node Qwen3.8-Flash-Next TensorFold (NVFP4 MoE, 262k ctx)
+nemotron-3.5-transcribe-30b-a4b-nvfp4: 1-GPU vLLM ASR Deployment (NeMo Speech plugin)
 litellm: management OpenAI proxy (no GPU)
 comfy-base: ComfyUI visual base (Deployment; Spark unified-memory patches)
 
@@ -852,6 +858,13 @@ Usage:
 
   scripts/yaml_format.sh --write    # format in place (//:fix)
   scripts/yaml_format.sh --check    # verify formatting (lint)
+
+!!! warning
+
+    Safety: an empty file list is a hard failure. This gate previously resolved its
+    repo root with `lab_script_dir 0`, which returns the directory of `lib/paths.sh`
+    (`scripts/lib`) rather than the script's own directory, so it searched
+    `scripts/**/*.yaml`, found none, printed "no YAML files found" and exited 0.
 
 
 
@@ -1704,6 +1717,19 @@ Prints Mode B inference Job names (one per line).
 @function rounded_mode_c_jobs
 Prints Mode C inference Job names (one per line).
 
+### Function `rounded_new_lanes_jobs`
+
+@function rounded_new_lanes_jobs
+Prints the exclusive new-lane Job names (DSpark pair, EXL3 TensorFold pair,
+Qwen3.8 EXL3 16GB, Qwen3.8-27B TensorFold, Qwen3.8-Flash-Next TensorFold).
+These lanes are exclusive with Mode A/B/C Jobs and with each other.
+
+### Function `guard_rounded_new_lanes_idle`
+
+@function guard_rounded_new_lanes_idle
+Fail if any new-lane Job is active. Optional $1 = lane name prefix to skip
+(the caller's own lane; its own double-start is caught by guard_active_job).
+
 ### Function `_rounded_active_from_list`
 
 @function _rounded_active_from_list
@@ -1741,11 +1767,16 @@ Does not hard-fail if the live name differs — callers warn via doctor_fabric.
 @function _require_three_nodes
 Require ≥3 nodes for rounded / Mode B / Mode C starts.
 
+### Function `_require_pair_nodes`
+
+@function _require_pair_nodes
+Require ≥2 nodes for 2-node pair lane starts (DSpark, EXL3 TensorFold).
+
 ### Function `litellm_overlay_for_backend`
 
 @function litellm_overlay_for_backend
 Prints the kustomize path for a LiteLLM backend id.
-@param $1  Backend id (rounded | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | glm-5.3-flash | deepseek-v4.1-flash).
+@param $1  Backend id (rounded | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | glm-5.3-flash | deepseek-v4.1-flash | deepseek-v4-flash-dspark | glm-5.3-flash-exl3-tensorfold | qwen3.8-27b-exl3-16gb | qwen3.8-27b-tensorfold | qwen3.8-flash-next-tensorfold).
 
 ### Function `args_have_with_litellm`
 
@@ -1783,6 +1814,26 @@ Start LiteLLM with the given backend profile when --with-litellm is present.
 ### Command: start-dsv41-flash
 
 ### Command: stop-dsv41-flash
+
+### Command: start-dsv4-flash-dspark
+
+### Command: stop-dsv4-flash-dspark
+
+### Command: start-glm53-flash-exl3
+
+### Command: stop-glm53-flash-exl3
+
+### Command: start-qwen38-27b-exl3
+
+### Command: stop-qwen38-27b-exl3
+
+### Command: start-qwen38-27b-tensorfold
+
+### Command: stop-qwen38-27b-tensorfold
+
+### Command: start-qwen38-flash-next-tensorfold
+
+### Command: stop-qwen38-flash-next-tensorfold
 
 ### Command: status-stack
 
@@ -1845,6 +1896,213 @@ Render generated artifacts under out_root/ansible (default: repo root).
 @function topology_check
 Validate the topology and, when kubectl + cluster access exist, compare the
 declared nodes against live K3s nodes (read-only drift report).
+
+
+
+<!-- source: scripts/lib/types.sh -->
+
+## typed value contracts
+
+Bash has no type system, so the closest equivalent is validating the *kind* of
+every value at the boundary where it enters a function: a port that must be an
+integer in 1..65535, a memory floor that must be a Kubernetes quantity, a tier
+that must be one of a closed set. Without it, `--memory 24Gig` travels through
+half a script before `kubectl` rejects it, or worse, silently means something
+else.
+
+Every checker follows one contract:
+
+  * returns 0 when the value satisfies the contract;
+
+  * returns 1 otherwise, having written one diagnostic to **stderr** naming the
+    parameter, so stdout stays reserved for data.
+They never exit the shell, so a sourced library cannot kill its caller; under
+`set -e` a failed check aborts an entry script, which is the intent.
+
+Libraries here deliberately omit `set -euo pipefail` and inherit the caller's,
+as every other `scripts/lib/*.sh` does (see docs/project-conventions.md §6).
+
+```bash
+Usage:
+  # shellcheck source=../lib/types.sh
+```
+
+  source "$(dirname "${BASH_SOURCE[0]}")/../lib/types.sh"
+  require_port "$port" port || return 1
+
+!!! warning
+
+    Safety: Resource Guard capacity math and the heavy-workload confirmation gate
+    both consume values these functions check. A check that passes here is only a
+    statement about *form*; it proves a value is a well-formed quantity, never that
+    the quantity is safe. Capacity decisions stay in resources.sh.
+
+### Function `lab_type_fail`
+
+@function lab_type_fail
+Emit one standard-shaped rejection to stderr.
+@param $1  Parameter name shown to the operator.
+@param $2  Contract that was not satisfied.
+@param $3  The offending value.
+
+### Function `is_integer`
+
+@function is_integer
+True when the value is a whole number, optionally signed.
+@param $1  Value to test.
+
+### Function `is_unsigned_integer`
+
+Separate from is_integer on purpose: counters read out of telemetry (token
+counts, pids, replica counts) are non-negative, and accepting a leading `-`
+there turns a parse glitch into a negative number rather than a rejection.
+@param $1  Value to test.
+
+### Function `is_number`
+
+@function is_number
+True when the value is an integer or decimal number, optionally signed.
+Generalises the per-script `is_numeric` helpers it replaces.
+@param $1  Value to test.
+
+### Function `is_unsigned_number`
+
+This is the exact grammar the per-script `is_numeric` helpers had; keep it
+free of a leading `-` so a swap for one of those helpers cannot widen it.
+@param $1  Value to test.
+
+### Function `is_boolean`
+
+@function is_boolean
+True when the value is one of the spellings bash scripts accept for a flag.
+@param $1  Value to test.
+
+### Function `is_port`
+
+@function is_port
+True when the value is a TCP/UDP port number, 1-65535.
+@param $1  Value to test.
+
+### Function `is_percent`
+
+@function is_percent
+True when the value is a whole percentage, 0-100.
+@param $1  Value to test.
+
+### Function `is_k8s_quantity`
+
+@function is_k8s_quantity
+True when the value is a Kubernetes quantity: a plain number, a CPU millicore
+string such as `600m`, or a byte quantity such as `24Gi` / `512M`.
+@param $1  Value to test.
+
+### Function `is_k8s_name`
+
+@function is_k8s_name
+True when the value is a valid Kubernetes object name (DNS-1123 subdomain,
+which is what namespaces, deployments, and jobs all use).
+@param $1  Value to test.
+
+### Function `is_absolute_path`
+
+@function is_absolute_path
+True when the value looks like an absolute filesystem path.
+@param $1  Value to test.
+
+### Function `is_enum_value`
+
+@function is_enum_value
+True when the value equals one of the remaining arguments.
+@param $1  Value to test.
+@param $2.. Accepted values.
+
+### Function `require_nonempty`
+
+@function require_nonempty
+Require a non-empty, non-whitespace value.
+@param $1  Value to test.
+@param $2  Parameter name for the diagnostic; defaults to "value".
+
+### Function `require_integer`
+
+@function require_integer
+Require a whole number.
+@param $1  Value to test.
+@param $2  Parameter name for the diagnostic; defaults to "value".
+
+### Function `require_positive_integer`
+
+@function require_positive_integer
+Require a whole number strictly greater than zero.
+@param $1  Value to test.
+@param $2  Parameter name for the diagnostic; defaults to "value".
+
+### Function `require_number`
+
+@function require_number
+Require an integer or decimal number.
+@param $1  Value to test.
+@param $2  Parameter name for the diagnostic; defaults to "value".
+
+### Function `require_boolean`
+
+@function require_boolean
+Require one of the accepted truthy/falsy spellings.
+@param $1  Value to test.
+@param $2  Parameter name for the diagnostic; defaults to "value".
+
+### Function `require_port`
+
+@function require_port
+Require a port number in 1..65535.
+@param $1  Value to test.
+@param $2  Parameter name for the diagnostic; defaults to "port".
+
+### Function `require_percent`
+
+@function require_percent
+Require a whole percentage in 0..100.
+@param $1  Value to test.
+@param $2  Parameter name for the diagnostic; defaults to "percent".
+
+### Function `require_k8s_quantity`
+
+@function require_k8s_quantity
+Require a Kubernetes CPU or memory quantity, so a typo such as `24Gig` fails at
+the argument parser rather than inside capacity arithmetic.
+@param $1  Value to test.
+@param $2  Parameter name for the diagnostic; defaults to "quantity".
+
+### Function `require_k8s_name`
+
+@function require_k8s_name
+Require a valid Kubernetes object name.
+@param $1  Value to test.
+@param $2  Parameter name for the diagnostic; defaults to "name".
+
+### Function `require_absolute_path`
+
+@function require_absolute_path
+Require an absolute path. Presence is not permission: whitelist enforcement
+stays in the callers that have the whitelist.
+@param $1  Value to test.
+@param $2  Parameter name for the diagnostic; defaults to "path".
+
+### Function `require_enum`
+
+@function require_enum
+Require membership of a closed set passed as the remaining arguments.
+@param $1  Value to test.
+@param $2  Parameter name for the diagnostic.
+@param $3.. Accepted values.
+
+### Function `require_args`
+
+@function require_args
+Require a minimum argument count, with a usage line when short.
+@param $1  Actual count (usually $#).
+@param $2  Minimum count.
+@param $3  Usage string shown when short.
 
 
 
@@ -2310,6 +2568,74 @@ Arguments:
 
 
 
+<!-- source: scripts/utilities/download-dsv4-flash-dspark.sh -->
+
+## download-dsv4-flash-dspark
+
+Download the official DeepSeek-V4-Flash Vision-Exp checkpoint for the DSpark 2-node pair.
+
+Official repo only: deepseek-ai/DeepSeek-V4-Flash-Vision-Exp (~157 GiB).
+Native image support (ViT + Aligner); no video encoder. Do not swap in the 0731 FP8
+dump or the abandoned 416-byte sparse-MLA experiment.
+
+The gated refusal-direction ablit (drowzeys/keys-DeepSeekV4Flash-Vision-EXP-ablit) is
+optional and only fetched when HF_TOKEN is exported and the repo terms were accepted.
+The lane ships ABLITERATED=0; the ablit direction is an 18 KiB runtime add-on, not a
+second checkpoint.
+
+The snapshot must exist on BOTH Sparks of the pair (each node mounts its own
+/mnt/models as /models with HF_HUB_OFFLINE=1). Run this utility on each host.
+
+```bash
+Usage:
+  bazelisk run //scripts:run-utility -- download-dsv4-flash-dspark status [--json]
+  bazelisk run //scripts:run-utility -- download-dsv4-flash-dspark run
+```
+
+### Command: download-dsv4-flash-dspark
+
+### Function `repo_dir`
+
+@function repo_dir
+Local directory for a Hugging Face snapshot (org--name flattened with a double underscore).
+
+### Function `dir_size_gb`
+
+@function dir_size_gb
+On-disk size of a directory in GB, or 0 if missing.
+
+### Function `check_hf_cli`
+
+@function check_hf_cli
+Require huggingface-cli or hf.
+
+### Function `hf_download`
+
+@function hf_download
+Invoke huggingface-cli download or hf download.
+
+### Function `download_ablit_direction`
+
+@function download_ablit_direction
+Fetch the gated ablit direction when HF_TOKEN is set; skip silently otherwise.
+
+### Function `cmd_status`
+
+@function cmd_status
+Print download readiness for the Vision-Exp snapshot and the optional ablit direction.
+
+### Function `cmd_run`
+
+@function cmd_run
+Download the official checkpoint (and the gated ablit direction) into MODELS_DIR.
+
+### Function `main`
+
+@function main
+CLI entry: status|run [--json].
+
+
+
 <!-- source: scripts/utilities/download-dsv41-flash.sh -->
 
 ## download-dsv41-flash
@@ -2483,6 +2809,83 @@ Dashboard can trigger download and show status.
 
 
 
+<!-- source: scripts/utilities/download-glm53-flash-exl3.sh -->
+
+## download-glm53-flash-exl3
+
+Download the GLM-5.3-Flash EXL3 TensorFold checkpoint and its DFlash2 drafter.
+
+Repos: Mia-AiLab/GLM-5.3-Flash-EXL3-4bpw-TensorFold (~176 GB) and
+incoai/GLM-5.3-Flash-DFlash2 (~2.3 GB, drafter, CC BY-NC-ND 4.0 non-commercial).
+Set DRAFTER=mtp in the Job instead of fetching the drafter for commercial use.
+
+Gated -Ablit variants (Mia-AiLab/GLM-5.3-Flash-EXL3-4bpw-TensorFold-Ablit,
+gorbatjovy/GLM-5.3-Flash-DFlash2-ablit-fc) are optional and only fetched when
+HF_TOKEN is exported and the repo terms were accepted.
+
+The snapshot must exist on BOTH Sparks of the pair (each node mounts its own
+/mnt/models as /models with HF_HUB_OFFLINE=1). Budget ~205 GB of disk per node.
+
+```bash
+Usage:
+  bazelisk run //scripts:run-utility -- download-glm53-flash-exl3 status [--json]
+  bazelisk run //scripts:run-utility -- download-glm53-flash-exl3 run
+```
+
+### Command: download-glm53-flash-exl3
+
+### Function `repo_dir`
+
+@function repo_dir
+Local directory for a Hugging Face snapshot (org--name flattened with a double underscore).
+
+### Function `dir_size_gb`
+
+@function dir_size_gb
+On-disk size of a directory in GB, or 0 if missing.
+
+### Function `size_ready`
+
+@function size_ready
+Echo true when a directory holds at least the given GB.
+
+### Function `check_hf_cli`
+
+@function check_hf_cli
+Require huggingface-cli or hf.
+
+### Function `hf_download`
+
+@function hf_download
+Invoke huggingface-cli download or hf download.
+
+### Function `download_repo`
+
+@function download_repo
+Download one Hugging Face repo into MODELS_DIR.
+
+### Function `download_ablit`
+
+@function download_ablit
+Fetch the gated -Ablit checkpoint when HF_TOKEN is set; skip silently otherwise.
+
+### Function `cmd_status`
+
+@function cmd_status
+Print download readiness for the EXL3 checkpoint, the drafter, and the optional ablit.
+
+### Function `cmd_run`
+
+@function cmd_run
+Download the EXL3 checkpoint, the drafter, and the gated ablit into MODELS_DIR.
+
+### Function `main`
+
+@function main
+CLI entry: status|run [--json].
+
+
+
 <!-- source: scripts/utilities/download-ltx.sh -->
 
 ## download-ltx
@@ -2559,6 +2962,67 @@ Download selected tiers and link into Comfy paths.
 
 
 
+<!-- source: scripts/utilities/download-nemotron-transcribe.sh -->
+
+## download-nemotron-transcribe
+
+Download the NVIDIA Nemotron 3.5 Transcribe 30B-A4B NVFP4 checkpoint.
+
+Official repo only: nvidia/NVIDIA-Nemotron-3.5-Transcribe-30B-A4B-NVFP4.
+The lane serves the snapshot from /models, so the download must land at
+  /mnt/models/nvidia__NVIDIA-Nemotron-3.5-Transcribe-30B-A4B-NVFP4
+which is exactly what MODEL_NAME in the Deployment points at.
+
+NVFP4 needs a Blackwell GPU (DGX Spark GB10). The BF16 / FP8 siblings are for
+non-Blackwell hosts only; do not swap them into this lane.
+
+```bash
+Usage:
+  bazelisk run //scripts:run-utility -- download-nemotron-transcribe status [--json]
+  bazelisk run //scripts:run-utility -- download-nemotron-transcribe run
+```
+
+### Command: download-nemotron-transcribe
+
+### Function `repo_dir`
+
+@function repo_dir
+Local directory for the official Hugging Face snapshot. The org separator
+becomes a double underscore so the path matches MODEL_NAME in the Deployment;
+tr cannot emit two chars for one input, hence the bash expansion.
+
+### Function `dir_size_gb`
+
+@function dir_size_gb
+On-disk size of a directory in GB, or 0 if missing.
+
+### Function `check_hf_cli`
+
+@function check_hf_cli
+Require huggingface-cli or hf.
+
+### Function `hf_download`
+
+@function hf_download
+Invoke huggingface-cli download or hf download.
+
+### Function `cmd_status`
+
+@function cmd_status
+Print download readiness for the official NVFP4 snapshot.
+
+### Function `cmd_run`
+
+@function cmd_run
+Download the official checkpoint into MODELS_DIR.
+
+### Function `main`
+
+@function main
+CLI entry: status|run [--json].
+
+
+
 <!-- source: scripts/utilities/download-qwen-models.sh -->
 
 ## download-qwen-models
@@ -2584,6 +3048,279 @@ Usage:
 ```
 
 ### Command: download-qwen-models
+
+
+
+<!-- source: scripts/utilities/download-qwen38-27b-exl3.sh -->
+
+## download-qwen38-27b-exl3
+
+Download a Qwen3.8-27B EXL3 quant for the 16 GB+ consumer-GPU ExLlamaV3 lane.
+
+Tiers (EXL3 bits-per-weight; each quant is roughly 9.7-22.9 GB on disk):
+  2.0bpw   Mia-AiLab/Qwen3.8-27B-EXL3-2.0bpw      12 GB cards (default branch)
+  2.5bpw   turboderp/Qwen3.8-27B-exl3             16 GB cards, roomy
+  3.0bpw   turboderp/Qwen3.8-27B-exl3             16 GB cards (default)
+  3.5bpw   turboderp/Qwen3.8-27B-exl3             16-24 GB cards
+  4.0bpw   turboderp/Qwen3.8-27B-exl3             24 GB+ cards
+  6.0bpw   turboderp/Qwen3.8-27B-exl3             32 GB+ cards
+
+The turboderp repo publishes one quant per revision, so --tier doubles as the
+revision. Snapshots land under MODELS_DIR/<org>__<Model>/<tier> so the Job's
+MODEL_DIR can select a quant without a second download.
+
+--drafter also pulls r0b0tlab/Qwen3.8-27B-DFlash2-EXL3-4.00bpw (~1.25 GB).
+Plan for ~10-24 GB per quant plus the drafter.
+
+```bash
+Usage:
+  bazelisk run //scripts:run-utility -- download-qwen38-27b-exl3 status [--tier 3.0bpw] [--json]
+  bazelisk run //scripts:run-utility -- download-qwen38-27b-exl3 run [--tier 3.0bpw] [--drafter]
+```
+
+### Command: download-qwen38-27b-exl3
+
+### Function `tier_repo`
+
+@function tier_repo
+Hugging Face repo id for a bpw tier ("" when unknown).
+
+### Function `tier_revision`
+
+@function tier_revision
+Revision for a tier; the turboderp repo ships one quant per revision, the
+Mia-AiLab 2.0 bpw repo has a single default snapshot.
+
+### Function `tier_min_gb`
+
+@function tier_min_gb
+Minimum on-disk GB required to call a tier ready.
+
+### Function `repo_root_dir`
+
+@function repo_root_dir
+Local snapshot root for a Hugging Face repo id (org__name flattened with a double
+underscore so it matches the MODEL_DIR the Job mounts).
+
+### Function `tier_dir`
+
+@function tier_dir
+Local directory for a tier's snapshot: <repo root>/<tier>.
+
+### Function `drafter_dir`
+
+@function drafter_dir
+Local directory for the DFlash2 EXL3 drafter.
+
+### Function `check_hf_cli`
+
+@function check_hf_cli
+Require huggingface-cli or hf.
+
+### Function `hf_download`
+
+@function hf_download
+Invoke huggingface-cli download or hf download.
+
+### Function `dir_size_gb`
+
+@function dir_size_gb
+On-disk size of a directory in GB, or 0 if missing.
+
+### Function `is_ready`
+
+@function is_ready
+Echo true when a directory holds at least MIN_GB.
+
+### Function `download_snapshot`
+
+@function download_snapshot
+Download one repo snapshot into a local dir, pinned to a revision when set.
+
+### Function `validate_tier`
+
+@function validate_tier
+Fail fast on an unknown tier id.
+
+### Function `cmd_status`
+
+@function cmd_status
+Print download readiness for the selected tier and the drafter.
+
+### Function `cmd_run`
+
+@function cmd_run
+Download the selected tier (and drafter with --drafter) into MODELS_DIR.
+
+### Function `main`
+
+@function main
+CLI entry: status|run [--tier <bpw>] [--drafter] [--json].
+
+
+
+<!-- source: scripts/utilities/download-qwen38-27b-tensorfold.sh -->
+
+## download-qwen38-27b-tensorfold
+
+Download the single-DGX-Spark TensorFold checkpoints for Qwen3.8-27B.
+
+Repos (about 19 GB total, plan for ~60 GB free disk on the Spark):
+  Vontra/Qwen3.8-27B-MLX-4bit   affine 4-bit, groups of 64 (~15 GB) - served model
+  z-lab/Qwen3.8-27B-DFlash2      DFlash2 speculative drafter (~3.6 GB)
+
+Both land under MODELS_DIR/<org>__<Model>, which is what the Job mounts at
+/models (HF_HOME=/models). Do not swap in nvidia/Qwen3.8-27B-NVFP4 unless you
+also set VISION=0 - that checkpoint takes no images and decodes slower.
+
+```bash
+Usage:
+  bazelisk run //scripts:run-utility -- download-qwen38-27b-tensorfold status [--json]
+  bazelisk run //scripts:run-utility -- download-qwen38-27b-tensorfold run
+```
+
+### Command: download-qwen38-27b-tensorfold
+
+### Function `repo_dir`
+
+@function repo_dir
+Local directory for a Hugging Face repo snapshot (org__name flattened with a double
+underscore so it matches the MODEL_DIR the Job mounts).
+
+### Function `target_dir`
+
+@function target_dir
+Local directory for the served MLX 4-bit checkpoint.
+
+### Function `drafter_dir`
+
+@function drafter_dir
+Local directory for the DFlash2 drafter.
+
+### Function `check_hf_cli`
+
+@function check_hf_cli
+Require huggingface-cli or hf.
+
+### Function `hf_download`
+
+@function hf_download
+Invoke huggingface-cli download or hf download.
+
+### Function `dir_size_gb`
+
+@function dir_size_gb
+On-disk size of a directory in GB, or 0 if missing.
+
+### Function `is_ready`
+
+@function is_ready
+Echo true when a directory holds at least MIN_GB.
+
+### Function `cmd_status`
+
+@function cmd_status
+Print download readiness for the target checkpoint and the drafter.
+
+### Function `cmd_run`
+
+@function cmd_run
+Download the TensorFold checkpoint and drafter into MODELS_DIR.
+
+### Function `main`
+
+@function main
+CLI entry: status|run [--json].
+
+
+
+<!-- source: scripts/utilities/download-qwen38-flash-next-tensorfold.sh -->
+
+## download-qwen38-flash-next-tensorfold
+
+Download the single-DGX-Spark TensorFold checkpoint for Qwen3.8 Flash Next.
+
+Repos (about 96 GiB, plan for ~160 GB free disk on a fresh Spark, keep >= 100 GB):
+  nvidia/Qwen3.8-Flash-Next-FP4-Local   512-expert MoE, NVFP4 experts + MXFP8
+                                        attention/shared experts (~96 GiB) - served
+                                        model, pinned revision
+                                        b9ce18a6887e18c089fdea8509a33e63429a3300
+
+The snapshot lands under MODELS_DIR/<org>__<Model>, which is what the Job mounts at
+/models (MODEL_DIR=/models/nvidia__Qwen3.8-Flash-Next-FP4-Local, HF_HOME=/models).
+MTP drafts ship inside this checkpoint - there is no drafter repo to pull. The INT4
+alternative (azampatti/Qwen3.8-Flash-Next-125B-A5B-INT4-AutoRound) belongs to the
+db281878 recipe on upstream main, not this lane.
+
+The gated drowzeys Keys house-qsa abliteration overlay is optional and only fetched
+when HF_TOKEN is exported and the overlay's terms were accepted (lane default ABLIT
+off). Its exact HF repo id is not confirmed upstream, so override ABLIT_REPO once you
+have the accepted repo id. The whole repo is downloaded at the pinned revision; there
+is no --include filter, so budget the full 96 GiB.
+
+```bash
+Usage:
+  bazelisk run //scripts:run-utility -- download-qwen38-flash-next-tensorfold status [--json]
+  bazelisk run //scripts:run-utility -- download-qwen38-flash-next-tensorfold run
+```
+
+### Command: download-qwen38-flash-next-tensorfold
+
+### Function `repo_dir`
+
+@function repo_dir
+Local directory for a Hugging Face repo snapshot (org__name flattened with a double
+underscore so it matches the MODEL_DIR the Job mounts).
+
+### Function `target_dir`
+
+@function target_dir
+Local directory for the served NVFP4/MXFP8 checkpoint.
+
+### Function `ablit_dir`
+
+@function ablit_dir
+Local directory for the optional gated abliteration overlay.
+
+### Function `check_hf_cli`
+
+@function check_hf_cli
+Require huggingface-cli or hf.
+
+### Function `hf_download`
+
+@function hf_download
+Invoke huggingface-cli download or hf download; extra args (--revision) pass through.
+
+### Function `dir_size_gb`
+
+@function dir_size_gb
+On-disk size of a directory in GB, or 0 if missing.
+
+### Function `is_ready`
+
+@function is_ready
+Echo true when a directory holds at least MIN_GB.
+
+### Function `download_ablit_overlay`
+
+@function download_ablit_overlay
+Fetch the gated abliteration overlay when HF_TOKEN is set; warn and skip otherwise.
+
+### Function `cmd_status`
+
+@function cmd_status
+Print download readiness for the checkpoint and the optional gated overlay.
+
+### Function `cmd_run`
+
+@function cmd_run
+Download the pinned TensorFold checkpoint (and the gated overlay) into MODELS_DIR.
+
+### Function `main`
+
+@function main
+CLI entry: status|run [--json].
 
 
 

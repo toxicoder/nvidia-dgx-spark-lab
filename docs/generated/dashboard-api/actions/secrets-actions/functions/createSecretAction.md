@@ -8,7 +8,7 @@
 
 > **createSecretAction**(`input`): `Promise`\<\{ `meta`: [`LabSecretMeta`](../../../lib/types/interfaces/LabSecretMeta.md); `syncError?`: `string`; \}\>
 
-Defined in: [actions/secrets-actions.ts:58](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/actions/secrets-actions.ts#L58)
+Defined in: [actions/secrets-actions.ts:58](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/actions/secrets-actions.ts#L58)
 
 Create a new encrypted secret with optional K8s sync.
 

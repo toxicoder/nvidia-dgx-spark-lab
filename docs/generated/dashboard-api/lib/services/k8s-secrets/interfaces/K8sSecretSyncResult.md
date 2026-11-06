@@ -6,7 +6,7 @@
 
 # Interface: K8sSecretSyncResult
 
-Defined in: [lib/services/k8s-secrets.ts:15](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/services/k8s-secrets.ts#L15)
+Defined in: [lib/services/k8s-secrets.ts:21](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/services/k8s-secrets.ts#L21)
 
 Result of a kubectl secret sync or key removal operation.
 
@@ -16,7 +16,7 @@ Result of a kubectl secret sync or key removal operation.
 
 > `optional` **error?**: `string`
 
-Defined in: [lib/services/k8s-secrets.ts:17](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/services/k8s-secrets.ts#L17)
+Defined in: [lib/services/k8s-secrets.ts:23](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/services/k8s-secrets.ts#L23)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [lib/services/k8s-secrets.ts:17](https://github.com/toxicoder/nvidia
 
 > **ok**: `boolean`
 
-Defined in: [lib/services/k8s-secrets.ts:16](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/services/k8s-secrets.ts#L16)
+Defined in: [lib/services/k8s-secrets.ts:22](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/services/k8s-secrets.ts#L22)

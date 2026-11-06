@@ -6,7 +6,7 @@
 
 # Interface: NemotronCatalog
 
-Defined in: [lib/types/index.ts:212](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L212)
+Defined in: [lib/types/index.ts:375](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L375)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/types/index.ts:212](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **models**: `Record`\<`string`, [`NemotronCatalogModel`](NemotronCatalogModel.md)\>
 
-Defined in: [lib/types/index.ts:213](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L213)
+Defined in: [lib/types/index.ts:376](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L376)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [lib/types/index.ts:213](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **pillars**: `Record`\<`string`, \{ `icon`: `string`; `label`: `string`; \}\>
 
-Defined in: [lib/types/index.ts:214](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L214)
+Defined in: [lib/types/index.ts:377](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L377)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [lib/types/index.ts:214](https://github.com/toxicoder/nvidia-dgx-spa
 
 > `optional` **qwen\_tiers?**: `object`
 
-Defined in: [lib/types/index.ts:216](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L216)
+Defined in: [lib/types/index.ts:379](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L379)
 
 #### frontier\_target?
 
@@ -54,4 +54,4 @@ Defined in: [lib/types/index.ts:216](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **stacks**: `Record`\<`string`, [`NemotronStackPreset`](NemotronStackPreset.md)\>
 
-Defined in: [lib/types/index.ts:215](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L215)
+Defined in: [lib/types/index.ts:378](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L378)

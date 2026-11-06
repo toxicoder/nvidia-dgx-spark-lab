@@ -34,6 +34,11 @@ tags: [kustomize, overlays, kubernetes, safety]
 | `litellm-qwen38-flash-next` | LiteLLM + Flash-Next profile | replace ConfigMap | `start-qwen38-flash-next --with-litellm` |
 | `litellm-glm53-flash` | LiteLLM + GLM profile | replace ConfigMap | `start-glm53-flash --with-litellm` |
 | `litellm-dsv41-flash` | LiteLLM + DeepSeek-V4.1-Flash profile | replace ConfigMap | `start-dsv41-flash --with-litellm` |
+| `litellm-dsv4-flash-dspark` | LiteLLM + DeepSeek-V4-Flash DSpark profile | replace ConfigMap | `start-dsv4-flash-dspark --with-litellm` |
+| `litellm-glm53-flash-exl3` | LiteLLM + GLM-5.3-Flash EXL3 TensorFold profile | replace ConfigMap | `start-glm53-flash-exl3 --with-litellm` |
+| `litellm-qwen38-27b-exl3` | LiteLLM + Qwen3.8-27B EXL3 profile | replace ConfigMap | `start-qwen38-27b-exl3 --with-litellm` |
+| `litellm-qwen38-27b-tensorfold` | LiteLLM + Qwen3.8-27B TensorFold profile | replace ConfigMap | `start-qwen38-27b-tensorfold --with-litellm` |
+| `litellm-qwen38-flash-next-tensorfold` | LiteLLM + Flash-Next TensorFold profile | replace ConfigMap | `start-qwen38-flash-next-tensorfold --with-litellm` |
 
 Inspect:
 
@@ -48,10 +53,13 @@ kubectl kustomize k8s/overlays/rounded-stack
 
 Base workloads under `k8s/workloads/<id>/` are the source of truth for CPU/GPU/memory, `restartPolicy`, `backoffLimit`, and NCCL. Overlays **select** and optionally **patch**. Prod has no patches on purpose: production numbers stay auditable in `kimi-job.yaml`.
 
-`manage.sh start-test` applies the test/kimi-test path. `start-kimi` applies production kimi. `start-stack-rounded` applies the rounded overlay. Exclusive Mode B/C are **workload directories** (`glm-5.3-flash`, `deepseek-v4.1-flash`), not the rounded overlay.
+`manage.sh start-test` applies the test/kimi-test path. `start-kimi` applies production kimi. `start-stack-rounded` applies the rounded overlay. Exclusive Mode B/C are **workload directories** (`glm-5.3-flash`, `deepseek-v4.1-flash`), not the rounded overlay - same for the DSpark, EXL3 TensorFold, and Qwen TensorFold lanes. Each `litellm-*` overlay points the router at one backend profile under `k8s/workloads/litellm/files/profiles/`.
 
 <Callout type="warning" title="Exclusive modes">
-  Rounded overlay (Mode A) is mutually exclusive with GLM-5.3-Flash and DeepSeek-V4.1-Flash starts. The CLI refuses collisions.
+  Rounded overlay (Mode A) is mutually exclusive with GLM-5.3-Flash and DeepSeek-V4.1-Flash starts,
+  and with the DeepSeek-V4-Flash DSpark, GLM-5.3-Flash EXL3 TensorFold, Qwen3.8-27B EXL3,
+  Qwen3.8-27B TensorFold, and Qwen3.8-Flash-Next TensorFold lanes. Those lanes also refuse each
+  other. The CLI refuses collisions.
 </Callout>
 ## Verify
 

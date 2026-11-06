@@ -8,4 +8,4 @@
 
 > `const` **SelectTrigger**: `ForwardRefExoticComponent`\<`Omit`\<`SelectTriggerProps` & `RefAttributes`\<`HTMLButtonElement`\>, `"ref"`\> & `RefAttributes`\<`HTMLButtonElement`\>\>
 
-Defined in: [components/ui/select.tsx:13](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/components/ui/select.tsx#L13)
+Defined in: [components/ui/select.tsx:13](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/components/ui/select.tsx#L13)

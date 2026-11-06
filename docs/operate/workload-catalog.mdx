@@ -48,8 +48,14 @@ Run any verb with `bazelisk run //:manage -- <verb>`.
 | medgemma-4b | optional sidecar | off by default | 1 | 8Gi | 2 | no | never the only medical model | stop sidecar | Job |
 | glm-5.3-flash | `start-glm-5.3-flash` | leader + 2 workers | 1×3 | 100Gi×3 | 12+8+8 | yes | **Mode B ring**; hostNetwork+hostIPC; util 0.85 | `stop-glm53-flash` | refuses A/C |
 | deepseek-v4.1-flash | `start-deepseek-v4.1-flash` | leader + 2 workers | 1×3 | 108Gi×3 | 12+8+8 | yes | **Mode C ring**; SGLang 0.95 | `stop-dsv41-flash` | refuses A/B |
+| deepseek-v4-flash-dspark | `start-dsv4-flash-dspark` | leader + worker-1 | 1+1 | 100Gi+100Gi | 12+8 | yes | **2-node pair**; hostNetwork; pair NCCL (enp1s0f0np0,enp1s0f1np1 / mlx5_0,mlx5_1) | `stop-dsv4-flash-dspark` | refuses A/B/C and other lanes |
+| glm-5.3-flash-exl3-tensorfold | `start-glm53-flash-exl3` | leader + worker-1 | 1+1 | 100Gi+100Gi | 12+8 | yes | **2-node pair**; hostNetwork; pair NCCL; TensorFold engine | `stop-glm53-flash-exl3` | refuses A/B/C and other lanes |
+| qwen3.8-27b-exl3-16gb | `start-qwen38-27b-exl3` | workload dir | 1 | 16Gi | 4 | yes | node-agnostic; 16 GB+ VRAM, Turing or newer, driver 570+ | `stop-qwen38-27b-exl3` | `kubectl get job qwen3.8-27b-exl3-16gb -n {{NAMESPACE}}` |
+| qwen3.8-27b-tensorfold | `start-qwen38-27b-tensorfold` | workload dir (spark0) | 1 | 96Gi | 8 | yes | 1-node; TensorFold + MLX-4bit draft | `stop-qwen38-27b-tensorfold` | Job |
+| qwen3.8-flash-next-tensorfold | `start-qwen38-flash-next-tensorfold` | workload dir (spark0) | 1 | 96Gi | 8 | yes | 1-node; TensorFold; local image only | `stop-qwen38-flash-next-tensorfold` | Job |
 
-Qwen 397B NVFP4 workers and GLM/DeepSeek workers are listed in policy as separate `job_name`s (`stack_with`). The start verb applies the whole stack.
+Qwen 397B NVFP4 workers, GLM/DeepSeek workers, and the DSpark / EXL3 TensorFold pair workers are
+listed in policy as separate `job_name`s (`stack_with`). The start verb applies the whole stack.
 
 ## NIM / aux Deployments (Nemotron)
 
@@ -61,8 +67,9 @@ Qwen 397B NVFP4 workers and GLM/DeepSeek workers are listed in policy as separat
 | nemotron-safety-guard | 0 | 4Gi | 2 | Deployment | Always-on in stacks |
 | nemotron-speech-asr | 0 | 6Gi | 4 | Deployment | CPU |
 | nemotron-speech-tts | 0 | 6Gi | 4 | Deployment | CPU |
+| nemotron-3.5-transcribe-30b-a4b-nvfp4 | 1 | 48Gi | 4 | Deployment | GPU ASR (NVFP4, Blackwell only); `family: speech`; **no manage.sh verb** |
 
-Presets: [Nemotron agentic stack](../nemotron-agentic-stack.md). These Deployments **do** restart with the controller; they are not 90Gi inference Jobs.
+Presets: [Nemotron agentic stack](../nemotron-agentic-stack.md). These Deployments **do** restart with the controller; they are not 90Gi inference Jobs. The GPU ASR lane has no verb either: start it from the dashboard or with `bazelisk run //scripts:run-utility -- inference-workloads start nemotron-3.5-transcribe-30b-a4b-nvfp4 --confirm yes`.
 
 ## LiteLLM and rounded Mode A
 
@@ -71,6 +78,11 @@ Presets: [Nemotron agentic stack](../nemotron-agentic-stack.md). These Deploymen
 | litellm | `start-litellm [--backend …]` | 0 | 1Gi | 500m | Deployment | LAN OpenAI proxy; `Always` OK; `lab-auto` |
 | qwen3.8-27b-nvfp4 | `start-qwen38-27b [--with-litellm]` | 1 | 48Gi | 8 | Job | Exclusive util 0.72; refuses B and C |
 | rounded-stack | `start-stack-rounded` | 3 nodes | ~189Gi | — | overlay | Mode A; refuses B and C |
+| deepseek-v4-flash-dspark | `start-dsv4-flash-dspark [--with-litellm]` | 1+1 | 100Gi+100Gi | 12+8 | Jobs | Profile `deepseek-v4-flash-dspark`; `lab-auto` / `lab-frontier` |
+| glm-5.3-flash-exl3-tensorfold | `start-glm53-flash-exl3 [--with-litellm]` | 1+1 | 100Gi+100Gi | 12+8 | Jobs | Profile `glm-5.3-flash-exl3-tensorfold`; `lab-auto` / `lab-frontier` |
+| qwen3.8-27b-exl3-16gb | `start-qwen38-27b-exl3 [--with-litellm]` | 1 | 16Gi | 4 | Job | Profile `qwen3.8-27b-exl3-16gb`; `lab-auto` / `lab-quality` |
+| qwen3.8-27b-tensorfold | `start-qwen38-27b-tensorfold [--with-litellm]` | 1 | 96Gi | 8 | Job | Profile `qwen3.8-27b-tensorfold`; `lab-auto` / `lab-quality` |
+| qwen3.8-flash-next-tensorfold | `start-qwen38-flash-next-tensorfold [--with-litellm]` | 1 | 96Gi | 8 | Job | Profile `qwen3.8-flash-next-tensorfold`; `lab-auto` / `lab-quality` |
 
 `stop-stack-rounded` stops Mode A inference Jobs; LiteLLM can stay. `--quality` uses `rounded-stack-quality` (27B on spark2; `lab-med` falls back).
 
@@ -95,6 +107,10 @@ Single-node Compose sibling: [ez-comfy-stack](https://github.com/toxicoder/ez-co
 - `restartPolicy: OnFailure` (kimi-test `backoffLimit: 2`; others `1`)
 - Heavy confirm + Resource Guard
 - Mode A util ≤ 0.82; Mode B ≤ 0.85; Mode C SGLang ≤ 0.95
+- DSpark pair only: memory is sized by `GPU_MEMORY_UTILIZATION_TEXT=0.835` and nothing else - never
+  hand-set `--gpu-memory-utilization` on that Job
+- TensorFold lanes (GLM-5.3-Flash EXL3, Qwen3.8-27B, Qwen3.8-Flash-Next) are not vLLM: they size
+  memory with their own engine env, not a vLLM util flag
 
 <Callout type="error" title="Do not set restartPolicy Always on large models">
   That would auto-start after reboot and can wedge the host.

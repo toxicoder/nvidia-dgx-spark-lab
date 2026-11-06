@@ -6,6 +6,8 @@
 
 # Type Alias: DevWorkspaceName
 
-> **DevWorkspaceName** = `"coder"` \| `"kasm"`
+> **DevWorkspaceName** = *typeof* [`DEV_WORKSPACE_NAMES`](../variables/DEV_WORKSPACE_NAMES.md)\[`number`\]
 
-Defined in: [lib/types/index.ts:73](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L73)
+Defined in: [lib/types/index.ts:211](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L211)
+
+Dev workspace the dashboard may start or stop; derived from [DEV\_WORKSPACE\_NAMES](../variables/DEV_WORKSPACE_NAMES.md).

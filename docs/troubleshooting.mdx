@@ -92,6 +92,9 @@ Generated flags: [Shell reference](generated/shell/reference.md).
 | --- | --- | --- | --- | --- |
 | `start-stack-rounded` refuses | Mode B or C still up | `stop-glm53-flash` / `stop-dsv41-flash` | One of A/B/C | `status-stack` |
 | `start-glm53-flash` refuses | Mode A or C | `stop-stack-rounded` or stop C | Exclusive ring | `status-stack` |
+| `start-glm53-flash-exl3` refuses | Mode A/B/C or another exclusive lane up | Stop that lane (`stop-stack-rounded` / `stop-glm53-flash` / `stop-dsv41-flash` / the lane's own stop verb) | Exclusive lanes never overlap | `status-stack` |
+| `start-dsv4-flash-dspark` refuses | Mode A/B/C or another exclusive lane up | Stop the running lane first; both pair Jobs must be idle | One exclusive pair at a time | `kubectl get jobs -n ai-inference` |
+| A Qwen3.8 TensorFold / EXL3 start refuses | Mode B, Mode C, or another exclusive lane | Stop the running lane, then retry | One exclusive lane at a time | `status-stack` |
 | Visual start blocked | Another `workload: visual` | `stop-visual` | One Comfy Deployment | `status-visual` |
 
 ## Disk full / NVMe

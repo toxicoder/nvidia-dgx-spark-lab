@@ -9,7 +9,7 @@ tags: [workloads, inference, safety, profiles]
 **What's on this page**
 
 - Profile families and the `manage.sh` verbs that start them
-- Mutual exclusion (Mode A vs B vs C, one visual Deployment)
+- Mutual exclusion (Mode A vs B vs C vs the exclusive DSpark / TensorFold lanes, one visual Deployment)
 - Where resource numbers live
 
 **What this enables**
@@ -27,6 +27,7 @@ flowchart TD
   A -->|No| B{What are you running?}
   B --> Daily[Mode A rounded fleet]
   B --> Exclusive[Mode B GLM or Mode C DeepSeek]
+  B --> MiaAI[DSpark pair or TensorFold exclusive lane]
   B --> Visual[Comfy FLUX / LTX]
   B --> Agents[Nemotron + MCP + Hermes]
   B --> Classic[kimi / ray / glm-5.2 / qwen3.5]
@@ -47,6 +48,12 @@ flowchart TD
 | **Mode A daily** | `start-stack-rounded` (`--quality` optional) | **3-node** | 35B + Flash-Next + MedGemma + LiteLLM. Refuses B and C. |
 | **Mode B exclusive** | `start-glm-5.3-flash [--with-litellm]` | **3-node ring** | GLM-5.3-Flash TP=3. Refuses A and C. |
 | **Mode C exclusive** | `start-deepseek-v4.1-flash [--with-litellm]` | **3-node ring** | DeepSeek-V4.1-Flash TP=3. Refuses A and B. V4.1-Pro is not released. |
+| **DSpark pair exclusive** | `start-dsv4-flash-dspark [--with-litellm]` | **2-node pair** | DeepSeek-V4-Flash DSpark vLLM TP=2, spec decode, 1M ctx. Refuses A/B/C and the other lanes. |
+| **GLM EXL3 pair exclusive** | `start-glm53-flash-exl3 [--with-litellm]` | **2-node pair** | GLM-5.3-Flash EXL3 4bpw TensorFold TP=2, 1M ctx. Refuses A/B/C and the other lanes. |
+| **Qwen3.8-27B EXL3** | `start-qwen38-27b-exl3 [--with-litellm]` | 1 (16 GB+ GPU) | ExLlamaV3 on any node with a 16 GB+ Turing-or-newer card. Refuses Mode B/C. |
+| **Qwen3.8-27B TensorFold** | `start-qwen38-27b-tensorfold [--with-litellm]` | 1 (spark0) | TensorFold + MLX-4bit draft + DFlash2. Refuses Mode B/C. |
+| **Qwen3.8-Flash-Next TensorFold** | `start-qwen38-flash-next-tensorfold [--with-litellm]` | 1 (spark0) | TensorFold FP4-Local; image built locally. Refuses Mode B/C. |
+| **Speech ASR** | none - dashboard or `run-utility -- inference-workloads start nemotron-3.5-transcribe-30b-a4b-nvfp4 --confirm yes` | 1 | Nemotron 3.5 Transcribe 30B-A4B NVFP4 Deployment (`family: speech`). |
 | **Visual** | `start-comfy-base`, `start-flux-fast`, `start-flux-quality`, `start-ltx-balanced`, `start-ltx-quality`, `start-flux-to-ltx` | **1 node** | One visual Deployment. Manual. `stop-visual`. |
 | **Agents** | `start-mcp`, `start-hermes`, `start-open-webui` | any | Plus Nemotron nano/super Jobs. See agent docs. |
 | **Safe auto-pick** | `start-default` / `start-safe` | any | Always delegates to `start-test`. |
@@ -54,7 +61,10 @@ flowchart TD
 Run any verb with `bazelisk run //:manage -- <verb>`.
 
 <Callout type="warning" title="Modes collide">
-  `start-stack-rounded`, `start-glm53-flash`, and `start-dsv41-flash` **refuse each other**. Recover: stop the running mode, `doctor`, then start the one you want. Details: [LiteLLM rounded stack](../litellm-rounded-stack.md).
+  `start-stack-rounded`, `start-glm53-flash`, and `start-dsv41-flash` **refuse each other**. The
+  DSpark, GLM EXL3 TensorFold, Qwen EXL3, and both Qwen TensorFold lanes refuse Mode A/B/C **and**
+  each other - one exclusive lane at a time. Recover: stop the running mode, `doctor`, then start
+  the one you want. Details: [LiteLLM rounded stack](../litellm-rounded-stack.md).
 </Callout>
 <Callout type="warning" title="Visual occupancy">
   Only one `workload: visual` Deployment. Compose learners should use [ez-comfy-stack](https://github.com/toxicoder/ez-comfy-stack), not this K3s path.

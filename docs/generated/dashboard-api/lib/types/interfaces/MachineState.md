@@ -6,7 +6,7 @@
 
 # Interface: MachineState
 
-Defined in: [lib/types/index.ts:39](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L39)
+Defined in: [lib/types/index.ts:167](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L167)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/types/index.ts:39](https://github.com/toxicoder/nvidia-dgx-spar
 
 > **identity**: [`MachineIdentity`](MachineIdentity.md)
 
-Defined in: [lib/types/index.ts:40](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L40)
+Defined in: [lib/types/index.ts:168](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L168)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [lib/types/index.ts:40](https://github.com/toxicoder/nvidia-dgx-spar
 
 > **packages**: [`PackageList`](PackageList.md)
 
-Defined in: [lib/types/index.ts:42](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L42)
+Defined in: [lib/types/index.ts:170](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L170)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [lib/types/index.ts:42](https://github.com/toxicoder/nvidia-dgx-spar
 
 > **services**: [`RunningServices`](RunningServices.md)
 
-Defined in: [lib/types/index.ts:41](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L41)
+Defined in: [lib/types/index.ts:169](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L169)

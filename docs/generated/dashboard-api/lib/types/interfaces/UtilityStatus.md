@@ -6,11 +6,13 @@
 
 # Interface: UtilityStatus
 
-Defined in: [lib/types/index.ts:50](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L50)
+Defined in: [lib/types/index.ts:178](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L178)
 
 ## Indexable
 
 > \[`key`: `string`\]: `unknown`
+
+Utility-specific keys, documented by each script's `# @command` header.
 
 ## Properties
 
@@ -18,7 +20,7 @@ Defined in: [lib/types/index.ts:50](https://github.com/toxicoder/nvidia-dgx-spar
 
 > `optional` **error?**: `string`
 
-Defined in: [lib/types/index.ts:54](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L54)
+Defined in: [lib/types/index.ts:182](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L182)
 
 ***
 
@@ -26,7 +28,7 @@ Defined in: [lib/types/index.ts:54](https://github.com/toxicoder/nvidia-dgx-spar
 
 > `optional` **lastRun?**: `string`
 
-Defined in: [lib/types/index.ts:53](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L53)
+Defined in: [lib/types/index.ts:181](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L181)
 
 ***
 
@@ -34,7 +36,7 @@ Defined in: [lib/types/index.ts:53](https://github.com/toxicoder/nvidia-dgx-spar
 
 > `optional` **name?**: `string`
 
-Defined in: [lib/types/index.ts:51](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L51)
+Defined in: [lib/types/index.ts:179](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L179)
 
 ***
 
@@ -42,4 +44,4 @@ Defined in: [lib/types/index.ts:51](https://github.com/toxicoder/nvidia-dgx-spar
 
 > `optional` **status?**: `string`
 
-Defined in: [lib/types/index.ts:52](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L52)
+Defined in: [lib/types/index.ts:180](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L180)

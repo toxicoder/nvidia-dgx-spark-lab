@@ -6,7 +6,7 @@
 
 # Interface: MachineIdentity
 
-Defined in: [lib/types/index.ts:26](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L26)
+Defined in: [lib/types/index.ts:154](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L154)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/types/index.ts:26](https://github.com/toxicoder/nvidia-dgx-spar
 
 > **hostname**: `string`
 
-Defined in: [lib/types/index.ts:27](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L27)
+Defined in: [lib/types/index.ts:155](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L155)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: [lib/types/index.ts:27](https://github.com/toxicoder/nvidia-dgx-spar
 
 > **nvidia**: `string`
 
-Defined in: [lib/types/index.ts:28](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L28)
+Defined in: [lib/types/index.ts:156](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L156)

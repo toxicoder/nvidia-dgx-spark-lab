@@ -6,7 +6,7 @@
 
 # Interface: OpenWebUIBackendStatus
 
-Defined in: [lib/types/index.ts:261](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L261)
+Defined in: [lib/types/index.ts:447](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L447)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/types/index.ts:261](https://github.com/toxicoder/nvidia-dgx-spa
 
 > `optional` **endpoint\_ip?**: `string`
 
-Defined in: [lib/types/index.ts:264](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L264)
+Defined in: [lib/types/index.ts:450](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L450)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [lib/types/index.ts:264](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **reachable**: `boolean`
 
-Defined in: [lib/types/index.ts:263](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L263)
+Defined in: [lib/types/index.ts:449](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L449)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [lib/types/index.ts:263](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **url**: `string`
 
-Defined in: [lib/types/index.ts:262](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L262)
+Defined in: [lib/types/index.ts:448](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L448)

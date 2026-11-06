@@ -6,7 +6,7 @@
 
 # Interface: ToastInput
 
-Defined in: [lib/toast.ts:5](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/toast.ts#L5)
+Defined in: [lib/toast.ts:5](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/toast.ts#L5)
 
 ## Properties
 
@@ -14,7 +14,9 @@ Defined in: [lib/toast.ts:5](https://github.com/toxicoder/nvidia-dgx-spark-lab/b
 
 > `optional` **description?**: `string`
 
-Defined in: [lib/toast.ts:7](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/toast.ts#L7)
+Defined in: [lib/toast.ts:8](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/toast.ts#L8)
+
+`| undefined` so a caller can pass a value that may be absent; it is destructured.
 
 ***
 
@@ -22,7 +24,7 @@ Defined in: [lib/toast.ts:7](https://github.com/toxicoder/nvidia-dgx-spark-lab/b
 
 > `optional` **title?**: `string`
 
-Defined in: [lib/toast.ts:6](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/toast.ts#L6)
+Defined in: [lib/toast.ts:6](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/toast.ts#L6)
 
 ***
 
@@ -30,4 +32,4 @@ Defined in: [lib/toast.ts:6](https://github.com/toxicoder/nvidia-dgx-spark-lab/b
 
 > `optional` **variant?**: [`ToastVariant`](../type-aliases/ToastVariant.md)
 
-Defined in: [lib/toast.ts:8](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/toast.ts#L8)
+Defined in: [lib/toast.ts:9](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/toast.ts#L9)

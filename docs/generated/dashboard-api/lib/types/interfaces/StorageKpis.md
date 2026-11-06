@@ -6,7 +6,7 @@
 
 # Interface: StorageKpis
 
-Defined in: [lib/types/index.ts:92](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L92)
+Defined in: [lib/types/index.ts:240](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L240)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/types/index.ts:92](https://github.com/toxicoder/nvidia-dgx-spar
 
 > **itemCount**: `number`
 
-Defined in: [lib/types/index.ts:95](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L95)
+Defined in: [lib/types/index.ts:243](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L243)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [lib/types/index.ts:95](https://github.com/toxicoder/nvidia-dgx-spar
 
 > **largestBytes**: `number`
 
-Defined in: [lib/types/index.ts:97](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L97)
+Defined in: [lib/types/index.ts:245](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L245)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [lib/types/index.ts:97](https://github.com/toxicoder/nvidia-dgx-spar
 
 > **largestModel**: `string`
 
-Defined in: [lib/types/index.ts:98](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L98)
+Defined in: [lib/types/index.ts:246](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L246)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [lib/types/index.ts:98](https://github.com/toxicoder/nvidia-dgx-spar
 
 > **largestName**: `string`
 
-Defined in: [lib/types/index.ts:96](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L96)
+Defined in: [lib/types/index.ts:244](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L244)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [lib/types/index.ts:96](https://github.com/toxicoder/nvidia-dgx-spar
 
 > **largestPct**: `number`
 
-Defined in: [lib/types/index.ts:99](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L99)
+Defined in: [lib/types/index.ts:247](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L247)
 
 ***
 
@@ -54,7 +54,7 @@ Defined in: [lib/types/index.ts:99](https://github.com/toxicoder/nvidia-dgx-spar
 
 > **totalBytes**: `number`
 
-Defined in: [lib/types/index.ts:93](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L93)
+Defined in: [lib/types/index.ts:241](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L241)
 
 ***
 
@@ -62,4 +62,4 @@ Defined in: [lib/types/index.ts:93](https://github.com/toxicoder/nvidia-dgx-spar
 
 > **totalStorage**: `string`
 
-Defined in: [lib/types/index.ts:94](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L94)
+Defined in: [lib/types/index.ts:242](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L242)

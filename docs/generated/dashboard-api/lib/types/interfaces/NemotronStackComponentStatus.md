@@ -6,7 +6,7 @@
 
 # Interface: NemotronStackComponentStatus
 
-Defined in: [lib/types/index.ts:224](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L224)
+Defined in: [lib/types/index.ts:389](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L389)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/types/index.ts:224](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **model**: `string`
 
-Defined in: [lib/types/index.ts:225](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L225)
+Defined in: [lib/types/index.ts:390](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L390)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: [lib/types/index.ts:225](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **state**: `string`
 
-Defined in: [lib/types/index.ts:226](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L226)
+Defined in: [lib/types/index.ts:391](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L391)

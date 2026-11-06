@@ -70,6 +70,7 @@
 - [lib/redirect](lib/redirect/README.md)
 - [lib/require-session](lib/require-session/README.md)
 - [lib/seed-admin](lib/seed-admin/README.md)
+- [lib/services/cli-json](lib/services/cli-json/README.md)
 - [lib/services/cluster-resources](lib/services/cluster-resources/README.md)
 - [lib/services/dev-workspaces](lib/services/dev-workspaces/README.md)
 - [lib/services/docker](lib/services/docker/README.md)
