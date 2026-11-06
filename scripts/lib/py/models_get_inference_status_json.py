@@ -7,11 +7,49 @@ from __future__ import annotations
 
 import json, subprocess, sys
 from pathlib import Path
+from typing import TypedDict, cast
 
-models = json.loads(sys.argv[1])
-policy = json.loads(Path(sys.argv[2]).read_text())
+
+class _ModelSpec(TypedDict, total=False):
+    """Model record from the policy ``models`` map."""
+
+    kind: str
+
+
+class _Policy(TypedDict, total=False):
+    """Subset of the Resource Guard policy this helper reads."""
+
+    models: dict[str, _ModelSpec]
+
+
+class _JobRow(TypedDict, total=False):
+    """One model row of the status report.
+
+    The keys are written per workload kind: Jobs add ``succeeded``/``failed``,
+    Deployments only ``active``, and a failed probe adds ``error``.
+    """
+
+    model: str
+    job: str
+    active: int
+    succeeded: int
+    failed: int
+    state: str
+    kind: str
+    error: str
+
+
+class _Report(TypedDict):
+    """Status report emitted on stdout."""
+
+    jobs: list[_JobRow]
+    namespace: str
+
+
+models: list[str] = json.loads(sys.argv[1])
+policy = cast(_Policy, json.loads(Path(sys.argv[2]).read_text()))
 ns = "ai-inference"
-out = {"jobs": [], "namespace": ns}
+out: _Report = {"jobs": [], "namespace": ns}
 
 model_meta = policy.get("models", {})
 

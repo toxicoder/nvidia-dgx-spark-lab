@@ -10,15 +10,32 @@ from pathlib import Path
 
 data_dir, compose_file, container_name, pf_pid_file = sys.argv[1:5]
 
-def _curl_ok(url, headers=None):
+def _curl_ok(url: str, headers: dict[str, str] | None = None) -> bool:
+    """Check whether an HTTP endpoint answers below 400.
+
+    Args:
+        url: Endpoint to request.
+        headers: Optional request headers, e.g. a bearer token.
+
+    Returns:
+        ``True`` when the response status is below 400, ``False`` on any
+        transport or HTTP error.
+    """
     try:
         req = urllib.request.Request(url, headers=headers or {})
         with urllib.request.urlopen(req, timeout=3) as resp:
-            return resp.status < 400
+            status: int = resp.status
+            return status < 400
     except Exception:
         return False
 
-def _docker_state():
+def _docker_state() -> str:
+    """Report the Docker state of the Hermes container.
+
+    Returns:
+        The ``docker inspect`` status string, or ``"missing"`` when the
+        container cannot be inspected.
+    """
     try:
         out = subprocess.check_output(
             ["docker", "inspect", "-f", "{{.State.Status}}", container_name],
@@ -29,7 +46,7 @@ def _docker_state():
     except Exception:
         return "missing"
 
-pf_pid = None
+pf_pid: int | None = None
 pf_alive = False
 if Path(pf_pid_file).is_file():
     try:
@@ -46,7 +63,7 @@ if env_path.is_file():
             api_key = line.split("=", 1)[1].strip()
             break
 
-status = {
+status: dict[str, object] = {
     "container": container_name,
     "container_state": _docker_state(),
     "data_dir": data_dir,

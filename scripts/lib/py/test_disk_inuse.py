@@ -15,6 +15,7 @@ from disk_inuse import (
     hf_pid_present,
     load_hostpath_mounts,
     load_open_paths,
+    _Candidate,
     _hf_proc_running,
 )
 from test_disk_catalog import MINI
@@ -97,7 +98,7 @@ class TestDiskInuse(unittest.TestCase):
         self.assertEqual(out[0]["risk"], "dangerous")
 
     def test_running_image_promotes_crictl(self) -> None:
-        row = {
+        row: _Candidate = {
             "id": "containerd-unused-image",
             "path": "crictl://unused-image/sha256:abc",
             "risk": "review",
@@ -114,7 +115,7 @@ class TestDiskInuse(unittest.TestCase):
         engram = classify_path(str(Path(self.tmp.name) / "dsv41-engram" / "t"), self.cat, size_bytes=1)
         out = apply_overlay([engram], mode_c_running=True)
         self.assertTrue(out[0]["in_use"])
-        media = {
+        media: _Candidate = {
             "id": "comfy-outputs-media",
             "path": "/mnt/models/out.mp4",
             "risk": "review",
@@ -125,7 +126,7 @@ class TestDiskInuse(unittest.TestCase):
         }
         out2 = apply_overlay([media], visual_running=True)
         self.assertTrue(out2[0]["in_use"])
-        ple = {
+        ple: _Candidate = {
             "id": "ple-mmap",
             "path": "/mnt/models/flashnext-ple",
             "risk": "review",

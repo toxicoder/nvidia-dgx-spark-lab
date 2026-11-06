@@ -8,7 +8,17 @@ from __future__ import annotations
 import json, sys
 from pathlib import Path
 
-def _load_policy(json_path, yaml_path):
+def _load_policy(json_path: str, yaml_path: str) -> object:
+    """Load the Hermes policy, preferring the generated JSON twin.
+
+    Args:
+        json_path: Filesystem path of the generated ``.json`` policy.
+        yaml_path: Filesystem path of the YAML policy of record.
+
+    Returns:
+        The parsed policy document, or an empty mapping when neither file can
+        be read.
+    """
     jp = Path(json_path)
     if jp.is_file():
         return json.loads(jp.read_text())

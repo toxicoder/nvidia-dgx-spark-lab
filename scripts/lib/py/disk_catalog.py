@@ -10,7 +10,7 @@ import sys
 import time
 from collections.abc import Iterator, Mapping, Sequence
 from pathlib import Path
-from typing import Any, TypedDict
+from typing import TypedDict, cast
 
 # Restricted YAML keys (keep skip names in sync with scripts/lib/disk_scan.sh).
 _LIST_KEYS = (
@@ -92,6 +92,77 @@ class DiskCatalog(TypedDict):
     signatures: dict[str, CatalogSignature]
 
 
+class _FileRow(TypedDict):
+    """One file or symlink row emitted by the walkers (JSONL record)."""
+
+    path: str
+    size_bytes: int
+    broken_symlink: bool
+
+
+class _PathSize(TypedDict):
+    """One path/size entry of :func:`largest_entries`."""
+
+    path: str
+    size_bytes: int
+
+
+class _LargestResult(TypedDict):
+    """Return value of :func:`largest_entries`."""
+
+    files: list[_PathSize]
+    dirs: list[_PathSize]
+
+
+class _Candidate(TypedDict, total=False):
+    """One rankable candidate row, as the shell and the dashboard consume it.
+
+    Every key is optional on purpose: ``recency_hint`` is only added when mtime
+    data exists, and the ``rank``/``recommend`` verbs re-admit already-classified
+    rows straight from stdin JSON, which may carry any subset of these keys.
+    """
+
+    id: str
+    path: str
+    size_bytes: int
+    risk: str
+    reclaim: str
+    what: str
+    why: str
+    leftover_when: str
+    educate: str
+    redownload_hint: str
+    docker_type: str
+    refuse_if: list[str]
+    score: float
+    step: str
+    in_use: bool
+    in_use_reasons: list[str]
+    needs_confirm: bool
+    recency_hint: str
+
+
+class _RecommendedCandidate(_Candidate, total=False):
+    """A candidate plus the running reclaim total ``recommend`` appends."""
+
+    running_bytes: int
+
+
+class _SurveyRow(TypedDict, total=False):
+    """One JSONL line read by the ``rank`` and ``recommend`` verbs.
+
+    A line is either a walker row (path, size, broken-symlink) that still has
+    to be classified, or an already-classified candidate that the verb forwards
+    untouched; only the keys below are ever inspected.
+    """
+
+    id: str
+    path: str
+    size_bytes: int
+    risk: str
+    broken_symlink: bool
+
+
 def _empty_sig() -> CatalogSignature:
     """Default signature fields.
 
@@ -133,7 +204,9 @@ def load_catalog(path: Path) -> DiskCatalog:
         ValueError: Invalid risk or reclaim.
     """
     text = path.read_text(encoding="utf-8")
-    signatures: dict[str, CatalogSignature] = {}
+    # Rows are parsed as loose mappings because the YAML key arrives as a plain
+    # string; the finished table is cast to the named row once below.
+    signatures: dict[str, dict[str, object]] = {}
     keep_prefixes: list[str] = []
     keep_basenames: list[str] = []
     section = ""
@@ -173,7 +246,7 @@ def load_catalog(path: Path) -> DiskCatalog:
             continue
         if line.startswith("  ") and not line.startswith("    ") and line.strip().endswith(":"):
             sig = line.strip()[:-1]
-            signatures[sig] = _empty_sig()
+            signatures[sig] = cast("dict[str, object]", _empty_sig())
             list_key = ""
             continue
         if not sig:
@@ -183,7 +256,8 @@ def load_catalog(path: Path) -> DiskCatalog:
             list_key = stripped[:-1]
             continue
         if list_key and stripped.startswith("- "):
-            signatures[sig][list_key].append(  # type: ignore[literal-required]
+            # Every _LIST_KEYS name addresses a list[str] field of the row.
+            cast("dict[str, list[str]]", signatures[sig])[list_key].append(
                 stripped[2:].strip().strip('"').strip("'")
             )
             continue
@@ -193,11 +267,11 @@ def load_catalog(path: Path) -> DiskCatalog:
             key = key.strip()
             val = val.strip().strip('"').strip("'")
             if key in _BOOL_KEYS:
-                signatures[sig][key] = val.lower() == "true"  # type: ignore[literal-required]
+                signatures[sig][key] = val.lower() == "true"
             elif key in _INT_KEYS:
-                signatures[sig][key] = int(val or "0")  # type: ignore[literal-required]
+                signatures[sig][key] = int(val or "0")
             elif key in _STR_KEYS:
-                signatures[sig][key] = val  # type: ignore[literal-required]
+                signatures[sig][key] = val
     for sid, row in signatures.items():
         if row["risk"] not in VALID_RISK:
             raise ValueError(f"{sid}: bad risk {row['risk']!r}")
@@ -207,7 +281,7 @@ def load_catalog(path: Path) -> DiskCatalog:
         "schema": schema,
         "keep_prefixes": keep_prefixes,
         "keep_basenames": keep_basenames,
-        "signatures": signatures,
+        "signatures": cast("dict[str, CatalogSignature]", signatures),
     }
 
 
@@ -300,7 +374,7 @@ def path_under_roots(path: str, roots: list[str]) -> bool:
     return False
 
 
-def _path_matches(path: str, sig: Mapping[str, Any], keep: bool) -> bool:
+def _path_matches(path: str, sig: CatalogSignature, keep: bool) -> bool:
     """True when a signature applies to path.
 
     Args:
@@ -340,8 +414,8 @@ def _path_matches(path: str, sig: Mapping[str, Any], keep: bool) -> bool:
 
 
 def _candidate(
-    sid: str, path: str, size_bytes: int, sig: Mapping[str, Any]
-) -> dict[str, Any]:
+    sid: str, path: str, size_bytes: int, sig: CatalogSignature
+) -> _Candidate:
     """Build a rankable candidate dict.
 
     Args:
@@ -383,7 +457,7 @@ def classify_path(
     *,
     size_bytes: int = 0,
     broken_symlink: bool | None = None,
-) -> dict[str, Any]:
+) -> _Candidate:
     """Classify one path against signatures (keep-set first, then file order).
 
     Args:
@@ -398,7 +472,7 @@ def classify_path(
     keep = is_keep_set(path, catalog)
     if broken_symlink is None and not path.startswith(("docker://", "crictl://")):
         broken_symlink = os.path.islink(path) and not os.path.exists(path)
-    row: dict[str, Any]
+    row: _Candidate
     if keep:
         sig = catalog["signatures"].get("keep-set-weight") or _empty_sig()
         row = _candidate("keep-set-weight", path, size_bytes, sig)
@@ -431,7 +505,7 @@ def classify_path(
     return row
 
 
-def rank_candidates(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def rank_candidates(rows: list[_Candidate]) -> list[_Candidate]:
     """Sort by score descending, then size, then path.
 
     Args:
@@ -451,11 +525,11 @@ def rank_candidates(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def recommend_rows(
-    rows: list[dict[str, Any]],
+    rows: list[_Candidate],
     target_bytes: int,
     *,
     include_review: bool = True,
-) -> list[dict[str, Any]]:
+) -> list[_RecommendedCandidate]:
     """Greedy fill of safe items (largest first), then optional review.
 
     Dangerous / in-use / reclaim none are never included.
@@ -476,10 +550,10 @@ def recommend_rows(
         and not r.get("in_use")
     ]
     safe.sort(key=lambda r: -int(r.get("size_bytes") or 0))
-    picked: list[dict[str, Any]] = []
+    picked: list[_RecommendedCandidate] = []
     total = 0
     for row in safe:
-        item = dict(row)
+        item = cast("_RecommendedCandidate", dict(row))
         item["needs_confirm"] = False
         picked.append(item)
         total += int(row.get("size_bytes") or 0)
@@ -495,17 +569,17 @@ def recommend_rows(
         ]
         review.sort(key=lambda r: -int(r.get("size_bytes") or 0))
         for row in review:
-            item = dict(row)
+            item = cast("_RecommendedCandidate", dict(row))
             item["needs_confirm"] = True
             picked.append(item)
             total += int(row.get("size_bytes") or 0)
             if total >= target_bytes > 0:
                 break
     running = 0
-    out: list[dict[str, Any]] = []
+    out: list[_RecommendedCandidate] = []
     for row in picked:
         running += int(row.get("size_bytes") or 0)
-        item = dict(row)
+        item = cast("_RecommendedCandidate", dict(row))
         item["running_bytes"] = running
         out.append(item)
     return out
@@ -529,8 +603,12 @@ def pressure_for(used_pct: float, avail_bytes: int) -> str:
     return "ok"
 
 
-def _entry_size(row: Mapping[str, Any]) -> int:
+def _entry_size(row: Mapping[str, object]) -> int:
     """Integer size_bytes from a mapping.
+
+    Candidate rows and path/size rows both land here, and a row read back from
+    stdin JSON can hold anything under the key, so the value is narrowed rather
+    than trusted.
 
     Args:
         row: Candidate or largest-entry mapping.
@@ -744,7 +822,7 @@ def is_factory_bittest_path(path: str, glob_base: str | None = None) -> bool:
     return os.path.dirname(real) == base
 
 
-def step_totals(rows: Sequence[Mapping[str, Any]]) -> dict[str, int]:
+def step_totals(rows: Sequence[Mapping[str, object]]) -> dict[str, int]:
     """Sum size_bytes per A/B/C step.
 
     Args:
@@ -761,7 +839,7 @@ def step_totals(rows: Sequence[Mapping[str, Any]]) -> dict[str, int]:
     return out
 
 
-def _file_row(path: str) -> dict[str, Any]:
+def _file_row(path: str) -> _FileRow:
     """JSONL row for one walked path.
 
     Args:
@@ -808,7 +886,7 @@ def walk_root_files(
     *,
     skip_dirs: frozenset[str] | None = None,
     skip_basenames: frozenset[str] | None = None,
-) -> Iterator[dict[str, Any]]:
+) -> Iterator[_FileRow]:
     """Yield file/symlink rows under root, depth-capped, with skip-dir prune.
 
     Does not follow directory symlinks.
@@ -827,7 +905,7 @@ def walk_root_files(
     if max_depth < 1 or not os.path.isdir(root):
         return
 
-    def rec(dirpath: str, depth: int) -> Iterator[dict[str, Any]]:
+    def rec(dirpath: str, depth: int) -> Iterator[_FileRow]:
         """Walk one directory at the given depth."""
         child_depth = depth + 1
         if child_depth > max_depth:
@@ -857,7 +935,7 @@ def walk_root_files(
     yield from rec(root, 0)
 
 
-def shallow_paths(roots: list[str]) -> Iterator[dict[str, Any]]:
+def shallow_paths(roots: list[str]) -> Iterator[_FileRow]:
     """Directory-granularity candidates plus incomplete/lock/core globs.
 
     Args:
@@ -921,7 +999,7 @@ def shallow_paths(roots: list[str]) -> Iterator[dict[str, Any]]:
                     yield row
 
 
-def largest_entries(root: str, limit: int = 30, max_depth: int = 8) -> dict[str, Any]:
+def largest_entries(root: str, limit: int = 30, max_depth: int = 8) -> _LargestResult:
     """Top files and directories under root.
 
     Args:
@@ -932,7 +1010,7 @@ def largest_entries(root: str, limit: int = 30, max_depth: int = 8) -> dict[str,
     Returns:
         ``{"files": [...], "dirs": [...]}`` with path and size_bytes.
     """
-    files: list[dict[str, Any]] = []
+    files: list[_PathSize] = []
     dir_sizes: dict[str, int] = {}
     if os.path.isdir(root):
         dir_sizes[os.path.realpath(root)] = 0
@@ -948,7 +1026,7 @@ def largest_entries(root: str, limit: int = 30, max_depth: int = 8) -> dict[str,
                 break
             parent = nxt
     files.sort(key=lambda r: -_entry_size(r))
-    dirs = [{"path": p, "size_bytes": s} for p, s in dir_sizes.items()]
+    dirs: list[_PathSize] = [{"path": p, "size_bytes": s} for p, s in dir_sizes.items()]
     dirs.sort(key=lambda r: -_entry_size(r))
     n = max(int(limit), 1)
     return {"files": files[:n], "dirs": dirs[:n]}
@@ -1026,8 +1104,8 @@ def _cli(argv: list[str] | None = None) -> int:
         walk_roots_to_stdout(list(args.roots), int(args.max_depth))
         return 0
     if args.cmd == "shallow":
-        for row in shallow_paths(list(args.roots)):
-            print(json.dumps(row, sort_keys=True))
+        for entry in shallow_paths(list(args.roots)):
+            print(json.dumps(entry, sort_keys=True))
         return 0
     if args.cmd == "largest":
         print(json.dumps(largest_entries(args.path, int(args.n), int(args.max_depth)), sort_keys=True))
@@ -1045,16 +1123,20 @@ def _cli(argv: list[str] | None = None) -> int:
         )
         print(json.dumps(row, sort_keys=True))
         return 0
-    rows: list[dict[str, Any]] = []
+    rows: list[_Candidate] = []
     for line in sys.stdin:
         line = line.strip()
         if not line:
             continue
-        item = json.loads(line)
+        # One JSON object per line, written by this tool's own verbs or by
+        # disk_inuse. A cast keeps the boundary a runtime no-op, so a line that
+        # is not an object still raises AttributeError exactly as before.
+        item = cast("_SurveyRow", json.loads(line))
         path = str(item.get("path") or "")
         size = int(item.get("size_bytes") or 0)
         if item.get("id") and item.get("risk"):
-            rows.append(item)
+            # Already-classified line: forwarded without inspecting anything.
+            rows.append(cast("_Candidate", item))
             continue
         rows.append(
             classify_path(

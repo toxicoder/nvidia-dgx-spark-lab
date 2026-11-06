@@ -7,18 +7,36 @@ from __future__ import annotations
 
 import json, sys
 from pathlib import Path
+from typing import TypedDict, cast
+
+
+class _Tls(TypedDict, total=False):
+    """Certificate overrides from the config ``tls`` block."""
+
+    acme_email: str
+
+
+class _DomainsConfig(TypedDict, total=False):
+    """Subset of ``config/lab-domains.yaml`` this helper writes."""
+
+    local_domain: str
+    public_domain: str
+    primary: str
+    email_domain: str
+    tls: _Tls
+
 
 path = Path(sys.argv[1])
 args = sys.argv[2:]
 local_d, public_d, primary, email, acme_email = (args + [""] * 5)[:5]
 
 try:
-    import yaml  # type: ignore
+    import yaml
 except ImportError:
     sys.stderr.write("PyYAML required for domains set\n")
     sys.exit(1)
 
-cfg = yaml.safe_load(path.read_text()) or {}
+cfg = cast(_DomainsConfig, yaml.safe_load(path.read_text()) or {})
 if local_d:
     cfg["local_domain"] = local_d
 if public_d or public_d == "":

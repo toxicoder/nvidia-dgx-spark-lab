@@ -7,11 +7,50 @@ from __future__ import annotations
 
 import json, subprocess, sys
 from pathlib import Path
+from typing import TypedDict, cast
 
-def _load_yaml(path):
+
+class _Preset(TypedDict, total=False):
+    """Inference preset record from the policy ``inference_presets`` map."""
+
+    service: str
+    namespace: str
+
+
+class _McpServer(TypedDict, total=False):
+    """MCP server record from the policy ``mcp_servers`` map."""
+
+    k8s_deployment: str
+
+
+class _Stack(TypedDict, total=False):
+    """Hermes stack record from the policy ``stacks`` map."""
+
+    inference_preset: str
+    mcp_servers: list[str]
+
+
+class _Policy(TypedDict, total=False):
+    """Subset of the Hermes policy document this helper reads."""
+
+    stacks: dict[str, _Stack]
+    inference_presets: dict[str, _Preset]
+    mcp_servers: dict[str, _McpServer]
+
+
+def _load_yaml(path: str) -> _Policy:
+    """Load the Hermes policy document.
+
+    Args:
+        path: Filesystem path of the policy YAML file.
+
+    Returns:
+        The parsed policy mapping, or an empty mapping when the file is missing
+        or PyYAML cannot load it.
+    """
     try:
         import yaml
-        return yaml.safe_load(Path(path).read_text()) or {}
+        return cast(_Policy, yaml.safe_load(Path(path).read_text()) or {})
     except Exception:
         return {}
 
@@ -22,7 +61,7 @@ if not stack:
     print(json.dumps({"ok": False, "error": f"unknown stack: {stack_id}"}))
     sys.exit(1)
 
-errors = []
+errors: list[str] = []
 preset_key = stack.get("inference_preset", "")
 preset = policy.get("inference_presets", {}).get(preset_key, {})
 svc = preset.get("service", "")

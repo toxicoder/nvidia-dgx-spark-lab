@@ -7,12 +7,58 @@ from __future__ import annotations
 
 import json, subprocess, sys
 from pathlib import Path
+from typing import TypedDict, cast
 
-policy = json.loads(Path(sys.argv[1]).read_text())
+
+class _ModelSpec(TypedDict, total=False):
+    """Model record from the policy ``models`` map."""
+
+    kind: str
+
+
+class _Stack(TypedDict, total=False):
+    """Nemotron stack record from the policy ``stacks`` map."""
+
+    label: str
+    stack_with: list[str]
+
+
+class _Policy(TypedDict, total=False):
+    """Subset of the Resource Guard policy this helper reads."""
+
+    models: dict[str, _ModelSpec]
+    stacks: dict[str, _Stack]
+
+
+class _ComponentState(TypedDict):
+    """One component of a stack in the status report."""
+
+    model: str
+    state: str
+
+
+class _StackStatus(TypedDict):
+    """One stack in the status report."""
+
+    id: str
+    label: str
+    healthy: bool
+    components: list[_ComponentState]
+
+
+policy = cast(_Policy, json.loads(Path(sys.argv[1]).read_text()))
 ns = "ai-inference"
-stacks_out = []
+stacks_out: list[_StackStatus] = []
 
-def _job_state(name):
+def _job_state(name: str) -> str:
+    """Report the phase of a Kubernetes Job.
+
+    Args:
+        name: Job name in the inference namespace.
+
+    Returns:
+        One of ``running``, ``succeeded``, ``failed``, ``absent``.
+    """
     try:
         data = json.loads(subprocess.check_output(
             ["kubectl", "get", "job", name, "-n", ns, "-o", "json"],
@@ -28,7 +74,16 @@ def _job_state(name):
     except Exception:
         return "absent"
 
-def _deploy_state(name):
+def _deploy_state(name: str) -> str:
+    """Report readiness of a Kubernetes Deployment.
+
+    Args:
+        name: Deployment name in the inference namespace.
+
+    Returns:
+        ``running`` when replicas are ready, ``pending`` when they are not, and
+        ``absent`` when the Deployment cannot be read.
+    """
     try:
         data = json.loads(subprocess.check_output(
             ["kubectl", "get", "deployment", name, "-n", ns, "-o", "json"],
@@ -39,7 +94,7 @@ def _deploy_state(name):
         return "absent"
 
 for sid, stack in policy.get("stacks", {}).items():
-    components = []
+    components: list[_ComponentState] = []
     all_running = True
     any_present = False
     for m in stack.get("stack_with", []):

@@ -6,6 +6,7 @@ Invoked by shell as: ``python3 scripts/lib/py/monitoring_get_monitoring_status_j
 from __future__ import annotations
 
 import json, subprocess, sys
+from typing import TypedDict
 
 local_d, public_d, primary, host, grafana_port, headlamp_port, https_port = sys.argv[1:8]
 domain = public_d if primary == "public" and public_d else local_d
@@ -21,13 +22,46 @@ DASHBOARDS = [
     {"uid": "spark-storage-net", "title": "Storage & Network", "path": "/d/spark-storage-net"},
 ]
 
-def _sh(*args):
+class _ReleaseStatus(TypedDict):
+    """One Helm release entry of the monitoring status report."""
+
+    name: str
+    state: str
+    readyPods: int
+    totalPods: int
+    helmInstalled: bool
+
+
+class _ReleaseStatusWithUrls(_ReleaseStatus, total=False):
+    """Release entry once its user-facing URLs have been attached."""
+
+    urls: dict[str, str]
+
+
+def _sh(*args: str) -> str:
+    """Run a command and return its trimmed stdout.
+
+    Args:
+        *args: Command and its arguments.
+
+    Returns:
+        The stripped stdout, or an empty string when the command fails.
+    """
     try:
         return subprocess.check_output(args, text=True, stderr=subprocess.DEVNULL).strip()
     except Exception:
         return ""
 
-def _release_status(release, ns="monitoring"):
+def _release_status(release: str, ns: str = "monitoring") -> _ReleaseStatusWithUrls:
+    """Summarise a Helm release and its Running pods.
+
+    Args:
+        release: Helm release name to inspect.
+        ns: Kubernetes namespace the release is installed into.
+
+    Returns:
+        The release entry for the status report.
+    """
     installed = release in _sh("helm", "list", "-n", ns, "-q").split()
     if not installed:
         return {"name": release, "state": "stopped", "readyPods": 0, "totalPods": 0, "helmInstalled": False}
@@ -40,7 +74,12 @@ def _release_status(release, ns="monitoring"):
         state = "stopped"
     return {"name": release, "state": state, "readyPods": ready, "totalPods": total, "helmInstalled": True}
 
-def _dcgm_status():
+def _dcgm_status() -> _ReleaseStatus:
+    """Summarise the DCGM exporter DaemonSet pods.
+
+    Returns:
+        The dcgm-exporter entry for the status report.
+    """
     ready = len([x for x in _sh("kubectl", "get", "pods", "-n", "gpu-operator", "-l", "app=nvidia-dcgm-exporter", "-o", "jsonpath={range .items[?(@.status.phase=='Running')]}{.metadata.name}{'\\n'}{end}").split('\n') if x])
     total = len([x for x in _sh("kubectl", "get", "pods", "-n", "gpu-operator", "-l", "app=nvidia-dcgm-exporter", "-o", "jsonpath={.items[*].metadata.name}").split() if x])
     state = "stopped"
@@ -50,10 +89,19 @@ def _dcgm_status():
         state = "starting"
     return {"name": "dcgm-exporter", "state": state, "readyPods": ready, "totalPods": total, "helmInstalled": total > 0}
 
-def _service_urls(name):
+def _service_urls(name: str) -> dict[str, str]:
+    """Build the URL set for a monitoring UI.
+
+    Args:
+        name: Service name used as the hostname label (grafana, headlamp).
+
+    Returns:
+        Mapping of URL flavour (``local``, ``nodeport``, and when public
+        access is configured ``public`` and ``sso``) to the URL.
+    """
     port = int(https_port)
     local_url = f"https://{name}.{local_d}:{port}/"
-    urls = {"local": local_url, "nodeport": f"http://{host}:{grafana_port if name == 'grafana' else headlamp_port}"}
+    urls: dict[str, str] = {"local": local_url, "nodeport": f"http://{host}:{grafana_port if name == 'grafana' else headlamp_port}"}
     if public_d:
         urls["public"] = f"https://{name}.{public_d}/"
     urls["sso"] = urls["public"] if primary == "public" and public_d else local_url
@@ -64,7 +112,7 @@ grafana["urls"] = _service_urls("grafana")
 headlamp = _release_status("headlamp")
 headlamp["urls"] = _service_urls("headlamp")
 
-status = {
+status: dict[str, object] = {
     "grafana": grafana,
     "headlamp": headlamp,
     "prometheus": _release_status("prometheus"),

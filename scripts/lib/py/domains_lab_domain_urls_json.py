@@ -19,6 +19,15 @@ public_d = cfg.get("public_domain", "")
 port = cfg.get("https_port", "32443")
 
 def _url(profile: str) -> str:
+    """Build the URL of a host for one access profile.
+
+    Args:
+        profile: ``public`` to use the public apex, anything else for local.
+
+    Returns:
+        The HTTPS URL, port-443 style for public access and nodeport-style with
+        the SSO HTTPS port for local access.
+    """
     apex = public_d if profile == "public" and public_d else local_d
     fqdn = f"{host}.{apex}"
     if profile == "public" and public_d:
