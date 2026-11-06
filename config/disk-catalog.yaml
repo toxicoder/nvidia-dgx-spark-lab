@@ -38,6 +38,32 @@ keep_set:
     - Kijai__LTX2
     - models--Kijai--LTX2
     - GLM-5.2-GGUF
+    - deepseek-ai__DeepSeek-V4-Flash-Vision-Exp
+    - models--deepseek-ai--DeepSeek-V4-Flash-Vision-Exp
+    - drowzeys__keys-DeepSeekV4Flash-Vision-EXP-ablit
+    - models--drowzeys--keys-DeepSeekV4Flash-Vision-EXP-ablit
+    - Mia-AiLab__GLM-5.3-Flash-EXL3-4bpw-TensorFold
+    - models--Mia-AiLab--GLM-5.3-Flash-EXL3-4bpw-TensorFold
+    - Mia-AiLab__GLM-5.3-Flash-EXL3-4bpw-TensorFold-Ablit
+    - models--Mia-AiLab--GLM-5.3-Flash-EXL3-4bpw-TensorFold-Ablit
+    - incoai__GLM-5.3-Flash-DFlash2
+    - models--incoai--GLM-5.3-Flash-DFlash2
+    - gorbatjovy__GLM-5.3-Flash-DFlash2-ablit-fc
+    - models--gorbatjovy--GLM-5.3-Flash-DFlash2-ablit-fc
+    - turboderp__Qwen3.8-27B-exl3
+    - models--turboderp--Qwen3.8-27B-exl3
+    - Mia-AiLab__Qwen3.8-27B-EXL3-2.0bpw
+    - models--Mia-AiLab--Qwen3.8-27B-EXL3-2.0bpw
+    - r0b0tlab__Qwen3.8-27B-DFlash2-EXL3-4.00bpw
+    - models--r0b0tlab--Qwen3.8-27B-DFlash2-EXL3-4.00bpw
+    - Vontra__Qwen3.8-27B-MLX-4bit
+    - models--Vontra--Qwen3.8-27B-MLX-4bit
+    - z-lab__Qwen3.8-27B-DFlash2
+    - models--z-lab--Qwen3.8-27B-DFlash2
+    - nvidia__NVIDIA-Nemotron-3.5-Transcribe-30B-A4B-NVFP4
+    - models--nvidia--NVIDIA-Nemotron-3.5-Transcribe-30B-A4B-NVFP4
+    - nvidia__Qwen3.8-Flash-Next-FP4-Local
+    - models--nvidia--Qwen3.8-Flash-Next-FP4-Local
   basenames: []
 signatures:
   hf-incomplete:

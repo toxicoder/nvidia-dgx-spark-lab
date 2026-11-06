@@ -89,12 +89,18 @@ inference_probes:
     - qwen3.8-flash-next-nvfp4
     - glm-5.3-flash
     - deepseek-v4.1-flash
+    - deepseek-v4-flash-dspark
+    - glm-5.3-flash-exl3-tensorfold
+    - qwen3.8-27b-exl3-16gb
+    - qwen3.8-27b-tensorfold
+    - qwen3.8-flash-next-tensorfold
     - nemotron-retriever-embed
     - nemotron-retriever-rerank
     - nemotron-parse
     - nemotron-safety-guard
     - nemotron-speech-asr
     - nemotron-speech-tts
+    - nemotron-3.5-transcribe-30b-a4b-nvfp4
     - ray-head
   port: 8000
   vllm_path: /v1/models

@@ -265,6 +265,77 @@
       "job_name": "nemotron-speech-tts",
       "kind": "deployment"
     },
+    "nemotron-3.5-transcribe-30b-a4b-nvfp4": {
+      "gpus": 1,
+      "memory": "48Gi",
+      "cpu": "4",
+      "heavy": false,
+      "job_name": "nemotron-3.5-transcribe-30b-a4b-nvfp4",
+      "kind": "deployment"
+    },
+    "deepseek-v4-flash-dspark": {
+      "gpus": 1,
+      "memory": "100Gi",
+      "cpu": "12",
+      "heavy": true,
+      "job_name": "deepseek-v4-flash-dspark",
+      "multi_node_only": true,
+      "requires_validation": [
+        "kimi-test"
+      ],
+      "stack_with": [
+        "deepseek-v4-flash-dspark-worker-1"
+      ]
+    },
+    "deepseek-v4-flash-dspark-worker-1": {
+      "gpus": 1,
+      "memory": "100Gi",
+      "cpu": "8",
+      "heavy": false,
+      "job_name": "deepseek-v4-flash-dspark-worker-1"
+    },
+    "glm-5.3-flash-exl3-tensorfold": {
+      "gpus": 1,
+      "memory": "100Gi",
+      "cpu": "12",
+      "heavy": true,
+      "job_name": "glm-5.3-flash-exl3-tensorfold",
+      "multi_node_only": true,
+      "requires_validation": [
+        "kimi-test"
+      ],
+      "stack_with": [
+        "glm-5.3-flash-exl3-tensorfold-worker-1"
+      ]
+    },
+    "glm-5.3-flash-exl3-tensorfold-worker-1": {
+      "gpus": 1,
+      "memory": "100Gi",
+      "cpu": "8",
+      "heavy": false,
+      "job_name": "glm-5.3-flash-exl3-tensorfold-worker-1"
+    },
+    "qwen3.8-27b-exl3-16gb": {
+      "gpus": 1,
+      "memory": "16Gi",
+      "cpu": "4",
+      "heavy": true,
+      "job_name": "qwen3.8-27b-exl3-16gb"
+    },
+    "qwen3.8-27b-tensorfold": {
+      "gpus": 1,
+      "memory": "96Gi",
+      "cpu": "8",
+      "heavy": true,
+      "job_name": "qwen3.8-27b-tensorfold"
+    },
+    "qwen3.8-flash-next-tensorfold": {
+      "gpus": 1,
+      "memory": "96Gi",
+      "cpu": "8",
+      "heavy": true,
+      "job_name": "qwen3.8-flash-next-tensorfold"
+    },
     "glm-5.2": {
       "gpus": 1,
       "memory": "110Gi",
@@ -943,6 +1014,52 @@
         "orchestrator"
       ],
       "quality_notes": "Official MXFP4 experts + FP8 dense; Engram mmap/NVMe; SGLang; mem-fraction 0.95; 131K first. Do not use nvidia/DeepSeek-V4-Flash-NVFP4 (old 284B model)."
+    },
+    "dsv4-flash-dspark-spark-2": {
+      "label": "DeepSeek-V4-Flash DSpark vLLM TP=2 pair (exclusive frontier)",
+      "min_nodes": 2,
+      "max_nodes": 2,
+      "heavy": true,
+      "tier": "experimental",
+      "description": "Exclusive 2-node pair lane; DSpark spec decode 1M ctx; refuses Mode A/B/C and the other exclusive lanes",
+      "stack_with": [
+        "deepseek-v4-flash-dspark",
+        "deepseek-v4-flash-dspark-worker-1"
+      ],
+      "startup_order": [
+        "deepseek-v4-flash-dspark-worker-1",
+        "deepseek-v4-flash-dspark"
+      ],
+      "requires_validation": [
+        "kimi-test"
+      ],
+      "pillars": [
+        "orchestrator"
+      ],
+      "quality_notes": "Pair QSFP cable + pair NCCL vars (not ring); util 0.835 via GPU_MEMORY_UTILIZATION_TEXT only; earlyoom off on both hosts"
+    },
+    "glm53-flash-exl3-spark-2": {
+      "label": "GLM-5.3-Flash EXL3 TensorFold TP=2 pair (exclusive frontier)",
+      "min_nodes": 2,
+      "max_nodes": 2,
+      "heavy": true,
+      "tier": "experimental",
+      "description": "Exclusive 2-node pair lane; EXL3 4bpw TensorFold ranks 1M ctx; refuses Mode A/B/C and the other exclusive lanes",
+      "stack_with": [
+        "glm-5.3-flash-exl3-tensorfold",
+        "glm-5.3-flash-exl3-tensorfold-worker-1"
+      ],
+      "startup_order": [
+        "glm-5.3-flash-exl3-tensorfold-worker-1",
+        "glm-5.3-flash-exl3-tensorfold"
+      ],
+      "requires_validation": [
+        "kimi-test"
+      ],
+      "pillars": [
+        "orchestrator"
+      ],
+      "quality_notes": "Direct CX-7 pair (both rails); TensorFold engine, not vLLM; upstream recipe superseded by MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104"
     },
     "hermes-lab": {
       "label": "Hermes Agent (Docker)",
