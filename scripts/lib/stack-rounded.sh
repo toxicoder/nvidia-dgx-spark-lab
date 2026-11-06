@@ -33,6 +33,41 @@ rounded_mode_c_jobs() {
     deepseek-v4.1-flash-worker-2
 }
 
+# @function rounded_new_lanes_jobs
+# Prints the exclusive new-lane Job names (DSpark pair, EXL3 TensorFold pair,
+# Qwen3.8 EXL3 16GB, Qwen3.8-27B TensorFold, Qwen3.8-Flash-Next TensorFold).
+# These lanes are exclusive with Mode A/B/C Jobs and with each other.
+rounded_new_lanes_jobs() {
+  printf '%s\n' \
+    deepseek-v4-flash-dspark \
+    deepseek-v4-flash-dspark-worker-1 \
+    glm-5.3-flash-exl3-tensorfold \
+    glm-5.3-flash-exl3-tensorfold-worker-1 \
+    qwen3.8-27b-exl3-16gb \
+    qwen3.8-27b-tensorfold \
+    qwen3.8-flash-next-tensorfold
+}
+
+# @function guard_rounded_new_lanes_idle
+# Fail if any new-lane Job is active. Optional $1 = lane name prefix to skip
+# (the caller's own lane; its own double-start is caught by guard_active_job).
+guard_rounded_new_lanes_idle() {
+  local exclude="${1:-}" active="" job
+  while IFS= read -r job; do
+    [[ -z $job ]] && continue
+    [[ -n $exclude && $job == "$exclude"* ]] && continue
+    if _is_job_active "$job"; then
+      active="$job"
+      break
+    fi
+  done <<<"$(rounded_new_lanes_jobs)"
+  if [[ -n $active ]]; then
+    err "Exclusive lane Job '$active' is active. Stop that lane first (see: bazelisk run //:manage -- help)."
+    return 1
+  fi
+  return 0
+}
+
 # @function _rounded_active_from_list
 # Echoes the first active Job name from a newline-separated list, or empty.
 _rounded_active_from_list() {
@@ -190,9 +225,29 @@ _require_three_nodes() {
   fi
 }
 
+# @function _require_pair_nodes
+# Require ≥2 nodes for 2-node pair lane starts (DSpark, EXL3 TensorFold).
+_require_pair_nodes() {
+  local n
+  n=$(_rounded_node_count)
+  if [[ ${n:-0} -ge 2 ]]; then
+    return 0
+  fi
+  if [[ ${LAB_NON_INTERACTIVE:-} == "1" ]]; then
+    err "Need ≥2 Kubernetes nodes for this lane (got ${n:-0})."
+    return 1
+  fi
+  warn "Only ${n:-0} node(s) detected; 2-node pair lane expected."
+  read -r -p "Continue anyway? [y/N] " cont
+  if [[ ! $cont =~ ^[Yy]$ ]]; then
+    log "Aborted."
+    exit 0
+  fi
+}
+
 # @function litellm_overlay_for_backend
 # Prints the kustomize path for a LiteLLM backend id.
-# @param $1  Backend id (rounded | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | glm-5.3-flash | deepseek-v4.1-flash).
+# @param $1  Backend id (rounded | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | glm-5.3-flash | deepseek-v4.1-flash | deepseek-v4-flash-dspark | glm-5.3-flash-exl3-tensorfold | qwen3.8-27b-exl3-16gb | qwen3.8-27b-tensorfold | qwen3.8-flash-next-tensorfold).
 litellm_overlay_for_backend() {
   case "$1" in
     rounded | "") echo "${REPO_ROOT}/k8s/workloads/litellm" ;;
@@ -200,6 +255,11 @@ litellm_overlay_for_backend() {
     qwen3.8-flash-next-nvfp4) echo "${REPO_ROOT}/k8s/overlays/litellm-qwen38-flash-next" ;;
     glm-5.3-flash) echo "${REPO_ROOT}/k8s/overlays/litellm-glm53-flash" ;;
     deepseek-v4.1-flash) echo "${REPO_ROOT}/k8s/overlays/litellm-dsv41-flash" ;;
+    deepseek-v4-flash-dspark) echo "${REPO_ROOT}/k8s/overlays/litellm-dsv4-flash-dspark" ;;
+    glm-5.3-flash-exl3-tensorfold) echo "${REPO_ROOT}/k8s/overlays/litellm-glm53-flash-exl3" ;;
+    qwen3.8-27b-exl3-16gb) echo "${REPO_ROOT}/k8s/overlays/litellm-qwen38-27b-exl3" ;;
+    qwen3.8-27b-tensorfold) echo "${REPO_ROOT}/k8s/overlays/litellm-qwen38-27b-tensorfold" ;;
+    qwen3.8-flash-next-tensorfold) echo "${REPO_ROOT}/k8s/overlays/litellm-qwen38-flash-next-tensorfold" ;;
     *) echo "" ;;
   esac
 }
@@ -239,7 +299,7 @@ start_litellm() {
       --backend)
         backend="${2:-}"
         if [[ -z $backend ]]; then
-          err "start-litellm --backend requires an id (rounded | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | glm-5.3-flash | deepseek-v4.1-flash)."
+          err "start-litellm --backend requires an id (rounded | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | glm-5.3-flash | deepseek-v4.1-flash | deepseek-v4-flash-dspark | glm-5.3-flash-exl3-tensorfold | qwen3.8-27b-exl3-16gb | qwen3.8-27b-tensorfold | qwen3.8-flash-next-tensorfold."
           return 1
         fi
         shift 2
@@ -252,7 +312,7 @@ start_litellm() {
         shift
         ;;
       *)
-        err "Unknown LiteLLM backend: $1. Use rounded | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | glm-5.3-flash | deepseek-v4.1-flash"
+        err "Unknown LiteLLM backend: $1. Use rounded | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | glm-5.3-flash | deepseek-v4.1-flash | deepseek-v4-flash-dspark | glm-5.3-flash-exl3-tensorfold | qwen3.8-27b-exl3-16gb | qwen3.8-27b-tensorfold | qwen3.8-flash-next-tensorfold"
         return 1
         ;;
     esac
@@ -261,7 +321,7 @@ start_litellm() {
   local path
   path=$(litellm_overlay_for_backend "$backend")
   if [[ -z $path ]]; then
-    err "Unknown LiteLLM backend: ${backend}. Use rounded | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | glm-5.3-flash | deepseek-v4.1-flash"
+    err "Unknown LiteLLM backend: ${backend}. Use rounded | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | glm-5.3-flash | deepseek-v4.1-flash | deepseek-v4-flash-dspark | glm-5.3-flash-exl3-tensorfold | qwen3.8-27b-exl3-16gb | qwen3.8-27b-tensorfold | qwen3.8-flash-next-tensorfold"
     return 1
   fi
 
@@ -295,6 +355,7 @@ start_qwen38_27b() {
   warn "Refuses Mode B GLM-5.3-Flash and Mode C DeepSeek-V4.1-Flash."
   guard_rounded_mode_b_idle || exit 1
   guard_rounded_mode_c_idle || exit 1
+  guard_rounded_new_lanes_idle || exit 1
   start_nemotron_llm "qwen3.8-27b-nvfp4" "Qwen 3.8 27B NVFP4"
   maybe_attach_litellm "qwen3.8-27b-nvfp4" "$@"
 }
@@ -314,6 +375,7 @@ start_qwen38_flash_next() {
   warn "Refuses Mode B GLM-5.3-Flash and Mode C DeepSeek-V4.1-Flash."
   guard_rounded_mode_b_idle || exit 1
   guard_rounded_mode_c_idle || exit 1
+  guard_rounded_new_lanes_idle || exit 1
   start_nemotron_llm "qwen3.8-flash-next-nvfp4" "Qwen3.8-Flash-Next NVFP4"
   maybe_attach_litellm "qwen3.8-flash-next-nvfp4" "$@"
 }
@@ -362,6 +424,7 @@ start_stack_rounded() {
 
   guard_rounded_mode_b_idle || exit 1
   guard_rounded_mode_c_idle || exit 1
+  guard_rounded_new_lanes_idle || exit 1
   _require_three_nodes || exit 1
   ensure_namespace
 
@@ -430,6 +493,7 @@ start_glm53_flash() {
 
   guard_rounded_mode_a_idle || exit 1
   guard_rounded_mode_c_idle || exit 1
+  guard_rounded_new_lanes_idle || exit 1
   doctor_fabric || warn "Fabric doctor warned; continuing only if you understand the ring is required."
   _require_three_nodes || exit 1
   ensure_namespace
@@ -483,6 +547,7 @@ start_dsv41_flash() {
 
   guard_rounded_mode_a_idle || exit 1
   guard_rounded_mode_b_idle || exit 1
+  guard_rounded_new_lanes_idle || exit 1
   doctor_fabric || warn "Fabric doctor warned; continuing only if you understand the ring is required."
   _require_three_nodes || exit 1
   ensure_namespace
@@ -514,6 +579,167 @@ stop_dsv41_flash() {
   log "Mode C stopped."
 }
 
+# @function start_dsv4_flash_dspark
+# Exclusive 2-node pair DeepSeek-V4-Flash vLLM TP=2 (MiaAI DSpark recipe).
+# @command start-dsv4-flash-dspark
+start_dsv4_flash_dspark() {
+  warn "=== DeepSeek-V4-Flash DSpark TP=2 (2-node pair, DSpark spec decode, 1M ctx) ==="
+  warn "Exclusive: refuses Mode A/B/C Jobs and every other exclusive lane. Pair QSFP cable required."
+  warn "Image ghcr.io/anemll/dspark-vllm-gx10:0.1.1 must exist on BOTH Sparks; disable earlyoom on both hosts."
+
+  if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
+    echo
+    read -r -p "Start DeepSeek-V4-Flash DSpark TP=2? [yes/NO] " response
+    if [[ ! $response =~ ^[Yy][Ee][Ss]$ ]]; then
+      log "Aborted."
+      exit 0
+    fi
+  else
+    require_heavy_confirm "deepseek-v4-flash-dspark" "DSpark pair frontier requires confirmation." || exit 1
+  fi
+
+  guard_rounded_mode_a_idle || exit 1
+  guard_rounded_mode_b_idle || exit 1
+  guard_rounded_mode_c_idle || exit 1
+  guard_rounded_new_lanes_idle "deepseek-v4-flash-dspark" || exit 1
+  doctor_fabric || warn "Fabric doctor warned; the pair QSFP cable must be up for TP=2."
+  _require_pair_nodes || exit 1
+  ensure_namespace
+  guard_active_job "deepseek-v4-flash-dspark" || exit 1
+  guard_active_job "deepseek-v4-flash-dspark-worker-1" || exit 1
+  enforce_capacity "stack:dsv4-flash-dspark-spark-2" || exit 1
+
+  log "Starting DSpark worker rank then leader..."
+  start_workload "deepseek-v4-flash-dspark-worker-1" "--force"
+  start_workload "deepseek-v4-flash-dspark" "--force"
+  wait_for_job "deepseek-v4-flash-dspark" || true
+  maybe_attach_litellm "deepseek-v4-flash-dspark" "$@"
+  if ! args_have_with_litellm "$@"; then
+    log "LiteLLM: bazelisk run //:manage -- start-litellm --backend deepseek-v4-flash-dspark"
+  fi
+}
+
+# @function stop_dsv4_flash_dspark
+# @command stop-dsv4-flash-dspark
+stop_dsv4_flash_dspark() {
+  log "Stopping DeepSeek-V4-Flash DSpark TP=2 pair..."
+  stop_inference_job "deepseek-v4-flash-dspark"
+  stop_inference_job "deepseek-v4-flash-dspark-worker-1"
+  log "DSpark pair stopped."
+}
+
+# @function start_glm53_flash_exl3
+# Exclusive 2-node pair GLM-5.3-Flash EXL3 (MiaAI TensorFold recipe).
+# @command start-glm53-flash-exl3
+start_glm53_flash_exl3() {
+  warn "=== GLM-5.3-Flash EXL3 TensorFold TP=2 (2-node pair, 1M ctx, EXL3 4bpw) ==="
+  warn "Exclusive: refuses Mode A/B/C Jobs and every other exclusive lane. Direct CX-7 QSFP pair cable (both rails)."
+  warn "Image ghcr.io/miaai-lab/glm-5.3-flash-exl3-2x-dgx-sparks-tensorfold:v0.6.0 on both ranks; ~110 GiB free GPU mem + ~205 GB disk per node."
+
+  if [[ ${LAB_NON_INTERACTIVE:-} != "1" ]]; then
+    echo
+    read -r -p "Start GLM-5.3-Flash EXL3 TensorFold pair? [yes/NO] " response
+    if [[ ! $response =~ ^[Yy][Ee][Ss]$ ]]; then
+      log "Aborted."
+      exit 0
+    fi
+  else
+    require_heavy_confirm "glm-5.3-flash-exl3-tensorfold" "EXL3 TensorFold pair requires confirmation." || exit 1
+  fi
+
+  guard_rounded_mode_a_idle || exit 1
+  guard_rounded_mode_b_idle || exit 1
+  guard_rounded_mode_c_idle || exit 1
+  guard_rounded_new_lanes_idle "glm-5.3-flash-exl3-tensorfold" || exit 1
+  doctor_fabric || warn "Fabric doctor warned; the pair QSFP cable must be up for the TensorFold all-gather."
+  _require_pair_nodes || exit 1
+  ensure_namespace
+  guard_active_job "glm-5.3-flash-exl3-tensorfold" || exit 1
+  guard_active_job "glm-5.3-flash-exl3-tensorfold-worker-1" || exit 1
+  enforce_capacity "stack:glm53-flash-exl3-spark-2" || exit 1
+
+  log "Starting TensorFold worker rank then leader..."
+  start_workload "glm-5.3-flash-exl3-tensorfold-worker-1" "--force"
+  start_workload "glm-5.3-flash-exl3-tensorfold" "--force"
+  wait_for_job "glm-5.3-flash-exl3-tensorfold" || true
+  maybe_attach_litellm "glm-5.3-flash-exl3-tensorfold" "$@"
+  if ! args_have_with_litellm "$@"; then
+    log "LiteLLM: bazelisk run //:manage -- start-litellm --backend glm-5.3-flash-exl3-tensorfold"
+  fi
+}
+
+# @function stop_glm53_flash_exl3
+# @command stop-glm53-flash-exl3
+stop_glm53_flash_exl3() {
+  log "Stopping GLM-5.3-Flash EXL3 TensorFold pair..."
+  stop_inference_job "glm-5.3-flash-exl3-tensorfold"
+  stop_inference_job "glm-5.3-flash-exl3-tensorfold-worker-1"
+  log "EXL3 TensorFold pair stopped."
+}
+
+# @function start_qwen38_27b_exl3
+# Exclusive Qwen3.8-27B EXL3 on a 16 GB+ consumer NVIDIA GPU (ExLlamaV3). Optional --with-litellm.
+# @command start-qwen38-27b-exl3
+start_qwen38_27b_exl3() {
+  warn "=== QWEN 3.8 27B EXL3 (ExLlamaV3, exclusive, 16 GB+ GPU node) ==="
+  warn "Quant by VRAM (download-qwen38-27b-exl3 --tier). Refuses Mode B/C and the other exclusive lanes."
+  guard_rounded_mode_b_idle || exit 1
+  guard_rounded_mode_c_idle || exit 1
+  guard_rounded_new_lanes_idle "qwen3.8-27b-exl3-16gb" || exit 1
+  start_nemotron_llm "qwen3.8-27b-exl3-16gb" "Qwen3.8-27B EXL3 (16 GB+ GPU)"
+  maybe_attach_litellm "qwen3.8-27b-exl3-16gb" "$@"
+}
+
+# @function stop_qwen38_27b_exl3
+# @command stop-qwen38-27b-exl3
+stop_qwen38_27b_exl3() {
+  log "Stopping Qwen3.8-27B EXL3..."
+  stop_inference_job "qwen3.8-27b-exl3-16gb"
+  log "Qwen3.8-27B EXL3 stopped. LiteLLM left running unless you run stop-litellm."
+}
+
+# @function start_qwen38_27b_tensorfold
+# Exclusive 1-node Qwen3.8-27B TensorFold (MLX-4bit + DFlash2). Optional --with-litellm.
+# @command start-qwen38-27b-tensorfold
+start_qwen38_27b_tensorfold() {
+  warn "=== QWEN 3.8 27B TENSORFOLD (single Spark, 8 streams, 262k ctx) ==="
+  warn "Vontra/Qwen3.8-27B-MLX-4bit + z-lab DFlash2. Refuses Mode B/C and the other exclusive lanes."
+  guard_rounded_mode_b_idle || exit 1
+  guard_rounded_mode_c_idle || exit 1
+  guard_rounded_new_lanes_idle "qwen3.8-27b-tensorfold" || exit 1
+  start_nemotron_llm "qwen3.8-27b-tensorfold" "Qwen3.8-27B TensorFold"
+  maybe_attach_litellm "qwen3.8-27b-tensorfold" "$@"
+}
+
+# @function stop_qwen38_27b_tensorfold
+# @command stop-qwen38-27b-tensorfold
+stop_qwen38_27b_tensorfold() {
+  log "Stopping Qwen3.8-27B TensorFold..."
+  stop_inference_job "qwen3.8-27b-tensorfold"
+  log "Qwen3.8-27B TensorFold stopped. LiteLLM left running unless you run stop-litellm."
+}
+
+# @function start_qwen38_flash_next_tensorfold
+# Exclusive 1-node Qwen3.8-Flash-Next TensorFold (NVFP4 MoE, 5 streams). Optional --with-litellm.
+# @command start-qwen38-flash-next-tensorfold
+start_qwen38_flash_next_tensorfold() {
+  warn "=== QWEN 3.8 FLASH-NEXT TENSORFOLD (single Spark, Zig engine, ~96 GiB NVFP4 ckpt) ==="
+  warn "nvidia/Qwen3.8-Flash-Next-FP4-Local pinned revision. Needs ~107 GiB MemAvailable. Refuses Mode B/C and other exclusive lanes."
+  guard_rounded_mode_b_idle || exit 1
+  guard_rounded_mode_c_idle || exit 1
+  guard_rounded_new_lanes_idle "qwen3.8-flash-next-tensorfold" || exit 1
+  start_nemotron_llm "qwen3.8-flash-next-tensorfold" "Qwen3.8-Flash-Next TensorFold"
+  maybe_attach_litellm "qwen3.8-flash-next-tensorfold" "$@"
+}
+
+# @function stop_qwen38_flash_next_tensorfold
+# @command stop-qwen38-flash-next-tensorfold
+stop_qwen38_flash_next_tensorfold() {
+  log "Stopping Qwen3.8-Flash-Next TensorFold..."
+  stop_inference_job "qwen3.8-flash-next-tensorfold"
+  log "Qwen3.8-Flash-Next TensorFold stopped. LiteLLM left running unless you run stop-litellm."
+}
+
 # @function status_stack
 # Mode A/B/C Jobs, LiteLLM, aliases, fabric hint.
 # @command status-stack
@@ -524,6 +750,7 @@ status_stack() {
   kubectl get jobs -n "${NAMESPACE}" -l family=medgemma -o wide 2>/dev/null || true
   kubectl get jobs -n "${NAMESPACE}" -l family=glm-5.3 -o wide 2>/dev/null || true
   kubectl get jobs -n "${NAMESPACE}" -l family=deepseek-v4.1 -o wide 2>/dev/null || true
+  kubectl get jobs -n "${NAMESPACE}" -l family=deepseek-v4-flash -o wide 2>/dev/null || true
   kubectl get deploy,svc -n "${NAMESPACE}" litellm 2>/dev/null || true
   local ll_backend
   ll_backend=$(kubectl get deploy litellm -n "${NAMESPACE}" -o jsonpath='{.metadata.labels.lab\.litellm-backend}' 2>/dev/null || true)

@@ -24,6 +24,12 @@
 # medgemma-27b / medgemma-4b: spark2 medical lane + optional sidecar
 # glm-5.3-flash: 3-node TP=3 NVFP4 on the QSFP ring (Mode B)
 # deepseek-v4.1-flash: 3-node TP=3 official MXFP4 + Engram NVMe (Mode C, SGLang)
+# deepseek-v4-flash-dspark: 2-node pair DeepSeek-V4-Flash vLLM TP=2 (DSpark spec decode, 1M ctx)
+# glm-5.3-flash-exl3-tensorfold: 2-node pair GLM-5.3-Flash EXL3 4bpw (TensorFold ranks, 1M ctx)
+# qwen3.8-27b-exl3-16gb: Qwen3.8-27B EXL3 on 16 GB+ consumer NVIDIA GPUs (ExLlamaV3 v1.6.0)
+# qwen3.8-27b-tensorfold: 1-node Qwen3.8-27B TensorFold (MLX-4bit + DFlash2, 262k ctx)
+# qwen3.8-flash-next-tensorfold: 1-node Qwen3.8-Flash-Next TensorFold (NVFP4 MoE, 262k ctx)
+# nemotron-3.5-transcribe-30b-a4b-nvfp4: 1-GPU vLLM ASR Deployment (NeMo Speech plugin)
 # litellm: management OpenAI proxy (no GPU)
 # comfy-base: ComfyUI visual base (Deployment; Spark unified-memory patches)
 #
@@ -63,6 +69,13 @@ get_model_job() {
     deepseek-v4.1-flash) echo "k8s/workloads/deepseek-v4.1-flash/deepseek-v4.1-flash-job.yaml" ;;
     deepseek-v4.1-flash-worker-1) echo "k8s/workloads/deepseek-v4.1-flash/deepseek-v4.1-flash-worker-1-job.yaml" ;;
     deepseek-v4.1-flash-worker-2) echo "k8s/workloads/deepseek-v4.1-flash/deepseek-v4.1-flash-worker-2-job.yaml" ;;
+    deepseek-v4-flash-dspark) echo "k8s/workloads/deepseek-v4-flash-dspark/deepseek-v4-flash-dspark-job.yaml" ;;
+    deepseek-v4-flash-dspark-worker-1) echo "k8s/workloads/deepseek-v4-flash-dspark/deepseek-v4-flash-dspark-worker-1-job.yaml" ;;
+    glm-5.3-flash-exl3-tensorfold) echo "k8s/workloads/glm-5.3-flash-exl3-tensorfold/glm-5.3-flash-exl3-tensorfold-job.yaml" ;;
+    glm-5.3-flash-exl3-tensorfold-worker-1) echo "k8s/workloads/glm-5.3-flash-exl3-tensorfold/glm-5.3-flash-exl3-tensorfold-worker-1-job.yaml" ;;
+    qwen3.8-27b-exl3-16gb) echo "k8s/workloads/qwen3.8-27b-exl3-16gb/qwen3.8-27b-exl3-16gb-job.yaml" ;;
+    qwen3.8-27b-tensorfold) echo "k8s/workloads/qwen3.8-27b-tensorfold/qwen3.8-27b-tensorfold-job.yaml" ;;
+    qwen3.8-flash-next-tensorfold) echo "k8s/workloads/qwen3.8-flash-next-tensorfold/qwen3.8-flash-next-tensorfold-job.yaml" ;;
     *) echo "" ;;
   esac
 }
@@ -77,6 +90,7 @@ get_model_deployment() {
     nemotron-safety-guard) echo "k8s/workloads/nemotron-safety-guard/nemotron-safety-guard-deployment.yaml" ;;
     nemotron-speech-asr) echo "k8s/workloads/nemotron-speech-asr/nemotron-speech-asr-deployment.yaml" ;;
     nemotron-speech-tts) echo "k8s/workloads/nemotron-speech-tts/nemotron-speech-tts-deployment.yaml" ;;
+    nemotron-3.5-transcribe-30b-a4b-nvfp4) echo "k8s/workloads/nemotron-3.5-transcribe-30b-a4b-nvfp4/nemotron-3.5-transcribe-30b-a4b-nvfp4-deployment.yaml" ;;
     # Visual ComfyUI: full bundle is kustomize (PVC + ConfigMaps); path points at primary Deployment.
     comfy-base) echo "k8s/workloads/comfy-base/comfy-base-deployment.yaml" ;;
     flux-fast) echo "k8s/workloads/comfy-visual/flux/fast/kustomization.yaml" ;;
@@ -119,6 +133,12 @@ get_model_svc() {
     medgemma-4b) echo "k8s/workloads/medgemma-4b/service.yaml" ;;
     glm-5.3-flash) echo "k8s/workloads/glm-5.3-flash/service.yaml" ;;
     deepseek-v4.1-flash) echo "k8s/workloads/deepseek-v4.1-flash/service.yaml" ;;
+    deepseek-v4-flash-dspark) echo "k8s/workloads/deepseek-v4-flash-dspark/service.yaml" ;;
+    glm-5.3-flash-exl3-tensorfold) echo "k8s/workloads/glm-5.3-flash-exl3-tensorfold/service.yaml" ;;
+    qwen3.8-27b-exl3-16gb) echo "k8s/workloads/qwen3.8-27b-exl3-16gb/service.yaml" ;;
+    qwen3.8-27b-tensorfold) echo "k8s/workloads/qwen3.8-27b-tensorfold/service.yaml" ;;
+    qwen3.8-flash-next-tensorfold) echo "k8s/workloads/qwen3.8-flash-next-tensorfold/service.yaml" ;;
+    nemotron-3.5-transcribe-30b-a4b-nvfp4) echo "k8s/workloads/nemotron-3.5-transcribe-30b-a4b-nvfp4/service.yaml" ;;
     litellm) echo "k8s/workloads/litellm/service.yaml" ;;
     comfy-base) echo "k8s/workloads/comfy-base/service.yaml" ;;
     flux-fast) echo "k8s/workloads/comfy-visual/flux/fast/kustomization.yaml" ;;
@@ -659,7 +679,7 @@ start_model() {
     nemotron-3-nano-30b) start_nemotron_llm "nemotron-3-nano-30b" "Nemotron 3 Nano 30B" ;;
     nemotron-3-nano-omni-30b) start_nemotron_llm "nemotron-3-nano-omni-30b" "Nemotron 3 Nano Omni 30B" ;;
     nemotron-3-super-120b) start_nemotron_llm "nemotron-3-super-120b" "Nemotron 3 Super 120B" ;;
-    nemotron-retriever-embed | nemotron-retriever-rerank | nemotron-parse | nemotron-safety-guard | nemotron-speech-asr | nemotron-speech-tts)
+    nemotron-retriever-embed | nemotron-retriever-rerank | nemotron-parse | nemotron-safety-guard | nemotron-speech-asr | nemotron-speech-tts | nemotron-3.5-transcribe-30b-a4b-nvfp4)
       start_workload "$model"
       ;;
     glm-5.2) start_glm ;;
@@ -690,6 +710,27 @@ start_model() {
         err "stack-rounded.sh not loaded; cannot start deepseek-v4.1-flash"
         exit 1
       fi
+      ;;
+    deepseek-v4-flash-dspark)
+      if type start_dsv4_flash_dspark &>/dev/null; then start_dsv4_flash_dspark; else
+        err "stack-rounded.sh not loaded; cannot start deepseek-v4-flash-dspark"
+        exit 1
+      fi
+      ;;
+    glm-5.3-flash-exl3-tensorfold)
+      if type start_glm53_flash_exl3 &>/dev/null; then start_glm53_flash_exl3; else
+        err "stack-rounded.sh not loaded; cannot start glm-5.3-flash-exl3-tensorfold"
+        exit 1
+      fi
+      ;;
+    qwen3.8-27b-exl3-16gb)
+      if type start_qwen38_27b_exl3 &>/dev/null; then start_qwen38_27b_exl3; else start_nemotron_llm "qwen3.8-27b-exl3-16gb" "Qwen3.8-27B EXL3 (16 GB+ GPU)"; fi
+      ;;
+    qwen3.8-27b-tensorfold)
+      if type start_qwen38_27b_tensorfold &>/dev/null; then start_qwen38_27b_tensorfold; else start_nemotron_llm "qwen3.8-27b-tensorfold" "Qwen3.8-27B TensorFold"; fi
+      ;;
+    qwen3.8-flash-next-tensorfold)
+      if type start_qwen38_flash_next_tensorfold &>/dev/null; then start_qwen38_flash_next_tensorfold; else start_nemotron_llm "qwen3.8-flash-next-tensorfold" "Qwen3.8-Flash-Next TensorFold"; fi
       ;;
     rounded-spark-3 | rounded-spark-3-quality)
       if type start_stack_rounded &>/dev/null; then
@@ -764,10 +805,14 @@ stop_model() {
         qwen3.8-27b-nvfp4 qwen3.8-flash-next-nvfp4 medgemma-27b medgemma-4b \
         glm-5.3-flash glm-5.3-flash-worker-1 glm-5.3-flash-worker-2 \
         deepseek-v4.1-flash deepseek-v4.1-flash-worker-1 deepseek-v4.1-flash-worker-2 \
+        deepseek-v4-flash-dspark deepseek-v4-flash-dspark-worker-1 \
+        glm-5.3-flash-exl3-tensorfold glm-5.3-flash-exl3-tensorfold-worker-1 \
+        qwen3.8-27b-exl3-16gb qwen3.8-27b-tensorfold qwen3.8-flash-next-tensorfold \
         ray-head ray-worker \
         -n "${NAMESPACE}" --ignore-not-found=true --grace-period=30 || true
       kubectl delete deployment nemotron-retriever-embed nemotron-retriever-rerank nemotron-parse \
         nemotron-safety-guard nemotron-speech-asr nemotron-speech-tts \
+        nemotron-3.5-transcribe-30b-a4b-nvfp4 \
         comfy-base litellm \
         -n "${NAMESPACE}" --ignore-not-found=true --grace-period=30 || true
       if type stop_visual &>/dev/null; then
@@ -777,10 +822,10 @@ stop_model() {
     qwen36 | qwen3.6 | qwen36-dual)
       stop_qwen36
       ;;
-    kimi-test | kimi | nemotron-3-ultra | nemotron-3-nano-30b | nemotron-3-nano-omni-30b | nemotron-3-super-120b | glm-5.2 | glm-5.2-rpc | ray-head | ray-worker | qwen3.5-122b-a10b-nvfp4 | qwen3.5-397b-spark2 | qwen3.5-397b-nvfp4 | qwen3.5-397b-nvfp4-worker-1 | qwen3.5-397b-nvfp4-worker-2 | qwen3.5-397b-nvfp4-worker-3 | qwen3.6-27b-nvfp4 | qwen3.6-35b-a3b-nvfp4 | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | medgemma-27b | medgemma-4b | glm-5.3-flash | glm-5.3-flash-worker-1 | glm-5.3-flash-worker-2 | deepseek-v4.1-flash | deepseek-v4.1-flash-worker-1 | deepseek-v4.1-flash-worker-2)
+    kimi-test | kimi | nemotron-3-ultra | nemotron-3-nano-30b | nemotron-3-nano-omni-30b | nemotron-3-super-120b | glm-5.2 | glm-5.2-rpc | ray-head | ray-worker | qwen3.5-122b-a10b-nvfp4 | qwen3.5-397b-spark2 | qwen3.5-397b-nvfp4 | qwen3.5-397b-nvfp4-worker-1 | qwen3.5-397b-nvfp4-worker-2 | qwen3.5-397b-nvfp4-worker-3 | qwen3.6-27b-nvfp4 | qwen3.6-35b-a3b-nvfp4 | qwen3.8-27b-nvfp4 | qwen3.8-flash-next-nvfp4 | medgemma-27b | medgemma-4b | glm-5.3-flash | glm-5.3-flash-worker-1 | glm-5.3-flash-worker-2 | deepseek-v4.1-flash | deepseek-v4.1-flash-worker-1 | deepseek-v4.1-flash-worker-2 | deepseek-v4-flash-dspark | deepseek-v4-flash-dspark-worker-1 | glm-5.3-flash-exl3-tensorfold | glm-5.3-flash-exl3-tensorfold-worker-1 | qwen3.8-27b-exl3-16gb | qwen3.8-27b-tensorfold | qwen3.8-flash-next-tensorfold)
       stop_inference_job "$target"
       ;;
-    nemotron-retriever-embed | nemotron-retriever-rerank | nemotron-parse | nemotron-safety-guard | nemotron-speech-asr | nemotron-speech-tts | comfy-base | flux-fast | flux-quality | ltx-balanced | ltx-quality | flux-to-ltx | litellm)
+    nemotron-retriever-embed | nemotron-retriever-rerank | nemotron-parse | nemotron-safety-guard | nemotron-speech-asr | nemotron-speech-tts | nemotron-3.5-transcribe-30b-a4b-nvfp4 | comfy-base | flux-fast | flux-quality | ltx-balanced | ltx-quality | flux-to-ltx | litellm)
       stop_inference_deployment "$target"
       ;;
     visual)

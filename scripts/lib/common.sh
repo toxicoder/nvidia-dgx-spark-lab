@@ -243,6 +243,14 @@ get_model_profile() {
     glm53-flash-spark-3) echo "3 300Gi Mode B GLM-5.3-Flash TP=3 exclusive" ;;
     deepseek-v4.1-flash) echo "3 324Gi DeepSeek-V4.1-Flash official MXFP4 TP=3 (Mode C QSFP ring)" ;;
     dsv41-flash-spark-3) echo "3 324Gi Mode C DeepSeek-V4.1-Flash TP=3 exclusive" ;;
+    deepseek-v4-flash-dspark) echo "2 212Gi DeepSeek-V4-Flash DSpark vLLM TP=2 pair (util 0.835 via env only)" ;;
+    dsv4-flash-dspark-spark-2) echo "2 212Gi DeepSeek-V4-Flash DSpark TP=2 pair exclusive" ;;
+    glm-5.3-flash-exl3-tensorfold) echo "2 220Gi GLM-5.3-Flash EXL3 4bpw TensorFold pair (~110 GiB/node free)" ;;
+    glm53-flash-exl3-spark-2) echo "2 220Gi GLM-5.3-Flash EXL3 TensorFold pair exclusive" ;;
+    qwen3.8-27b-exl3-16gb) echo "1 24Gi Qwen3.8-27B EXL3 (16 GB+ consumer GPU; ExLlamaV3 v1.6.0)" ;;
+    qwen3.8-27b-tensorfold) echo "1 110Gi Qwen3.8-27B TensorFold (Spark; MLX-4bit + DFlash2; 262k ctx)" ;;
+    qwen3.8-flash-next-tensorfold) echo "1 110Gi Qwen3.8-Flash-Next TensorFold (Spark; NVFP4 MoE; 5 streams)" ;;
+    nemotron-3.5-transcribe-30b-a4b-nvfp4) echo "1 48Gi Nemotron 3.5 Transcribe NVFP4 (vLLM ASR; Blackwell only)" ;;
     comfy-base) echo "1 60Gi ComfyUI base (visual; Spark unified-memory patches)" ;;
     flux-fast) echo "1 60Gi FLUX.2 Klein 9B NVFP4+Nunchaku (visual fast)" ;;
     flux-quality) echo "1 70Gi FLUX.2 Dev FP8 (visual quality)" ;;
