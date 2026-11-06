@@ -6,7 +6,7 @@
 
 # Interface: InferenceJobInfo
 
-Defined in: [lib/types/index.ts:243](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L243)
+Defined in: [lib/types/index.ts:417](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L417)
 
 ## Properties
 
@@ -14,7 +14,9 @@ Defined in: [lib/types/index.ts:243](https://github.com/toxicoder/nvidia-dgx-spa
 
 > `optional` **active?**: `number`
 
-Defined in: [lib/types/index.ts:246](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L246)
+Defined in: [lib/types/index.ts:422](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L422)
+
+`| undefined` so the boundary parser can omit a counter the utility left out.
 
 ***
 
@@ -22,7 +24,7 @@ Defined in: [lib/types/index.ts:246](https://github.com/toxicoder/nvidia-dgx-spa
 
 > `optional` **error?**: `string`
 
-Defined in: [lib/types/index.ts:250](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L250)
+Defined in: [lib/types/index.ts:427](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L427)
 
 ***
 
@@ -30,7 +32,7 @@ Defined in: [lib/types/index.ts:250](https://github.com/toxicoder/nvidia-dgx-spa
 
 > `optional` **failed?**: `number`
 
-Defined in: [lib/types/index.ts:248](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L248)
+Defined in: [lib/types/index.ts:424](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L424)
 
 ***
 
@@ -38,7 +40,7 @@ Defined in: [lib/types/index.ts:248](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **job**: `string`
 
-Defined in: [lib/types/index.ts:245](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L245)
+Defined in: [lib/types/index.ts:420](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L420)
 
 ***
 
@@ -46,15 +48,19 @@ Defined in: [lib/types/index.ts:245](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **model**: `string`
 
-Defined in: [lib/types/index.ts:244](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L244)
+Defined in: [lib/types/index.ts:419](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L419)
+
+Model id as reported by the cluster; narrow with [isInferenceModelName](../functions/isInferenceModelName.md).
 
 ***
 
 ### state
 
-> **state**: [`InferenceJobState`](../type-aliases/InferenceJobState.md)
+> **state**: `"error"` \| `"running"` \| `"absent"` \| `"succeeded"` \| `"failed"`
 
-Defined in: [lib/types/index.ts:249](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L249)
+Defined in: [lib/types/index.ts:426](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L426)
+
+Closed set; the utility only ever emits one of [INFERENCE\_JOB\_STATES](../variables/INFERENCE_JOB_STATES.md).
 
 ***
 
@@ -62,4 +68,4 @@ Defined in: [lib/types/index.ts:249](https://github.com/toxicoder/nvidia-dgx-spa
 
 > `optional` **succeeded?**: `number`
 
-Defined in: [lib/types/index.ts:247](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L247)
+Defined in: [lib/types/index.ts:423](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L423)

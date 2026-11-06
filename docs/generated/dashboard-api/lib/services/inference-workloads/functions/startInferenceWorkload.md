@@ -8,7 +8,7 @@
 
 > **startInferenceWorkload**(`model`, `confirm`): `Promise`\<\{ `exitCode`: `number`; `stderr`: `string`; `stdout`: `string`; \}\>
 
-Defined in: [lib/services/inference-workloads.ts:61](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/services/inference-workloads.ts#L61)
+Defined in: [lib/services/inference-workloads.ts:65](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/services/inference-workloads.ts#L65)
 
 Start an inference workload for a model.
 
@@ -16,7 +16,7 @@ Start an inference workload for a model.
 
 ### model
 
-[`InferenceModelName`](../../../types/type-aliases/InferenceModelName.md)
+`"kimi-test"` \| `"kimi"` \| `"ray-head"` \| `"nemotron-3-ultra"` \| `"nemotron-3-nano-30b"` \| `"nemotron-3-nano-omni-30b"` \| `"nemotron-3-super-120b"` \| `"nemotron-retriever-embed"` \| `"nemotron-retriever-rerank"` \| `"nemotron-parse"` \| `"nemotron-safety-guard"` \| `"nemotron-speech-asr"` \| `"nemotron-speech-tts"` \| `"glm-5.2"` \| `"qwen3.5-122b-a10b-nvfp4"` \| `"qwen3.5-397b-spark2"` \| `"qwen3.5-397b-nvfp4"` \| `"qwen3.6-27b-nvfp4"` \| `"qwen3.6-35b-a3b-nvfp4"` \| `"qwen3.8-27b-nvfp4"` \| `"qwen3.8-flash-next-nvfp4"` \| `"glm-5.3-flash"` \| `"deepseek-v4.1-flash"` \| `"deepseek-v4-flash-dspark"` \| `"glm-5.3-flash-exl3-tensorfold"` \| `"qwen3.8-27b-exl3-16gb"` \| `"qwen3.8-27b-tensorfold"` \| `"qwen3.8-flash-next-tensorfold"` \| `"nemotron-3.5-transcribe-30b-a4b-nvfp4"` \| `"litellm"` \| `"comfy-base"` \| `"flux-fast"` \| `"flux-quality"` \| `"ltx-balanced"` \| `"ltx-quality"` \| `"flux-to-ltx"`
 
 Model id to deploy.
 

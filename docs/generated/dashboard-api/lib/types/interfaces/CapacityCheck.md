@@ -6,7 +6,7 @@
 
 # Interface: CapacityCheck
 
-Defined in: [lib/types/index.ts:119](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L119)
+Defined in: [lib/types/index.ts:293](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L293)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/types/index.ts:119](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **action**: `string`
 
-Defined in: [lib/types/index.ts:122](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L122)
+Defined in: [lib/types/index.ts:297](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L297)
 
 ***
 
@@ -22,15 +22,15 @@ Defined in: [lib/types/index.ts:122](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **available**: [`ResourceAmount`](ResourceAmount.md)
 
-Defined in: [lib/types/index.ts:125](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L125)
+Defined in: [lib/types/index.ts:301](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L301)
 
 ***
 
 ### deficit
 
-> **deficit**: `Partial`\<[`ResourceAmount`](ResourceAmount.md)\>
+> **deficit**: [`CapacityDeficit`](CapacityDeficit.md)
 
-Defined in: [lib/types/index.ts:126](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L126)
+Defined in: [lib/types/index.ts:302](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L302)
 
 ***
 
@@ -38,7 +38,9 @@ Defined in: [lib/types/index.ts:126](https://github.com/toxicoder/nvidia-dgx-spa
 
 > `optional` **heavy?**: `boolean`
 
-Defined in: [lib/types/index.ts:123](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L123)
+Defined in: [lib/types/index.ts:299](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L299)
+
+Present once the stack/model spec resolves. `| undefined` so the boundary parsers can omit it.
 
 ***
 
@@ -46,7 +48,7 @@ Defined in: [lib/types/index.ts:123](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **ok**: `boolean`
 
-Defined in: [lib/types/index.ts:120](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L120)
+Defined in: [lib/types/index.ts:294](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L294)
 
 ***
 
@@ -54,12 +56,14 @@ Defined in: [lib/types/index.ts:120](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **required**: [`ResourceAmount`](ResourceAmount.md)
 
-Defined in: [lib/types/index.ts:124](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L124)
+Defined in: [lib/types/index.ts:300](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L300)
 
 ***
 
 ### verdict
 
-> **verdict**: `string`
+> **verdict**: `"ok"` \| `"error"` \| `"unknown_model"` \| `"unknown_stack"` \| `"insufficient_nodes"` \| `"too_many_nodes"` \| `"insufficient_gpu"` \| `"insufficient_cpu"` \| `"insufficient_memory"` \| `"insufficient_gpu_cpu"` \| `"insufficient_gpu_memory"` \| `"insufficient_cpu_memory"` \| `"insufficient_gpu_cpu_memory"`
 
-Defined in: [lib/types/index.ts:121](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L121)
+Defined in: [lib/types/index.ts:296](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L296)
+
+Closed set; the utility only ever emits one of [CAPACITY\_VERDICTS](../variables/CAPACITY_VERDICTS.md).

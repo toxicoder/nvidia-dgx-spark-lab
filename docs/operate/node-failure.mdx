@@ -42,6 +42,9 @@ tags: [failure, nccl, kubernetes, safety]
     # Mode B / C
     bazelisk run //:manage -- stop-glm53-flash
     bazelisk run //:manage -- stop-dsv41-flash
+    # Exclusive DSpark / GLM EXL3 TensorFold pairs
+    bazelisk run //:manage -- stop-dsv4-flash-dspark
+    bazelisk run //:manage -- stop-glm53-flash-exl3
     ```
 
 3. TP=1 Jobs on **other** live nodes can stay if Resource Guard still passes. Visual Deployments are 1-node — they survive a *different* node dying.
@@ -57,9 +60,10 @@ SSH/console to spark0. If K3s is up but the workstation kubeconfig is stale, cop
 | Job class | If a rank node dies |
 | --- | --- |
 | kimi-test / TP=1 | Pod may reschedule if the remaining node has GPU — still `OnFailure` + low backoff |
-| 2-node pair (GLM-5.2, kimi-scale) | Stop; do not leave one RPC rank hung |
+| 2-node pair (GLM-5.2, kimi-scale, DeepSeek-V4-Flash DSpark, GLM-5.3-Flash EXL3 TensorFold) | Stop; do not leave one RPC rank hung |
 | 3-node ring Mode B/C | Stop both leader and workers; ring is not “run on two” |
 | 4-node TP=4 | Stop the whole stack |
+| Single-Spark pinned (Qwen3.8-27B / Flash-Next TensorFold on spark0) | Job dies with spark0 and does not reschedule; restart it once the node is back |
 
 `backoffLimit` is 1 (2 on kimi-test). The Job fails; it does not hunt for a new topology.
 

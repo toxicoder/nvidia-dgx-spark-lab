@@ -6,7 +6,7 @@
 
 # Interface: NemotronCatalogModel
 
-Defined in: [lib/types/index.ts:196](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L196)
+Defined in: [lib/types/index.ts:359](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L359)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/types/index.ts:196](https://github.com/toxicoder/nvidia-dgx-spa
 
 > `optional` **agent\_roles?**: `string`[]
 
-Defined in: [lib/types/index.ts:200](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L200)
+Defined in: [lib/types/index.ts:363](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L363)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [lib/types/index.ts:200](https://github.com/toxicoder/nvidia-dgx-spa
 
 > `optional` **cpu\_only?**: `boolean`
 
-Defined in: [lib/types/index.ts:203](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L203)
+Defined in: [lib/types/index.ts:366](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L366)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [lib/types/index.ts:203](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **display\_name**: `string`
 
-Defined in: [lib/types/index.ts:197](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L197)
+Defined in: [lib/types/index.ts:360](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L360)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [lib/types/index.ts:197](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **family**: `string`
 
-Defined in: [lib/types/index.ts:198](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L198)
+Defined in: [lib/types/index.ts:361](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L361)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [lib/types/index.ts:198](https://github.com/toxicoder/nvidia-dgx-spa
 
 > `optional` **openai\_svc?**: `string`
 
-Defined in: [lib/types/index.ts:201](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L201)
+Defined in: [lib/types/index.ts:364](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L364)
 
 ***
 
@@ -54,7 +54,7 @@ Defined in: [lib/types/index.ts:201](https://github.com/toxicoder/nvidia-dgx-spa
 
 > `optional` **port?**: `number`
 
-Defined in: [lib/types/index.ts:202](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L202)
+Defined in: [lib/types/index.ts:365](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L365)
 
 ***
 
@@ -62,4 +62,4 @@ Defined in: [lib/types/index.ts:202](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **runtime**: `string`
 
-Defined in: [lib/types/index.ts:199](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L199)
+Defined in: [lib/types/index.ts:362](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L362)

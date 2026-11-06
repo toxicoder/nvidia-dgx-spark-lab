@@ -8,6 +8,6 @@
 
 > `const` **DeleteSecretSchema**: `ZodObject`\<\{ `confirm`: `ZodLiteral`\<`"DELETE"`\>; `id`: `ZodString`; \}, `$strip`\>
 
-Defined in: [lib/validation.ts:130](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/validation.ts#L130)
+Defined in: [lib/validation.ts:95](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/validation.ts#L95)
 
 Payload for deleting a secret (requires `confirm: "DELETE"`).

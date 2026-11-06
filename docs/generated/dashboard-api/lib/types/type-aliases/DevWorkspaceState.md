@@ -6,6 +6,8 @@
 
 # Type Alias: DevWorkspaceState
 
-> **DevWorkspaceState** = `"stopped"` \| `"starting"` \| `"running"` \| `"stopping"` \| `"error"`
+> **DevWorkspaceState** = *typeof* [`DEV_WORKSPACE_STATES`](../variables/DEV_WORKSPACE_STATES.md)\[`number`\]
 
-Defined in: [lib/types/index.ts:75](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L75)
+Defined in: [lib/types/index.ts:222](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L222)
+
+Lifecycle state of a dev workspace; derived from [DEV\_WORKSPACE\_STATES](../variables/DEV_WORKSPACE_STATES.md).

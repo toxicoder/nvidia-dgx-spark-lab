@@ -9,6 +9,7 @@ tags: [litellm, inference, nvfp4, vllm, sglang, medgemma, glm, deepseek, dgx-spa
 **What's on this page**
 
 - Three mutually exclusive modes on three GB10 Sparks
+- Exclusive DSpark / TensorFold lanes and the Nemotron ASR Deployment, each with its own LiteLLM profile
 - LiteLLM aliases and Open WebUI wiring
 - 3-node QSFP ring cabling and NCCL (Mode B only)
 - Medical safety (not a medical device)
@@ -86,7 +87,7 @@ Documented Apache-2 swap if HAI-DEF is a problem: Baichuan-M2-32B (docs only). D
 
 `glm-5.3-flash` leader on spark0 + workers on spark1/spark2. Image `glm53-flash-tp3:local` built on Spark from the published TP=3 overlay (stock nightly cannot do TP=3). Checkpoint `local-inference-lab/GLM-5.3-Flash-NVFP4` (or RedHatAI). MTP default; DFlash2 is CC BY-NC-ND and is not the default.
 
-`start-stack-rounded`, `start-glm53-flash`, and `start-dsv41-flash` refuse each other. Heavy confirm. `lab-frontier` stays GLM; `lab-med` falls back to `lab-smart`, then `lab-frontier`, then `lab-frontier-ds` with an explicit prompt that MedGemma is offline and this is a general model.
+`start-stack-rounded`, `start-glm53-flash`, and `start-dsv41-flash` refuse each other. The DSpark pair, the GLM EXL3 TensorFold pair, and the three Qwen TensorFold lanes refuse all of these and each other. Heavy confirm. `lab-frontier` stays GLM; `lab-med` falls back to `lab-smart`, then `lab-frontier`, then `lab-frontier-ds` with an explicit prompt that MedGemma is offline and this is a general model.
 
 ### Recover when modes collide
 
@@ -97,9 +98,14 @@ Documented Apache-2 swap if HAI-DEF is a problem: Baichuan-M2-32B (docs only). D
     bazelisk run //:manage -- stop-stack-rounded
     bazelisk run //:manage -- stop-glm53-flash
     bazelisk run //:manage -- stop-dsv41-flash
+    bazelisk run //:manage -- stop-dsv4-flash-dspark
+    bazelisk run //:manage -- stop-glm53-flash-exl3
+    bazelisk run //:manage -- stop-qwen38-27b-exl3
+    bazelisk run //:manage -- stop-qwen38-27b-tensorfold
+    bazelisk run //:manage -- stop-qwen38-flash-next-tensorfold
     ```
 
-3. `doctor` then start **one** of A, B, or C.
+3. `doctor` then start **one** lane: A, B, C, or one of the DSpark / TensorFold exclusive lanes.
 4. LiteLLM Deployment can stay; aliases 503 until the matching backend Job is Ready.
 
 Do not run two exclusive TP=3 Jobs “to compare.” The ring and 24Gi floor will not fit.
@@ -137,7 +143,14 @@ Optional `lab-frontier-cloud` (official API `deepseek-flash`) is **not** a live 
 | `lab-med-extract` | 4B sidecar if enabled | lab-med |
 | `lab-frontier` | glm-5.3-flash | Mode B (default frontier) |
 | `lab-frontier-ds` | deepseek-v4.1-flash | Mode C |
+| `lab-qwen38-27b-exl3` | qwen3.8-27b-exl3-16gb | profile `qwen3.8-27b-exl3-16gb` only |
+| `lab-qwen38-27b-tensorfold` | qwen3.8-27b-tensorfold | profile `qwen3.8-27b-tensorfold` only |
+| `lab-qwen38-flash-next-tensorfold` | qwen3.8-flash-next-tensorfold | profile `qwen3.8-flash-next-tensorfold` only |
 | `lab-auto` | lab-fast | lab-smart |
+
+The `deepseek-v4-flash-dspark` and `glm-5.3-flash-exl3-tensorfold` profiles reuse **`lab-frontier`**
+for their own backend; the Qwen lanes add a dedicated `lab-qwen38-*` alias next to `lab-quality`.
+Profiles are in `k8s/workloads/litellm/files/profiles/`.
 
 `api_base`: `http://<svc>.ai-inference.svc.cluster.local:8000/v1`. LiteLLM: `http://litellm.ai-inference.svc.cluster.local:4000/v1` or `http://<spark0-lan>:32040/v1`.
 
@@ -167,6 +180,23 @@ bazelisk run //:manage -- stop-glm53-flash
 bazelisk run //scripts:run-utility -- download-dsv41-flash run
 bazelisk run //:manage -- start-dsv41-flash
 bazelisk run //:manage -- stop-dsv41-flash
+bazelisk run //scripts:run-utility -- download-dsv4-flash-dspark run
+bazelisk run //:manage -- start-dsv4-flash-dspark
+bazelisk run //:manage -- stop-dsv4-flash-dspark
+bazelisk run //scripts:run-utility -- download-glm53-flash-exl3 run
+bazelisk run //:manage -- start-glm53-flash-exl3
+bazelisk run //:manage -- stop-glm53-flash-exl3
+bazelisk run //scripts:run-utility -- download-qwen38-27b-exl3 run
+bazelisk run //:manage -- start-qwen38-27b-exl3
+bazelisk run //:manage -- stop-qwen38-27b-exl3
+bazelisk run //scripts:run-utility -- download-qwen38-27b-tensorfold run
+bazelisk run //:manage -- start-qwen38-27b-tensorfold
+bazelisk run //:manage -- stop-qwen38-27b-tensorfold
+bazelisk run //scripts:run-utility -- download-qwen38-flash-next-tensorfold run
+bazelisk run //:manage -- start-qwen38-flash-next-tensorfold
+bazelisk run //:manage -- stop-qwen38-flash-next-tensorfold
+bazelisk run //scripts:run-utility -- download-nemotron-transcribe run
+bazelisk run //scripts:run-utility -- inference-workloads start nemotron-3.5-transcribe-30b-a4b-nvfp4 --confirm yes
 bazelisk run //:manage -- start-litellm
 bazelisk run //:manage -- stop-litellm
 bazelisk run //:manage -- status-stack
@@ -185,6 +215,11 @@ Mode A keeps the mixed-fleet `litellm_config.yaml`. For a single chosen Job, sta
 | `start-qwen38-flash-next --with-litellm` | overlay `litellm-qwen38-flash-next` | Flash-Next (`lab-smart`) |
 | `start-glm53-flash --with-litellm` | overlay `litellm-glm53-flash` | GLM (`lab-frontier`) |
 | `start-dsv41-flash --with-litellm` | overlay `litellm-dsv41-flash` | DeepSeek-V4.1-Flash (`lab-frontier-ds`) |
+| `start-dsv4-flash-dspark --with-litellm` | overlay `litellm-dsv4-flash-dspark` | DeepSeek-V4-Flash DSpark (`lab-frontier`) |
+| `start-glm53-flash-exl3 --with-litellm` | overlay `litellm-glm53-flash-exl3` | GLM-5.3-Flash EXL3 TensorFold (`lab-frontier`) |
+| `start-qwen38-27b-exl3 --with-litellm` | overlay `litellm-qwen38-27b-exl3` | Qwen3.8-27B EXL3 (`lab-quality`) |
+| `start-qwen38-27b-tensorfold --with-litellm` | overlay `litellm-qwen38-27b-tensorfold` | Qwen3.8-27B TensorFold (`lab-quality`) |
+| `start-qwen38-flash-next-tensorfold --with-litellm` | overlay `litellm-qwen38-flash-next-tensorfold` | Flash-Next TensorFold (`lab-quality`) |
 | `start-stack-rounded` | default rounded config | `lab-fast` then `lab-smart` |
 
 ```bash
@@ -193,11 +228,15 @@ bazelisk run //:manage -- start-qwen38-27b --with-litellm
 bazelisk run //:manage -- start-litellm --backend qwen3.8-flash-next-nvfp4
 ```
 
-`--backend` ids: `rounded` (default) | `qwen3.8-27b-nvfp4` | `qwen3.8-flash-next-nvfp4` | `glm-5.3-flash` | `deepseek-v4.1-flash`.
+`--backend` ids: `rounded` (default) | `qwen3.8-27b-nvfp4` | `qwen3.8-flash-next-nvfp4` | `glm-5.3-flash` | `deepseek-v4.1-flash` | `deepseek-v4-flash-dspark` | `glm-5.3-flash-exl3-tensorfold` | `qwen3.8-27b-exl3-16gb` | `qwen3.8-27b-tensorfold` | `qwen3.8-flash-next-tensorfold`.
 
-**DeepSeek-V4.1 / V4.1-Pro weights are not published.** Do not invent a non-Flash V4.1 stack. Official open weights are `deepseek-ai/DeepSeek-V4.1-Flash` only. Qwen3.8-Flash-Next stays on `RadixArk/Qwen3.8-Flash-Next-NVFP4` + PLE mmap in this tree; `nvidia/Qwen3.8-Flash-Next-NVFP4` is the next on-Spark A/B, not this PR.
+**DeepSeek-V4.1 / V4.1-Pro weights are not published.** Do not invent a non-Flash V4.1 stack. Official open weights are `deepseek-ai/DeepSeek-V4.1-Flash` only. The DSpark pair lane is separate: it serves the V4-Flash checkpoint `deepseek-ai/DeepSeek-V4-Flash-Vision-Exp`, not V4.1. Qwen3.8-Flash-Next stays on `RadixArk/Qwen3.8-Flash-Next-NVFP4` + PLE mmap in this tree; `nvidia/Qwen3.8-Flash-Next-NVFP4` is the next on-Spark A/B, not this PR.
 
 Qwen3.8-27B and Flash-Next standalone starts refuse Mode B and Mode C (same GPU exclusion as the exclusive TP=3 Jobs).
+
+The five MiaAI lanes (DeepSeek-V4-Flash DSpark pair, GLM-5.3-Flash EXL3 TensorFold pair, Qwen3.8-27B EXL3, Qwen3.8-27B TensorFold, Qwen3.8-Flash-Next TensorFold) refuse Mode A, B, and C **and** each other: one exclusive lane at a time. The two pair lanes use the **2-node pair** NCCL block (`enp1s0f0np0,enp1s0f1np1` / `mlx5_0,mlx5_1`), not the ring block above. The DSpark lane sizes memory with `GPU_MEMORY_UTILIZATION_TEXT=0.835` only - never hand-set `--gpu-memory-utilization`. The TensorFold lanes are not vLLM, so no vLLM util flag applies to them. Full profiles, images, and upstream recipes: [Models catalog](models-catalog.md#dspark-and-tensorfold-exclusive-lanes-miaai-recipes).
+
+The Nemotron 3.5 Transcribe 30B-A4B NVFP4 ASR **Deployment** (`family: speech`, 1 GPU, port 8000) has no `manage.sh` verb, like `nemotron-speech-asr` / `nemotron-speech-tts`. Start it from the dashboard or with `bazelisk run //scripts:run-utility -- inference-workloads start nemotron-3.5-transcribe-30b-a4b-nvfp4 --confirm yes` after `download-nemotron-transcribe run`.
 
 ## Related
 

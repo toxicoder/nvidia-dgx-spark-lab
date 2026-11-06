@@ -6,7 +6,7 @@
 
 # Interface: ClusterCapacity
 
-Defined in: [lib/types/index.ts:108](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L108)
+Defined in: [lib/types/index.ts:261](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L261)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/types/index.ts:108](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **allocatable**: [`ResourceAmount`](ResourceAmount.md)
 
-Defined in: [lib/types/index.ts:110](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L110)
+Defined in: [lib/types/index.ts:263](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L263)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [lib/types/index.ts:110](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **available**: [`ResourceAmount`](ResourceAmount.md)
 
-Defined in: [lib/types/index.ts:114](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L114)
+Defined in: [lib/types/index.ts:267](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L267)
 
 ***
 
@@ -30,7 +30,14 @@ Defined in: [lib/types/index.ts:114](https://github.com/toxicoder/nvidia-dgx-spa
 
 > `optional` **error?**: `string`
 
-Defined in: [lib/types/index.ts:116](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L116)
+Defined in: [lib/types/index.ts:277](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L277)
+
+Set when the capacity utility could not be reached or returned something the
+boundary schema rejected; the panel shows mock numbers plus this reason.
+
+`| undefined` is explicit so the zod-derived boundary parsers in
+`lib/services/cli-json.ts` can assign an absent optional under
+`exactOptionalPropertyTypes`.
 
 ***
 
@@ -38,7 +45,7 @@ Defined in: [lib/types/index.ts:116](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **free**: [`ResourceAmount`](ResourceAmount.md)
 
-Defined in: [lib/types/index.ts:113](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L113)
+Defined in: [lib/types/index.ts:266](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L266)
 
 ***
 
@@ -46,7 +53,7 @@ Defined in: [lib/types/index.ts:113](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **headroom**: `object`
 
-Defined in: [lib/types/index.ts:112](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L112)
+Defined in: [lib/types/index.ts:265](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L265)
 
 #### cpu
 
@@ -62,7 +69,7 @@ Defined in: [lib/types/index.ts:112](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **node\_count**: `number`
 
-Defined in: [lib/types/index.ts:109](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L109)
+Defined in: [lib/types/index.ts:262](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L262)
 
 ***
 
@@ -70,7 +77,7 @@ Defined in: [lib/types/index.ts:109](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **requested**: [`ResourceAmount`](ResourceAmount.md)
 
-Defined in: [lib/types/index.ts:111](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L111)
+Defined in: [lib/types/index.ts:264](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L264)
 
 ***
 
@@ -78,7 +85,7 @@ Defined in: [lib/types/index.ts:111](https://github.com/toxicoder/nvidia-dgx-spa
 
 > **utilization**: `object`
 
-Defined in: [lib/types/index.ts:115](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L115)
+Defined in: [lib/types/index.ts:268](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L268)
 
 #### cpu\_pct
 

@@ -6,7 +6,7 @@
 
 # Interface: DevWorkspacesStatus
 
-Defined in: [lib/types/index.ts:86](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L86)
+Defined in: [lib/types/index.ts:233](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L233)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [lib/types/index.ts:86](https://github.com/toxicoder/nvidia-dgx-spar
 
 > **coder**: [`DevWorkspaceInfo`](DevWorkspaceInfo.md)
 
-Defined in: [lib/types/index.ts:87](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L87)
+Defined in: [lib/types/index.ts:234](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L234)
 
 ***
 
@@ -22,7 +22,9 @@ Defined in: [lib/types/index.ts:87](https://github.com/toxicoder/nvidia-dgx-spar
 
 > `optional` **error?**: `string`
 
-Defined in: [lib/types/index.ts:89](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L89)
+Defined in: [lib/types/index.ts:237](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L237)
+
+`| undefined` so the boundary parser can omit a key the utility left out.
 
 ***
 
@@ -30,4 +32,4 @@ Defined in: [lib/types/index.ts:89](https://github.com/toxicoder/nvidia-dgx-spar
 
 > **kasm**: [`DevWorkspaceInfo`](DevWorkspaceInfo.md)
 
-Defined in: [lib/types/index.ts:88](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L88)
+Defined in: [lib/types/index.ts:235](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L235)

@@ -44,7 +44,8 @@ flowchart LR
 
 Each physical QSFP cage appears as two Linux netdevs (two PCIe x4 twins). One cable brings one cage up — do not assume both cages are populated.
 
-Existing 1-node / 2-node Jobs and `group_vars` document:
+Existing 1-node / 2-node Jobs and `group_vars` document this block, and it is exactly what the
+DeepSeek-V4-Flash DSpark and GLM-5.3-Flash EXL3 TensorFold pairs ship with:
 
 ```text
 NCCL_SOCKET_IFNAME=enp1s0f0np0,enp1s0f1np1
@@ -53,7 +54,7 @@ NCCL_IB_HCA=mlx5_0,mlx5_1
 
 Also typically `NCCL_IB_DISABLE=0`, `NCCL_P2P_DISABLE=0`, `NCCL_SHM_DISABLE=0`. Confirm names with `ibdev2netdev` on **your** nodes before baking env.
 
-kimi / kimi-test omit `hostNetwork` (isolation). Heavy Ray / GLM-5.2 Jobs set `hostNetwork: true` (and GLM `hostIPC: true`) so IFNAME is visible.
+kimi / kimi-test omit `hostNetwork` (isolation). Heavy Ray / GLM-5.2 Jobs set `hostNetwork: true` (and GLM `hostIPC: true`) so IFNAME is visible. The DSpark and GLM EXL3 TensorFold pairs set both `hostNetwork: true` and `hostIPC: true`.
 
 ## 3-node QSFP ring (Mode B and Mode C)
 

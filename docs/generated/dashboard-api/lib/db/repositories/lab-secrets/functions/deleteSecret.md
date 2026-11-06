@@ -8,7 +8,7 @@
 
 > **deleteSecret**(`id`, `actorEmail`): `Promise`\<[`LabSecretMeta`](../../../../types/interfaces/LabSecretMeta.md)\>
 
-Defined in: [lib/db/repositories/lab-secrets.ts:190](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/db/repositories/lab-secrets.ts#L190)
+Defined in: [lib/db/repositories/lab-secrets.ts:191](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/db/repositories/lab-secrets.ts#L191)
 
 Delete a secret and record a delete audit event.
 

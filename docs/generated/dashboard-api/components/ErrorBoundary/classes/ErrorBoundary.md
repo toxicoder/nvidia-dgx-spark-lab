@@ -6,7 +6,7 @@
 
 # Class: ErrorBoundary
 
-Defined in: [components/ErrorBoundary.tsx:33](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/components/ErrorBoundary.tsx#L33)
+Defined in: [components/ErrorBoundary.tsx:34](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/components/ErrorBoundary.tsx#L34)
 
 React error boundary that isolates render failures in dashboard subtrees.
 
@@ -20,7 +20,7 @@ React error boundary that isolates render failures in dashboard subtrees.
 
 > **new ErrorBoundary**(`props`): `ErrorBoundary`
 
-Defined in: [components/ErrorBoundary.tsx:34](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/components/ErrorBoundary.tsx#L34)
+Defined in: [components/ErrorBoundary.tsx:35](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/components/ErrorBoundary.tsx#L35)
 
 #### Parameters
 
@@ -42,7 +42,7 @@ Defined in: [components/ErrorBoundary.tsx:34](https://github.com/toxicoder/nvidi
 
 > **componentDidCatch**(`error`, `errorInfo`): `void`
 
-Defined in: [components/ErrorBoundary.tsx:43](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/components/ErrorBoundary.tsx#L43)
+Defined in: [components/ErrorBoundary.tsx:44](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/components/ErrorBoundary.tsx#L44)
 
 Catches exceptions generated in descendant components. Unhandled exceptions will cause
 the entire component tree to unmount.
@@ -71,7 +71,7 @@ the entire component tree to unmount.
 
 > **render**(): `string` \| `number` \| `bigint` \| `boolean` \| `Iterable`\<`ReactNode`, `any`, `any`\> \| `Promise`\<`AwaitedReactNode`\> \| `Element` \| `null` \| `undefined`
 
-Defined in: [components/ErrorBoundary.tsx:48](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/components/ErrorBoundary.tsx#L48)
+Defined in: [components/ErrorBoundary.tsx:49](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/components/ErrorBoundary.tsx#L49)
 
 #### Returns
 
@@ -87,7 +87,7 @@ Defined in: [components/ErrorBoundary.tsx:48](https://github.com/toxicoder/nvidi
 
 > `static` **getDerivedStateFromError**(`error`): `ErrorBoundaryState`
 
-Defined in: [components/ErrorBoundary.tsx:39](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/components/ErrorBoundary.tsx#L39)
+Defined in: [components/ErrorBoundary.tsx:40](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/components/ErrorBoundary.tsx#L40)
 
 #### Parameters
 

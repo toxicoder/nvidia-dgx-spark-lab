@@ -6,6 +6,8 @@
 
 # Type Alias: OpenWebUIState
 
-> **OpenWebUIState** = `"stopped"` \| `"starting"` \| `"running"`
+> **OpenWebUIState** = *typeof* [`OPEN_WEBUI_STATES`](../variables/OPEN_WEBUI_STATES.md)\[`number`\]
 
-Defined in: [lib/types/index.ts:259](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/823225cb08462df45cc817777d78e62ac8c6a555/dashboard/lib/types/index.ts#L259)
+Defined in: [lib/types/index.ts:445](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/251ea82c918320a234a2cca075aed07473aeb1e3/dashboard/lib/types/index.ts#L445)
+
+Lifecycle state of the Open WebUI stack; derived from [OPEN\_WEBUI\_STATES](../variables/OPEN_WEBUI_STATES.md).
