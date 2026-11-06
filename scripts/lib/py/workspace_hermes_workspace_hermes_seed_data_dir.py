@@ -12,7 +12,19 @@ path = Path(sys.argv[1])
 text = path.read_text()
 changed = False
 
-def _ensure_key(name):
+def _ensure_key(name: str) -> str:
+    """Make sure one ``KEY=value`` line carries a value.
+
+    The updated text is also stored in the module-level ``text``/``changed``
+    state so the caller can decide whether to rewrite the file.
+
+    Args:
+        name: Environment key to check in the ``.env`` text.
+
+    Returns:
+        The ``.env`` text, with a freshly generated secret written in when the
+        key was missing or empty.
+    """
     global changed, text
     m = re.search(rf'^{re.escape(name)}=(.*)$', text, re.M)
     if not m or not m.group(1).strip():

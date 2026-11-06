@@ -9,14 +9,24 @@ import json, subprocess, sys, urllib.request
 
 release, ns, local_d, public_d, primary, host, sso_host, nodeport, https_port = sys.argv[1:9]
 
-def _helm_installed():
+def _helm_installed() -> bool:
+    """Check whether the Helm release exists in the namespace.
+
+    Returns:
+        ``True`` when ``helm list`` reports the release, ``False`` otherwise.
+    """
     try:
         out = subprocess.check_output(["helm", "list", "-n", ns, "-q"], text=True, stderr=subprocess.DEVNULL)
         return release in out.split()
     except Exception:
         return False
 
-def _pod_ready():
+def _pod_ready() -> bool:
+    """Check whether a Running pod belongs to the Helm release.
+
+    Returns:
+        ``True`` when at least one Running pod is listed, ``False`` otherwise.
+    """
     try:
         out = subprocess.check_output(
             ["kubectl", "get", "pods", "-n", ns, "-l", f"app.kubernetes.io/instance={release}",
@@ -28,7 +38,12 @@ def _pod_ready():
     except Exception:
         return False
 
-def _endpoint_ip():
+def _endpoint_ip() -> str:
+    """Resolve the first address of the ``hermes-gateway`` endpoints.
+
+    Returns:
+        The endpoint IP, or an empty string when it cannot be read.
+    """
     try:
         return subprocess.check_output(
             ["kubectl", "get", "endpoints", "hermes-gateway", "-n", "dev",
@@ -39,14 +54,21 @@ def _endpoint_ip():
     except Exception:
         return ""
 
-def _hermes_gateway_ok():
+def _hermes_gateway_ok() -> tuple[bool, str]:
+    """Probe the Hermes gateway model endpoint.
+
+    Returns:
+        The reachability flag and the URL that was probed (empty when the
+        endpoint has no IP).
+    """
     ip = _endpoint_ip()
     if not ip:
         return False, ""
     url = f"http://{ip}:8642/v1/models"
     try:
         with urllib.request.urlopen(url, timeout=3) as resp:
-            return resp.status < 400, url
+            status: int = resp.status
+            return status < 400, url
     except Exception:
         return False, url
 
@@ -58,7 +80,7 @@ if installed:
 
 gw_ok, gw_url = _hermes_gateway_ok() if installed else (False, "")
 
-status = {
+status: dict[str, object] = {
     "release": release,
     "namespace": ns,
     "state": state,

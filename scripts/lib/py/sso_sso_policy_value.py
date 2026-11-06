@@ -7,17 +7,27 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import cast
 
-def _load_yaml(path):
+def _load_yaml(path: str) -> dict[str, object]:
+    """Load the SSO policy document.
+
+    Args:
+        path: Filesystem path of the policy YAML file.
+
+    Returns:
+        The parsed policy mapping, or an empty mapping when the file is missing
+        or PyYAML cannot load it.
+    """
     try:
         import yaml
-        return yaml.safe_load(Path(path).read_text()) or {}
+        return cast("dict[str, object]", yaml.safe_load(Path(path).read_text()) or {})
     except Exception:
         return {}
 
 policy = _load_yaml(sys.argv[1])
 keys = sys.argv[2].split(".")
-cur = policy
+cur: object = policy
 for k in keys:
     if not isinstance(cur, dict):
         cur = None

@@ -23,6 +23,7 @@ import ipaddress
 import re
 import sys
 from pathlib import Path
+from typing import TypedDict, cast
 
 FABRICS = ("none", "pair", "ring", "switch")
 # fabric -> (min_nodes, max_nodes). Switch is the CRS804 fabric: 4 full ports,
@@ -39,6 +40,93 @@ GENERATED_BANNER = (
     "# Do not edit — regenerate with: bazelisk run //:manage -- setup",
 )
 
+#: Any value ``yaml.safe_load`` can decode into a topology field. ``lab.yaml`` is
+#: rewritten by the discovery wizard and hand-edited by operators, so the
+#: validators below narrow this union with ``isinstance`` instead of trusting a
+#: declared shape and rejecting a file the previous renderer would have accepted.
+_YamlValue = dict[str, "_YamlValue"] | list["_YamlValue"] | str | int | float | bool | None
+
+
+class _LabManagement(TypedDict, total=False):
+    """The ``management`` block of the topology file."""
+
+    subnet: str
+
+
+class _LabNode(TypedDict, total=False):
+    """One entry of the topology ``nodes`` list.
+
+    Keys are optional because every reader here uses ``.get`` and the validator
+    reports what is missing; declaring them required would change what a partial
+    node does.
+    """
+
+    name: str
+    ip: str
+    role: str
+    hs_ifs: list[str]
+
+
+class _LabSwitch(TypedDict, total=False):
+    """The ``switch`` block, only valid for ``fabric: switch``.
+
+    ``port_map`` keeps the untrusted-YAML view because both readers of it check
+    each ``{node, port}`` entry is a mapping before reading its keys.
+    """
+
+    brand: str
+    model: str
+    host: str
+    user: str
+    port_map: list[_YamlValue]
+
+
+class _Lab(TypedDict, total=False):
+    """The ``lab`` mapping read out of ``ansible/inventory/lab.yaml``.
+
+    ``nodes`` keeps the untrusted-YAML view: :func:`validate_lab` is the thing
+    that proves each entry is a mapping, and it must keep saying so.
+    """
+
+    management: _LabManagement
+    ansible_user: str
+    bootstrap_user: str
+    fabric: str
+    switch: _LabSwitch
+    nodes: list[_YamlValue]
+
+
+class _LabFacts(TypedDict):
+    """The ``key=value`` facts the ``facts`` verb prints for the shell readers."""
+
+    fabric: str
+    node_count: str
+    orchestrator: str
+    orchestrator_ip: str
+    nodes: str
+    mgmt_subnet: str
+    ansible_user: str
+    bootstrap_user: str
+    switch_host: str
+    switch_model: str
+
+
+class _WizardVars(TypedDict):
+    """The pre-fill defaults the ``wizard-vars`` verb prints."""
+
+    fabric: str
+    mgmt_subnet: str
+    ansible_user: str
+    bootstrap_user: str
+    node_count: str
+    orchestrator: str
+    node_names: str
+    node_ips: str
+    switch_model: str
+    switch_host: str
+    switch_user: str
+    port_map: str
+
 
 def _fail(messages: list[str]) -> int:
     for message in messages:
@@ -46,7 +134,7 @@ def _fail(messages: list[str]) -> int:
     return 1
 
 
-def load_lab(path: Path) -> dict:
+def load_lab(path: Path) -> _Lab:
     """Load the lab block from a topology YAML file; exit 2 on unreadable input."""
     try:
         import yaml
@@ -54,7 +142,9 @@ def load_lab(path: Path) -> dict:
         print("lab-topology: PyYAML is required (python3-yaml / pip install pyyaml)", file=sys.stderr)
         return {}
     try:
-        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        # There is no guard on the document root (only on `lab` below), so a
+        # non-mapping root still raises AttributeError exactly as before.
+        data = cast("dict[str, _YamlValue]", yaml.safe_load(path.read_text(encoding="utf-8")) or {})
     except Exception as exc:  # noqa: BLE001 - report any parse failure uniformly
         print(f"lab-topology: cannot parse {path}: {exc}", file=sys.stderr)
         return {}
@@ -62,10 +152,10 @@ def load_lab(path: Path) -> dict:
     if not isinstance(lab, dict):
         print(f"lab-topology: {path} must contain a top-level `lab` mapping", file=sys.stderr)
         return {}
-    return lab
+    return cast("_Lab", lab)
 
 
-def validate_lab(lab: dict) -> tuple[list[str], list[str]]:
+def validate_lab(lab: _Lab) -> tuple[list[str], list[str]]:
     """Validate the lab mapping; return (errors, warnings)."""
     errors: list[str] = []
     warnings: list[str] = []
@@ -214,11 +304,12 @@ def validate_lab(lab: dict) -> tuple[list[str], list[str]]:
     return errors, warnings
 
 
-def _nodes(lab: dict) -> list[dict]:
-    return [n for n in (lab.get("nodes") or []) if isinstance(n, dict)]
+def _nodes(lab: _Lab) -> list[_LabNode]:
+    """Return the node mappings, skipping entries that are not mappings."""
+    return [cast("_LabNode", n) for n in (lab.get("nodes") or []) if isinstance(n, dict)]
 
 
-def orchestrator_of(lab: dict) -> dict:
+def orchestrator_of(lab: _Lab) -> _LabNode:
     """Return the node mapping carrying role: orchestrator."""
     for node in _nodes(lab):
         if node.get("role") == "orchestrator":
@@ -226,7 +317,7 @@ def orchestrator_of(lab: dict) -> dict:
     raise ValueError("lab has no orchestrator node")
 
 
-def active_ifs(lab: dict, node: dict) -> list[str]:
+def active_ifs(lab: _Lab, node: _LabNode) -> list[str]:
     """Return the high-speed interfaces the fabric uses for this node."""
     declared = node.get("hs_ifs") or list(HS_IF_DEFAULT)
     fabric = lab.get("fabric")
@@ -237,7 +328,7 @@ def active_ifs(lab: dict, node: dict) -> list[str]:
     return []
 
 
-def _link_addresses(lab: dict) -> dict[tuple[int, int], str]:
+def _link_addresses(lab: _Lab) -> dict[tuple[int, int], str]:
     """Map (node index, interface index) to a static ``a.b.c.d/24`` per fabric."""
     nodes = _nodes(lab)
     fabric = lab.get("fabric")
@@ -261,7 +352,7 @@ def _link_addresses(lab: dict) -> dict[tuple[int, int], str]:
     return addrs
 
 
-def render_hosts_ini(lab: dict) -> str:
+def render_hosts_ini(lab: _Lab) -> str:
     """Render the generated Ansible inventory (groups derived from the orchestrator)."""
     nodes = _nodes(lab)
     orchestrator = orchestrator_of(lab)
@@ -286,7 +377,7 @@ def render_hosts_ini(lab: dict) -> str:
     return "\n".join(lines)
 
 
-def render_fabric_group_vars(lab: dict) -> str:
+def render_fabric_group_vars(lab: _Lab) -> str:
     """Render generated fabric facts consumed by the highspeed_network role."""
     nodes = _nodes(lab)
     orchestrator = orchestrator_of(lab)
@@ -319,7 +410,7 @@ def render_fabric_group_vars(lab: dict) -> str:
     return "\n".join(lines)
 
 
-def render_node_netplan(lab: dict, index: int) -> str:
+def render_node_netplan(lab: _Lab, index: int) -> str:
     """Render the highspeed netplan snippet for one node (MTU 9000 on every fabric)."""
     node = _nodes(lab)[index]
     fabric = str(lab.get("fabric"))
@@ -352,7 +443,7 @@ def _cloud_init_identity_block() -> str:
     return render_cloud_init_users(catalog).rstrip()
 
 
-def render_node_cloud_init(lab: dict, index: int) -> str:
+def render_node_cloud_init(lab: _Lab, index: int) -> str:
     """Render first-boot cloud-init user-data for one node (OS/netplan/SSH prep only)."""
     node = _nodes(lab)[index]
     name = str(node.get("name"))
@@ -428,7 +519,7 @@ def render_node_cloud_init(lab: dict, index: int) -> str:
     )
 
 
-def render_all(lab: dict, out_root: Path) -> list[Path]:
+def render_all(lab: _Lab, out_root: Path) -> list[Path]:
     """Write all generated artifacts under ``out_root/ansible``; return the paths."""
     nodes = _nodes(lab)
     written: list[Path] = []
@@ -456,7 +547,7 @@ def render_all(lab: dict, out_root: Path) -> list[Path]:
     return written
 
 
-def lab_facts(lab: dict) -> dict:
+def lab_facts(lab: _Lab) -> _LabFacts:
     """Return flat key=value facts used by manage.sh and the docs config panel."""
     orchestrator = orchestrator_of(lab)
     switch = lab.get("switch") or {}
@@ -474,7 +565,7 @@ def lab_facts(lab: dict) -> dict:
     }
 
 
-def wizard_vars(lab: dict) -> dict:
+def wizard_vars(lab: _Lab) -> _WizardVars:
     """Return pre-fill defaults for the ``manage.sh setup --interactive`` wizard."""
     nodes = _nodes(lab)
     switch = lab.get("switch") or {}

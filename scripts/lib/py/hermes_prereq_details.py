@@ -7,11 +7,35 @@ from __future__ import annotations
 
 import json, subprocess, sys
 from pathlib import Path
+from typing import TypedDict, cast
 
-def _load_yaml(path):
+
+class _Stack(TypedDict, total=False):
+    """Hermes stack record from the policy ``stacks`` map."""
+
+    requires_nemotron_stack: bool
+    requires_mcp_stack: bool
+
+
+class _Policy(TypedDict, total=False):
+    """Subset of the Hermes policy document this helper reads."""
+
+    stacks: dict[str, _Stack]
+
+
+def _load_yaml(path: str) -> _Policy:
+    """Load the Hermes policy document.
+
+    Args:
+        path: Filesystem path of the policy YAML file.
+
+    Returns:
+        The parsed policy mapping, or an empty mapping when the file is missing
+        or PyYAML cannot load it.
+    """
     try:
         import yaml
-        return yaml.safe_load(Path(path).read_text()) or {}
+        return cast(_Policy, yaml.safe_load(Path(path).read_text()) or {})
     except Exception:
         return {}
 

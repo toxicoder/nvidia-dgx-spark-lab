@@ -11,26 +11,92 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any
+from typing import TypedDict, cast
 
 try:
     import yaml
 except ImportError:
-    yaml = None  # type: ignore[assignment]
+    yaml = None
 
 
-def load_yaml(path: str) -> dict[str, Any]:
-    """Load a YAML mapping from ``path`` (empty dict if PyYAML is missing)."""
+class _ClusterProbe(TypedDict, total=False):
+    """One entry of the policy ``cluster_probes`` list."""
+
+    name: str
+    namespace: str
+    service: str
+    port: int
+    path: str
+
+
+class _InferenceProbes(TypedDict, total=False):
+    """The policy ``inference_probes`` block."""
+
+    namespace: str
+    services: list[str]
+    port: int
+    vllm_path: str
+    nim_path: str
+
+
+class _McpProbe(TypedDict, total=False):
+    """One entry of the policy ``mcp_nodeport_probes`` list."""
+
+    name: str
+    port: int
+    path: str
+
+
+class _HostProbe(TypedDict, total=False):
+    """One entry of the policy ``host_probes`` list."""
+
+    name: str
+    module: str
+    url: str
+
+
+class _ProbesPolicy(TypedDict, total=False):
+    """The subset of ``config/monitoring-probes.yaml`` this renderer reads."""
+
+    host_probes: list[_HostProbe]
+    cluster_probes: list[_ClusterProbe]
+    inference_probes: _InferenceProbes
+    mcp_nodeport_probes: list[_McpProbe]
+
+
+#: One Prometheus job as a YAML document body: the module only builds and
+#: re-serialises these, so their heterogeneous values stay ``object``.
+_ScrapeJob = dict[str, object]
+
+
+def load_yaml(path: str) -> _ProbesPolicy:
+    """Load a YAML mapping from ``path`` (empty dict if PyYAML is missing).
+
+    Args:
+        path: Filesystem path of the probes policy.
+
+    Returns:
+        The parsed mapping, or an empty mapping when PyYAML is unavailable or
+        the document is not a mapping.
+    """
     text = Path(path).read_text(encoding="utf-8")
     if yaml:
         data = yaml.safe_load(text) or {}
-        return data if isinstance(data, dict) else {}
+        return cast(_ProbesPolicy, data) if isinstance(data, dict) else {}
     return {}
 
 
-def build_scrape_configs(policy: dict[str, Any], spark0_ip: str) -> list[dict[str, Any]]:
-    """Build Prometheus scrape_configs from monitoring-probes policy."""
-    scrape_configs: list[dict[str, Any]] = [
+def build_scrape_configs(policy: _ProbesPolicy, spark0_ip: str) -> list[_ScrapeJob]:
+    """Build Prometheus scrape_configs from monitoring-probes policy.
+
+    Args:
+        policy: Parsed ``config/monitoring-probes.yaml``.
+        spark0_ip: spark0 reachability address used to expand host probes.
+
+    Returns:
+        One mapping per Prometheus job, ready to dump as ``scrape_configs``.
+    """
+    scrape_configs: list[_ScrapeJob] = [
         {
             "job_name": "prometheus",
             "static_configs": [{"targets": ["localhost:9090"]}],
@@ -289,27 +355,41 @@ def build_scrape_configs(policy: dict[str, Any], spark0_ip: str) -> list[dict[st
     return scrape_configs
 
 
-def dump_yaml_literal(doc: Any) -> str:
-    """Serialize YAML using literal block style for multi-line strings."""
+def dump_yaml_literal(doc: object) -> str:
+    """Serialize YAML using literal block style for multi-line strings.
+
+    Args:
+        doc: any YAML-serialisable document; it is only re-serialised here.
+
+    Returns:
+        YAML text, or ``str(doc)`` when PyYAML is unavailable.
+    """
     if yaml is None:
         return str(doc)
 
-    def _str_presenter(dumper: Any, data: str) -> Any:
+    def _str_presenter(dumper: _LiteralDumper, data: str) -> object:
+        """Return a scalar node, using literal block style for multi-line text."""
         if "\n" in data:
             return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
         return dumper.represent_scalar("tag:yaml.org,2002:str", data)
 
     # Local Dumper so we do not mutate global state across imports.
-    class _LiteralDumper(yaml.SafeDumper):
-        pass
+    # PyYAML ships no type information and mypy.ini sets ignore_missing_imports
+    # for it, so SafeDumper is Any and disallow_subclassing_any rejects the
+    # base. The base is a genuine class at runtime; only that misc error is
+    # suppressed.
+    class _LiteralDumper(yaml.SafeDumper):  # type: ignore[misc]
+        """SafeDumper with a literal-block presenter for ``str``."""
 
     _LiteralDumper.add_representer(str, _str_presenter)
-    return yaml.dump(
-        doc,
-        Dumper=_LiteralDumper,
-        default_flow_style=False,
-        sort_keys=False,
-        allow_unicode=True,
+    return str(
+        yaml.dump(
+            doc,
+            Dumper=_LiteralDumper,
+            default_flow_style=False,
+            sort_keys=False,
+            allow_unicode=True,
+        )
     )
 
 
@@ -318,6 +398,14 @@ def main(argv: list[str] | None = None) -> int:
 
     Writes language-native ``prometheus.yml`` next to (or as) the out path.
     ConfigMap is materialised by ``k8s/monitoring/kustomization.yaml``.
+
+    Args:
+        argv: ``[probes_path, spark0_ip, out_path]``; ``sys.argv[1:]`` when
+            ``None``.
+
+    Returns:
+        ``2`` when the argument count is wrong, otherwise ``0`` once
+        ``prometheus.yml`` is written.
     """
     args = argv if argv is not None else sys.argv[1:]
     if len(args) != 3:

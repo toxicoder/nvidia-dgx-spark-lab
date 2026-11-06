@@ -6,9 +6,40 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Any
+from typing import TypedDict, cast
 
 HF_PROC_NAMES = frozenset({"hf", "huggingface-cli", "huggingface_hub"})
+
+
+class _Candidate(TypedDict, total=False):
+    """One disk-catalog candidate row the overlay reads and rewrites.
+
+    Declared here rather than imported from ``disk_catalog`` so this stays a
+    standalone CLI process with no import edge onto the classifier. Every key is
+    optional: the overlay is fed a JSON array that may carry any subset, and
+    every read goes through ``.get`` with a default. The key set mirrors the
+    classifier's candidate row; a renamed field is a contract break on both
+    sides.
+    """
+
+    id: str
+    path: str
+    size_bytes: int
+    risk: str
+    reclaim: str
+    what: str
+    why: str
+    leftover_when: str
+    educate: str
+    redownload_hint: str
+    docker_type: str
+    refuse_if: list[str]
+    score: float
+    step: str
+    in_use: bool
+    in_use_reasons: list[str]
+    needs_confirm: bool
+    recency_hint: str
 
 
 def load_open_paths(
@@ -105,11 +136,13 @@ def load_hostpath_mounts(
     if os.path.isfile(raw):
         text = Path(raw).read_text(encoding="utf-8")
     try:
-        data = json.loads(text)
+        # Opaque kubectl blob: every field below is narrowed by isinstance
+        # because the mock file and the live JSON differ in shape.
+        data: object = json.loads(text)
     except json.JSONDecodeError:
         return []
     mounts: list[str] = []
-    items = data.get("items") if isinstance(data, dict) else data
+    items: object = data.get("items") if isinstance(data, dict) else data
     if not isinstance(items, list):
         return []
     for pod in items:
@@ -215,7 +248,7 @@ def _path_is_open(path: str, open_paths: set[str]) -> bool:
 
 
 def apply_overlay(
-    rows: list[dict[str, Any]],
+    rows: list[_Candidate],
     *,
     open_paths: set[str] | None = None,
     hostpath_mounts: list[str] | None = None,
@@ -224,7 +257,7 @@ def apply_overlay(
     visual_running: bool = False,
     mode_c_running: bool = False,
     flash_next_running: bool = False,
-) -> list[dict[str, Any]]:
+) -> list[_Candidate]:
     """Promote in-use / refused candidates to dangerous / reclaim none.
 
     Args:
@@ -243,9 +276,9 @@ def apply_overlay(
     opened = open_paths or set()
     mounts = [os.path.realpath(m) if not m.startswith(("docker://", "crictl://")) else m for m in (hostpath_mounts or [])]
     images = running_images or set()
-    out: list[dict[str, Any]] = []
+    out: list[_Candidate] = []
     for raw in rows:
-        row = dict(raw)
+        row = cast("_Candidate", dict(raw))
         reasons: list[str] = list(row.get("in_use_reasons") or [])
         path = str(row.get("path") or "")
         refuse = [str(x) for x in (row.get("refuse_if") or [])]
@@ -303,7 +336,7 @@ def _cli() -> int:
     if not raw.strip():
         print("[]")
         return 0
-    rows = json.loads(raw)
+    rows: object = json.loads(raw)
     if not isinstance(rows, list):
         print("[]")
         return 0
@@ -317,7 +350,7 @@ def _cli() -> int:
             if line:
                 images.add(line)
     overlayed = apply_overlay(
-        rows,
+        cast("list[_Candidate]", rows),
         open_paths=load_open_paths(),
         hostpath_mounts=load_hostpath_mounts(),
         hf_pid=hf_pid_present(),

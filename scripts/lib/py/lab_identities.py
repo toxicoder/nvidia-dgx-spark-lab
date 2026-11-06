@@ -20,10 +20,90 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any
+from typing import TypedDict, cast
 
 LOGIN_SHELLS = frozenset({"/bin/bash", "/bin/sh"})
 NOLOGIN_SHELLS = frozenset({"/usr/sbin/nologin", "/sbin/nologin", "/bin/false"})
+
+#: Any value ``yaml.safe_load`` can decode into a catalog field. The catalog is
+#: operator-authored YAML, so the validators narrow this union with ``isinstance``
+#: rather than trusting a declared shape.
+_YamlValue = dict[str, "_YamlValue"] | list["_YamlValue"] | str | int | float | bool | None
+
+
+class _GroupRecord(TypedDict, total=False):
+    """One entry of the catalog ``groups`` map.
+
+    Every key is optional because ``.get(key)`` is how the readers have always
+    tolerated a partial record; ``validate_catalog`` is what reports a missing
+    ``gid``, and tightening this would change what a bad catalog does.
+    """
+
+    gid: int
+    sudo: str
+
+
+class _UserRecord(TypedDict, total=False):
+    """One entry of the catalog ``users`` map."""
+
+    uid: int
+    groups: list[str]
+    ssh: bool
+    shell: str
+
+
+class _IdentityCatalog(TypedDict, total=False):
+    """The catalog mapping returned by :func:`load_catalog` after validation.
+
+    The nested records keep the untrusted-YAML view at read time: the renderers
+    below are also reachable with a hand-built catalog, so they re-check each
+    record instead of trusting this declaration.
+    """
+
+    schema: int
+    uid_gid_min: int
+    uid_gid_max: int
+    bootstrap_user_default: str
+    ansible_user: str
+    models_dir: str
+    groups: dict[str, _GroupRecord]
+    users: dict[str, _UserRecord]
+
+
+class _UserStatus(TypedDict):
+    """One ``users`` row of the ``status-json`` document.
+
+    Values come straight from the catalog; no field ever carries key material.
+    """
+
+    name: str
+    uid: int | None
+    ssh: bool
+    shell: str | None
+    groups: list[str]
+    sudo: str | None
+    private_key_present: bool
+    public_key_present: bool
+
+
+class _GroupStatus(TypedDict):
+    """One ``groups`` row of the ``status-json`` document."""
+
+    name: str
+    gid: int | None
+    sudo: str | None
+
+
+class _CatalogStatus(TypedDict):
+    """The ``status-json`` document printed by the ``status-json`` verb."""
+
+    schema: int | None
+    ansible_user: str | None
+    bootstrap_user_default: str | None
+    models_dir: str | None
+    identities_dir: str
+    groups: list[_GroupStatus]
+    users: list[_UserStatus]
 
 
 class CatalogError(ValueError):
@@ -39,7 +119,7 @@ def default_catalog_path() -> Path:
     return Path(__file__).resolve().parents[3] / "config" / "lab-identities.yaml"
 
 
-def load_catalog(path: Path) -> dict[str, Any]:
+def load_catalog(path: Path) -> _IdentityCatalog:
     """Load and validate an identity catalog YAML file.
 
     Args:
@@ -58,7 +138,9 @@ def load_catalog(path: Path) -> dict[str, Any]:
     except ImportError as exc:  # pragma: no cover - import env
         raise CatalogError("PyYAML is required (python3-yaml / pip install pyyaml)") from exc
     try:
-        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        # The cast only names the decoded shape; the isinstance below still does
+        # the checking, so a non-mapping document keeps raising CatalogError.
+        data = cast("_YamlValue", yaml.safe_load(path.read_text(encoding="utf-8")) or {})
     except Exception as exc:  # noqa: BLE001 - report any parse failure uniformly
         raise CatalogError(f"cannot parse {path}: {exc}") from exc
     if not isinstance(data, dict):
@@ -66,10 +148,10 @@ def load_catalog(path: Path) -> dict[str, Any]:
     errors = validate_catalog(data)
     if errors:
         raise CatalogError("; ".join(errors))
-    return data
+    return cast("_IdentityCatalog", data)
 
 
-def validate_catalog(data: dict[str, Any]) -> list[str]:
+def validate_catalog(data: _YamlValue) -> list[str]:
     """Validate a catalog mapping; return error messages (empty means ok).
 
     Args:
@@ -83,8 +165,10 @@ def validate_catalog(data: dict[str, Any]) -> list[str]:
         return ["catalog must be a mapping"]
     if data.get("schema") != 1:
         errors.append(f"schema must be 1 (got {data.get('schema')!r})")
-    uid_min = int(data.get("uid_gid_min") or 60000)
-    uid_max = int(data.get("uid_gid_max") or 60099)
+    # int() still raises TypeError out of here on a non-numeric bound, as it did
+    # before; the cast names what a well-formed catalog holds.
+    uid_min = int(cast("str | int", data.get("uid_gid_min") or 60000))
+    uid_max = int(cast("str | int", data.get("uid_gid_max") or 60099))
     groups = data.get("groups")
     users = data.get("users")
     if not isinstance(groups, dict) or not groups:
@@ -100,7 +184,8 @@ def validate_catalog(data: dict[str, Any]) -> list[str]:
             errors.append(f"groups.{name} must be a mapping")
             continue
         try:
-            gid = int(group.get("gid"))
+            # A missing gid reaches int() as None; TypeError is the branch below.
+            gid = int(cast("str | int", group.get("gid")))
         except (TypeError, ValueError):
             errors.append(f"groups.{name}.gid must be an int")
             continue
@@ -119,7 +204,8 @@ def validate_catalog(data: dict[str, Any]) -> list[str]:
             errors.append(f"users.{name} must be a mapping")
             continue
         try:
-            uid = int(user.get("uid"))
+            # A missing uid reaches int() as None; TypeError is the branch below.
+            uid = int(cast("str | int", user.get("uid")))
         except (TypeError, ValueError):
             errors.append(f"users.{name}.uid must be an int")
             continue
@@ -164,7 +250,7 @@ def validate_catalog(data: dict[str, Any]) -> list[str]:
     return errors
 
 
-def ssh_user_names(catalog: dict[str, Any]) -> list[str]:
+def ssh_user_names(catalog: _IdentityCatalog) -> list[str]:
     """Return catalog users that receive SSH keys, in catalog order.
 
     Args:
@@ -173,17 +259,18 @@ def ssh_user_names(catalog: dict[str, Any]) -> list[str]:
     Returns:
         Login user names with ``ssh: true``.
     """
-    users = catalog.get("users") or {}
+    users = cast("dict[str, _YamlValue]", catalog.get("users") or {})
     return [name for name, spec in users.items() if isinstance(spec, dict) and spec.get("ssh")]
 
 
-def _sudo_for_user(catalog: dict[str, Any], user_name: str) -> str | None:
+def _sudo_for_user(catalog: _IdentityCatalog, user_name: str) -> str | None:
     """Return the sudoers spec for a user via group membership, if any."""
-    users = catalog.get("users") or {}
-    groups = catalog.get("groups") or {}
-    spec = users.get(user_name) or {}
-    if not isinstance(spec, dict):
+    users = cast("dict[str, _YamlValue]", catalog.get("users") or {})
+    groups = cast("dict[str, _YamlValue]", catalog.get("groups") or {})
+    entry = users.get(user_name) or {}
+    if not isinstance(entry, dict):
         return None
+    spec = cast("_UserRecord", entry)
     for group_name in spec.get("groups") or []:
         group = groups.get(group_name) or {}
         if isinstance(group, dict) and group.get("sudo"):
@@ -191,7 +278,7 @@ def _sudo_for_user(catalog: dict[str, Any], user_name: str) -> str | None:
     return None
 
 
-def render_sudoers(catalog: dict[str, Any]) -> str:
+def render_sudoers(catalog: _IdentityCatalog) -> str:
     """Render a visudo-valid sudoers drop-in from group sudo fields.
 
     Args:
@@ -205,7 +292,7 @@ def render_sudoers(catalog: dict[str, Any]) -> str:
         "# Source of truth: config/lab-identities.yaml",
         "",
     ]
-    groups = catalog.get("groups") or {}
+    groups = cast("dict[str, _YamlValue]", catalog.get("groups") or {})
     for name, group in groups.items():
         if not isinstance(group, dict):
             continue
@@ -216,7 +303,7 @@ def render_sudoers(catalog: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def render_cloud_init_users(catalog: dict[str, Any]) -> str:
+def render_cloud_init_users(catalog: _IdentityCatalog) -> str:
     """Render cloud-init ``groups:`` + ``users:`` YAML with no authorized keys.
 
     The distro default user (``- default``, ubuntu on Spark images) is kept so
@@ -234,10 +321,11 @@ def render_cloud_init_users(catalog: dict[str, Any]) -> str:
     lines.append("users:")
     # Keep the factory account; do not list it as name: ubuntu (not a catalog user).
     lines.append("  - default")
-    users = catalog.get("users") or {}
-    for name, spec in users.items():
-        if not isinstance(spec, dict):
+    users = cast("dict[str, _YamlValue]", catalog.get("users") or {})
+    for name, entry in users.items():
+        if not isinstance(entry, dict):
             continue
+        spec = cast("_UserRecord", entry)
         member_of = spec.get("groups") or []
         groups_csv = ",".join(str(g) for g in member_of)
         lines.append(f"  - name: {name}")
@@ -255,7 +343,10 @@ def render_cloud_init_users(catalog: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def dump_status(catalog: dict[str, Any], identities_dir: Path | None = None) -> dict[str, Any]:
+def dump_status(
+    catalog: _IdentityCatalog,
+    identities_dir: Path | None = None,
+) -> _CatalogStatus:
     """Build a metadata-only status mapping (no key material).
 
     Args:
@@ -266,11 +357,12 @@ def dump_status(catalog: dict[str, Any], identities_dir: Path | None = None) -> 
         JSON-serializable status dict. Values never include PEM or OpenSSH private keys.
     """
     ident = identities_dir if identities_dir is not None else Path()
-    users_out: list[dict[str, Any]] = []
-    users = catalog.get("users") or {}
-    for name, spec in users.items():
-        if not isinstance(spec, dict):
+    users_out: list[_UserStatus] = []
+    users = cast("dict[str, _YamlValue]", catalog.get("users") or {})
+    for name, entry in users.items():
+        if not isinstance(entry, dict):
             continue
+        spec = cast("_UserRecord", entry)
         priv = ident / name
         pub = ident / f"{name}.pub"
         users_out.append(
@@ -285,10 +377,12 @@ def dump_status(catalog: dict[str, Any], identities_dir: Path | None = None) -> 
                 "public_key_present": bool(spec.get("ssh")) and pub.is_file(),
             }
         )
-    groups_out = []
-    for name, group in (catalog.get("groups") or {}).items():
-        if not isinstance(group, dict):
+    groups_out: list[_GroupStatus] = []
+    groups = cast("dict[str, _YamlValue]", catalog.get("groups") or {})
+    for name, entry in groups.items():
+        if not isinstance(entry, dict):
             continue
+        group = cast("_GroupRecord", entry)
         groups_out.append(
             {
                 "name": name,
