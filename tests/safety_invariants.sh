@@ -65,6 +65,11 @@ j = json.loads(Path('config/lab-domains.json').read_text())
 assert j.get('local_domain'), 'lab-domains.json missing local_domain'
 "
 
+echo "Checking config policy twins against their YAML source..."
+# The readers load the JSON side of each pair, so a YAML edit that forgets the twin
+# would silently keep gating workloads on the previous policy.
+python3 tests/config_twin_check.py
+
 echo "Checking Resource Guard policy and manifests..."
 test -f config/resource-policy.yaml
 test -f config/resource-policy.json
