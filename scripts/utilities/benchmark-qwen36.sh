@@ -18,6 +18,11 @@ set -euo pipefail
 source "$(cd "$(dirname "${0}")" && pwd)/../lib/paths.sh"
 SCRIPT_DIR="$(lab_script_dir 1 utilities)"
 
+# Sourced unconditionally on purpose: if the value-kind contract is missing this
+# script should fail here, loudly, rather than run with the predicates undefined.
+# shellcheck source=../lib/types.sh
+source "${SCRIPT_DIR}/../lib/types.sh"
+
 if [[ -f "${SCRIPT_DIR}/../lib/common.sh" ]]; then
   # shellcheck source=../lib/common.sh
   source "${SCRIPT_DIR}/../lib/common.sh"
@@ -106,7 +111,7 @@ one_request() {
   local completion_tokens
   completion_tokens=$(python3 -c "import json; d=json.load(open('/tmp/qwen36-bench-$$.json')); print(d.get('usage',{}).get('completion_tokens',0))" 2>/dev/null || echo 0)
   local tps="n/a"
-  if [[ $completion_tokens =~ ^[0-9]+$ && $completion_tokens -gt 0 && $ms -gt 0 ]]; then
+  if is_unsigned_integer "$completion_tokens" && [[ $completion_tokens -gt 0 && $ms -gt 0 ]]; then
     tps=$(python3 -c "print(round($completion_tokens / ($ms/1000.0), 2))")
   fi
   echo "ok ms=${ms} completion_tokens=${completion_tokens} tok_s≈${tps} model=${model_id}"

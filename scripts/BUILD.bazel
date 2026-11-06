@@ -151,6 +151,17 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+# Typed value-contract library (bash's stand-in for a type system).
+#
+# Deliberately NOT in :lib_srcs and NOT in the manage.sh sourcing loop: the checks
+# are opt-in per script that parses operator input, and manage.sh itself needs none
+# of them. Adding it to the always-sourced set would slow every verb for no gain.
+filegroup(
+    name = "value_type_srcs",
+    srcs = ["lib/types.sh"],
+    visibility = ["//visibility:public"],
+)
+
 # Shell sources containing structured comments used by docs/generate_shell_docs.py.
 # Listed here so docs targets can depend on them for correct invalidation.
 filegroup(
