@@ -54,8 +54,10 @@ export function resolveHrefWith(
   find: (segments: string[]) => HrefTarget | undefined
 ): { href: string | undefined; external?: boolean } {
   if (!href) return { href };
+  // `split` always yields a first element, and an empty one is exactly the same-page anchor
+  // case the early return covers, so one falsy test covers both.
   const [target, hash] = href.split("#", 2);
-  if (target.length === 0) return { href };
+  if (!target) return { href };
   if (/^[a-z][\w+.-]*:/iu.test(target) || target.startsWith("//")) return { href, external: true };
 
   const suffix = PathUtils.splitPath(withoutExtension(target)).join("/");

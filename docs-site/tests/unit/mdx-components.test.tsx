@@ -58,6 +58,24 @@ const page = { path: "operate/index", url: "/operate/index" } as never;
 type MdxMap = Record<string, ComponentType<Record<string, unknown>>>;
 const mapFor = () => mdxComponentsFor(page) as unknown as MdxMap;
 
+/**
+ * Read one entry a test renders.
+ *
+ * Indexed access is `| undefined` under `noUncheckedIndexedAccess`, and that is the real
+ * risk this file guards: a name the MDX compiler can reference going missing from the
+ * map makes every page that uses it 500. So the lookup is checked and the name is named.
+ */
+function entryFor(map: MdxMap, name: string): ComponentType<Record<string, unknown>> {
+  const entry = map[name];
+  if (!entry) {
+    throw new Error(`mdx component map is missing "${name}"`);
+  }
+  return entry;
+}
+
+/** The link override, which most of these tests exercise. */
+const linkFor = () => entryFor(mapFor(), "a");
+
 describe("mdxComponentsFor", () => {
   it("keeps the Fumadocs defaults under the overrides", () => {
     const components = mdxComponentsFor(page) as Record<string, unknown>;
@@ -104,8 +122,7 @@ describe("mdxComponentsFor", () => {
 
   it("resolves an in-docs link through the page it was written on", () => {
     resolveDocHref.mockReturnValue({ href: "/operate/resource-guard" });
-    const components = mapFor();
-    const { container } = render(createElement(components.a, { href: "resource-guard.md" }));
+    const { container } = render(createElement(linkFor(), { href: "resource-guard.md" }));
     expect(resolveDocHref).toHaveBeenCalledWith("resource-guard.md", page);
     // A resolved internal target renders as the router-aware link, not a raw anchor.
     expect(container.querySelector("a")).toBeNull();
@@ -113,9 +130,8 @@ describe("mdxComponentsFor", () => {
 
   it("opens an off-site link in a new tab with the referrer stripped", () => {
     resolveDocHref.mockReturnValue({ href: "https://github.com/x", external: true });
-    const components = mapFor();
     const { container } = render(
-      createElement(components.a, { href: "https://github.com/x", className: "mt-2" })
+      createElement(linkFor(), { href: "https://github.com/x", className: "mt-2" })
     );
     const anchor = container.querySelector("a");
     expect(anchor?.getAttribute("href")).toBe("https://github.com/x");
@@ -127,15 +143,13 @@ describe("mdxComponentsFor", () => {
 
   it("passes an anchor-only href through unchanged", () => {
     resolveDocHref.mockReturnValue({ href: "#section" });
-    const components = mapFor();
-    render(createElement(components.a, { href: "#section" }));
+    render(createElement(linkFor(), { href: "#section" }));
     expect(resolveDocHref).toHaveBeenCalledWith("#section", page);
   });
 
   it("handles a link with no href at all", () => {
     resolveDocHref.mockReturnValue({ href: undefined });
-    const components = mapFor();
-    expect(() => render(createElement(components.a, {}))).not.toThrow();
+    expect(() => render(createElement(linkFor(), {}))).not.toThrow();
     expect(resolveDocHref).toHaveBeenCalledWith(undefined, page);
   });
 });

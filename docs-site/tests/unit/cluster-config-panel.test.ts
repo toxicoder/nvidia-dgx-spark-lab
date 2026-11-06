@@ -15,11 +15,47 @@ import {
   DEFAULT_VARS,
   mergeVars,
   needsSubstitution,
+  parseStoredVars,
   PROFILE_IDS,
   profileForVars,
   STORAGE_KEY,
   substitutePlaceholders
 } from "../../components/cluster-config-panel";
+
+describe("parseStoredVars", () => {
+  it("returns nothing when nothing was ever stored", () => {
+    expect(parseStoredVars(null)).toEqual({});
+  });
+
+  it("keeps a well-formed string map", () => {
+    expect(parseStoredVars('{"SPARK_IP":"10.0.0.5","MODEL":"kimi"}')).toEqual({
+      SPARK_IP: "10.0.0.5",
+      MODEL: "kimi"
+    });
+  });
+
+  it("returns nothing for storage that is not JSON", () => {
+    expect(parseStoredVars("not json")).toEqual({});
+  });
+
+  it("returns nothing when storage holds a non-object", () => {
+    // A reader or another extension can put anything under the key.
+    expect(parseStoredVars('"a string"')).toEqual({});
+    expect(parseStoredVars("42")).toEqual({});
+    expect(parseStoredVars("null")).toEqual({});
+  });
+
+  it("drops a non-string value and keeps the rest", () => {
+    // One bad entry must not cost a reader the variables they actually typed.
+    expect(parseStoredVars('{"good":"keep","bad":{"nested":true},"also_bad":7}')).toEqual({
+      good: "keep"
+    });
+  });
+
+  it("returns nothing for an empty object", () => {
+    expect(parseStoredVars("{}")).toEqual({});
+  });
+});
 
 /** Minimal stand-in for an inserted element. */
 function elementNode(fields: {

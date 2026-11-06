@@ -27,7 +27,9 @@ import { useI18n } from "fumadocs-ui/contexts/i18n";
 export function SearchDialog(props: SharedProps) {
   const { locale } = useI18n();
   const { search, setSearch, query } = useDocsSearch({
-    client: staticClient({ locale })
+    // A site without i18n has no locale at all, and the static client takes it as a plain
+    // optional string, so the key is carried only when there is one to carry.
+    client: staticClient(locale === undefined ? {} : { locale })
   });
 
   return (

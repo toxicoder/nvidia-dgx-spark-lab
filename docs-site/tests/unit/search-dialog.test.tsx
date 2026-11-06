@@ -62,16 +62,28 @@ vi.mock("fumadocs-core/search/client/orama-static", () => ({
   }
 }));
 
+const i18nState = vi.hoisted(() => ({ locale: "de" as string | undefined }));
+
 vi.mock("fumadocs-ui/contexts/i18n", () => ({
-  useI18n: () => ({ locale: "de" })
+  useI18n: () => ({ locale: i18nState.locale })
 }));
 
 import { SearchDialog } from "../../components/search-dialog";
 
 describe("SearchDialog", () => {
   it("builds the static client from the active locale", () => {
+    i18nState.locale = "de";
     render(<SearchDialog open={false} onOpenChange={() => {}} />);
     expect(calls.staticClient).toContainEqual({ locale: "de" });
+  });
+
+  it("omits the locale key entirely when the site has no locale", () => {
+    // `exactOptionalPropertyTypes` forbids writing `locale: undefined`, and the static
+    // client treats an absent key and an undefined one differently, so the key must go.
+    i18nState.locale = undefined;
+    render(<SearchDialog open={false} onOpenChange={() => {}} />);
+    expect(calls.staticClient.at(-1)).toEqual({});
+    i18nState.locale = "de";
   });
 
   it("wires the query state into the dialog root", () => {

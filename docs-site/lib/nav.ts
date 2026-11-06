@@ -9,6 +9,7 @@
  * directory-derived tree cannot express.
  */
 
+import { z } from "zod";
 import type { Folder, Item, Node, Root } from "fumadocs-core/page-tree";
 import type { ReactNode } from "react";
 import type { LoaderOutput } from "fumadocs-core/source";
@@ -25,7 +26,7 @@ export type NavSource = Pick<LoaderOutput, "getPages">;
 import navData from "./nav.json";
 
 /** One entry of the transcribed navigation. */
-interface NavPage {
+export interface NavPage {
   /** Label shown in the sidebar, exactly as MkDocs rendered it. */
   title: string;
   /** Path of the page relative to `docs/`, e.g. `operate/dashboard.md`. */
@@ -33,12 +34,45 @@ interface NavPage {
 }
 
 /** One top-level tab of the transcribed navigation. */
-interface NavTab {
+export interface NavTab {
   title: string;
   pages: NavPage[];
 }
 
-const NAV = navData as NavTab[];
+/**
+ * The shape `scripts/gen_nav.py` writes, restated on the TypeScript side.
+ *
+ * The Python script is the generator and the CI drift check; this schema is the boundary
+ * check for whatever actually gets imported, so a hand-edited or truncated transcription
+ * fails the build with the offending field named instead of rendering a sidebar row that
+ * 404s.  A leaf keeps the `docs/`-relative `.md`/`.mdx` suffix the generator emits: the
+ * whole matching rule below depends on it.
+ */
+const navPageSchema = z.strictObject({
+  title: z.string().min(1),
+  path: z.string().min(1).regex(/\.(?:md|mdx)$/u, "a nav page names a docs file")
+});
+
+const navTabSchema = z.strictObject({
+  title: z.string().min(1),
+  pages: z.array(navPageSchema)
+});
+
+/** The whole transcription: an ordered list of tabs. */
+export const navSchema = z.array(navTabSchema);
+
+/**
+ * Validate the imported transcription before anything reads it.
+ *
+ * @param data The value imported from `lib/nav.json`.
+ * @returns The tabs, typed, in the order the file declares them.
+ * @throws {z.ZodError} When the file is not a list of tabs of pages.
+ */
+export function parseNav(data: unknown): NavTab[] {
+  return navSchema.parse(data);
+}
+
+const NAV: NavTab[] = parseNav(navData);
 
 /**
  * Resolve one `docs/`-relative path to a sidebar page node.
@@ -85,10 +119,12 @@ export function buildPageTree(source: NavSource): Root {
       defaultOpen: true,
       children: pages
     };
+    const firstPage = tab.pages[0];
     const first = pages[0];
     // A tab whose first page is an overview gets it as the folder index, matching the
-    // `index.md` pages MkDocs linked the tab title to.
-    if (first && /(^|\/)index$/.test(stripExtension(tab.pages[0]!.path))) folder.index = first;
+    // `index.md` pages MkDocs linked the tab title to.  `pages` is `tab.pages` mapped 1:1,
+    // so the two guards stand or fall together.
+    if (first && firstPage && /(^|\/)index$/.test(stripExtension(firstPage.path))) folder.index = first;
     return folder;
   });
 
@@ -123,7 +159,14 @@ export function neighborsOf(
     const item = toItem(source, entry.tab, entry.page.path, entry.page.title);
     return { name: item.name, url: item.url };
   };
-  return { previous: at(-1), next: at(1) };
+  // An absent neighbour is left out rather than set to `undefined`, which the footer slot's
+  // optional props do not accept.
+  const previous = at(-1);
+  const next = at(1);
+  const neighbours: { previous?: PageNodeEntry; next?: PageNodeEntry } = {};
+  if (previous) neighbours.previous = previous;
+  if (next) neighbours.next = next;
+  return neighbours;
 }
 
 /** A prev/next footer entry shaped the way the footer slot expects. */

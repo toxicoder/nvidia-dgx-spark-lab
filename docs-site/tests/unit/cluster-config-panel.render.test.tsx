@@ -489,9 +489,7 @@ describe("ClusterConfigPanel live examples", () => {
   });
 
   it("ignores a mutation that carries no code, which is what a rewrite itself produces", async () => {
-    const witness = intoUnobservedCorner(
-      example({ shows: "ssh {{NAMESPACE}}", tag: "witness" })
-    );
+    intoUnobservedCorner(example({ shows: "ssh {{NAMESPACE}}", tag: "witness" }));
     render(<ClusterConfigPanel />);
     expect(exampleText("witness")).toBe("ssh ai-inference");
 
