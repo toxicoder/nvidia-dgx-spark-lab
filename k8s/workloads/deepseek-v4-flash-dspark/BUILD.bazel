@@ -1,0 +1,27 @@
+"""Package purpose: DeepSeek-V4-Flash DSpark TP=2 pair inference jobs and service exports."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "deepseek_v4_flash_dspark_job",
+    srcs = [
+        "README.md",
+        "deepseek-v4-flash-dspark-job.yaml",
+        "deepseek-v4-flash-dspark-worker-1-job.yaml",
+        "kustomization.yaml",
+        "service.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+exports_files([
+    "deepseek-v4-flash-dspark-job.yaml",
+    "deepseek-v4-flash-dspark-worker-1-job.yaml",
+    "kustomization.yaml",
+    "service.yaml",
+])

@@ -1,0 +1,11 @@
+# Purpose: Kustomize bundle for qwen3.8-flash-next-tensorfold workload
+# Source of truth: k8s/workloads/qwen3.8-flash-next-tensorfold/
+# Regenerate: n/a
+# Safety: exclusive single-Spark lane, manual start, heavy confirm, one lane at a time
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - qwen3.8-flash-next-tensorfold-job.yaml
+  - service.yaml

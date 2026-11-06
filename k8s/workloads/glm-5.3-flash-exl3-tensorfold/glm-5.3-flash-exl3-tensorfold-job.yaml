@@ -1,0 +1,155 @@
+# Purpose: GLM-5.3-Flash EXL3 TensorFold rank 0 Job on spark0 (2-node pair, 1M context)
+# Source of truth: k8s/workloads/glm-5.3-flash-exl3-tensorfold/
+# Regenerate: n/a
+# Safety: exclusive frontier; hostNetwork + QSFP pair cabling; ~110 GiB free per node required; one lane at a time
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: glm-5.3-flash-exl3-tensorfold
+  namespace: ai-inference
+  labels:
+    app: glm-5.3-flash-exl3-tensorfold
+    workload: inference
+    mode: production
+    family: glm-5.3
+    role: leader
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 7200
+  template:
+    metadata:
+      labels:
+        app: glm-5.3-flash-exl3-tensorfold
+        workload: inference
+        mode: production
+        family: glm-5.3
+        role: leader
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      restartPolicy: OnFailure
+      hostNetwork: true
+      hostIPC: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/hostname: spark0
+      containers:
+        - name: inference
+          # TensorFold v0.6.0 + recipe patches for GB10, prebuilt by MiaAI-Lab on
+          # nvcr.io/nvidia/pytorch:26.07-py3. Same image tag required on both Sparks.
+          image: ghcr.io/miaai-lab/glm-5.3-flash-exl3-2x-dgx-sparks-tensorfold:v0.6.0
+          imagePullPolicy: IfNotPresent
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+          resources:
+            requests:
+              cpu: "12"
+              memory: "100Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "20"
+              memory: "112Gi"
+              nvidia.com/gpu: "1"
+          env:
+            # 2-node pair block (matches ansible group_vars highspeed_*/nccl_env): the ranks
+            # bootstrap on mgmt and all-gather over the direct QSFP pair. Confirm with ibdev2netdev.
+            - name: NCCL_SOCKET_IFNAME
+              value: "enp1s0f0np0,enp1s0f1np1"
+            - name: NCCL_IB_HCA
+              value: "mlx5_0,mlx5_1"
+            - name: NCCL_DEBUG
+              value: "INFO"
+            - name: NCCL_DEBUG_SUBSYS
+              value: "ALL"
+            - name: NCCL_P2P_DISABLE
+              value: "0"
+            - name: NCCL_SHM_DISABLE
+              value: "0"
+            - name: NCCL_IB_DISABLE
+              value: "0"
+            - name: NCCL_SOCKET_NTHREADS
+              value: "4"
+            - name: NCCL_NSOCKS_PERTHREAD
+              value: "4"
+            - name: PYTORCH_CUDA_ALLOC_CONF
+              value: "expandable_segments:True"
+            - name: HF_HOME
+              value: "/models"
+            - name: HF_HUB_OFFLINE
+              value: "1"
+            # EXL3 knobs: 4 bpw routed experts, q4 dense, FP8 (e4m3) latent cache.
+            - name: DENSE
+              value: "q4"
+            - name: KV
+              value: "fp8"
+            # DFlash2 drafter is CC BY-NC-ND 4.0 (non-commercial). Use DRAFTER=mtp for
+            # commercial use; never copy a permission granted for the base model.
+            - name: DRAFTER
+              value: "dflash2"
+            # Host reserve on top of the KV pool; upstream recipe default for this pair.
+            - name: TENSORFOLD_MEMORY_RESERVE_GIB
+              value: "14.5"
+            - name: TENSORFOLD_GLM_MAX_IMAGES
+              value: "50"
+            - name: TENSORFOLD_GLM_MAX_VIDEOS
+              value: "4"
+            # Pair addressing: MASTER_ADDR is always rank 0 (spark0). RANK mirrors NODE_RANK
+            # so the two Job files differ only in NODE_RANK.
+            - name: MASTER_ADDR
+              value: "spark0"
+            - name: MASTER_PORT
+              value: "29521"
+            - name: NODE_RANK
+              value: "0"
+            - name: RANK
+              value: "$(NODE_RANK)"
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 900
+            periodSeconds: 30
+            timeoutSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 900
+            periodSeconds: 60
+            timeoutSeconds: 10
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              exec tensorfold serve
+              --model /models/Mia-AiLab__GLM-5.3-Flash-EXL3-4bpw-TensorFold
+              --served-name GLM-5.3-Flash-EXL3
+              --parallel 4
+              --context 1048576
+              --port 8000
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 32Gi

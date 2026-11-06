@@ -1,0 +1,33 @@
+# Purpose: LiteLLM ConfigMap overlay for the single-Spark TensorFold Qwen3.8 Flash Next lane
+# Source of truth: k8s/overlays/litellm-qwen38-flash-next-tensorfold/
+# Regenerate: n/a
+# Safety: exclusive single-Spark lane, manual start, heavy confirm, one lane at a time
+# apply: kubectl apply -k --load-restrictor=LoadRestrictionsNone (profiles live under workloads/litellm/files)
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ai-inference
+
+resources:
+  - ../../workloads/litellm
+
+configMapGenerator:
+  - name: litellm-config
+    behavior: replace
+    files:
+      - config.yaml=../../workloads/litellm/files/profiles/qwen3.8-flash-next-tensorfold.yaml
+      - lab-med-system.txt=../../workloads/litellm/files/lab-med-system.txt
+      - lab-med-frontier-fallback.txt=../../workloads/litellm/files/lab-med-frontier-fallback.txt
+    options:
+      labels:
+        app: litellm
+        workload: management
+        lab.litellm-backend: qwen38-flash-next-tensorfold
+      disableNameSuffixHash: true
+
+labels:
+  - pairs:
+      lab.litellm-backend: qwen38-flash-next-tensorfold
+    includeSelectors: false
+    includeTemplates: true

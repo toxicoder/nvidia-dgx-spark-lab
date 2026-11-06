@@ -1,0 +1,12 @@
+# Purpose: Kustomize bundle for GLM-5.3-Flash EXL3 TensorFold TP=2 2-node pair workload
+# Source of truth: k8s/workloads/glm-5.3-flash-exl3-tensorfold/
+# Regenerate: n/a
+# Safety: exclusive with Mode A; pair NCCL on these Jobs only; manual start via manage.sh
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - glm-5.3-flash-exl3-tensorfold-job.yaml
+  - glm-5.3-flash-exl3-tensorfold-worker-1-job.yaml
+  - service.yaml

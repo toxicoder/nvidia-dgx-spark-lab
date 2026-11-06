@@ -1,0 +1,133 @@
+# Purpose: NVIDIA Nemotron 3.5 Transcribe 30B-A4B NVFP4 inference Deployment manifest
+# Source of truth: k8s/workloads/nemotron-3.5-transcribe-30b-a4b-nvfp4/
+# Regenerate: n/a
+# Safety: GPU lane, manual start, Blackwell-only NVFP4, one deployment
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nemotron-3.5-transcribe-30b-a4b-nvfp4
+  namespace: ai-inference
+  labels:
+    app: nemotron-3.5-transcribe-30b-a4b-nvfp4
+    workload: inference
+    mode: production
+    family: speech
+    runtime: vllm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nemotron-3.5-transcribe-30b-a4b-nvfp4
+  template:
+    metadata:
+      labels:
+        app: nemotron-3.5-transcribe-30b-a4b-nvfp4
+        workload: inference
+        mode: production
+        family: speech
+        runtime: vllm
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: inference
+          # Upstream publishes no container tag for this model. Build
+          # nemotron-3.5-transcribe:local on a Spark/Blackwell host from
+          # k8s/workloads/nemotron-3.5-transcribe-30b-a4b-nvfp4/Dockerfile.
+          image: nemotron-3.5-transcribe:local
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+          resources:
+            requests:
+              cpu: "4"
+              memory: "48Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "8"
+              memory: "48Gi"
+              nvidia.com/gpu: "1"
+          env:
+            # nemo_speechlm registers the vLLM plugin that owns the SpeechLM2
+            # architecture; without it vllm serve rejects the checkpoint.
+            - name: VLLM_PLUGINS
+              value: "nemo_speechlm"
+            - name: VLLM_MAX_AUDIO_DECODE_DURATION_S
+              value: "3600"
+            - name: VLLM_MAX_AUDIO_CLIP_FILESIZE_MB
+              value: "180"
+            # Word timestamps require the V1 model runner.
+            - name: VLLM_USE_V2_MODEL_RUNNER
+              value: "0"
+            - name: VLLM_DISABLED_KERNELS
+              value: "FlashInferFP8ScaledMMLinearKernel"
+            - name: MODEL_NAME
+              value: "/models/nvidia__NVIDIA-Nemotron-3.5-Transcribe-30B-A4B-NVFP4"
+            - name: HF_HOME
+              value: "/models"
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 600
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 900
+            periodSeconds: 30
+            timeoutSeconds: 10
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              exec vllm serve "${MODEL_NAME}"
+              --served-model-name nvidia/NVIDIA-Nemotron-3.5-Transcribe-30B-A4B-NVFP4
+              --trust-remote-code
+              --dtype bfloat16
+              --kv-cache-dtype fp8
+              --gpu-memory-utilization 0.85
+              --max-model-len 65536
+              --max-num-batched-tokens 4096
+              --max-num-seqs 64
+              --enable-chunked-prefill
+              --no-enable-prefix-caching
+              --use-replayssm
+              --mamba-backend flashinfer
+              --mamba-cache-mode none
+              --mm-processor-cache-gb 0
+              --no-async-scheduling
+              --limit-mm-per-prompt '{"audio":{"count":1,"length":57600000}}'
+              --speculative-config '{"method":"mtp","num_speculative_tokens":8}'
+              --reasoning-parser nemotron_v3
+              --trust-request-mm-kwargs
+              --middleware nemo.collections.speechlm2.vllm.salm.ctc_serving.ctc_timestamp_middleware
+              --host 0.0.0.0
+              --port 8000
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 16Gi

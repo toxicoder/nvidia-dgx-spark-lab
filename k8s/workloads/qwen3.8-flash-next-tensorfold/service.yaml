@@ -1,0 +1,25 @@
+# Purpose: Kubernetes Service for qwen3.8-flash-next-tensorfold inference endpoint
+# Source of truth: k8s/workloads/qwen3.8-flash-next-tensorfold/
+# Regenerate: n/a
+# Safety: exclusive single-Spark lane, manual start, heavy confirm, one lane at a time
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+  name: qwen3.8-flash-next-tensorfold
+  namespace: ai-inference
+  labels:
+    app: qwen3.8-flash-next-tensorfold
+    family: qwen3.8
+spec:
+  selector:
+    app: qwen3.8-flash-next-tensorfold
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: http
+  type: ClusterIP

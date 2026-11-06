@@ -1,0 +1,11 @@
+# Purpose: Kustomize bundle for Nemotron 3.5 Transcribe 30B-A4B NVFP4 workload
+# Source of truth: k8s/workloads/nemotron-3.5-transcribe-30b-a4b-nvfp4/
+# Regenerate: n/a
+# Safety: GPU lane, manual start, Blackwell-only NVFP4, one deployment
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - nemotron-3.5-transcribe-30b-a4b-nvfp4-deployment.yaml
+  - service.yaml

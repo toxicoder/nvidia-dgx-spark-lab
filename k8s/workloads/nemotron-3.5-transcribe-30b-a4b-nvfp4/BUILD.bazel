@@ -1,0 +1,27 @@
+"""Package purpose: Nemotron 3.5 Transcribe 30B-A4B NVFP4 deployment manifests, image pin, and service exports."""
+
+package(default_visibility = ["//visibility:private"])
+
+filegroup(
+    name = "nemotron_3_5_transcribe_30b_a4b_nvfp4_deployment",
+    srcs = [
+        "Dockerfile",
+        "README.md",
+        "kustomization.yaml",
+        "nemotron-3.5-transcribe-30b-a4b-nvfp4-deployment.yaml",
+        "service.yaml",
+    ],
+    visibility = [
+        "//k8s:__subpackages__",
+        "//lints:__pkg__",
+        "//scripts:__pkg__",
+        "//tests:__pkg__",
+    ],
+)
+
+exports_files([
+    "Dockerfile",
+    "kustomization.yaml",
+    "nemotron-3.5-transcribe-30b-a4b-nvfp4-deployment.yaml",
+    "service.yaml",
+])

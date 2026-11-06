@@ -1,0 +1,125 @@
+# Purpose: Qwen3.8-27B TensorFold Job on one DGX Spark (GB10 128 GB UMA)
+# Source of truth: k8s/workloads/qwen3.8-27b-tensorfold/
+# Regenerate: n/a
+# Safety: manual start only; one Spark only (spark0); KV pool pinned up to 78 GiB; fail-stop Job
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: qwen3.8-27b-tensorfold
+  namespace: ai-inference
+  labels:
+    app: qwen3.8-27b-tensorfold
+    workload: inference
+    mode: production
+    family: qwen3.8
+    role: leader
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 7200
+  template:
+    metadata:
+      labels:
+        app: qwen3.8-27b-tensorfold
+        workload: inference
+        mode: production
+        family: qwen3.8
+        role: leader
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      restartPolicy: OnFailure
+      # Single Spark only - the 78 GiB pinned KV pool assumes one GB10 with 128 GB UMA.
+      # No hostNetwork/hostIPC: matches the house single-node lane (qwen3.8-flash-next-nvfp4).
+      nodeSelector:
+        kubernetes.io/hostname: spark0
+      containers:
+        - name: inference
+          # TensorFold v0.6.0 recipe image (nvcr.io/nvidia/pytorch:26.07-py3 based).
+          image: ghcr.io/miaai-lab/qwen3.8-27b-dgx-spark-tensorfold:v0.6.0
+          imagePullPolicy: IfNotPresent
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+          resources:
+            requests:
+              cpu: "8"
+              memory: "96Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "16"
+              memory: "110Gi"
+              nvidia.com/gpu: "1"
+          env:
+            # MLX affine 4-bit checkpoint from download-qwen38-27b-tensorfold.
+            # Alt checkpoint: /models/nvidia__Qwen3.8-27B-NVFP4 (add VISION=0, no images).
+            - name: MODEL_DIR
+              value: "/models/Vontra__Qwen3.8-27B-MLX-4bit"
+            - name: DRAFT_DIR
+              value: "/models/z-lab__Qwen3.8-27B-DFlash2"
+            - name: SERVED_NAME
+              value: "Qwen3.8-27B"
+            # Concurrent streams; 8 at the default pool, 16 needs KV_POOL_GB=72.
+            - name: PARALLEL
+              value: "8"
+            - name: CONTEXT
+              value: "262144"
+            # Native window is 262,144; YaRN x4 widens it to 1,048,576. Set to 1 to disable.
+            - name: YARN_FACTOR
+              value: "4"
+            - name: KV_POOL_GB
+              value: "auto"
+            - name: KV_DTYPE
+              value: "fp8"
+            - name: HF_HOME
+              value: "/models"
+            # Upstream default is 8888; pinned to 8000 for the Service and probes.
+            - name: PORT
+              value: "8000"
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 600
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 600
+            periodSeconds: 30
+            timeoutSeconds: 10
+            # ~45 GiB startup estimate plus the pinned KV pool can outrun the delay.
+            failureThreshold: 10
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              exec tensorfold serve "${MODEL_DIR}"
+              --served-name "${SERVED_NAME}"
+              --draft "${DRAFT_DIR}"
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 32Gi

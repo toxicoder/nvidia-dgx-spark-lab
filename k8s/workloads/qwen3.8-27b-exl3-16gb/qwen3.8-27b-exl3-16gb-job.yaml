@@ -1,0 +1,116 @@
+# Purpose: Qwen3.8-27B EXL3 (ExLlamaV3) Job for 16 GB+ consumer NVIDIA GPUs
+# Source of truth: k8s/workloads/qwen3.8-27b-exl3-16gb/
+# Regenerate: n/a
+# Safety: manual start only; one GPU per Job; ctx_size must stay a multiple of 256; gpu_mem_gb capped for 16 GB cards
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: qwen3.8-27b-exl3-16gb
+  namespace: ai-inference
+  labels:
+    app: qwen3.8-27b-exl3-16gb
+    workload: inference
+    mode: production
+    family: qwen3.8
+    role: leader
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 7200
+  template:
+    metadata:
+      labels:
+        app: qwen3.8-27b-exl3-16gb
+        workload: inference
+        mode: production
+        family: qwen3.8
+        role: leader
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      restartPolicy: OnFailure
+      # No nodeSelector: any node with nvidia.com/gpu: 1 qualifies. The node itself
+      # needs >=16 GB VRAM, Turing or newer (compute capability 7.5+), driver 570+.
+      containers:
+        - name: inference
+          # ExLlamaV3 1.6.0 + torch cu128, built from k8s/workloads/qwen3.8-27b-exl3-16gb/Dockerfile.
+          image: qwen38-27b-exl3:local
+          imagePullPolicy: IfNotPresent
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+          resources:
+            requests:
+              cpu: "4"
+              memory: "16Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "8"
+              memory: "24Gi"
+              nvidia.com/gpu: "1"
+          env:
+            # Quant snapshot from download-qwen38-27b-exl3 (tier dir under the repo root).
+            # Switch to e.g. /models/Mia-AiLab__Qwen3.8-27B-EXL3-2.0bpw/2.0bpw for 12 GB cards.
+            - name: MODEL_DIR
+              value: "/models/turboderp__Qwen3.8-27B-exl3/3.0bpw"
+            # Must remain a multiple of the 256-token page size.
+            - name: CONTEXT_SIZE
+              value: "199936"
+            - name: MAX_PARALLEL
+              value: "4"
+            # VRAM cap for a 16 GB card; lower it (e.g. 11.0) on a 12 GB card.
+            - name: GPU_MEM_GB
+              value: "14.7"
+            - name: HF_HOME
+              value: "/models"
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 600
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8000
+            initialDelaySeconds: 600
+            periodSeconds: 30
+            timeoutSeconds: 10
+            # PCIe weight load on a consumer card can exceed the initial delay.
+            failureThreshold: 10
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              exec python -m exllamav3_server
+              --model_dir "${MODEL_DIR}"
+              --host 0.0.0.0
+              --port 8000
+              --ctx_size "${CONTEXT_SIZE}"
+              --max_parallel "${MAX_PARALLEL}"
+              --gpu_mem_gb "${GPU_MEM_GB}"
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: model-storage
+          hostPath:
+            path: /mnt/models
+            type: DirectoryOrCreate
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 16Gi
