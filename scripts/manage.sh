@@ -988,6 +988,91 @@ case "${1:-help}" in
     check_cluster_access
     stop_dsv41_flash
     ;;
+  start-dsv4-flash-dspark | start-deepseek-v4-flash-dspark)
+    ## start-dsv4-flash-dspark
+    # @command start-dsv4-flash-dspark
+    # @command start-deepseek-v4-flash-dspark
+    # Exclusive 2-node pair DeepSeek-V4-Flash vLLM TP=2 (MiaAI DSpark recipe). Optional --with-litellm.
+    require_kubectl
+    check_cluster_access
+    start_dsv4_flash_dspark "${@:2}"
+    ;;
+  stop-dsv4-flash-dspark | stop-deepseek-v4-flash-dspark)
+    ## stop-dsv4-flash-dspark
+    # @command stop-dsv4-flash-dspark
+    # @command stop-deepseek-v4-flash-dspark
+    require_kubectl
+    check_cluster_access
+    stop_dsv4_flash_dspark
+    ;;
+  start-glm53-flash-exl3 | start-glm-5.3-flash-exl3)
+    ## start-glm53-flash-exl3
+    # @command start-glm53-flash-exl3
+    # @command start-glm-5.3-flash-exl3
+    # Exclusive 2-node pair GLM-5.3-Flash EXL3 TensorFold (1M ctx). Optional --with-litellm.
+    require_kubectl
+    check_cluster_access
+    start_glm53_flash_exl3 "${@:2}"
+    ;;
+  stop-glm53-flash-exl3 | stop-glm-5.3-flash-exl3)
+    ## stop-glm53-flash-exl3
+    # @command stop-glm53-flash-exl3
+    # @command stop-glm-5.3-flash-exl3
+    require_kubectl
+    check_cluster_access
+    stop_glm53_flash_exl3
+    ;;
+  start-qwen38-27b-exl3 | start-qwen3.8-27b-exl3)
+    ## start-qwen38-27b-exl3
+    # @command start-qwen38-27b-exl3
+    # @command start-qwen3.8-27b-exl3
+    # Exclusive Qwen3.8-27B EXL3 on a 16 GB+ consumer GPU (ExLlamaV3). Optional --with-litellm.
+    require_kubectl
+    check_cluster_access
+    start_qwen38_27b_exl3 "${@:2}"
+    ;;
+  stop-qwen38-27b-exl3 | stop-qwen3.8-27b-exl3)
+    ## stop-qwen38-27b-exl3
+    # @command stop-qwen38-27b-exl3
+    # @command stop-qwen3.8-27b-exl3
+    require_kubectl
+    check_cluster_access
+    stop_qwen38_27b_exl3
+    ;;
+  start-qwen38-27b-tensorfold | start-qwen3.8-27b-tensorfold)
+    ## start-qwen38-27b-tensorfold
+    # @command start-qwen38-27b-tensorfold
+    # @command start-qwen3.8-27b-tensorfold
+    # Exclusive 1-node Qwen3.8-27B TensorFold (MLX-4bit + DFlash2). Optional --with-litellm.
+    require_kubectl
+    check_cluster_access
+    start_qwen38_27b_tensorfold "${@:2}"
+    ;;
+  stop-qwen38-27b-tensorfold | stop-qwen3.8-27b-tensorfold)
+    ## stop-qwen38-27b-tensorfold
+    # @command stop-qwen38-27b-tensorfold
+    # @command stop-qwen3.8-27b-tensorfold
+    require_kubectl
+    check_cluster_access
+    stop_qwen38_27b_tensorfold
+    ;;
+  start-qwen38-flash-next-tensorfold | start-qwen3.8-flash-next-tensorfold)
+    ## start-qwen38-flash-next-tensorfold
+    # @command start-qwen38-flash-next-tensorfold
+    # @command start-qwen3.8-flash-next-tensorfold
+    # Exclusive 1-node Qwen3.8-Flash-Next TensorFold (NVFP4 MoE). Optional --with-litellm.
+    require_kubectl
+    check_cluster_access
+    start_qwen38_flash_next_tensorfold "${@:2}"
+    ;;
+  stop-qwen38-flash-next-tensorfold | stop-qwen3.8-flash-next-tensorfold)
+    ## stop-qwen38-flash-next-tensorfold
+    # @command stop-qwen38-flash-next-tensorfold
+    # @command stop-qwen3.8-flash-next-tensorfold
+    require_kubectl
+    check_cluster_access
+    stop_qwen38_flash_next_tensorfold
+    ;;
   start-litellm)
     ## start-litellm
     # @command start-litellm
@@ -1421,6 +1506,11 @@ Commands:
   start-qwen38-flash-next [--with-litellm]  spark1 Qwen3.8-Flash-Next NVFP4
   start-glm53-flash / stop-glm53-flash  Mode B TP=3 on the QSFP ring (refuses Mode A and C)
   start-dsv41-flash / stop-dsv41-flash  Mode C DeepSeek-V4.1-Flash TP=3 (refuses Mode A and B)
+  start-dsv4-flash-dspark / stop-dsv4-flash-dspark  2-node pair DeepSeek-V4-Flash vLLM TP=2 (MiaAI DSpark; refuses all other lanes)
+  start-glm53-flash-exl3 / stop-glm53-flash-exl3  2-node pair GLM-5.3-Flash EXL3 TensorFold 1M (refuses all other lanes)
+  start-qwen38-27b-exl3 / stop-qwen38-27b-exl3  Qwen3.8-27B EXL3 on a 16 GB+ consumer GPU (ExLlamaV3; refuses Mode B/C)
+  start-qwen38-27b-tensorfold / stop-qwen38-27b-tensorfold  1-node Qwen3.8-27B TensorFold MLX-4bit (refuses Mode B/C)
+  start-qwen38-flash-next-tensorfold / stop-qwen38-flash-next-tensorfold  1-node Qwen3.8-Flash-Next TensorFold NVFP4 (refuses Mode B/C)
   start-litellm [--backend <id>] / stop-litellm  LAN OpenAI proxy (lab-auto)
   --with-litellm   Attach LiteLLM with the matching backend profile after start
   status-stack     Mode A/B/C Jobs + LiteLLM aliases + fabric hint
