@@ -11,7 +11,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
-from typing import Any
+from typing import TypeAlias, TypedDict, cast
 
 import httpx
 import redis
@@ -21,14 +21,120 @@ from fastapi import FastAPI, Request, Response
 CONFIG_PATH = Path(os.environ.get("CONFIG_PATH", "/app/config.yaml"))
 
 
-def load_config() -> dict[str, Any]:
+_JsonRpcId: TypeAlias = str | int | None
+
+
+class _CacheCfg(TypedDict, total=False):
+    """Redis cache block of the proxy ``config.yaml``."""
+
+    url: str
+    ttl_seconds: int
+
+
+class _UpstreamCfg(TypedDict, total=False):
+    """Upstream Context7 block of the proxy ``config.yaml``."""
+
+    mcp_url: str
+
+
+class _FallbackCfg(TypedDict, total=False):
+    """Qdrant fallback block of the proxy ``config.yaml``."""
+
+    embed_url: str
+    qdrant_url: str
+    collection: str
+    embed_model: str
+
+
+class _Config(TypedDict, total=False):
+    """Subset of ``config.yaml`` this proxy reads."""
+
+    enabled: bool
+    cache: _CacheCfg
+    upstream: _UpstreamCfg
+    fallback: _FallbackCfg
+
+
+class _JsonRpcParams(TypedDict, total=False):
+    """Request parameters the Qdrant fallback reads out of an MCP call."""
+
+    query: str
+    libraryName: str
+
+
+class _JsonRpcRequest(TypedDict, total=False):
+    """JSON-RPC request body received on ``/mcp``."""
+
+    id: _JsonRpcId
+    params: _JsonRpcParams
+
+
+class _JsonRpcError(TypedDict):
+    """JSON-RPC error object."""
+
+    code: int
+    message: str
+
+
+class _JsonRpcErrorReply(TypedDict):
+    """JSON-RPC error reply for a fallback request without a query."""
+
+    jsonrpc: str
+    id: _JsonRpcId
+    error: _JsonRpcError
+
+
+class _TextContent(TypedDict):
+    """MCP text content block returned to the caller."""
+
+    type: str
+    text: str
+
+
+class _FallbackMeta(TypedDict):
+    """Provenance attached to a Qdrant-sourced reply."""
+
+    source: str
+    hits: int
+
+
+class _JsonRpcResult(TypedDict):
+    """MCP tool result with the matched documentation text."""
+
+    content: list[_TextContent]
+    isError: bool
+    _meta: _FallbackMeta
+
+
+class _JsonRpcResultReply(TypedDict):
+    """JSON-RPC reply carrying Qdrant documentation snippets."""
+
+    jsonrpc: str
+    id: _JsonRpcId
+    result: _JsonRpcResult
+
+
+class _HitPayload(TypedDict, total=False):
+    """Document fields stored on a Qdrant point."""
+
+    text: str
+    content: str
+
+
+class _QdrantHit(TypedDict, total=False):
+    """One point returned by a Qdrant search."""
+
+    payload: _HitPayload
+
+
+def load_config() -> _Config:
     """Load proxy configuration from YAML and environment overrides.
 
     Returns:
         Parsed configuration dictionary with optional ``enabled`` override from
         the ``CONTEXT7_ENABLED`` environment variable.
     """
-    data = yaml.safe_load(CONFIG_PATH.read_text()) or {}
+    data = cast(_Config, yaml.safe_load(CONFIG_PATH.read_text()) or {})
     if os.environ.get("CONTEXT7_ENABLED", "").lower() in {"0", "false", "no"}:
         data["enabled"] = False
     elif os.environ.get("CONTEXT7_ENABLED", "").lower() in {"1", "true", "yes"}:
@@ -57,7 +163,7 @@ def cache_key(body: bytes) -> str:
     return "ctx7:" + hashlib.sha256(body).hexdigest()
 
 
-async def qdrant_fallback(payload: dict[str, Any]) -> dict[str, Any]:
+async def qdrant_fallback(payload: _JsonRpcRequest) -> _JsonRpcErrorReply | _JsonRpcResultReply:
     """Answer an MCP request using Qdrant-backed local documentation.
 
     Args:
@@ -95,7 +201,7 @@ async def qdrant_fallback(payload: dict[str, Any]) -> dict[str, Any]:
             emb.raise_for_status()
             vector = emb.json()["data"][0]["embedding"]
 
-    search_body: dict[str, Any] = {
+    search_body: dict[str, object] = {
         "limit": 5,
         "with_payload": True,
     }
@@ -112,7 +218,7 @@ async def qdrant_fallback(payload: dict[str, Any]) -> dict[str, Any]:
             json=search_body,
         )
         if res.status_code == 404:
-            hits: list[Any] = []
+            hits: list[_QdrantHit] = []
         else:
             res.raise_for_status()
             hits = res.json().get("result", [])
@@ -169,7 +275,7 @@ async def mcp_proxy(request: Request) -> Response:
         )
 
     try:
-        payload = json.loads(body.decode("utf-8"))
+        payload = cast(_JsonRpcRequest, json.loads(body.decode("utf-8")))
     except json.JSONDecodeError:
         return Response(
             content=json.dumps({"error": "invalid json"}),

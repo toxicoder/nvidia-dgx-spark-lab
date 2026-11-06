@@ -28,6 +28,10 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 DOCS_DIR = REPO_ROOT / "docs"
 EXCLUDED = frozenset({"node_modules", "__pycache__", ".git"})
 
+#: One audit hit: ``(line_number, reason, line_text)``.  ``--json`` reports these as
+#: three-element arrays, so the tuple spelling is what the report serialises.
+HitRow = tuple[int, str, str]
+
 
 def _fenced_ranges(lines: list[str]) -> list[tuple[int, int]]:
     """Return half-open line ranges covered by fenced code blocks."""
@@ -57,11 +61,11 @@ def _blank_out(text: str) -> str:
     return _ESCAPED_RE.sub("  ", text)
 
 
-def audit(text: str) -> list[tuple[int, str, str]]:
+def audit(text: str) -> list[HitRow]:
     """Return ``(line_number, reason, line)`` for every MDX-hostile line."""
     lines = text.split("\n")
     fenced = _fenced_ranges(lines)
-    hits: list[tuple[int, str, str]] = []
+    hits: list[HitRow] = []
     for index, line in enumerate(lines):
         if any(start <= index < end for start, end in fenced):
             continue
@@ -95,11 +99,11 @@ def main(argv: list[str] | None = None) -> int:
         files = [p for p in files if "generated" not in p.relative_to(root).parts]
     elif args.scope == "generated":
         files = [p for p in files if "generated" in p.relative_to(root).parts]
-    report: dict[str, list[list]] = {}
+    report: dict[str, list[HitRow]] = {}
     for path in files:
         hits = audit(path.read_text(encoding="utf-8"))
         if hits:
-            report[str(path.relative_to(REPO_ROOT))] = [list(h) for h in hits]
+            report[str(path.relative_to(REPO_ROOT))] = hits
 
     if args.json:
         print(json.dumps(report, indent=2))
@@ -108,8 +112,8 @@ def main(argv: list[str] | None = None) -> int:
     total = sum(len(v) for v in report.values())
     braces = sum(1 for v in report.values() for h in v if h[1] == "brace")
     print(f"{len(report)} of {len(files)} files, {total} hostile lines ({braces} brace, {total - braces} jsxish)")
-    for path, hits in report.items():
-        print(f"\n{path} ({len(hits)})")
+    for rel, hits in report.items():
+        print(f"\n{rel} ({len(hits)})")
         for number, reason, text in hits[: args.limit]:
             print(f"  {number:>4} {reason:<7} {text[:100]}")
         if len(hits) > args.limit:

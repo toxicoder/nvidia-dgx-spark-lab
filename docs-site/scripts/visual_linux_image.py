@@ -23,6 +23,7 @@ import subprocess
 import re
 import sys
 from pathlib import Path
+from typing import TypedDict, cast
 
 PACKAGE_DIR = Path(__file__).resolve().parent.parent
 REPO_ROOT = PACKAGE_DIR.parent
@@ -32,6 +33,44 @@ DOCKERFILE = REPO_ROOT / "dashboard" / "Dockerfile.test"
 # packages resolve identically between a refresh and the pipeline.
 UBUNTU_CODENAME = "jammy"
 PLATFORM = "linux/amd64"
+
+
+class LockPackageEntry(TypedDict, total=False):
+    """One ``packages`` row of ``package-lock.json`` (only the key this helper reads)."""
+
+    version: str
+
+
+class LockFile(TypedDict, total=False):
+    """Top level of ``package-lock.json`` (only the key this helper reads)."""
+
+    packages: dict[str, LockPackageEntry]
+
+
+class Manifest(TypedDict, total=False):
+    """Top level of ``package.json`` (only the key this helper reads)."""
+
+    devDependencies: dict[str, str]
+
+
+class ImageManifestPlatform(TypedDict, total=False):
+    """The ``platform`` object of one ``docker manifest inspect`` variant."""
+
+    os: str
+    architecture: str
+
+
+class ImageManifestEntry(TypedDict, total=False):
+    """One variant published by a multi-architecture image manifest."""
+
+    digest: str
+    platform: ImageManifestPlatform
+
+
+class ImageManifest(TypedDict, total=False):
+    """Decoded ``docker manifest inspect`` document (only the key this helper reads)."""
+
+    manifests: list[ImageManifestEntry]
 
 
 def registry_prefix() -> str:
@@ -61,13 +100,14 @@ def playwright_version() -> str:
     """
     lock_path = PACKAGE_DIR / "package-lock.json"
     if lock_path.is_file():
-        lock = json.loads(lock_path.read_text(encoding="utf-8"))
+        lock = cast("LockFile", json.loads(lock_path.read_text(encoding="utf-8")))
         entry = (lock.get("packages") or {}).get("node_modules/@playwright/test") or {}
         pinned = entry.get("version")
         if pinned:
             return pinned
 
-    manifest = json.loads((PACKAGE_DIR / "package.json").read_text(encoding="utf-8"))
+    manifest_path = PACKAGE_DIR / "package.json"
+    manifest = cast("Manifest", json.loads(manifest_path.read_text(encoding="utf-8")))
     spec = (manifest.get("devDependencies") or {}).get("@playwright/test", "")
     match = re.search(r"\d+\.\d+\.\d+", spec)
     if match is None:
@@ -109,7 +149,8 @@ def platform_digest(image: str, want: str) -> str:
     )
     if result.returncode != 0 or not result.stdout.strip():
         return ""
-    for entry in json.loads(result.stdout).get("manifests", []):
+    manifest = cast("ImageManifest", json.loads(result.stdout))
+    for entry in manifest.get("manifests", []):
         platform = entry.get("platform", {})
         if platform.get("os") == "linux" and platform.get("architecture") == want:
             return entry["digest"]
@@ -130,7 +171,7 @@ def resident_image_ids(repository: str) -> list[str]:
     )
     if result.returncode != 0:
         return []
-    identifiers = []
+    identifiers: list[str] = []
     for line in result.stdout.splitlines():
         fields = line.split()
         if len(fields) == 2 and fields[0] == repository and fields[1] != "<none>":

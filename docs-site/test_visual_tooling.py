@@ -27,6 +27,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from collections.abc import Iterator, Sequence
 
 PACKAGE_DIR = pathlib.Path(__file__).resolve().parent
 SCRIPT = PACKAGE_DIR / "scripts" / "visual_linux.sh"
@@ -48,8 +49,15 @@ def read(path: pathlib.Path) -> str:
 
 
 @contextlib.contextmanager
-def _package_dir(root: pathlib.Path):
-    """Point the helper at a throwaway package root so its fallback paths can be exercised."""
+def _package_dir(root: pathlib.Path) -> Iterator[None]:
+    """Point the helper at a throwaway package root so its fallback paths can be exercised.
+
+    Args:
+        root: Directory to install as ``visual_linux_image.PACKAGE_DIR``.
+
+    Yields:
+        Nothing; the block runs against the temporary package root.
+    """
     original = visual_linux_image.PACKAGE_DIR
     visual_linux_image.PACKAGE_DIR = root
     try:
@@ -59,16 +67,27 @@ def _package_dir(root: pathlib.Path):
 
 
 @contextlib.contextmanager
-def _capture_stdout():
-    """Collect what the command-line entry point prints."""
+def _capture_stdout() -> Iterator[io.StringIO]:
+    """Collect what the command-line entry point prints.
+
+    Yields:
+        The buffer the entry point's stdout is redirected into.
+    """
     buffer = io.StringIO()
     with contextlib.redirect_stdout(buffer):
         yield buffer
 
 
 @contextlib.contextmanager
-def _captured_args(argv: list[str]):
-    """Pin ``sys.argv`` so a module run as ``__main__`` sees a known command line."""
+def _captured_args(argv: list[str]) -> Iterator[None]:
+    """Pin ``sys.argv`` so a module run as ``__main__`` sees a known command line.
+
+    Args:
+        argv: Argument vector to install, without the program name.
+
+    Yields:
+        Nothing; the block runs with the pinned ``sys.argv``.
+    """
     original = sys.argv
     sys.argv = ["visual_linux_image.py", *argv]
     try:
@@ -196,28 +215,52 @@ class ImageResolutionTests(unittest.TestCase):
     """The helper that names the capture image resolves it from the checkout, not from Docker."""
 
     @staticmethod
-    def _completed(returncode: int = 0, stdout: str = "", stderr: str = ""):
+    def _completed(
+        returncode: int = 0, stdout: str = "", stderr: str = ""
+    ) -> subprocess.CompletedProcess[str]:
+        """Build the result object a ``subprocess.run`` call would hand back.
+
+        Args:
+            returncode: Exit status to report.
+            stdout: Standard output to report.
+            stderr: Standard error to report.
+
+        Returns:
+            A completed-process record carrying those three values.
+        """
         return subprocess.CompletedProcess(
             args=[], returncode=returncode, stdout=stdout, stderr=stderr
         )
 
     def setUp(self) -> None:
-        self._real_run = visual_linux_image.subprocess.run
+        # ``visual_linux_image`` looks ``subprocess.run`` up on the shared module object at
+        # call time, so replacing the attribute here is exactly what the helper sees.
+        self._real_run: object = subprocess.run
 
     def tearDown(self) -> None:
-        visual_linux_image.subprocess.run = self._real_run
+        setattr(subprocess, "run", self._real_run)
 
     def _fake_docker(self, responses: dict[str, tuple[int, str]]) -> list[list[str]]:
-        """Route ``subprocess.run`` to canned answers keyed by the docker subcommand."""
+        """Route ``subprocess.run`` to canned answers keyed by the docker subcommand.
+
+        Args:
+            responses: Exit code and stdout to return, keyed by the second argument of the
+                command (``manifest``, ``images``, ...).
+
+        Returns:
+            The list of command vectors the code under test invoked, filled in as it runs.
+        """
         calls: list[list[str]] = []
 
-        def run(command, *args, **kwargs):
+        def run(
+            command: Sequence[str], *args: object, **kwargs: object
+        ) -> subprocess.CompletedProcess[str]:
             calls.append(list(command))
             key = command[1] if len(command) > 1 else ""
             code, out = responses.get(key, (0, ""))
             return self._completed(returncode=code, stdout=out)
 
-        visual_linux_image.subprocess.run = run
+        setattr(subprocess, "run", run)
         return calls
 
     def test_registry_prefix_comes_from_the_dashboard_test_image(self) -> None:

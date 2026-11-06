@@ -26,10 +26,27 @@ import json
 import pathlib
 import re
 import sys
+from collections.abc import Sequence
+from typing import TypedDict, cast
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 MKDOCS_YML = REPO_ROOT / "mkdocs.yml"
 OUT_JSON = REPO_ROOT / "docs-site" / "lib" / "nav.json"
+
+
+class NavItem(TypedDict):
+    """One sidebar leaf: a page title and its path relative to ``docs/``."""
+
+    title: str
+    path: str
+
+
+class NavTab(TypedDict):
+    """One top-level sidebar tab and the leaves that belong to it, in order."""
+
+    title: str
+    pages: list[NavItem]
+
 
 #: ``- Label: path/to/page.md`` (a nav leaf).
 _NAV_LEAF_RE = re.compile(r"^[ \t]*-[ \t]+(?P<label>[^:\n]+?):[ \t]+(?P<path>[A-Za-z0-9_.\-/]+\.md)[ \t]*$")
@@ -70,7 +87,7 @@ def _dash_column(line: str) -> int:
     return len(line) - len(line.lstrip(" \t"))
 
 
-def parse_nav(mkdocs_text: str) -> list[dict[str, object]]:
+def parse_nav(mkdocs_text: str) -> list[NavTab]:
     """Convert the MkDocs ``nav`` list into the Fumadocs group layout.
 
     Nesting is read from the bullet column rather than from indentation size, so a tab
@@ -84,6 +101,10 @@ def parse_nav(mkdocs_text: str) -> list[dict[str, object]]:
     Returns:
         One entry per top-level tab: ``{"title", "pages"}`` where ``pages`` holds the
         ordered ``{"title", "path"}`` leaves declared under that tab.
+
+    Raises:
+        ValueError: If ``mkdocs.yml`` has no nav, the nav is empty, a leaf appears
+            before any tab, or a nav line cannot be parsed.
     """
     lines = [
         line
@@ -94,8 +115,8 @@ def parse_nav(mkdocs_text: str) -> list[dict[str, object]]:
         raise ValueError("mkdocs.yml nav is empty")
     tab_column = min(_dash_column(line) for line in lines)
 
-    tabs: list[dict[str, object]] = []
-    current: dict[str, object] | None = None
+    tabs: list[NavTab] = []
+    current: NavTab | None = None
     for line in lines:
         is_tab_level = _dash_column(line) == tab_column
         leaf = _NAV_LEAF_RE.match(line)
@@ -107,12 +128,12 @@ def parse_nav(mkdocs_text: str) -> list[dict[str, object]]:
             continue
         if is_tab_level and leaf:
             tabs.append(
-                {
-                    "title": leaf.group("label").strip(),
-                    "pages": [
-                        {"title": leaf.group("label").strip(), "path": leaf.group("path").strip()}
+                NavTab(
+                    title=leaf.group("label").strip(),
+                    pages=[
+                        NavItem(title=leaf.group("label").strip(), path=leaf.group("path").strip())
                     ],
-                }
+                )
             )
             current = tabs[-1]
             continue
@@ -121,7 +142,7 @@ def parse_nav(mkdocs_text: str) -> list[dict[str, object]]:
                 raise ValueError(f"nav leaf appears before any tab: {line!r}")
             assert isinstance(current["pages"], list)
             current["pages"].append(
-                {"title": leaf.group("label").strip(), "path": leaf.group("path").strip()}
+                NavItem(title=leaf.group("label").strip(), path=leaf.group("path").strip())
             )
             continue
         if group:
@@ -136,7 +157,7 @@ def parse_nav(mkdocs_text: str) -> list[dict[str, object]]:
     return tabs
 
 
-def validate(tabs: list[dict[str, object]]) -> list[str]:
+def validate(tabs: Sequence[NavTab]) -> list[str]:
     """Check the parsed nav against the files on disk.
 
     Args:
@@ -149,7 +170,7 @@ def validate(tabs: list[dict[str, object]]) -> list[str]:
     docs = REPO_ROOT / "docs"
     seen: set[str] = set()
     for tab in tabs:
-        for page in tab["pages"]:  # type: ignore
+        for page in tab["pages"]:
             # The nav names pages as MkDocs had them; a page that needed JSX was renamed to
             # `.mdx` by the codemod, so either suffix counts as present.
             declared = docs / page["path"]
@@ -184,7 +205,7 @@ def main(argv: list[str] | None = None) -> int:
     elif args.check and OUT_JSON.is_file():
         # mkdocs.yml has been retired: the committed tree is the source of truth and the
         # job of this mode is to keep it honest against what is actually on disk.
-        tabs = json.loads(OUT_JSON.read_text(encoding="utf-8"))
+        tabs = cast("list[NavTab]", json.loads(OUT_JSON.read_text(encoding="utf-8")))
     else:
         # mkdocs.yml has been retired in this repository, so there is nothing to transcribe
         # from.  The committed tree is edited by hand and verified, not regenerated.

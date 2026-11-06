@@ -7,16 +7,33 @@ content used by the interactive command-vars panel) works correctly.
 
 from __future__ import annotations
 
-import importlib
 import os
 import sys
 import tempfile
 import unittest
 from pathlib import Path
-from typing import Any, Callable, Iterator, Sequence
+from typing import Callable, Iterator, Protocol, Sequence
 
 # Import the module under test
 sys.path.insert(0, str(Path(__file__).parent))
+
+
+class WalkFn(Protocol):
+    """Shape of the ``os.walk`` stand-in the ordering test installs.
+
+    The generator calls it with a single directory, so every other parameter keeps the
+    ``os.walk`` default it would otherwise receive.
+    """
+
+    def __call__(
+        self,
+        top: str | os.PathLike[str],
+        topdown: bool = True,
+        onerror: Callable[[OSError], object] | None = None,
+        followlinks: bool = False,
+    ) -> Iterator[tuple[str, list[str], list[str]]]:
+        """Return ``(root, dirs, files)`` triples for the tree below ``top``."""
+        ...
 
 
 class TestExtractFromFile(unittest.TestCase):
@@ -431,18 +448,19 @@ class TestDeterministicOrdering(unittest.TestCase):
         Returns:
             Generated reference Markdown content.
         """
-        mod: Any = importlib.import_module("generate_shell_docs")
+        import generate_shell_docs as mod
 
+        output_file = td / "reference.md"
         mod.SCRIPTS_DIR = scripts
         mod.REPO_ROOT = td
         mod.OUTPUT_DIR = td
-        mod.OUTPUT_FILE = td / "reference.md"
+        mod.OUTPUT_FILE = output_file
         mod.main()
-        return str(mod.OUTPUT_FILE.read_text(encoding="utf-8"))
+        return output_file.read_text(encoding="utf-8")
 
     def test_sections_follow_sorted_paths_not_walk_order(self) -> None:
         """Shuffled os.walk output leaves the generated reference unchanged."""
-        mod: Any = importlib.import_module("generate_shell_docs")
+        import generate_shell_docs as mod
 
         rel_paths = [
             "zulu.sh",
@@ -452,9 +470,9 @@ class TestDeterministicOrdering(unittest.TestCase):
             "lib/zulu.sh",
             "lib/alpha.sh",
         ]
-        real_walk = mod.os.walk
+        real_walk: WalkFn = os.walk
 
-        def shuffled_walk(shift: int) -> Callable[..., Iterator[Any]]:
+        def shuffled_walk(shift: int) -> WalkFn:
             """Return an os.walk replacement whose entries are rotated by ``shift``.
 
             Args:
@@ -464,9 +482,24 @@ class TestDeterministicOrdering(unittest.TestCase):
                 A generator function compatible with ``os.walk``.
             """
 
-            def walk(top: Any, *args: Any, **kwargs: Any) -> Iterator[Any]:
-                """Yield the tree below ``top`` with each directory's entries rotated."""
-                for root, dirs, names in real_walk(top, *args, **kwargs):
+            def walk(
+                top: str | os.PathLike[str],
+                topdown: bool = True,
+                onerror: Callable[[OSError], object] | None = None,
+                followlinks: bool = False,
+            ) -> Iterator[tuple[str, list[str], list[str]]]:
+                """Yield the tree below ``top`` with each directory's entries rotated.
+
+                Args:
+                    top: Directory the generator under test asked to walk.
+                    topdown: Passed through to the real ``os.walk``.
+                    onerror: Passed through to the real ``os.walk``.
+                    followlinks: Passed through to the real ``os.walk``.
+
+                Yields:
+                    ``(root, dirs, files)`` triples with each list rotated by ``shift``.
+                """
+                for root, dirs, names in real_walk(top, topdown, onerror, followlinks):
                     ordered_dirs = sorted(dirs)
                     ordered_names = sorted(names)
                     yield (
@@ -481,26 +514,30 @@ class TestDeterministicOrdering(unittest.TestCase):
             td = Path(raw_td)
             scripts = td / "scripts"
             self._write_scripts(scripts, rel_paths)
-            saved = (mod.SCRIPTS_DIR, mod.REPO_ROOT, mod.OUTPUT_DIR, mod.OUTPUT_FILE)
+            output_file = td / "reference.md"
+            saved: tuple[Path, Path, Path, Path] = (
+                mod.SCRIPTS_DIR,
+                mod.REPO_ROOT,
+                mod.OUTPUT_DIR,
+                mod.OUTPUT_FILE,
+            )
             outputs: list[str] = []
             try:
                 mod.SCRIPTS_DIR = scripts
                 mod.REPO_ROOT = td
                 mod.OUTPUT_DIR = td
-                mod.OUTPUT_FILE = td / "reference.md"
+                mod.OUTPUT_FILE = output_file
                 for shift in (0, 1, len(rel_paths) // 2):
-                    mod.os.walk = shuffled_walk(shift)
-                    if mod.OUTPUT_FILE.exists():
-                        mod.OUTPUT_FILE.unlink()
+                    setattr(os, "walk", shuffled_walk(shift))
+                    if output_file.exists():
+                        output_file.unlink()
                     outputs.append(self._generate(td, scripts))
             finally:
-                mod.os.walk = real_walk
-                (
-                    mod.SCRIPTS_DIR,
-                    mod.REPO_ROOT,
-                    mod.OUTPUT_DIR,
-                    mod.OUTPUT_FILE,
-                ) = saved
+                setattr(os, "walk", real_walk)
+                mod.SCRIPTS_DIR = saved[0]
+                mod.REPO_ROOT = saved[1]
+                mod.OUTPUT_DIR = saved[2]
+                mod.OUTPUT_FILE = saved[3]
 
             self.assertEqual([outputs[0]] * len(outputs), outputs)
             expected_order = [

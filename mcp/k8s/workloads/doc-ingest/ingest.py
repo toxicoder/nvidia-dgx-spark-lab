@@ -15,7 +15,44 @@ import re
 import sys
 import urllib.error
 import urllib.request
-from typing import Any
+from typing import TypedDict, cast
+
+
+class _Source(TypedDict, total=False):
+    """One entry of the ``DOC_SOURCES_JSON`` environment list."""
+
+    url: str
+    name: str
+
+
+class _EmbeddingItem(TypedDict):
+    """One item of an OpenAI-compatible embeddings response."""
+
+    embedding: list[float]
+
+
+class _EmbedResponse(TypedDict):
+    """OpenAI-compatible embeddings response from the Nemotron embed service."""
+
+    data: list[_EmbeddingItem]
+
+
+class _PointPayload(TypedDict):
+    """Document text and provenance stored with each Qdrant vector."""
+
+    text: str
+    source: str
+    name: str
+    chunk: int
+
+
+class _Point(TypedDict):
+    """A Qdrant point: its id, vector, and stored payload."""
+
+    id: str
+    vector: list[float]
+    payload: _PointPayload
+
 
 EMBED_URL = os.environ.get(
     "EMBED_URL",
@@ -28,7 +65,7 @@ SOURCES = os.environ.get("DOC_SOURCES_JSON", "[]")
 CHUNK_SIZE = int(os.environ.get("CHUNK_SIZE", "1200"))
 
 
-def http_json(method: str, url: str, body: dict[str, Any] | None = None) -> Any:
+def http_json(method: str, url: str, body: dict[str, object] | None = None) -> object:
     """Perform an HTTP request and parse the JSON response body.
 
     Args:
@@ -37,7 +74,8 @@ def http_json(method: str, url: str, body: dict[str, Any] | None = None) -> Any:
         body: Optional JSON-serializable request body.
 
     Returns:
-        Parsed JSON response.
+        Parsed JSON response; callers narrow it with ``cast`` to the shape they
+        expect, since the wire format varies per endpoint.
 
     Raises:
         urllib.error.URLError: If the HTTP request fails.
@@ -112,12 +150,12 @@ def main() -> int:
     Returns:
         ``0`` on success or when no sources are configured.
     """
-    sources = json.loads(SOURCES)
+    sources = cast(list[_Source], json.loads(SOURCES))
     if not sources:
         print("No DOC_SOURCES_JSON configured; nothing to ingest.", file=sys.stderr)
         return 0
 
-    points: list[dict[str, Any]] = []
+    points: list[_Point] = []
     vector_size = 0
 
     for source in sources:
@@ -126,10 +164,9 @@ def main() -> int:
         print(f"Ingesting {name} from {url}")
         raw = fetch_url(url)
         for idx, chunk in enumerate(chunk_text(raw, CHUNK_SIZE)):
-            emb = http_json(
-                "POST",
-                EMBED_URL,
-                {"input": chunk, "model": EMBED_MODEL},
+            emb = cast(
+                _EmbedResponse,
+                http_json("POST", EMBED_URL, {"input": chunk, "model": EMBED_MODEL}),
             )
             vector = emb["data"][0]["embedding"]
             vector_size = len(vector)

@@ -18,6 +18,7 @@ import pathlib
 import sys
 import tempfile
 import unittest
+from collections.abc import Iterable, Iterator
 from itertools import chain
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent / "scripts"))
@@ -104,15 +105,18 @@ class ValidateTests(unittest.TestCase):
     """The validator reports missing and duplicated pages instead of passing silently."""
 
     def test_missing_page_is_reported(self) -> None:
-        tabs = [{"title": "T", "pages": [{"title": "x", "path": "definitely-not-here.md"}]}]
+        tabs: list[gen_nav.NavTab] = [
+            {"title": "T", "pages": [{"title": "x", "path": "definitely-not-here.md"}]}
+        ]
         problems = gen_nav.validate(tabs)
         self.assertEqual(1, len(problems))
         self.assertIn("definitely-not-here.md", problems[0])
 
     def test_duplicate_page_is_reported(self) -> None:
-        page = {"title": "x", "path": "index.md"}
+        page: gen_nav.NavItem = {"title": "x", "path": "index.md"}
+        twin: gen_nav.NavItem = {"title": page["title"], "path": page["path"]}
         problems = gen_nav.validate(
-            [{"title": "A", "pages": [page]}, {"title": "B", "pages": [dict(page)]}]
+            [{"title": "A", "pages": [page]}, {"title": "B", "pages": [twin]}]
         )
         self.assertIn("listed twice", " ".join(problems))
 
@@ -157,7 +161,9 @@ class RepoContractTests(unittest.TestCase):
         generated = {"generated/shell/reference.md", "generated/dashboard-api/README.md"}
         # nav.json transcribed the MkDocs nav, which names pages by their pre-migration
         # `.md` path; pages that needed JSX were renamed, so compare without the suffix.
-        strip = lambda names: {re.sub(r"\.mdx?$", "", name) for name in names}
+        def strip(names: Iterable[str]) -> set[str]:
+            """Return the names with any markdown suffix removed."""
+            return {re.sub(r"\.mdx?$", "", name) for name in names}
         self.assertEqual(set(), strip(on_disk) - strip(listed), "pages on disk are missing from nav.json")
         self.assertEqual(
             set(),
@@ -297,8 +303,15 @@ class MainCliTests(unittest.TestCase):
 
 
 @contextlib.contextmanager
-def _captured_args(argv: list[str]):
-    """Pin ``sys.argv`` so a module run as ``__main__`` sees a known command line."""
+def _captured_args(argv: list[str]) -> Iterator[None]:
+    """Pin ``sys.argv`` so a module run as ``__main__`` sees a known command line.
+
+    Args:
+        argv: Argument vector to install, without the program name.
+
+    Yields:
+        Nothing; the block runs with the pinned ``sys.argv``.
+    """
     original = sys.argv
     sys.argv = ["gen_nav.py", *argv]
     try:

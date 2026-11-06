@@ -26,6 +26,7 @@ import pathlib
 import re
 import subprocess
 import sys
+from collections.abc import Iterator
 
 # Attributes whose values are file lists. ``deps`` is absent: those are labels.
 _FILE_ATTRS = frozenset({"srcs", "data", "outs", "tools"})
@@ -180,7 +181,7 @@ def _is_path_like(value: str, bare_ok: bool = False) -> bool:
     return "." in value or "/" in value
 
 
-def _walk_pruning_globs(node: ast.AST):
+def _walk_pruning_globs(node: ast.AST) -> Iterator[ast.AST]:
     """Yield nodes below ``node`` without descending into ``glob()`` calls.
 
     Glob patterns and their ``exclude`` lists are matched separately, so they must

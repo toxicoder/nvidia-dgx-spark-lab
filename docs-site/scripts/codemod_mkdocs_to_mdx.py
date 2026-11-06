@@ -294,7 +294,9 @@ def _render_tabs(lines: list[str], markers: list[int], end: int) -> list[str] | 
             return None
         titles.append(match.group("title"))
 
-    indent = _TABS_RE.match(lines[markers[0]]).group("indent")
+    first = _TABS_RE.match(lines[markers[0]])
+    assert first is not None  # the loop above matched every marker, this one included
+    indent = first.group("indent")
     # Repeated labels are content: keep every label verbatim and give each tab its own
     # group so the persisted selection of one cannot drive the other.
     if len(set(titles)) != len(titles):
@@ -514,7 +516,11 @@ def _transform_card_grids(lines: list[str]) -> list[str]:
             (i for i in range(index + 1, len(lines)) if _CARD_GRID_CLOSE_RE.match(lines[i])),
             None,
         )
-        rendered = None if close is None else _render_card_grid(lines, index, close)
+        if close is None:
+            out.append(lines[index])
+            index += 1
+            continue
+        rendered = _render_card_grid(lines, index, close)
         if rendered is None:
             out.append(lines[index])
             index += 1
