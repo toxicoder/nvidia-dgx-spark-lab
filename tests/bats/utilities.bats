@@ -716,6 +716,205 @@ teardown_file() {
   [[ "$output" == *"Shards found:"* ]]
 }
 
+# ## download-<model> utilities: shared status/run contract
+#
+# Each download-<model>.sh utility must report the Hugging Face repo id and the
+# MODELS_DIR/<org>__<Model> snapshot path from local state only (no HF call), and
+# must exit non-zero with usage guidance on a subcommand it does not know.
+
+# @function _download_hf_mock_bin
+# Install huggingface-cli/hf mocks that only record argv, so a status path that
+# reaches for the network trips the offline assertion in the helpers below.
+# @param $1  Bin directory to create.
+# @param $2  Path of the file the mocks append their invocations to.
+_download_hf_mock_bin() {
+  local bin="$1" log="$2" tool
+  mkdir -p "$bin"
+  for tool in huggingface-cli hf; do
+    printf '#!/usr/bin/env bash\necho "%s $*" >>"%s"\n' "$tool" "$log" >"$bin/$tool"
+    chmod +x "$bin/$tool"
+  done
+}
+
+# @function _download_models_dir
+# Point MODELS_DIR at a per-test scratch dir the utilities may create and inspect.
+_download_models_dir() {
+  export MODELS_DIR="${TEST_TMP_DIR}/models-${BATS_TEST_NUMBER}"
+  mkdir -p "$MODELS_DIR"
+}
+
+# Table: utility | HF repo id | snapshot dir relative to MODELS_DIR
+_DOWNLOAD_CONTRACT_CASES=(
+  "download-dsv4-flash-dspark.sh|deepseek-ai/DeepSeek-V4-Flash-Vision-Exp|deepseek-ai__DeepSeek-V4-Flash-Vision-Exp"
+  "download-glm53-flash-exl3.sh|Mia-AiLab/GLM-5.3-Flash-EXL3-4bpw-TensorFold|Mia-AiLab__GLM-5.3-Flash-EXL3-4bpw-TensorFold"
+  "download-qwen38-27b-exl3.sh|turboderp/Qwen3.8-27B-exl3|turboderp__Qwen3.8-27B-exl3/3.0bpw"
+  "download-qwen38-27b-tensorfold.sh|Vontra/Qwen3.8-27B-MLX-4bit|Vontra__Qwen3.8-27B-MLX-4bit"
+  "download-qwen38-flash-next-tensorfold.sh|nvidia/Qwen3.8-Flash-Next-FP4-Local|nvidia__Qwen3.8-Flash-Next-FP4-Local"
+  "download-nemotron-transcribe.sh|nvidia/NVIDIA-Nemotron-3.5-Transcribe-30B-A4B-NVFP4|nvidia__NVIDIA-Nemotron-3.5-Transcribe-30B-A4B-NVFP4"
+)
+
+@test "download model utilities report status --json offline" {
+  local entry script repo flat bin
+  for entry in "${_DOWNLOAD_CONTRACT_CASES[@]}"; do
+    IFS='|' read -r script repo flat <<<"$entry"
+    _download_models_dir
+    bin="${TEST_TMP_DIR}/hf-status-${BATS_TEST_NUMBER}-${script%.sh}"
+    _download_hf_mock_bin "$bin" "${bin}/calls.log"
+    run env -u HF_TOKEN PATH="${bin}:${PATH}" \
+      bash "${REPO_ROOT}/scripts/utilities/${script}" status --json
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"\"repo\":\"${repo}\""* ]]
+    [[ "$output" == *"\"path\":\"${MODELS_DIR}/${flat}\""* ]]
+    [[ "$output" == *"\"ready\":"* ]]
+    [ ! -s "${bin}/calls.log" ]
+  done
+}
+
+@test "download model utilities report the repo id in plain status" {
+  local entry script repo
+  for entry in "${_DOWNLOAD_CONTRACT_CASES[@]}"; do
+    IFS='|' read -r script repo _ <<<"$entry"
+    _download_models_dir
+    run env -u HF_TOKEN bash "${REPO_ROOT}/scripts/utilities/${script}" status
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"${repo}"* ]]
+  done
+}
+
+@test "download model utilities reject an unknown subcommand" {
+  local entry script
+  for entry in "${_DOWNLOAD_CONTRACT_CASES[@]}"; do
+    IFS='|' read -r script _ _ <<<"$entry"
+    _download_models_dir
+    run bash "${REPO_ROOT}/scripts/utilities/${script}" not-a-command
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Usage:"* || "$output" == *"Unknown arg"* ]]
+  done
+}
+
+@test "download model utilities run through the HF CLI only" {
+  local entry script repo flat bin
+  for entry in "${_DOWNLOAD_CONTRACT_CASES[@]}"; do
+    IFS='|' read -r script repo flat <<<"$entry"
+    _download_models_dir
+    bin="${TEST_TMP_DIR}/hf-run-${BATS_TEST_NUMBER}-${script%.sh}"
+    _download_hf_mock_bin "$bin" "${bin}/calls.log"
+    run env -u HF_TOKEN -u ABLIT_REPO PATH="${bin}:${PATH}" \
+      bash "${REPO_ROOT}/scripts/utilities/${script}" run
+    [ "$status" -eq 0 ]
+    grep -q -e "${repo}" "${bin}/calls.log"
+    grep -q -e "--local-dir ${MODELS_DIR}/${flat}" "${bin}/calls.log"
+  done
+}
+
+@test "download-dsv4-flash-dspark.sh status --json reports gated ablit and token state" {
+  _download_models_dir
+  run env -u HF_TOKEN bash "${REPO_ROOT}/scripts/utilities/download-dsv4-flash-dspark.sh" status --json
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"drowzeys/keys-DeepSeekV4Flash-Vision-EXP-ablit"* ]]
+  [[ "$output" == *"\"ablit_ready\":false"* ]]
+  [[ "$output" == *"\"hf_token\":false"* ]]
+}
+
+@test "download-dsv4-flash-dspark.sh status tells the operator to seed both Sparks" {
+  _download_models_dir
+  run bash "${REPO_ROOT}/scripts/utilities/download-dsv4-flash-dspark.sh" status
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Run on BOTH Sparks"* ]]
+  [[ "$output" == *"start-dsv4-flash-dspark"* ]]
+}
+
+@test "download-glm53-flash-exl3.sh status --json reports drafter and gated ablit" {
+  _download_models_dir
+  run env -u HF_TOKEN bash "${REPO_ROOT}/scripts/utilities/download-glm53-flash-exl3.sh" status --json
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"\"drafter_repo\":\"incoai/GLM-5.3-Flash-DFlash2\""* ]]
+  [[ "$output" == *"incoai__GLM-5.3-Flash-DFlash2"* ]]
+  [[ "$output" == *"\"drafter_ready\":false"* ]]
+  [[ "$output" == *"\"ablit_repo\":\"Mia-AiLab/GLM-5.3-Flash-EXL3-4bpw-TensorFold-Ablit\""* ]]
+  [[ "$output" == *"\"ablit_path\":\""*"Mia-AiLab__GLM-5.3-Flash-EXL3-4bpw-TensorFold-Ablit\""* ]]
+  [[ "$output" == *"\"hf_token\":false"* ]]
+}
+
+@test "download-glm53-flash-exl3.sh status flags the non-commercial drafter license" {
+  _download_models_dir
+  run bash "${REPO_ROOT}/scripts/utilities/download-glm53-flash-exl3.sh" status
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"CC BY-NC-ND 4.0"* ]]
+  [[ "$output" == *"DRAFTER=mtp"* ]]
+  [[ "$output" == *"at ${MODELS_DIR}/Mia-AiLab__GLM-5.3-Flash-EXL3-4bpw-TensorFold-Ablit"* ]]
+}
+
+@test "download-qwen38-27b-exl3.sh default tier pins the turboderp 3.0bpw revision" {
+  _download_models_dir
+  run bash "${REPO_ROOT}/scripts/utilities/download-qwen38-27b-exl3.sh" status --json
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"\"tier\":\"3.0bpw\""* ]]
+  [[ "$output" == *"\"revision\":\"3.0bpw\""* ]]
+  [[ "$output" == *"\"path\":\"${MODELS_DIR}/turboderp__Qwen3.8-27B-exl3/3.0bpw\""* ]]
+  [[ "$output" == *"r0b0tlab__Qwen3.8-27B-DFlash2-EXL3-4.00bpw"* ]]
+}
+
+@test "download-qwen38-27b-exl3.sh --tier 2.0bpw switches repo and drops the revision" {
+  _download_models_dir
+  run bash "${REPO_ROOT}/scripts/utilities/download-qwen38-27b-exl3.sh" status --tier 2.0bpw --json
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Mia-AiLab/Qwen3.8-27B-EXL3-2.0bpw"* ]]
+  [[ "$output" == *"\"revision\":\"\","* ]]
+  [[ "$output" == *"Mia-AiLab__Qwen3.8-27B-EXL3-2.0bpw/2.0bpw"* ]]
+}
+
+@test "download-qwen38-27b-exl3.sh rejects an unknown tier" {
+  _download_models_dir
+  run bash "${REPO_ROOT}/scripts/utilities/download-qwen38-27b-exl3.sh" status --tier 9.9bpw
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"Unknown tier: 9.9bpw"* ]]
+  [[ "$output" == *"6.0bpw"* ]]
+}
+
+@test "download-qwen38-27b-exl3.sh rejects --tier with no value" {
+  _download_models_dir
+  run bash "${REPO_ROOT}/scripts/utilities/download-qwen38-27b-exl3.sh" run --tier
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"--tier needs a value"* ]]
+}
+
+@test "download-qwen38-27b-tensorfold.sh status --json reports the served model and drafter" {
+  _download_models_dir
+  run bash "${REPO_ROOT}/scripts/utilities/download-qwen38-27b-tensorfold.sh" status --json
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"\"drafter_repo\":\"z-lab/Qwen3.8-27B-DFlash2\""* ]]
+  [[ "$output" == *"\"drafter_path\":\"${MODELS_DIR}/z-lab__Qwen3.8-27B-DFlash2\""* ]]
+  [[ "$output" == *"\"drafter_ready\":false"* ]]
+}
+
+@test "download-qwen38-flash-next-tensorfold.sh status --json pins the nvidia revision" {
+  _download_models_dir
+  run env -u ABLIT_REPO -u HF_TOKEN \
+    bash "${REPO_ROOT}/scripts/utilities/download-qwen38-flash-next-tensorfold.sh" status --json
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"\"revision\":\"b9ce18a6887e18c089fdea8509a33e63429a3300\""* ]]
+  [[ "$output" == *"drowzeys/keys-house-qsa-ablit"* ]]
+  [[ "$output" == *"\"hf_token\":false"* ]]
+}
+
+@test "download-qwen38-flash-next-tensorfold.sh status says MTP drafts ship in-checkpoint" {
+  _download_models_dir
+  run bash "${REPO_ROOT}/scripts/utilities/download-qwen38-flash-next-tensorfold.sh" status
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"no drafter repo to download"* ]]
+  [[ "$output" == *"qwen3.8-flash-next-tensorfold"* ]]
+}
+
+@test "download-nemotron-transcribe.sh status ties the path to the NVFP4 Blackwell lane" {
+  _download_models_dir
+  run bash "${REPO_ROOT}/scripts/utilities/download-nemotron-transcribe.sh" status
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"NVFP4 requires Blackwell"* ]]
+  [[ "$output" == *"MODEL_NAME=/models/nvidia__NVIDIA-Nemotron-3.5-Transcribe-30B-A4B-NVFP4"* ]]
+  [[ "$output" == *"${MODELS_DIR}"* ]]
+}
+
 @test "workspace-hermes.sh status --json includes workspace-dev stack" {
   export REPO_ROOT="$(bats_canonical_repo_root)"
   run bash "${REPO_ROOT}/scripts/utilities/workspace-hermes.sh" status --json
