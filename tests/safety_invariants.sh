@@ -99,6 +99,10 @@ for m in kimi-test kimi ray-head ray-worker nemotron-3-ultra \
   qwen3.8-27b-nvfp4 qwen3.8-flash-next-nvfp4 medgemma-27b medgemma-4b \
   glm-5.3-flash glm-5.3-flash-worker-1 glm-5.3-flash-worker-2 litellm \
   deepseek-v4.1-flash deepseek-v4.1-flash-worker-1 deepseek-v4.1-flash-worker-2 \
+  deepseek-v4-flash-dspark deepseek-v4-flash-dspark-worker-1 \
+  glm-5.3-flash-exl3-tensorfold glm-5.3-flash-exl3-tensorfold-worker-1 \
+  qwen3.8-27b-exl3-16gb qwen3.8-27b-tensorfold qwen3.8-flash-next-tensorfold \
+  nemotron-3.5-transcribe-30b-a4b-nvfp4 \
   comfy-base flux-fast flux-quality ltx-balanced ltx-quality flux-to-ltx; do
   python3 -c "
 import json, sys
@@ -115,7 +119,8 @@ for dep in \
   k8s/workloads/nemotron-retriever-rerank/nemotron-retriever-rerank-deployment.yaml \
   k8s/workloads/nemotron-safety-guard/nemotron-safety-guard-deployment.yaml \
   k8s/workloads/nemotron-speech-asr/nemotron-speech-asr-deployment.yaml \
-  k8s/workloads/nemotron-speech-tts/nemotron-speech-tts-deployment.yaml; do
+  k8s/workloads/nemotron-speech-tts/nemotron-speech-tts-deployment.yaml \
+  k8s/workloads/nemotron-3.5-transcribe-30b-a4b-nvfp4/nemotron-3.5-transcribe-30b-a4b-nvfp4-deployment.yaml; do
   test -f "$dep"
   grep -q 'resources:' "$dep"
   grep -qE 'kind:\s*Deployment' "$dep"
@@ -219,7 +224,8 @@ python3 -c "
 import json
 from pathlib import Path
 j = json.loads(Path('config/resource-policy.json').read_text())
-for sid in ('rounded-spark-3', 'rounded-spark-3-quality', 'glm53-flash-spark-3', 'dsv41-flash-spark-3'):
+for sid in ('rounded-spark-3', 'rounded-spark-3-quality', 'glm53-flash-spark-3',
+            'dsv41-flash-spark-3', 'dsv4-flash-dspark-spark-2', 'glm53-flash-exl3-spark-2'):
     assert sid in j.get('stacks', {}), sid
 rounded = j['stacks']['rounded-spark-3']
 assert 'qwen3.6-35b-a3b-nvfp4' in rounded.get('stack_with', [])
@@ -238,6 +244,22 @@ assert dsv.get('max_nodes') == 3
 assert 'deepseek-v4.1-flash' in dsv.get('stack_with', [])
 assert 'deepseek-v4.1-flash-worker-1' in dsv.get('stack_with', [])
 assert 'deepseek-v4.1-flash-worker-2' in dsv.get('stack_with', [])
+dsv2 = j['stacks']['dsv4-flash-dspark-spark-2']
+assert dsv2.get('min_nodes') == 2
+assert dsv2.get('max_nodes') == 2
+assert dsv2.get('heavy') is True
+assert 'deepseek-v4-flash-dspark' in dsv2.get('stack_with', [])
+assert 'deepseek-v4-flash-dspark-worker-1' in dsv2.get('stack_with', [])
+assert dsv2.get('startup_order') == ['deepseek-v4-flash-dspark-worker-1',
+                                     'deepseek-v4-flash-dspark']
+glm2 = j['stacks']['glm53-flash-exl3-spark-2']
+assert glm2.get('min_nodes') == 2
+assert glm2.get('max_nodes') == 2
+assert glm2.get('heavy') is True
+assert 'glm-5.3-flash-exl3-tensorfold' in glm2.get('stack_with', [])
+assert 'glm-5.3-flash-exl3-tensorfold-worker-1' in glm2.get('stack_with', [])
+assert glm2.get('startup_order') == ['glm-5.3-flash-exl3-tensorfold-worker-1',
+                                     'glm-5.3-flash-exl3-tensorfold']
 litellm = j['models']['litellm']
 assert litellm.get('kind') == 'deployment'
 assert litellm.get('gpus') == 0
@@ -289,6 +311,100 @@ for job in \
 done
 grep -q 'NCCL_NET_PLUGIN' k8s/workloads/glm-5.3-flash/glm-5.3-flash-job.yaml
 grep -q 'none' k8s/workloads/glm-5.3-flash/glm-5.3-flash-job.yaml
+
+echo "Checking new MiaAI/TensorFold lane Jobs have safety fields..."
+for job in \
+  k8s/workloads/deepseek-v4-flash-dspark/deepseek-v4-flash-dspark-job.yaml \
+  k8s/workloads/deepseek-v4-flash-dspark/deepseek-v4-flash-dspark-worker-1-job.yaml \
+  k8s/workloads/glm-5.3-flash-exl3-tensorfold/glm-5.3-flash-exl3-tensorfold-job.yaml \
+  k8s/workloads/glm-5.3-flash-exl3-tensorfold/glm-5.3-flash-exl3-tensorfold-worker-1-job.yaml \
+  k8s/workloads/qwen3.8-27b-exl3-16gb/qwen3.8-27b-exl3-16gb-job.yaml \
+  k8s/workloads/qwen3.8-27b-tensorfold/qwen3.8-27b-tensorfold-job.yaml \
+  k8s/workloads/qwen3.8-flash-next-tensorfold/qwen3.8-flash-next-tensorfold-job.yaml; do
+  test -f "$job"
+  grep -q 'restartPolicy: OnFailure' "$job"
+  grep -q 'resources:' "$job"
+  grep -q 'backoffLimit:' "$job"
+  grep -q 'ttlSecondsAfterFinished:' "$job"
+  grep -q 'runAsNonRoot: true' "$job"
+  grep -q 'nvidia.com/gpu' "$job"
+done
+
+echo "Checking new pair lanes use the 2-node NCCL block and single lanes stay pod-networked..."
+for job in \
+  k8s/workloads/deepseek-v4-flash-dspark/deepseek-v4-flash-dspark-job.yaml \
+  k8s/workloads/deepseek-v4-flash-dspark/deepseek-v4-flash-dspark-worker-1-job.yaml \
+  k8s/workloads/glm-5.3-flash-exl3-tensorfold/glm-5.3-flash-exl3-tensorfold-job.yaml \
+  k8s/workloads/glm-5.3-flash-exl3-tensorfold/glm-5.3-flash-exl3-tensorfold-worker-1-job.yaml; do
+  grep -q 'hostNetwork: true' "$job"
+  grep -q 'hostIPC: true' "$job"
+  grep -q 'enp1s0f0np0,enp1s0f1np1' "$job"
+  grep -q 'mlx5_0,mlx5_1' "$job"
+  if grep -q 'NCCL_IB_SUBNET_AWARE_ROUTING' "$job"; then
+    echo "2-node pair Job must not copy the 3-node ring NCCL block: $job" >&2
+    exit 1
+  fi
+done
+for job in \
+  k8s/workloads/qwen3.8-27b-exl3-16gb/qwen3.8-27b-exl3-16gb-job.yaml \
+  k8s/workloads/qwen3.8-27b-tensorfold/qwen3.8-27b-tensorfold-job.yaml \
+  k8s/workloads/qwen3.8-flash-next-tensorfold/qwen3.8-flash-next-tensorfold-job.yaml; do
+  if grep -qE 'hostNetwork:[[:space:]]*true|hostIPC:[[:space:]]*true' "$job"; then
+    echo "single-Spark lane must stay pod-networked: $job" >&2
+    exit 1
+  fi
+  if grep -q 'enp1s0f0np0' "$job"; then
+    echo "single-Spark lane must not carry pair NCCL vars: $job" >&2
+    exit 1
+  fi
+done
+grep -q 'kubernetes.io/hostname: spark0' \
+  k8s/workloads/qwen3.8-27b-tensorfold/qwen3.8-27b-tensorfold-job.yaml
+grep -q 'kubernetes.io/hostname: spark0' \
+  k8s/workloads/qwen3.8-flash-next-tensorfold/qwen3.8-flash-next-tensorfold-job.yaml
+if grep -q 'kubernetes.io/hostname' \
+  k8s/workloads/qwen3.8-27b-exl3-16gb/qwen3.8-27b-exl3-16gb-job.yaml; then
+  echo "16 GB lane must stay node-agnostic so any 16 GB+ GPU node qualifies" >&2
+  exit 1
+fi
+
+echo "Checking new-lane Resource Guard policy shapes..."
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+j = json.loads(Path('config/resource-policy.json').read_text())
+models = j['models']
+for mid in ('deepseek-v4-flash-dspark', 'glm-5.3-flash-exl3-tensorfold'):
+    entry = models[mid]
+    assert entry.get('heavy') is True, mid
+    assert entry.get('multi_node_only') is True, mid
+    assert entry.get('requires_validation') == ['kimi-test'], mid
+for mid in ('deepseek-v4-flash-dspark-worker-1', 'glm-5.3-flash-exl3-tensorfold-worker-1'):
+    assert models[mid].get('heavy') is False, mid
+    assert models[mid].get('memory') == '100Gi', mid
+for mid in ('qwen3.8-27b-exl3-16gb', 'qwen3.8-27b-tensorfold', 'qwen3.8-flash-next-tensorfold'):
+    assert models[mid].get('heavy') is True, mid
+    assert models[mid].get('gpus') == 1, mid
+transcribe = models['nemotron-3.5-transcribe-30b-a4b-nvfp4']
+assert transcribe.get('kind') == 'deployment'
+assert transcribe.get('gpus') == 1
+assert transcribe.get('heavy') is False
+PY
+
+echo "Checking new-lane mutual-exclusion guards are wired..."
+SR=scripts/lib/stack-rounded.sh
+test -f "$SR"
+grep -q 'rounded_new_lanes_jobs()' "$SR"
+grep -q 'guard_rounded_new_lanes_idle()' "$SR"
+for lane in deepseek-v4-flash-dspark glm-5.3-flash-exl3-tensorfold \
+  qwen3.8-27b-exl3-16gb qwen3.8-27b-tensorfold qwen3.8-flash-next-tensorfold; do
+  grep -q "  $lane" "$SR"
+done
+if [[ $(grep -c 'guard_rounded_new_lanes_idle' "$SR") -lt 11 ]]; then
+  echo "new-lane guard must be called by every exclusive starter and Mode A/B/C starter" >&2
+  exit 1
+fi
 
 echo "Checking Mode A Jobs keep gpu-memory-utilization <= 0.82..."
 python3 -c "
@@ -494,12 +610,22 @@ profiles = {
     'k8s/workloads/litellm/files/profiles/qwen3.8-flash-next.yaml': 'qwen3.8-flash-next-nvfp4.ai-inference.svc.cluster.local',
     'k8s/workloads/litellm/files/profiles/glm-5.3-flash.yaml': 'glm-5.3-flash.ai-inference.svc.cluster.local',
     'k8s/workloads/litellm/files/profiles/deepseek-v4.1-flash.yaml': 'deepseek-v4.1-flash.ai-inference.svc.cluster.local',
+    'k8s/workloads/litellm/files/profiles/deepseek-v4-flash-dspark.yaml': 'deepseek-v4-flash-dspark.ai-inference.svc.cluster.local',
+    'k8s/workloads/litellm/files/profiles/glm-5.3-flash-exl3-tensorfold.yaml': 'glm-5.3-flash-exl3-tensorfold.ai-inference.svc.cluster.local',
+    'k8s/workloads/litellm/files/profiles/qwen3.8-27b-exl3-16gb.yaml': 'qwen3.8-27b-exl3-16gb.ai-inference.svc.cluster.local',
+    'k8s/workloads/litellm/files/profiles/qwen3.8-27b-tensorfold.yaml': 'qwen3.8-27b-tensorfold.ai-inference.svc.cluster.local',
+    'k8s/workloads/litellm/files/profiles/qwen3.8-flash-next-tensorfold.yaml': 'qwen3.8-flash-next-tensorfold.ai-inference.svc.cluster.local',
 }
 overlays = [
     'k8s/overlays/litellm-qwen38-27b/kustomization.yaml',
     'k8s/overlays/litellm-qwen38-flash-next/kustomization.yaml',
     'k8s/overlays/litellm-glm53-flash/kustomization.yaml',
     'k8s/overlays/litellm-dsv41-flash/kustomization.yaml',
+    'k8s/overlays/litellm-dsv4-flash-dspark/kustomization.yaml',
+    'k8s/overlays/litellm-glm53-flash-exl3/kustomization.yaml',
+    'k8s/overlays/litellm-qwen38-27b-exl3/kustomization.yaml',
+    'k8s/overlays/litellm-qwen38-27b-tensorfold/kustomization.yaml',
+    'k8s/overlays/litellm-qwen38-flash-next-tensorfold/kustomization.yaml',
 ]
 for path, svc in profiles.items():
     p = Path(path)
@@ -724,6 +850,13 @@ grep -q 'run never deletes' "$WIZARD"
 ! grep -q 'rm -rf /' "$WIZARD"
 grep -q 'keep-set-weight:' config/disk-catalog.yaml
 grep -q 'dsv41-engram:' config/disk-catalog.yaml
+for keep in Mia-AiLab__GLM-5.3-Flash-EXL3-4bpw-TensorFold \
+  turboderp__Qwen3.8-27B-exl3 Vontra__Qwen3.8-27B-MLX-4bit \
+  z-lab__Qwen3.8-27B-DFlash2 nvidia__Qwen3.8-Flash-Next-FP4-Local \
+  nvidia__NVIDIA-Nemotron-3.5-Transcribe-30B-A4B-NVFP4 \
+  deepseek-ai__DeepSeek-V4-Flash-Vision-Exp; do
+  grep -q "$keep" config/disk-catalog.yaml
+done
 python3 -c '
 from pathlib import Path
 text = Path("config/disk-catalog.yaml").read_text()

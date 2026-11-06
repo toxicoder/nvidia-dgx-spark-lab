@@ -695,6 +695,234 @@ MOCKKUBECTL
 }
 
 # =============================================================================
+# Exclusive new lanes: DSpark pair, EXL3 TensorFold pair, Qwen3.8 EXL3/TensorFold
+# =============================================================================
+
+# @function _manage_bats_write_active_job_mock
+# Write a kubectl mock that reports Job $1 as active (status.active = 1) and
+# every other Job as absent, so mutual-exclusion guards trip on one name.
+# @param $1  Job name to report as active.
+_manage_bats_write_active_job_mock() {
+  local active_job="$1"
+  cat > "$TEST_TMP_DIR/bin/kubectl" <<MOCKACTIVE
+#!/usr/bin/env bash
+CALL_LOG="${TEST_TMP_DIR}/kubectl_calls.log"
+echo "kubectl \$*" >> "\$CALL_LOG"
+case "\$1" in
+  cluster-info) echo "Kubernetes control plane is running at https://fake:6443"; exit 0 ;;
+  get)
+    if [[ "\$*" == *"nodes"* ]]; then
+      echo "spark0   Ready    control-plane,worker   1d    v1.30.3+k3s1"
+      echo "spark1   Ready    worker                 1d    v1.30.3+k3s1"
+      echo "spark2   Ready    worker                 1d    v1.30.3+k3s1"
+      exit 0
+    fi
+    if [[ "\$*" == *"get job ${active_job}"* ]]; then
+      if [[ "\$*" == *"jsonpath"* ]]; then
+        echo -n "1"
+        exit 0
+      fi
+      exit 0
+    fi
+    if [[ "\$*" == *"get job"* && "\$*" == *"jsonpath"* ]]; then
+      echo -n "0"
+      exit 0
+    fi
+    if [[ "\$*" == *"get job"* ]]; then
+      exit 1
+    fi
+    exit 0
+    ;;
+  apply) echo "mocked: would apply \$*"; exit 0 ;;
+  delete) echo "mocked: would delete \$*"; exit 0 ;;
+  wait) echo "mocked wait"; exit 0 ;;
+  *) exit 0 ;;
+esac
+MOCKACTIVE
+  chmod +x "$TEST_TMP_DIR/bin/kubectl"
+}
+
+# @function _manage_bats_first_apply_line
+# Line number of the first kubectl apply mentioning $1 in the shared call log,
+# which lets pair-lane tests assert startup order (worker before leader).
+# @param $1  Substring of the applied manifest path, e.g. <job>-job.yaml.
+# @stdout Line number, or 0 when that manifest was never applied.
+_manage_bats_first_apply_line() {
+  local needle="$1" line
+  line="$(awk -v needle="$needle" '$0 ~ /apply/ && index($0, needle) { print NR; exit }' \
+    "${TEST_TMP_DIR}/kubectl_calls.log")"
+  printf '%s\n' "${line:-0}"
+}
+
+@test "manage.sh help lists the exclusive new-lane start and stop verbs" {
+  run bash "$MANAGE_SH" help
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"start-dsv4-flash-dspark"* ]]
+  [[ "$output" == *"stop-dsv4-flash-dspark"* ]]
+  [[ "$output" == *"start-glm53-flash-exl3"* ]]
+  [[ "$output" == *"stop-glm53-flash-exl3"* ]]
+  [[ "$output" == *"start-qwen38-27b-exl3"* ]]
+  [[ "$output" == *"stop-qwen38-27b-exl3"* ]]
+  [[ "$output" == *"start-qwen38-27b-tensorfold"* ]]
+  [[ "$output" == *"stop-qwen38-27b-tensorfold"* ]]
+  [[ "$output" == *"start-qwen38-flash-next-tensorfold"* ]]
+  [[ "$output" == *"stop-qwen38-flash-next-tensorfold"* ]]
+}
+
+@test "manage.sh exclusive new-lane starters abort when the user does not type 'yes'" {
+  for verb in \
+    start-dsv4-flash-dspark \
+    start-glm53-flash-exl3 \
+    start-qwen38-27b-exl3 \
+    start-qwen38-27b-tensorfold \
+    start-qwen38-flash-next-tensorfold; do
+    run bash -c "echo 'no' | bash \"$MANAGE_SH\" $verb"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Aborted"* ]]
+    run grep -E 'apply' "${TEST_TMP_DIR}/kubectl_calls.log"
+    [ "$status" -ne 0 ]
+    > "${TEST_TMP_DIR}/kubectl_calls.log"
+  done
+}
+
+@test "manage.sh exclusive new-lane dotted aliases dispatch to the same starters" {
+  for alias in \
+    start-deepseek-v4-flash-dspark \
+    start-glm-5.3-flash-exl3 \
+    start-qwen3.8-27b-exl3 \
+    start-qwen3.8-27b-tensorfold \
+    start-qwen3.8-flash-next-tensorfold; do
+    run bash -c "echo 'no' | bash \"$MANAGE_SH\" $alias"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Aborted"* ]]
+  done
+}
+
+@test "manage.sh start-dsv4-flash-dspark refuses when Mode A job is active" {
+  _manage_bats_write_active_job_mock "qwen3.6-35b-a3b-nvfp4"
+  run bash -c "echo 'yes' | bash \"$MANAGE_SH\" start-dsv4-flash-dspark"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"Mode A rounded Job 'qwen3.6-35b-a3b-nvfp4' is active"* ]]
+  run grep -E 'apply' "${TEST_TMP_DIR}/kubectl_calls.log"
+  [ "$status" -ne 0 ]
+}
+
+@test "manage.sh start-glm53-flash-exl3 refuses when Mode A job is active" {
+  _manage_bats_write_active_job_mock "medgemma-27b"
+  run bash -c "echo 'yes' | bash \"$MANAGE_SH\" start-glm53-flash-exl3"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"Mode A rounded Job 'medgemma-27b' is active"* ]]
+  run grep -E 'apply' "${TEST_TMP_DIR}/kubectl_calls.log"
+  [ "$status" -ne 0 ]
+}
+
+@test "manage.sh start-qwen38-27b-exl3 refuses when Mode B job is active" {
+  _manage_bats_write_active_job_mock "glm-5.3-flash"
+  run bash -c "echo 'yes' | bash \"$MANAGE_SH\" start-qwen38-27b-exl3"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"Mode B frontier Job 'glm-5.3-flash' is active"* ]]
+  run grep -E 'apply' "${TEST_TMP_DIR}/kubectl_calls.log"
+  [ "$status" -ne 0 ]
+}
+
+@test "manage.sh start-qwen38-27b-tensorfold refuses when Mode C job is active" {
+  _manage_bats_write_active_job_mock "deepseek-v4.1-flash-worker-1"
+  run bash -c "echo 'yes' | bash \"$MANAGE_SH\" start-qwen38-27b-tensorfold"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"Mode C DeepSeek-V4.1-Flash Job 'deepseek-v4.1-flash-worker-1' is active"* ]]
+  run grep -E 'apply' "${TEST_TMP_DIR}/kubectl_calls.log"
+  [ "$status" -ne 0 ]
+}
+
+@test "manage.sh start-qwen38-flash-next-tensorfold refuses when Mode B job is active" {
+  _manage_bats_write_active_job_mock "glm-5.3-flash-worker-2"
+  run bash -c "echo 'yes' | bash \"$MANAGE_SH\" start-qwen38-flash-next-tensorfold"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"Mode B frontier Job 'glm-5.3-flash-worker-2' is active"* ]]
+  run grep -E 'apply' "${TEST_TMP_DIR}/kubectl_calls.log"
+  [ "$status" -ne 0 ]
+}
+
+@test "manage.sh start-qwen38-27b-tensorfold refuses when another exclusive lane Job is active" {
+  _manage_bats_write_active_job_mock "qwen3.8-flash-next-tensorfold"
+  run bash -c "echo 'yes' | bash \"$MANAGE_SH\" start-qwen38-27b-tensorfold"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"Exclusive lane Job 'qwen3.8-flash-next-tensorfold' is active"* ]]
+  run grep -E 'apply' "${TEST_TMP_DIR}/kubectl_calls.log"
+  [ "$status" -ne 0 ]
+}
+
+@test "manage.sh start-dsv4-flash-dspark refuses when another exclusive lane Job is active" {
+  _manage_bats_write_active_job_mock "glm-5.3-flash-exl3-tensorfold"
+  run bash -c "echo 'yes' | bash \"$MANAGE_SH\" start-dsv4-flash-dspark"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"Exclusive lane Job 'glm-5.3-flash-exl3-tensorfold' is active"* ]]
+  run grep -E 'apply' "${TEST_TMP_DIR}/kubectl_calls.log"
+  [ "$status" -ne 0 ]
+}
+
+@test "manage.sh start-dsv4-flash-dspark applies the DSpark worker Job before the leader" {
+  run bash -c "printf 'yes\ny\n' | bash \"$MANAGE_SH\" start-dsv4-flash-dspark"
+  [ "$status" -eq 0 ]
+  local worker_line leader_line
+  worker_line="$(_manage_bats_first_apply_line 'deepseek-v4-flash-dspark-worker-1-job.yaml')"
+  leader_line="$(_manage_bats_first_apply_line 'deepseek-v4-flash-dspark/deepseek-v4-flash-dspark-job.yaml')"
+  [ "$worker_line" -gt 0 ]
+  [ "$leader_line" -gt 0 ]
+  [ "$worker_line" -lt "$leader_line" ]
+}
+
+@test "manage.sh start-glm53-flash-exl3 applies the TensorFold worker Job before the leader" {
+  run bash -c "printf 'yes\ny\n' | bash \"$MANAGE_SH\" start-glm53-flash-exl3"
+  [ "$status" -eq 0 ]
+  local worker_line leader_line
+  worker_line="$(_manage_bats_first_apply_line 'glm-5.3-flash-exl3-tensorfold-worker-1-job.yaml')"
+  leader_line="$(_manage_bats_first_apply_line 'glm-5.3-flash-exl3-tensorfold/glm-5.3-flash-exl3-tensorfold-job.yaml')"
+  [ "$worker_line" -gt 0 ]
+  [ "$leader_line" -gt 0 ]
+  [ "$worker_line" -lt "$leader_line" ]
+}
+
+@test "manage.sh stop-dsv4-flash-dspark deletes both DSpark pair Jobs" {
+  run bash "$MANAGE_SH" stop-dsv4-flash-dspark
+  [ "$status" -eq 0 ]
+  run grep -F 'delete job deepseek-v4-flash-dspark -n ai-inference' "${TEST_TMP_DIR}/kubectl_calls.log"
+  [ "$status" -eq 0 ]
+  run grep -F 'delete job deepseek-v4-flash-dspark-worker-1 -n ai-inference' "${TEST_TMP_DIR}/kubectl_calls.log"
+  [ "$status" -eq 0 ]
+}
+
+@test "manage.sh stop-glm53-flash-exl3 deletes both EXL3 TensorFold pair Jobs" {
+  run bash "$MANAGE_SH" stop-glm53-flash-exl3
+  [ "$status" -eq 0 ]
+  run grep -F 'delete job glm-5.3-flash-exl3-tensorfold -n ai-inference' "${TEST_TMP_DIR}/kubectl_calls.log"
+  [ "$status" -eq 0 ]
+  run grep -F 'delete job glm-5.3-flash-exl3-tensorfold-worker-1 -n ai-inference' "${TEST_TMP_DIR}/kubectl_calls.log"
+  [ "$status" -eq 0 ]
+}
+
+@test "manage.sh stop-qwen38-27b-exl3 deletes the EXL3 16GB Job" {
+  run bash "$MANAGE_SH" stop-qwen38-27b-exl3
+  [ "$status" -eq 0 ]
+  run grep -F 'delete job qwen3.8-27b-exl3-16gb -n ai-inference' "${TEST_TMP_DIR}/kubectl_calls.log"
+  [ "$status" -eq 0 ]
+}
+
+@test "manage.sh stop-qwen38-27b-tensorfold deletes the TensorFold Job" {
+  run bash "$MANAGE_SH" stop-qwen38-27b-tensorfold
+  [ "$status" -eq 0 ]
+  run grep -F 'delete job qwen3.8-27b-tensorfold -n ai-inference' "${TEST_TMP_DIR}/kubectl_calls.log"
+  [ "$status" -eq 0 ]
+}
+
+@test "manage.sh stop-qwen38-flash-next-tensorfold deletes the Flash-Next TensorFold Job" {
+  run bash "$MANAGE_SH" stop-qwen38-flash-next-tensorfold
+  [ "$status" -eq 0 ]
+  run grep -F 'delete job qwen3.8-flash-next-tensorfold -n ai-inference' "${TEST_TMP_DIR}/kubectl_calls.log"
+  [ "$status" -eq 0 ]
+}
+
+# =============================================================================
 # stop and cleanup
 # =============================================================================
 
