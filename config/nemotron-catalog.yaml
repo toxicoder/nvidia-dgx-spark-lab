@@ -118,6 +118,17 @@ models:
     openai_svc: nemotron-speech-tts
     port: 9001
 
+  nemotron-3.5-transcribe-30b-a4b-nvfp4:
+    display_name: Nemotron 3.5 Transcribe 30B A4B NVFP4
+    family: speech
+    runtime: vllm
+    hf_path: nvidia/NVIDIA-Nemotron-3.5-Transcribe-30B-A4B-NVFP4
+    quantization: nvfp4
+    agent_roles: [asr]
+    spark_gpu_mem_util: 0.85
+    openai_svc: nemotron-3.5-transcribe-30b-a4b-nvfp4
+    port: 8000
+
   qwen3.5-122b-a10b-nvfp4:
     display_name: Qwen 3.5 122B A10B NVFP4
     family: reasoning
