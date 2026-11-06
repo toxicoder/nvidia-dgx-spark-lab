@@ -164,10 +164,15 @@ sh_test(
 )
 
 # Python strict typing (mypy per mypy.ini).
+#
+# `//:fix.sh` is declared only so the runner has a real source symlink to follow
+# back to the physical workspace; runfiles would otherwise hide most Python
+# sources and the gate would type-check nothing.
 sh_test(
     name = "mypy",
     srcs = ["run_mypy.sh"],
     data = [
+        "//:fix.sh",
         "//:mypy.ini",
         "//scripts:lib/check_tool.sh",
     ],
