@@ -226,9 +226,21 @@ Hooks mirror Bazel lint tools: buildifier check, shfmt, shellcheck, prettier YAM
 
 ### TypeScript (dashboard)
 
-- `strict: true`, `noImplicitAny`, `strictNullChecks`
+- `strict: true` plus the flags in [Strong Types](strong-types.md): `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride`, `noImplicitReturns`, `noUnusedLocals`, `useUnknownInCatchVariables`
 - Path alias: `@/*` → dashboard root
-- No explicit `any` (ESLint error)
+- No explicit `any` (ESLint error), alongside the type-aware `no-unsafe-*` family, which needs `parserOptions.projectService` to run at all
+
+---
+
+## 5b. Strong types
+
+Full reference: [Strong Types](strong-types.md). The rules contributors hit most often:
+
+- **Broad types are defects.** `Any` in Python, `any`/`unknown`/`Record<string, unknown>` in TypeScript, and bare `dict`/`list`/`tuple`/`set` are gate failures, not style opinions. Where a value is genuinely opaque, use `object` (or `unknown`) and say why in a comment on that line.
+- **Closed sets are declared once.** An `as const` array in `dashboard/lib/types/index.ts` or a `StrEnum` in `scripts/lib/py/lab_types.py` is the source; the derived type and the zod/allowlist counterpart read from it. Never re-list a set in two places.
+- **Validate at the boundary.** JSON crossing from a shell utility into the dashboard is parsed with a zod schema in `dashboard/lib/services/cli-json.ts`, never cast. Python reads shapeless JSON through `typing.cast` to a `TypedDict` when a filter would change behaviour.
+- **Shell parameters get a contract.** Repo-bound scripts source `scripts/lib/types.sh` and call `require_*`; a failure writes one diagnostic to stderr naming the parameter.
+- **A gate that inspected nothing must fail.** Find-nothing is an error, not a pass. `//lints:mypy` and `//lints:yaml_format` both passed for a long time having examined zero files.
 
 ---
 
