@@ -51,6 +51,26 @@ teardown() {
   [ "$status" -eq 0 ]
 }
 
+@test "resource_policy unit tests" {
+  # The Resource Guard maths that gates heavy GPU workload starts.
+  run python3 "${REPO_ROOT}/scripts/lib/py/test_resource_policy.py"
+  [ "$status" -eq 0 ]
+}
+
+@test "suggest_free_resources unit tests" {
+  run python3 "${REPO_ROOT}/scripts/lib/py/test_resources_suggest_free_resources.py"
+  [ "$status" -eq 0 ]
+}
+
+@test "spark-clock stays self-contained" {
+  # The systemd unit execs the installed copy at /usr/local/bin, which has no
+  # ../lib sibling, so this utility must not come to depend on the shared library.
+  [ -f "${REPO_ROOT}/scripts/utilities/spark-clock.sh" ]
+  run grep -F 'lib/types.sh' "${REPO_ROOT}/scripts/utilities/spark-clock.sh"
+  [ "$status" -ne 0 ]
+  grep -qF 'is_numeric()' "${REPO_ROOT}/scripts/utilities/spark-clock.sh"
+}
+
 @test "CI bazel-core path filter includes the devcontainer" {
   # Dockerfile-only PRs must still run //tests:bats_devcontainer_test.
   local gh="${REPO_ROOT}/.github/workflows/ci.yml"
