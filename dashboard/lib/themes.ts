@@ -11,14 +11,17 @@ export interface DashboardTheme {
   swatch: string;
 }
 
-/** LocalStorage key for persisting the selected dashboard theme. */
-export const THEME_STORAGE_KEY = "dgx-dashboard-theme";
-
-/** Default theme id applied on first visit. */
-export const DEFAULT_THEME_ID = "spark-lime";
-
-/** Ordered catalog of selectable dashboard themes. */
-export const DASHBOARD_THEMES: DashboardTheme[] = [
+/**
+ * The one catalog of selectable themes.
+ *
+ * Everything theme-shaped is derived from this list: the selector, the
+ * `data-theme` bootstrap script in `app/layout.tsx`, the id and `color-scheme`
+ * checks against `app/themes.css`, and `//dashboard:test`'s
+ * `lib/__tests__/theme-contrast.test.ts`, which fails when a `[data-theme]`
+ * block exists without a catalog entry (or the other way round). Add a theme
+ * here and there; never re-list ids or the light/dark rule anywhere else.
+ */
+const THEME_CATALOG = [
   {
     id: "spark-lime",
     label: "Spark Lime",
@@ -80,16 +83,39 @@ export const DASHBOARD_THEMES: DashboardTheme[] = [
     label: "Daylight",
     description: "Clean light surfaces with lime accent",
     mode: "light",
-    swatch: "#65a30d"
+    swatch: "#466b0f"
   },
   {
     id: "paper-sand",
     label: "Paper Sand",
     description: "Warm parchment tones with terracotta accent",
     mode: "light",
-    swatch: "#c2410c"
+    swatch: "#973711"
   }
-];
+] as const satisfies readonly DashboardTheme[];
+
+/** Id of a theme in the catalog. The catalog is the only place ids are written. */
+export type DashboardThemeId = (typeof THEME_CATALOG)[number]["id"];
+
+/** LocalStorage key for persisting the selected dashboard theme. */
+export const THEME_STORAGE_KEY = "dgx-dashboard-theme";
+
+/** Default theme id applied on first visit. */
+export const DEFAULT_THEME_ID: DashboardThemeId = "spark-lime";
+
+/** Ordered catalog of selectable dashboard themes. */
+export const DASHBOARD_THEMES: DashboardTheme[] = [...THEME_CATALOG];
+
+/** Every theme id, in catalog order — derive any id list from this, never re-type it. */
+export const DASHBOARD_THEME_IDS: readonly DashboardThemeId[] = THEME_CATALOG.map((theme) => theme.id);
+
+/** Ids of the themes whose palette is light — the list that must drop `.dark`. */
+export const LIGHT_THEME_IDS: readonly DashboardThemeId[] = THEME_CATALOG.filter((theme) => theme.mode === "light").map(
+  (theme) => theme.id
+);
+
+const THEME_ID_SET: ReadonlySet<string> = new Set<string>(DASHBOARD_THEME_IDS);
+const LIGHT_THEME_ID_SET: ReadonlySet<string> = new Set<string>(LIGHT_THEME_IDS);
 
 /** Resolve a theme definition by id, or undefined when unknown. */
 export function getThemeById(id: string): DashboardTheme | undefined {
@@ -98,5 +124,14 @@ export function getThemeById(id: string): DashboardTheme | undefined {
 
 /** Return whether the id exists in the dashboard theme catalog. */
 export function isValidThemeId(id: string): boolean {
-  return DASHBOARD_THEMES.some((t) => t.id === id);
+  return THEME_ID_SET.has(id);
+}
+
+/**
+ * Return whether the theme paints a light palette (and therefore must not carry
+ * the `.dark` class or a dark `color-scheme`). Unknown ids read as dark, which
+ * matches {@link DEFAULT_THEME_ID}'s mode.
+ */
+export function isLightThemeId(id: string): boolean {
+  return LIGHT_THEME_ID_SET.has(id);
 }
