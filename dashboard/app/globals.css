@@ -1,90 +1,196 @@
 @import "tailwindcss";
 
+/*
+ * Tailwind v4 does not autoload v3-era plugins, so `tailwindcss-animate` has to
+ * be registered here (`postcss.config.mjs` only carries the Tailwind PostCSS
+ * plugin). Without this line every `animate-in` / `fade-in` / `slide-in-from-*`
+ * class on Dialog, Sheet and Select compiled to nothing and the overlays simply
+ * snapped open.
+ */
+@plugin "tailwindcss-animate";
+
 @custom-variant dark (&:is(.dark *));
 
 /**
- * Dashboard theming: shadcn/ui + Material Design 3 (dark scheme).
- * Tailwind v4 @theme maps semantic tokens → utility classes (bg-primary, text-muted-foreground, etc.).
+ * Dashboard design tokens — the single source of truth for the UI.
+ *
+ * Three layers, one direction of dependency:
+ *
+ *   1. Primitives  `--tok-*` (raw `h s l` triplets)     app/themes.css
+ *      One declaration per theme per role. This is the only thing a theme edits.
+ *   2. Aliases     `--background`, `--primary`, `--md-sys-color-*`, …   :root here
+ *      Each consumer-facing name is derived from a primitive exactly once, so the
+ *      shadcn set and the MD3 set can no longer render three different greys for
+ *      one "surface" role (they used to be maintained independently).
+ *   3. Utilities   `bg-*`, `text-*`, `rounded-*`         the @theme blocks below
+ *
+ * Adding a theme: copy a block in app/themes.css and add the entry to
+ * DASHBOARD_THEMES in lib/themes.ts. `lib/__tests__/theme-contrast.test.ts`
+ * then enforces the id list, the `color-scheme` per mode, the completeness of
+ * every token a component references, and WCAG 2.1 AA on every text and
+ * boundary pair — so a new theme cannot ship an unreadable palette.
+ *
+ * Writing CSS in this file: put component classes in `@layer components` (an
+ * unlayered rule beats a Tailwind utility at the call site regardless of
+ * specificity, which is how `.md3-title-large` silently overrode `text-sm`).
+ * Only the third-party Recharts overrides at the bottom stay unlayered, because
+ * they must beat inline styles.
  */
 
 :root {
-  /* Brand lime — rgb(134, 183, 55) */
-  --md-sys-color-primary: #86b737;
-  --md-sys-color-on-primary: #182608;
-  --md-sys-color-primary-container: #4a6622;
-  --md-sys-color-on-primary-container: #d6edb4;
-  --md-sys-color-inverse-primary: #a3cc5e;
-
-  --md-sys-color-secondary: #a8c878;
-  --md-sys-color-on-secondary: #1a2608;
-  --md-sys-color-secondary-container: #3d5220;
-  --md-sys-color-on-secondary-container: #c9e6a8;
-
-  --md-sys-color-tertiary: #9bb8e8;
-  --md-sys-color-on-tertiary: #1a2848;
-  --md-sys-color-tertiary-container: #2e4568;
-  --md-sys-color-on-tertiary-container: #d4e4ff;
-
-  --md-sys-color-error: #ffb4ab;
-  --md-sys-color-on-error: #690005;
-  --md-sys-color-error-container: #93000a;
-  --md-sys-color-on-error-container: #ffb4ab;
-
-  --md-sys-color-surface: #0f172a;
-  --md-sys-color-on-surface: #e2e8f0;
-  --md-sys-color-surface-variant: #1e2937;
-  --md-sys-color-on-surface-variant: #94a3b8;
-
-  --md-sys-color-outline: #475569;
-  --md-sys-color-outline-variant: #334155;
-
-  --md-sys-color-background: #020617;
-  --md-sys-color-on-background: #f8fafc;
-
-  --md-sys-color-surface-tint: #86b737;
-  --md-sys-color-shadow: #000000;
-
+  /* Shape. One radius ladder, shared by the MD3 names and shadcn's --radius. */
+  --md-sys-shape-corner-none: 0px;
+  --md-sys-shape-corner-x-small: 4px;
+  --md-sys-shape-corner-small: 8px;
   --md-sys-shape-corner-medium: 12px;
   --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-full: 9999px;
+  --radius: var(--md-sys-shape-corner-medium);
 
-  --background: 222 47% 5%;
-  --foreground: 214 32% 91%;
+  /* Elevation. One recipe, so a Card, a Dialog and a Toast stop re-typing it.
+     --md-sys-color-shadow is a color; compose it with color-mix(). */
+  --md-sys-color-shadow: hsl(0 0% 0%);
+  --shadow-e1: 0 1px 2px 0 color-mix(in srgb, var(--md-sys-color-shadow) 30%, transparent);
+  --shadow-e2:
+    0 1px 2px 0 color-mix(in srgb, var(--md-sys-color-shadow) 30%, transparent),
+    0 2px 6px 2px color-mix(in srgb, var(--md-sys-color-shadow) 15%, transparent);
+  --shadow-e3:
+    0 1px 3px 0 color-mix(in srgb, var(--md-sys-color-shadow) 30%, transparent),
+    0 4px 8px 3px color-mix(in srgb, var(--md-sys-color-shadow) 15%, transparent);
 
-  --card: 222 47% 11%;
-  --card-foreground: 214 32% 91%;
-
-  --popover: 222 47% 11%;
-  --popover-foreground: 214 32% 91%;
-
-  --primary: 83 54% 47%;
-  --primary-foreground: 83 45% 10%;
-
-  /* Tonal olive container — harmonized with brand lime */
-  --secondary: 83 35% 26%;
-  --secondary-foreground: 83 45% 85%;
-
-  --muted: 217 33% 17%;
-  --muted-foreground: 215 16% 65%;
-
-  --accent: 218 70% 78%;
-  --accent-foreground: 218 40% 22%;
-
-  --destructive: 6 100% 82%;
-  --destructive-foreground: 0 100% 21%;
-
-  --border: 215 16% 34%;
-  --input: 215 16% 34%;
-  --ring: 83 54% 47%;
-
-  --radius: 0.75rem;
-
-  /* MD3 8dp spacing grid */
+  /* MD3 8dp spacing grid. */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
   --space-lg: 24px;
   --space-xl: 32px;
   --header-height: 3.5rem;
+
+  /* Numerals: opt in with `.tnum` (or the `tabular-nums` utility), never by
+     re-declaring font-feature-settings at the call site. */
+  --font-variant-tabular: tabular-nums;
+
+  /* Focus: one ring geometry for every interactive surface, custom ones included. */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  /* --- shadcn aliases. Raw triplets, so `hsl(var(--primary))` still works. --- */
+  --background: var(--tok-background);
+  --foreground: var(--tok-on-background);
+  --card: var(--tok-surface);
+  --card-foreground: var(--tok-on-surface);
+  --popover: var(--tok-surface);
+  --popover-foreground: var(--tok-on-surface);
+  --primary: var(--tok-primary);
+  --primary-foreground: var(--tok-on-primary);
+  --secondary: var(--tok-secondary-container);
+  --secondary-foreground: var(--tok-on-secondary-container);
+  --muted: var(--tok-surface-variant);
+  --muted-foreground: var(--tok-on-surface-variant);
+  --accent: var(--tok-tertiary);
+  --accent-foreground: var(--tok-on-tertiary);
+  --destructive: var(--tok-error);
+  --destructive-foreground: var(--tok-on-error);
+  --border: var(--tok-outline-variant);
+  --input: var(--tok-outline);
+  --ring: var(--tok-ring);
+
+  /* --- MD3 aliases. Full colors, used as `bg-[var(--md-sys-color-surface)]`. --- */
+  --md-sys-color-background: hsl(var(--tok-background));
+  --md-sys-color-on-background: hsl(var(--tok-on-background));
+  --md-sys-color-surface: hsl(var(--tok-surface));
+  --md-sys-color-on-surface: hsl(var(--tok-on-surface));
+  --md-sys-color-surface-container-low: hsl(var(--tok-surface-container-low));
+  --md-sys-color-surface-variant: hsl(var(--tok-surface-variant));
+  --md-sys-color-on-surface-variant: hsl(var(--tok-on-surface-variant));
+  --md-sys-color-surface-tint: hsl(var(--tok-primary));
+  --md-sys-color-primary: hsl(var(--tok-primary));
+  --md-sys-color-on-primary: hsl(var(--tok-on-primary));
+  --md-sys-color-primary-container: hsl(var(--tok-primary-container));
+  --md-sys-color-on-primary-container: hsl(var(--tok-on-primary-container));
+  --md-sys-color-inverse-primary: hsl(var(--tok-inverse-primary));
+  --md-sys-color-secondary: hsl(var(--tok-secondary));
+  --md-sys-color-on-secondary: hsl(var(--tok-on-secondary));
+  --md-sys-color-secondary-container: hsl(var(--tok-secondary-container));
+  --md-sys-color-on-secondary-container: hsl(var(--tok-on-secondary-container));
+  --md-sys-color-tertiary: hsl(var(--tok-tertiary));
+  --md-sys-color-on-tertiary: hsl(var(--tok-on-tertiary));
+  --md-sys-color-tertiary-container: hsl(var(--tok-tertiary-container));
+  --md-sys-color-on-tertiary-container: hsl(var(--tok-on-tertiary-container));
+  --md-sys-color-error: hsl(var(--tok-error));
+  --md-sys-color-on-error: hsl(var(--tok-on-error));
+  --md-sys-color-error-container: hsl(var(--tok-error-container));
+  --md-sys-color-on-error-container: hsl(var(--tok-on-error-container));
+  --md-sys-color-outline: hsl(var(--tok-outline));
+  --md-sys-color-outline-variant: hsl(var(--tok-outline-variant));
+  --md-sys-color-inverse-surface: hsl(var(--tok-on-surface));
+  --md-sys-color-on-inverse-surface: hsl(var(--tok-surface));
+}
+
+/*
+ * Type scale. Every step is a utility (`text-title-lg`, `text-label-sm`, …), so
+ * a call site never needs `text-[10px]` again; the `.md3-*` classes below are
+ * thin aliases of these steps, which keeps the two spellings identical.
+ * The floor is 11px — nothing in the UI renders smaller than that.
+ */
+@theme {
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+
+  --text-label-sm: 0.6875rem;
+  --text-label-sm--line-height: 1rem;
+  --text-label-sm--letter-spacing: 0.05em;
+  --text-label-sm--font-weight: 500;
+  --text-label-md: 0.75rem;
+  --text-label-md--line-height: 1rem;
+  --text-label-md--letter-spacing: 0.0417em;
+  --text-label-md--font-weight: 500;
+  --text-label-lg: 0.875rem;
+  --text-label-lg--line-height: 1.25rem;
+  --text-label-lg--letter-spacing: 0.0071em;
+  --text-label-lg--font-weight: 500;
+
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.25rem;
+  --text-body-sm--letter-spacing: 0.0179em;
+  --text-body-md: 1rem;
+  --text-body-md--line-height: 1.5rem;
+  --text-body-md--letter-spacing: 0.0313em;
+  --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.75rem;
+  --text-body-lg--letter-spacing: 0.0278em;
+
+  --text-title-sm: 0.875rem;
+  --text-title-sm--line-height: 1.25rem;
+  --text-title-sm--letter-spacing: 0.0071em;
+  --text-title-sm--font-weight: 500;
+  --text-title-md: 1rem;
+  --text-title-md--line-height: 1.5rem;
+  --text-title-md--letter-spacing: 0.0094em;
+  --text-title-md--font-weight: 500;
+  --text-title-lg: 1.375rem;
+  --text-title-lg--line-height: 1.75rem;
+  --text-title-lg--font-weight: 500;
+
+  --text-headline-sm: 1.5rem;
+  --text-headline-sm--line-height: 2rem;
+  --text-headline-md: 1.75rem;
+  --text-headline-md--line-height: 2.25rem;
+  --text-headline-lg: 2.125rem;
+  --text-headline-lg--line-height: 2.625rem;
+
+  --text-display-sm: 2.25rem;
+  --text-display-sm--line-height: 2.75rem;
+  --text-display-md: 2.75rem;
+  --text-display-md--line-height: 3.25rem;
+  --text-display-lg: 3.5rem;
+  --text-display-lg--line-height: 4.25rem;
+
+  --text-kpi: 3rem;
+  --text-kpi--line-height: 1;
+  --text-kpi--letter-spacing: -0.05em;
+  --text-kpi--font-weight: 700;
 }
 
 @theme inline {
@@ -112,85 +218,135 @@
   --radius-sm: calc(var(--radius) - 4px);
 }
 
-body {
-  color: hsl(var(--foreground));
-  background: hsl(var(--background));
-  font-feature-settings:
-    "rlig" 1,
-    "kern" 1;
+@layer base {
+  body {
+    color: hsl(var(--foreground));
+    background: hsl(var(--background));
+    font-feature-settings:
+      "rlig" 1,
+      "kern" 1;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /*
+   * One focus indicator for every interactive surface, including the hand-rolled
+   * custom controls (role="switch" / role="tab") that no browser style reaches.
+   * `:where()` keeps specificity at zero so a call site can still override it,
+   * and outline (not box-shadow) survives forced-colors mode.
+   */
+  :where(
+    a,
+    area,
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [tabindex]:not([tabindex="-1"]),
+    [role="button"],
+    [role="link"],
+    [role="tab"],
+    [role="switch"],
+    [role="checkbox"],
+    [role="radio"],
+    [role="combobox"],
+    [role="menuitem"],
+    [role="menuitemcheckbox"],
+    [role="menuitemradio"],
+    [role="option"],
+    [role="slider"],
+    [role="treeitem"],
+    [contenteditable="true"]
+  ):focus-visible {
+    outline: var(--focus-ring-width) solid hsl(var(--ring));
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  /* Numeric columns must not jitter when the data refreshes. */
+  table {
+    font-variant-numeric: var(--font-variant-tabular);
+  }
 }
 
-.card,
-[data-slot="card"] {
-  background: var(--md-sys-color-surface);
-  color: var(--md-sys-color-on-surface);
-  border-radius: var(--md-sys-shape-corner-medium);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  box-shadow:
-    0 1px 2px 0 rgba(0, 0, 0, 0.4),
-    0 4px 6px -1px rgba(0, 0, 0, 0.35),
-    0 10px 15px -3px rgba(0, 0, 0, 0.3),
-    0 20px 25px -5px rgba(0, 0, 0, 0.2);
+@layer components {
+  /* Type roles — aliases of the @theme steps above, never a second definition. */
+  .md3-display-large {
+    @apply text-display-lg;
+  }
+  .md3-display-medium {
+    @apply text-display-md;
+  }
+  .md3-display-small {
+    @apply text-display-sm;
+  }
+  .md3-headline-large {
+    @apply text-headline-lg;
+  }
+  .md3-headline-medium {
+    @apply text-headline-md;
+  }
+  .md3-headline-small {
+    @apply text-headline-sm;
+  }
+  .md3-title-large {
+    @apply text-title-lg;
+  }
+  .md3-title-medium {
+    @apply text-title-md;
+  }
+  .md3-title-small {
+    @apply text-title-sm;
+  }
+  .md3-body-large {
+    @apply text-body-lg;
+  }
+  .md3-body-medium {
+    @apply text-body-sm;
+  }
+  .md3-body-small {
+    @apply text-2xs;
+  }
+  .md3-label-large {
+    @apply text-label-lg;
+  }
+  .md3-label-medium {
+    @apply text-label-md;
+  }
+  .md3-label-small {
+    @apply text-label-sm;
+  }
+
+  .kpi-value {
+    @apply text-kpi;
+    color: var(--md-sys-color-on-surface);
+    font-variant-numeric: var(--font-variant-tabular);
+  }
+
+  .kpi-desc {
+    @apply text-label-md;
+    margin-top: 2px;
+    color: var(--md-sys-color-on-surface-variant);
+  }
+
+  .tnum {
+    font-variant-numeric: var(--font-variant-tabular);
+  }
+
+  .dashboard-section {
+    scroll-margin-top: calc(var(--header-height) + var(--space-sm));
+  }
 }
 
-.md3-title-large {
-  font-size: 22px;
-  line-height: 28px;
-  font-weight: 500;
-  letter-spacing: 0;
-}
-
-.md3-title-medium {
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 500;
-  letter-spacing: 0.15px;
-}
-
-.md3-body-medium {
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 400;
-  letter-spacing: 0.25px;
-}
-
-.md3-label-medium {
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-}
-
-.kpi-value {
-  font-size: 48px;
-  line-height: 1;
-  font-weight: 700;
-  letter-spacing: -0.05em;
-  font-feature-settings: "tnum";
-  color: var(--md-sys-color-on-surface);
-}
-
-.kpi-desc {
-  font-size: 12px;
-  line-height: 1.2;
-  color: var(--md-sys-color-on-surface-variant);
-  margin-top: 2px;
-}
-
-.dashboard-section {
-  scroll-margin-top: calc(var(--header-height) + var(--space-sm));
-}
-
-.card-compact {
-  padding: var(--space-md);
-}
-
+/*
+ * Third-party overrides stay unlayered on purpose: they must beat Recharts'
+ * inline styles, which layering alone cannot do.
+ */
 .recharts-tooltip-wrapper .recharts-default-tooltip {
   background: var(--md-sys-color-surface-variant) !important;
   border: 1px solid var(--md-sys-color-outline-variant) !important;
   border-radius: var(--md-sys-shape-corner-medium) !important;
   color: var(--md-sys-color-on-surface) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+  box-shadow: var(--shadow-e3) !important;
 }
 
 .recharts-tooltip-wrapper .recharts-tooltip-item {
@@ -225,7 +381,7 @@ body {
 }
 
 .treemap-chart .treemap-cell:hover rect {
-  filter: brightness(1.08) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+  filter: brightness(1.08) drop-shadow(0 2px 4px color-mix(in srgb, var(--md-sys-color-shadow) 35%, transparent));
 }
 
 .treemap-viz .recharts-treemap-nest-index-wrapper {
@@ -246,13 +402,13 @@ body {
   margin-right: 0 !important;
   padding: 3px 10px !important;
   border: 1px solid var(--md-sys-color-outline-variant) !important;
-  border-radius: 9999px !important;
+  border-radius: var(--md-sys-shape-corner-full) !important;
   background: var(--md-sys-color-surface-variant) !important;
   color: var(--md-sys-color-on-surface-variant) !important;
-  font-size: 10px !important;
+  font-size: var(--text-2xs) !important;
   font-weight: 500 !important;
   letter-spacing: 0.02em !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+  box-shadow: var(--shadow-e1) !important;
   transition:
     background 0.15s ease,
     color 0.15s ease,
@@ -275,7 +431,7 @@ body {
   content: "›";
   margin-right: 4px;
   color: var(--md-sys-color-outline);
-  font-size: 11px;
+  font-size: var(--text-2xs);
   font-weight: 600;
 }
 
@@ -285,18 +441,19 @@ body {
 }
 
 @media (max-width: 480px) {
+  /* 9px was below any readable floor; the scale floor is 11px. */
   .sunburst-viz [data-testid="sunburst-legend"] {
-    font-size: 9px;
+    font-size: var(--text-2xs);
   }
 }
 
 .sunburst-chart .recharts-sunburst path.recharts-sector {
   cursor: pointer;
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 1px 3px color-mix(in srgb, var(--md-sys-color-shadow) 45%, transparent));
 }
 
 .sunburst-chart .recharts-sunburst path.recharts-sector:hover {
-  filter: drop-shadow(0 2px 8px rgba(134, 183, 55, 0.45)) brightness(1.1);
+  filter: drop-shadow(0 2px 8px color-mix(in srgb, var(--md-sys-color-primary) 45%, transparent)) brightness(1.1);
 }
 
 .sunburst-chart text,
@@ -304,4 +461,101 @@ body {
   opacity: 0 !important;
   font-size: 0 !important;
   pointer-events: none !important;
+}
+
+/*
+ * Reduced motion: neutralise the animations this app actually ships —
+ * `animate-pulse` on Skeleton, the sheet/dialog enter-exit animations from
+ * tailwindcss-animate, and `active:scale` on buttons.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  button:active,
+  [role="button"]:active,
+  [role="switch"]:active,
+  [role="tab"]:active,
+  a:active {
+    transform: none !important;
+  }
+}
+
+/*
+ * Forced colors (high contrast): Windows repaints custom properties, so the
+ * token-derived ring and border disappear. Restore a system-colored outline and
+ * exempt the data visualisations, whose colors carry meaning.
+ */
+@media (forced-colors: active) {
+  :where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    [tabindex],
+    [role="button"],
+    [role="switch"],
+    [role="tab"],
+    [role="combobox"]
+  ):focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  [role="switch"],
+  [role="progressbar"],
+  [role="status"],
+  [data-sonner-toast] {
+    border: 1px solid CanvasText;
+  }
+
+  .treemap-chart,
+  .sunburst-chart,
+  .recharts-tooltip-wrapper {
+    forced-color-adjust: none;
+  }
+}
+
+/*
+ * Print: drop the chrome a paper copy does not need, un-stick the header, and
+ * let tables spill instead of scrolling inside a clipped box. The palette
+ * itself flips to greyscale in app/themes.css's `@media print` block.
+ */
+@media print {
+  header,
+  nav,
+  aside,
+  footer,
+  button,
+  [role="dialog"],
+  [role="alertdialog"],
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+
+  [class*="sticky"] {
+    position: static !important;
+  }
+
+  [class*="overflow-"] {
+    overflow: visible !important;
+  }
+
+  * {
+    box-shadow: none !important;
+    background-image: none !important;
+  }
+
+  @page {
+    margin: 12mm;
+  }
 }

@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 
+import { DASHBOARD_SECTIONS } from "@/lib/types";
+
 vi.mock("@/components/DashboardShell", () => ({
   DashboardShell: ({ children }: { children: React.ReactNode }) => <div data-testid="dashboard-shell">{children}</div>
 }));
@@ -130,27 +132,71 @@ describe("app routes", () => {
     expect(screen.getByText("app-child")).toBeInTheDocument();
   });
 
-  it("renders main dashboard page with mocked host data", async () => {
-    const DashboardPage = (await import("@/app/(dashboard)/page")).default;
-    const jsx = await DashboardPage();
+  it("renders the overview and links to every section in the closed set", async () => {
+    const OverviewPage = (await import("@/app/(dashboard)/page")).default;
+    const jsx = await OverviewPage();
     render(jsx);
-    expect(screen.getByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
-    expect(screen.getAllByText("Resource Guard").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Secrets Vault").length).toBeGreaterThan(0);
+
+    expect(screen.getByRole("heading", { name: "DGX Spark Lab", level: 1 })).toBeInTheDocument();
+
+    // The whole point of the roll-up: no section is reachable only by scrolling,
+    // which is how Agent Chat went missing from the old hand-maintained sidebar.
+    for (const slug of DASHBOARD_SECTIONS) {
+      const card = screen.getByTestId(`section-nav-card-${slug}`);
+      expect(card).toHaveAttribute("href", `/${slug}`);
+    }
   });
 
-  it("handles non-array container list on dashboard page", async () => {
+  it("degrades a KPI tile when a host probe returns a non-array", async () => {
     vi.resetModules();
     vi.doMock("@/lib/host", async () => {
       const actual = await vi.importActual<typeof import("@/lib/host")>("@/lib/host");
       return { ...actual, listContainers: async () => null as never };
     });
-    const DashboardPage = (await import("@/app/(dashboard)/page")).default;
-    const jsx = await DashboardPage();
-    render(jsx);
-    expect(screen.getByText(/0 containers running/)).toBeInTheDocument();
+    const { OverviewKpis } = await import("@/app/(dashboard)/page");
+    render(await OverviewKpis());
+
+    // A probe that answers with garbage must not read as "0 containers running".
+    expect(screen.queryByText(/0 containers running/)).not.toBeInTheDocument();
+
+    const labels = screen.getAllByTestId("metric-tile-label").map((el) => el.textContent?.trim());
+    expect(labels).toContain("Containers");
+
+    const values = screen.getAllByTestId("metric-tile-value").map((el) => el.textContent?.trim());
+    expect(values).toContain("—");
     vi.doUnmock("@/lib/host");
     vi.resetModules();
+  });
+
+  it("renders every section route as its own page", async () => {
+    const SectionPage = (await import("@/app/(dashboard)/[section]/page")).default;
+
+    for (const slug of DASHBOARD_SECTIONS) {
+      const jsx = await SectionPage({ params: Promise.resolve({ section: slug }) });
+      const { unmount } = render(jsx);
+      // The route owns the h1 and the section starts at an h2, which is what
+      // makes the heading outline navigable on a page that used to be h1 -> h3.
+      expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+      unmount();
+    }
+  });
+
+  it("gives each section a distinct document title", async () => {
+    const { generateMetadata } = await import("@/app/(dashboard)/[section]/page");
+    const titles = await Promise.all(
+      DASHBOARD_SECTIONS.map(async (slug) => {
+        const meta = await generateMetadata({ params: Promise.resolve({ section: slug }) });
+        return meta.title;
+      })
+    );
+
+    // Ten sections sharing one title made the tab bar and runbook links useless.
+    expect(new Set(titles).size).toBe(DASHBOARD_SECTIONS.length);
+  });
+
+  it("404s a section route that is not in the closed set", async () => {
+    const SectionPage = (await import("@/app/(dashboard)/[section]/page")).default;
+    await expect(SectionPage({ params: Promise.resolve({ section: "not-a-section" }) })).rejects.toThrow();
   });
 
   it("renders dev panels fixture page under mocks", async () => {

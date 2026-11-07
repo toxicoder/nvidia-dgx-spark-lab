@@ -1,38 +1,29 @@
-/**
- * Dashboard segment loading skeleton — shown while RSC page data is fetching.
- */
 import type React from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+
+import { PageHeaderSkeleton, SectionSkeleton } from "@/components/ui/section-skeleton";
 
 /**
- * Skeleton placeholder for the main dashboard layout.
- * @returns Loading UI for the `(dashboard)` segment.
+ * Loading state for the console overview.
+ *
+ * The previous skeleton showed two cards for a page that renders thirteen, and
+ * said nothing to a screen reader. This one mirrors the overview's actual shape
+ * — heading block, KPI band, roll-up — and announces that it is loading.
+ *
+ * @returns The overview loading UI.
  */
 export default function DashboardLoading(): React.JSX.Element {
   return (
-    <div className="space-y-6">
-      <Skeleton className="h-10 w-64" />
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        {[0, 1, 2].map((i) => (
-          <Card key={i}>
-            <CardHeader>
-              <Skeleton className="h-8 w-24" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-4 w-full" />
-            </CardContent>
-          </Card>
+    <div className="space-y-8">
+      <PageHeaderSkeleton />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {[0, 1, 2, 3].map((index) => (
+          <SectionSkeleton key={index} compact />
         ))}
       </div>
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-48" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-64 w-full" />
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <SectionSkeleton />
+        <SectionSkeleton />
+      </div>
     </div>
   );
 }

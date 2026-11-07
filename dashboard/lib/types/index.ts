@@ -592,3 +592,39 @@ export interface LabSecretMeta {
   updatedAt: number;
   createdBy: string | null;
 }
+
+/**
+ * Every section of the operator console, in navigation order.
+ *
+ * Single source of truth for the sidebar rail, the `[section]` route's
+ * `generateStaticParams`, and the per-route document title. A slug listed here
+ * with no matching module under `components/sections/`, or a module with no
+ * entry here, fails `//dashboard:test` — this is the gate that would have
+ * caught the sidebar silently losing the Agent Chat panel.
+ */
+export const DASHBOARD_SECTIONS = [
+  "resources",
+  "observability",
+  "inference",
+  "agent-chat",
+  "storage",
+  "tasks",
+  "workspaces",
+  "system",
+  "utilities",
+  "secrets"
+] as const;
+
+/** One console section route; derived from {@link DASHBOARD_SECTIONS}. */
+export type DashboardSectionSlug = (typeof DASHBOARD_SECTIONS)[number];
+
+/**
+ * Sidebar groupings, in the order the rail renders them.
+ *
+ * Sections are clustered by the operator's intent rather than by the panel that
+ * happens to implement them, so the rail reads as a task list.
+ */
+export const DASHBOARD_SECTION_GROUPS = ["observe", "serve", "data", "workloads", "operate"] as const;
+
+/** Sidebar group label; derived from {@link DASHBOARD_SECTION_GROUPS}. */
+export type DashboardSectionGroup = (typeof DASHBOARD_SECTION_GROUPS)[number];
