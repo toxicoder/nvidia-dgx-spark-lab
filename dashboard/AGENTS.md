@@ -9,16 +9,58 @@ Also follow root [AGENTS.md](../AGENTS.md) for **test efficiency** (prefer `//da
 **Stack**:
 
 - Next.js 16+ App Router, `output: "standalone"`
-- shadcn/ui + Radix primitives (Dialog, Sheet, Select, Label, Alert) + Sonner toasts
-- MD3 tokens in `globals.css`
+- shadcn/ui + Radix primitives (Dialog, Sheet, Select, Label, Alert, Collapsible, Tabs, Switch, Toast) + Sonner toasts
+- Design tokens: `app/themes.css` declares `--tok-*` primitives per theme; `app/globals.css` is the single
+  place that derives the shadcn (`--background`, `--warning`, …) and MD3 (`--md-sys-color-*`) names from them
 - Drizzle + SQLite + better-auth
 - Visual regression: Playwright `toHaveScreenshot` → `tests/visual/goldens/`
+
+## Routed sections
+
+Each console section is a real route, not an anchor on one long page.
+
+| Path                                   | Role                                                                                            |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `lib/section-registry.ts`              | One descriptor per section: title, description, group, icon                                     |
+| `lib/types/index.ts`                   | `DASHBOARD_SECTIONS` / `DashboardSectionSlug` / `DASHBOARD_SECTION_GROUPS` — the closed nav set |
+| `app/(dashboard)/[section]/`           | Dynamic route: `resolveSlug` rejects anything outside the closed set with `notFound()`          |
+| `components/sections/<slug>/index.tsx` | **Data loader only** — wraps host calls in `attempt()`; it owns no chrome                       |
+| `components/<Name>Panel.tsx`           | **Owns the frame** (see below), plus its own refresh and poll cadence                           |
+
+The registry and the closed slug set are the source of truth: add a section by extending
+`DASHBOARD_SECTIONS`, its descriptor, and its `components/sections/` module. `routes.test.tsx`
+and the nav drift test fail when the three disagree, so the rail cannot drift from the routes.
+
+## Design system
+
+Sections are built from shared primitives in `components/ui/` rather than hand-rolled chrome.
+
+- **Every section panel renders the same frame**: `Panel` → `PanelHeader` → (`PanelTitle` + optional
+  `PanelDescription` / `PanelActions`) → `PanelBody` → optional `PanelFooter`. `Panel` emits
+  `data-slot="panel"` and **no** `data-testid`, so pass the panel's existing `data-testid` to it.
+  Keep exactly one frame and one `h2` per section: when a server wrapper holds the testid, the
+  wrapper owns the frame and the client renders body content only.
+- `MetricTile` for label-over-number figures, `StatusBadge` for closed-set states, `ErrorState` for
+  probe failures, `EmptyState`, `CopyButton`, and `PanelRefreshButton` instead of per-panel markup.
+- **Risk colour is not decorative.** `warning` is an amber tier (`--warning`, derived from
+  `--tok-warning` in every theme block); `danger` is destructive. Rendering a warning in red was
+  the defect that made a capacity-headroom tile read as a fault. `theme-contrast.test.ts` measures
+  both at WCAG AA in every theme, so a new tone needs contrast pairs there or the gate fails.
+- **No arbitrary font sizes.** `text-[10px]`-style bracket sizes are banned by
+  `components/__tests__/type-scale.test.ts`; use the scale (`text-xs` and up) or add a `@theme` step.
+- **Never read browser state during render.** `ThemeProvider` adopts the stored theme in an effect;
+  reading `localStorage` in the initial render desynchronises the client markup from the server HTML
+  and costs every route a hydration mismatch.
+- Toasts come from `@/lib/toast` (or the component's existing `@/components/ui/toast` import), never
+  from a hand-rolled overlay.
 
 ## Structure
 
 | Path                                                | Role                                                                                                           |
 | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | `app/(dashboard)/page.tsx`                          | Thin RSC composer — single `Promise.all` data load                                                             |
+| `app/(dashboard)/[section]/`                        | Per-section route, driven by `lib/section-registry.ts`                                                         |
+| `components/ui/panel.tsx`                           | The shared section frame (`data-slot="panel"` family)                                                          |
 | `components/DashboardShell.tsx`                     | Sidebar + sticky header + mobile menu (replaces `Sidebar.tsx`)                                                 |
 | `app/dev/ui/page.tsx`                               | Isolated shadcn fixture gallery for visual goldens                                                             |
 | `app/dev/panels/page.tsx`                           | Isolated panel fixture gallery for visual goldens                                                              |
@@ -49,7 +91,27 @@ UPDATE_SNAPSHOTS=1 bazelisk run //dashboard:hermetic-test   # regenerate Linux g
 bazelisk run //dashboard:visual                 # local Playwright only (macOS dev)
 ```
 
-Per-ui goldens capture from `/dev/ui`; panel goldens from `/dev/panels` — not the production dashboard shell.
+Per-ui goldens capture from `/dev/ui`; panel goldens from `/dev/panels`. `sections.spec.ts` captures the
+**real routes** — every `SECTION_ROUTES` entry at both viewports in both `THEMES` — because light mode and
+the routed shell are what the fixture galleries could not catch. The treemap surfaces capture from
+`/storage` (they render inside `StoragePanel`), listed once in `STORAGE_EXTRA_CAPTURES`; keep them out of
+`MAIN_PAGE_ELEMENTS`, which is the overview's own list.
+
+`tests/visual/expected-goldens.ts` derives the committed golden list from `SECTION_ROUTES`,
+`PANEL_SELECTORS`, `MAIN_PAGE_ELEMENTS`, `STORAGE_EXTRA_CAPTURES` and `UI_FIXTURES`, so adding a section or
+a panel changes the expected set automatically. `golden-inventory.test.ts` compares that list to disk
+**and** checks each PNG's signature, declared dimensions, byte size and bytes-per-pixel floor, so a blank,
+truncated, stale or never-produced screenshot fails the run instead of becoming a baseline.
+
+Two rules keep that suite honest, both covered by `tests/visual/visual-helpers.test.ts`:
+
+- **Wait only for what the route renders.** `waitForDashboardReady` waits for the treemap and the
+  home-page panels; a single-section route has neither, so pass `{ treemap: false, homePanels: false }`
+  and assert the route's own target with `requireVisible`. Leaving the defaults on costs ~18s of dead
+  wait per route and swallows the miss behind `.catch(() => {})`.
+- **Passthrough flags go after `--`.** `run_npm.sh` runs `npm exec playwright test -- "$@"`; without the
+  separator npm eats `--update-snapshots` and the lane compares instead of writing.
+  `//tests:bats_tooling_test` pins it.
 
 ## Testing
 
