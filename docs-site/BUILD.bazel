@@ -77,6 +77,8 @@ exports_files(
         # Sourced by run_npm.sh and docs/test_command_vars.sh; //tests:bats_tooling_test
         # exercises it directly, so it has to be referenceable from outside this package.
         "scripts/npm-install-lock.sh",
+        # Read by //tests:bats_tooling_test, which asserts every Next app ignores its build output.
+        "next.config.ts",
     ],
     visibility = ["//visibility:public"],
 )

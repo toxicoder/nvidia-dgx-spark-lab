@@ -51,6 +51,8 @@ filegroup(
         "Dockerfile",
         "Dockerfile.dockerignore",
         "Dockerfile.test",
+        # Documents the per-section loader contract; named here because :sources globs code only.
+        "components/sections/README.md",
         "docker-compose.yml",
         "eslint.config.mjs",
         "postcss.config.mjs",
@@ -104,6 +106,8 @@ exports_files(
         "run_npm.sh",
         "Dockerfile",
         "Dockerfile.dockerignore",
+        # Read by //tests:bats_tooling_test, which asserts every Next app ignores its build output.
+        "next.config.ts",
     ],
     visibility = ["//visibility:public"],
 )

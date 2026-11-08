@@ -612,3 +612,84 @@ FAKENPM
   [[ -f $script ]]
   grep -q 'npm-install-lock.sh' "$script"
 }
+
+# ## dashboard npm runner argument passthrough
+#
+# `bazelisk run //dashboard:visual -- --update-snapshots` silently did nothing. The lane ran
+# `npm exec playwright test --update-snapshots`, and npm claimed the flag as its own setting
+# ("npm warn Unknown cli config --update-snapshots") instead of handing it to Playwright, so
+# Playwright compared against the committed goldens rather than rewriting them. With no working
+# way to regenerate a baseline, the golden matrix rotted: the specs captured light mode and the
+# routed sections, but those files had never been written to disk. The lane must separate npm's
+# options from Playwright's with `--`, which is what the test lane already does with
+# `npm run test -- --run`.
+
+make_dashboard_npm_fixture() {
+  local root="$1"
+  mkdir -p "$root/pkg" "$root/bin" "$root/pkg/node_modules/.bin"
+  printf '{"name":"dashboard-fixture"}\n' >"$root/pkg/package.json"
+  cp "${REPO_ROOT}/dashboard/run_npm.sh" "$root/pkg/run_npm.sh"
+  # ensure_deps() only runs `npm ci` when neither binary is present.
+  printf '#!/usr/bin/env bash\nexit 0\n' >"$root/pkg/node_modules/.bin/playwright"
+  chmod +x "$root/pkg/node_modules/.bin/playwright"
+  cat >"$root/bin/npm" <<'FAKENPM'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$*" >>"${FAKE_NPM_LOG:?}"
+FAKENPM
+  chmod +x "$root/bin/npm"
+}
+
+@test "dashboard visual lane forwards passthrough args to playwright" {
+  local root="$TEST_TMP_DIR/dash"
+  make_dashboard_npm_fixture "$root"
+  export FAKE_NPM_LOG="$root/npm.log"
+  : >"$FAKE_NPM_LOG"
+
+  run env -u BUILD_WORKSPACE_DIRECTORY PATH="$root/bin:$PATH" \
+    bash "$root/pkg/run_npm.sh" visual --update-snapshots
+  [ "$status" -eq 0 ]
+  cat "$FAKE_NPM_LOG"
+
+  # The flag has to survive to Playwright, so `--` must separate it from npm's own options.
+  grep -qF 'playwright test -- --update-snapshots' "$FAKE_NPM_LOG"
+}
+
+@test "dashboard visual lane still runs playwright with no passthrough args" {
+  local root="$TEST_TMP_DIR/dash-empty"
+  make_dashboard_npm_fixture "$root"
+  export FAKE_NPM_LOG="$root/npm.log"
+  : >"$FAKE_NPM_LOG"
+
+  run env -u BUILD_WORKSPACE_DIRECTORY PATH="$root/bin:$PATH" \
+    bash "$root/pkg/run_npm.sh" visual
+  [ "$status" -eq 0 ]
+  cat "$FAKE_NPM_LOG"
+  grep -qE '^exec playwright test( --)?$' "$FAKE_NPM_LOG"
+}
+
+@test "every Next app keeps its build output out of the Bazel workspace" {
+  # `next build` writes dashboard/.next/standalone/, and the standalone copy carries the
+  # app's own BUILD.bazel, .dockerignore and .env.example with it. Bazel then loads that
+  # generated tree as a real package, so //tests:bazel_file_coverage starts reporting
+  # unsanctioned globs and dangling references that nobody wrote. .gitignore keeps the tree
+  # out of commits; only a .bazelignore entry keeps it out of the build graph.
+  local found=0
+  local cfg app_dir
+  while IFS= read -r cfg; do
+    app_dir="${cfg#./}"
+    app_dir="$(dirname "$app_dir")"
+    found=$((found + 1))
+    if ! grep -qxF "${app_dir}/.next/" "${REPO_ROOT}/.bazelignore"; then
+      echo "missing from .bazelignore: ${app_dir}/.next/" >&2
+      return 1
+    fi
+  done < <(
+    cd "$REPO_ROOT" && find . -maxdepth 2 -name 'next.config.*' \
+      -not -path '*/node_modules/*' -not -path '*/.next/*'
+  )
+
+  # A check that inspected nothing must fail, the same rule //lints:mypy follows. This repo
+  # ships exactly two Next apps, so a run that sees fewer has lost its data deps.
+  [ "$found" -ge 2 ]
+}

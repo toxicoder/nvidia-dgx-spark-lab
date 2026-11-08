@@ -3,10 +3,13 @@
 
 from __future__ import annotations
 
+import pathlib
+import tempfile
 import unittest
 
 from bazel_file_coverage import (
     SANCTIONED_GLOBS,
+    build_files,
     collect_declared_outputs,
     collect_exact_glob_names,
     collect_globbed_files,
@@ -17,6 +20,63 @@ from bazel_file_coverage import (
     parse_build_references,
     unowned_files,
 )
+
+
+def _write_file(root: pathlib.Path, rel: str) -> None:
+    """Create an empty file under ``root``, making its parent directories.
+
+    Args:
+        root: Temporary repository root.
+        rel: Repository-relative POSIX path to create.
+    """
+    target = root / rel
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("", encoding="utf-8")
+
+
+class TestBuildFiles(unittest.TestCase):
+    """build_files discovers BUILD files and honours the declared workspace exclusions."""
+
+    def test_skips_output_base_symlinks(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = pathlib.Path(raw)
+            _write_file(root, "dashboard/BUILD.bazel")
+            _write_file(root, "bazel-out/BUILD.bazel")
+
+            found = [p.relative_to(root).as_posix() for p in build_files(root)]
+
+            self.assertEqual(found, ["dashboard/BUILD.bazel"])
+
+    def test_skips_directories_declared_in_bazelignore(self) -> None:
+        # `next build` copies the app's own BUILD.bazel into <app>/.next/standalone/. That tree
+        # is a build output, declared out of the workspace by .bazelignore, so the gate must not
+        # read it as a package -- otherwise every local `//dashboard:visual` run fails the gate
+        # with globs and dangling references nobody wrote.
+        with tempfile.TemporaryDirectory() as raw:
+            root = pathlib.Path(raw)
+            _write_file(root, "dashboard/BUILD.bazel")
+            _write_file(root, "dashboard/.next/standalone/BUILD.bazel")
+            _write_file(root, "docs-site/.next/standalone/BUILD.bazel")
+            _write_file(root, "node_modules/pkg/BUILD.bazel")
+            (root / ".bazelignore").write_text(
+                "# generated output\nnode_modules/\ndashboard/.next/\ndocs-site/.next/\n",
+                encoding="utf-8",
+            )
+
+            found = [p.relative_to(root).as_posix() for p in build_files(root)]
+
+            self.assertEqual(found, ["dashboard/BUILD.bazel"])
+
+    def test_treats_a_leading_double_star_as_any_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = pathlib.Path(raw)
+            _write_file(root, "scripts/BUILD.bazel")
+            _write_file(root, "scripts/lib/__pycache__/BUILD.bazel")
+            (root / ".bazelignore").write_text("**/__pycache__/\n", encoding="utf-8")
+
+            found = [p.relative_to(root).as_posix() for p in build_files(root)]
+
+            self.assertEqual(found, ["scripts/BUILD.bazel"])
 
 
 class TestParseBuildReferences(unittest.TestCase):

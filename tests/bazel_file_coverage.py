@@ -389,6 +389,52 @@ def parse_build_outputs(text: str, package: str) -> set[str]:
     return _collect_strings(text, package, _OUTPUT_ATTRS)
 
 
+def bazelignore_prefixes(root: pathlib.Path) -> tuple[str, ...]:
+    """Read the directories the workspace declares it never owns.
+
+    ``.bazelignore`` is the written declaration of what stays out of the Bazel workspace.
+    The walk has to honour it: ``next build`` copies an app's own ``BUILD.bazel`` into
+    ``<app>/.next/standalone/``, and reading that generated tree as a package makes the gate
+    report globs and dangling references that nobody wrote.
+
+    Args:
+        root: Repository root.
+
+    Returns:
+        Normalised directory prefixes, e.g. ``("dashboard/.next/", "node_modules/")``. A
+        leading ``**/`` is preserved so it can match at any depth.
+    """
+    path = root / ".bazelignore"
+    if not path.is_file():
+        return ()
+    prefixes: list[str] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        entry = line.strip()
+        if not entry or entry.startswith("#"):
+            continue
+        prefixes.append(entry.strip("/") + "/")
+    return tuple(prefixes)
+
+
+def _is_bazelignored(rel_path: str, prefixes: tuple[str, ...]) -> bool:
+    """Report whether a repository-relative path sits under a Bazel-ignored directory.
+
+    Args:
+        rel_path: Repository-relative POSIX path.
+        prefixes: Prefixes from :func:`bazelignore_prefixes`.
+
+    Returns:
+        True when the path lies inside an ignored directory at any depth.
+    """
+    for prefix in prefixes:
+        if prefix.startswith("**/"):
+            if f"/{prefix[3:]}" in f"/{rel_path}":
+                return True
+        elif rel_path.startswith(prefix):
+            return True
+    return False
+
+
 def build_files(root: pathlib.Path) -> list[pathlib.Path]:
     """Find every BUILD file in the repository.
 
@@ -399,9 +445,12 @@ def build_files(root: pathlib.Path) -> list[pathlib.Path]:
         Sorted BUILD files.
     """
     found = []
+    ignored = bazelignore_prefixes(root)
     for path in sorted(root.rglob("BUILD*")):
         rel = path.relative_to(root).as_posix()
         if rel.startswith("bazel-") or path.name not in ("BUILD", "BUILD.bazel"):
+            continue
+        if _is_bazelignored(rel, ignored):
             continue
         found.append(path)
     return found
