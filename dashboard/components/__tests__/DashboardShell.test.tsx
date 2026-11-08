@@ -23,19 +23,29 @@ vi.mock("@/lib/auth-client", () => ({
 }));
 
 /**
- * Render the shell with the theme provider it expects.
+ * The shell tree every test renders, kept in one place so a rerender matches the first render.
  *
  * @param ui - Content to place in the main region.
- * @returns The testing-library render result.
+ * @returns The themed shell element.
  */
-function renderShell(ui: React.ReactNode = <div>content</div>) {
-  return render(
+function shellTree(ui: React.ReactNode = <div>content</div>) {
+  return (
     <ThemeProvider>
       <DashboardShell hostname="spark-01" generatedAt={Date.UTC(2026, 0, 1, 12, 30, 0)}>
         {ui}
       </DashboardShell>
     </ThemeProvider>
   );
+}
+
+/**
+ * Render the shell with the theme provider it expects.
+ *
+ * @param ui - Content to place in the main region.
+ * @returns The testing-library render result.
+ */
+function renderShell(ui: React.ReactNode = <div>content</div>) {
+  return render(shellTree(ui));
 }
 
 describe("DashboardShell", () => {
@@ -158,6 +168,21 @@ describe("DashboardShell mobile rail", () => {
     fireEvent.click(screen.getByRole("button", { name: /open menu/i }));
     const drawer = screen.getByTestId("ui-sheet");
     fireEvent.click(within(drawer).getByTestId("nav-storage"));
+
+    expect(screen.queryByTestId("ui-sheet")).not.toBeInTheDocument();
+  });
+
+  it("closes the drawer when the route moves without a drawer click", () => {
+    // A panel link, a router.push after a utility run, or a back gesture can all move the
+    // route while the drawer is open. The drawer lives outside the routed tree, so nothing
+    // unmounts it: its openness derives from the pathname to cover these.
+    const { rerender } = renderShell();
+
+    fireEvent.click(screen.getByRole("button", { name: /open menu/i }));
+    expect(screen.getByTestId("ui-sheet")).toBeInTheDocument();
+
+    pathname = "/tasks";
+    rerender(shellTree());
 
     expect(screen.queryByTestId("ui-sheet")).not.toBeInTheDocument();
   });

@@ -5,6 +5,19 @@ import { DashboardShell } from "@/components/DashboardShell";
 import { requireSession } from "@/lib/require-session";
 
 /**
+ * Read the two request-time facts the sticky header carries.
+ *
+ * Both reads are impure, so they stay out of the component body: a render has to be a pure
+ * function of its inputs, and inlining `Date.now()` in the JSX is exactly what the
+ * purity rule rejects. Doing it here keeps each read once-per-request on the server.
+ *
+ * @returns The node name and the moment this request read it.
+ */
+async function readShellFacts(): Promise<{ hostname: string; generatedAt: number }> {
+  return { hostname: osHostname(), generatedAt: Date.now() };
+}
+
+/**
  * Authenticated console segment layout — wraps every route in {@link DashboardShell}.
  *
  * The shell needs two facts a client component cannot supply: which physical
@@ -22,9 +35,10 @@ export default async function DashboardShellLayout({
   children: React.ReactNode;
 }): Promise<React.JSX.Element> {
   await requireSession();
+  const { hostname, generatedAt } = await readShellFacts();
 
   return (
-    <DashboardShell hostname={osHostname()} generatedAt={Date.now()}>
+    <DashboardShell hostname={hostname} generatedAt={generatedAt}>
       {children}
     </DashboardShell>
   );

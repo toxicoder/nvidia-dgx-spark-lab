@@ -3,7 +3,15 @@
  */
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore
+} from "react";
 import {
   DASHBOARD_THEMES,
   DEFAULT_THEME_ID,
@@ -25,8 +33,9 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 /**
  * Read the operator's stored theme choice.
  *
- * Only ever called from an effect, so `localStorage` is guaranteed to exist; the try/catch
- * covers browsers that deny storage in private mode rather than a missing window.
+ * Used as the client snapshot of {@link ThemeProvider}'s store, so it runs after hydration;
+ * the try/catch covers browsers that deny storage in private mode rather than a missing
+ * window, which {@link getServerThemeSnapshot} is what keeps off the server.
  * @returns The stored id when it is still in the catalog, otherwise the default.
  */
 function readStoredThemeId(): string {
@@ -36,6 +45,49 @@ function readStoredThemeId(): string {
   } catch {
     /* localStorage unavailable */
   }
+  return DEFAULT_THEME_ID;
+}
+
+/**
+ * Subscribers in this tab.
+ *
+ * `storage` events only reach *other* tabs, so an in-tab write has to notify its own
+ * subscribers or the store would keep handing out the value it read before the write.
+ */
+const themeSubscribers = new Set<() => void>();
+
+/** Bind the stored theme key to React's store-change channel. */
+function subscribeTheme(onStoreChange: () => void): () => void {
+  const onStorage = (event: StorageEvent): void => {
+    if (event.key === THEME_STORAGE_KEY) onStoreChange();
+  };
+  themeSubscribers.add(onStoreChange);
+  window.addEventListener("storage", onStorage);
+  return () => {
+    themeSubscribers.delete(onStoreChange);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+
+/** Tell this tab's subscribers that the stored theme moved. */
+function notifyThemeChange(): void {
+  for (const notify of themeSubscribers) notify();
+}
+
+/** Client snapshot: whatever the operator stored, defaulted when absent or unknown. */
+function getThemeSnapshot(): string {
+  return readStoredThemeId();
+}
+
+/**
+ * Server and hydration snapshot: the default theme.
+ *
+ * The server has no localStorage, so server HTML and the first client pass must agree on
+ * this value; reading the stored choice during render is what desynchronised the two and
+ * cost every route a hydration mismatch. The pre-paint script in `app/layout.tsx` has
+ * already put the operator's real choice on screen by the time this is consulted.
+ */
+function getServerThemeSnapshot(): string {
   return DEFAULT_THEME_ID;
 }
 
@@ -49,29 +101,33 @@ export function applyThemeToDocument(themeId: string): void {
 
 /** Provides theme state and syncs DOM + localStorage when the active theme changes. */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // The server has no localStorage, so the first client pass must agree with the HTML it
-  // was handed. Reading the stored choice during render made the two differ and cost
-  // every route a hydration mismatch plus a full client re-render. The pre-paint script
-  // in `app/layout.tsx` already put the right theme on screen before this runs.
-  const [themeId, setThemeIdState] = useState<string>(DEFAULT_THEME_ID);
+  // The stored choice is external state, so it arrives through the store rather than through
+  // a setState in an effect. `getServerThemeSnapshot` keeps server HTML and the first client
+  // pass identical, which is what the earlier render-time read used to break.
+  const storedId = useSyncExternalStore(subscribeTheme, getThemeSnapshot, getServerThemeSnapshot);
 
-  useEffect(() => {
-    setThemeIdState(readStoredThemeId());
-  }, []);
+  // The operator's click for this session. It is held separately because a browser that
+  // denies storage (private mode) still has to follow the click, so the value cannot live in
+  // storage alone. It is set from the click handler, never from an effect.
+  const [chosenId, setChosenId] = useState<string | null>(null);
+  const themeId = chosenId ?? storedId;
 
+  // Applying the tokens to the document is an external system following React state, which is
+  // the one thing an effect body is for here.
   useEffect(() => {
     applyThemeToDocument(themeId);
   }, [themeId]);
 
   const setThemeId = useCallback((id: string) => {
     const next = isValidThemeId(id) ? id : DEFAULT_THEME_ID;
-    setThemeIdState(next);
-    applyThemeToDocument(next);
+    setChosenId(next);
     try {
       localStorage.setItem(THEME_STORAGE_KEY, next);
     } catch {
       /* ignore */
     }
+    applyThemeToDocument(next);
+    notifyThemeChange();
   }, []);
 
   const theme = getThemeById(themeId) ?? getThemeById(DEFAULT_THEME_ID)!;

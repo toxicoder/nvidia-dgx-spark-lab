@@ -120,14 +120,13 @@ export function usePolling<T>(fetcher: () => Promise<T>, options: UsePollingOpti
     };
   }, [enabled, intervalMs, run]);
 
+  // The flip belongs in the timer callback, never in the effect body: setting it
+  // synchronously here re-renders every subscriber before the effect has finished. An
+  // already-expired budget schedules for the next macrotask instead, which reads the same.
   React.useEffect(() => {
     if (lastUpdatedAt === null) return;
     const budget = staleAfterMs ?? intervalMs * DEFAULT_STALE_MULTIPLIER;
-    const remaining = budget - (Date.now() - lastUpdatedAt);
-    if (remaining <= 0) {
-      setStale(true);
-      return;
-    }
+    const remaining = Math.max(budget - (Date.now() - lastUpdatedAt), 0);
     const id = setTimeout(() => setStale(true), remaining);
     return () => clearTimeout(id);
   }, [lastUpdatedAt, staleAfterMs, intervalMs]);

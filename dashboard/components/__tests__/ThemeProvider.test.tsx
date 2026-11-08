@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
+import { hydrateRoot } from "react-dom/client";
+import { renderToStaticMarkup } from "react-dom/server";
 import { ThemeProvider, applyThemeToDocument, useTheme } from "../ThemeProvider";
 
 function BrokenConsumer() {
@@ -98,16 +100,21 @@ describe("ThemeProvider", () => {
     const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
       throw new Error("quota");
     });
-    render(
-      <ThemeProvider>
-        <ThemeProbe />
-      </ThemeProvider>
-    );
-    act(() => {
-      fireEvent.click(screen.getByRole("button", { name: /set daylight/i }));
-    });
-    expect(screen.getByTestId("theme-id")).toHaveTextContent("daylight");
-    setItem.mockRestore();
+    try {
+      render(
+        <ThemeProvider>
+          <ThemeProbe />
+        </ThemeProvider>
+      );
+      act(() => {
+        fireEvent.click(screen.getByRole("button", { name: /set daylight/i }));
+      });
+      expect(screen.getByTestId("theme-id")).toHaveTextContent("daylight");
+    } finally {
+      // A failed assertion has to leave the real setter behind: a spy that outlives this test
+      // makes every later write in the file throw and buries the real failure under `quota`.
+      setItem.mockRestore();
+    }
   });
 
   it("applyThemeToDocument sets html attributes", () => {
@@ -186,25 +193,70 @@ describe("ThemeProvider", () => {
     expect(screen.getByTestId("theme-id")).toHaveTextContent(DEFAULT_THEME_ID);
   });
 
-  it("renders the default theme on the first client pass so hydration matches the server", () => {
-    // The server cannot see localStorage. Reading it during the first render made the
-    // client paint a different theme than the HTML it was handed, which cost every page
-    // a hydration mismatch and a full client-side re-render.
-    localStorage.setItem(THEME_STORAGE_KEY, "ocean-teal");
-    const observed: string[] = [];
-
-    function RenderOrderProbe(): null {
-      observed.push(useTheme().themeId);
-      return null;
-    }
-
+  it("follows a theme written by another tab and ignores unrelated storage keys", () => {
+    // A `storage` event only reaches the other tabs, so the store has to listen for it or a
+    // second tab would keep showing the theme it mounted with.
     render(
       <ThemeProvider>
-        <RenderOrderProbe />
+        <ThemeProbe />
       </ThemeProvider>
     );
+    expect(screen.getByTestId("theme-id")).toHaveTextContent(DEFAULT_THEME_ID);
 
-    expect(observed[0]).toBe(DEFAULT_THEME_ID);
-    expect(observed[observed.length - 1]).toBe("ocean-teal");
+    act(() => {
+      localStorage.setItem(THEME_STORAGE_KEY, "ocean-teal");
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: THEME_STORAGE_KEY, newValue: "ocean-teal" })
+      );
+    });
+    expect(screen.getByTestId("theme-id")).toHaveTextContent("ocean-teal");
+    expect(document.documentElement.getAttribute("data-theme")).toBe("ocean-teal");
+
+    act(() => {
+      window.dispatchEvent(new StorageEvent("storage", { key: "other-key", newValue: "x" }));
+    });
+    expect(screen.getByTestId("theme-id")).toHaveTextContent("ocean-teal");
+  });
+
+  it("hydrates from the server snapshot and adopts the stored theme after", async () => {
+    // The server cannot see localStorage. Both passes have to start from the same value or
+    // every page pays a hydration mismatch, so this drives the real path instead of counting
+    // renders: markup out of react-dom/server, then hydrateRoot against that exact markup.
+    localStorage.setItem(THEME_STORAGE_KEY, "ocean-teal");
+
+    const tree = (
+      <ThemeProvider>
+        <ThemeProbe />
+      </ThemeProvider>
+    );
+    const serverHtml = renderToStaticMarkup(tree);
+    expect(serverHtml).toContain(DEFAULT_THEME_ID);
+
+    const container = document.createElement("div");
+    container.innerHTML = serverHtml;
+    document.body.appendChild(container);
+
+    const logged: string[] = [];
+    const errorSpy = vi.spyOn(console, "error").mockImplementation((...args: unknown[]) => {
+      logged.push(args.map(String).join(" "));
+    });
+
+    let root: ReturnType<typeof hydrateRoot> | undefined;
+    try {
+      await act(async () => {
+        root = hydrateRoot(container, tree);
+      });
+
+      expect(screen.getByTestId("theme-id")).toHaveTextContent("ocean-teal");
+      // A first pass that read localStorage itself lands here: React patches text it was not
+      // handed and says so. Silence is the contract.
+      expect(logged.join("\n")).not.toMatch(/hydrat|did not match/i);
+    } finally {
+      errorSpy.mockRestore();
+      await act(async () => {
+        root?.unmount();
+      });
+      container.remove();
+    }
   });
 });

@@ -267,7 +267,7 @@ describe("useCapacityGatedAction", () => {
     await waitFor(() => expect(result.current.checking).toBe(false));
 
     const throwing = vi.fn(async () => {
-      throw "nope";
+      throw new Error("nope");
     });
     const failed = setup(options, throwing);
     await act(async () => {

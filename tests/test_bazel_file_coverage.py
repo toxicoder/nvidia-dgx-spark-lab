@@ -38,6 +38,7 @@ class TestBuildFiles(unittest.TestCase):
     """build_files discovers BUILD files and honours the declared workspace exclusions."""
 
     def test_skips_output_base_symlinks(self) -> None:
+        """Output-base symlinks next to the workspace are never packages."""
         with tempfile.TemporaryDirectory() as raw:
             root = pathlib.Path(raw)
             _write_file(root, "dashboard/BUILD.bazel")
@@ -48,6 +49,7 @@ class TestBuildFiles(unittest.TestCase):
             self.assertEqual(found, ["dashboard/BUILD.bazel"])
 
     def test_skips_directories_declared_in_bazelignore(self) -> None:
+        """Directories listed in .bazelignore are not read as packages."""
         # `next build` copies the app's own BUILD.bazel into <app>/.next/standalone/. That tree
         # is a build output, declared out of the workspace by .bazelignore, so the gate must not
         # read it as a package -- otherwise every local `//dashboard:visual` run fails the gate
@@ -68,6 +70,7 @@ class TestBuildFiles(unittest.TestCase):
             self.assertEqual(found, ["dashboard/BUILD.bazel"])
 
     def test_treats_a_leading_double_star_as_any_directory(self) -> None:
+        """A `**/name/` entry matches that directory at any depth."""
         with tempfile.TemporaryDirectory() as raw:
             root = pathlib.Path(raw)
             _write_file(root, "scripts/BUILD.bazel")
