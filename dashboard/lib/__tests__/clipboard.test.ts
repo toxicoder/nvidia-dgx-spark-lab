@@ -102,3 +102,16 @@ describe("clipboard helpers", () => {
     await expect(clearCopiedText("token-abc")).resolves.toBe(false);
   });
 });
+
+describe("copyText without a clipboard host", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("reports failure rather than throwing when there is no navigator at all", async () => {
+    // A non-secure origin has no navigator.clipboard; a server render has no navigator.
+    vi.stubGlobal("navigator", undefined);
+
+    await expect(copyText("secret-value")).resolves.toBe(false);
+  });
+});

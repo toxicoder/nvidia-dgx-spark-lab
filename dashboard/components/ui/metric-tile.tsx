@@ -35,16 +35,15 @@ export interface MetricTileProps {
 const TONE_VALUE_CLASSES: Readonly<Record<MetricTileTone, string>> = {
   neutral: "text-foreground",
   ok: "text-primary",
-  // TODO(token): warning reuses the destructive hue; the token set has no amber tier.
-  warning: "text-destructive",
+  warning: "text-warning",
   danger: "text-destructive"
 };
 
-/** Card tint per tone. */
+/** Card tint per tone. Warning and danger use distinct hues so the two call to actions differ. */
 const TONE_CARD_CLASSES: Readonly<Record<MetricTileTone, string>> = {
   neutral: "",
   ok: "",
-  warning: "border-destructive/40",
+  warning: "border-warning",
   danger: "border-destructive"
 };
 

@@ -5,9 +5,9 @@ import type React from "react";
 import { listUtilities } from "@/lib/host";
 import { getLatestUtilityRunsByName, listRecentUtilityRuns } from "@/lib/db/repositories/utility-runs";
 import { Badge } from "@/components/ui/badge";
+import { Panel, PanelActions, PanelBody, PanelHeader, PanelTitle } from "@/components/ui/panel";
 import { UtilityRow } from "./UtilityRow";
 import { UtilityRunHistory } from "./UtilityRunHistory";
-import { panelSubheaderClass } from "./panel-styles";
 
 /**
  * Fetches utility catalog and run records; renders rows with per-script last-run metadata.
@@ -19,32 +19,34 @@ export async function UtilitiesPanel(): Promise<React.JSX.Element> {
   const latestByName = await getLatestUtilityRunsByName(utils.map((u) => u.name));
 
   return (
-    <div data-testid="utilities-panel" className="w-full self-start space-y-4">
-      <div className={panelSubheaderClass}>
-        UTILITY SCRIPTS
-        <Badge variant="secondary" className="text-[10px]">
-          lab pattern
-        </Badge>
-      </div>
+    <Panel data-testid="utilities-panel">
+      <PanelHeader>
+        <PanelTitle>Utility scripts</PanelTitle>
+        <PanelActions>
+          <Badge variant="secondary">lab pattern</Badge>
+        </PanelActions>
+      </PanelHeader>
 
-      {utils.length === 0 && (
-        <div className="text-xs text-muted-foreground">
-          No utilities discovered (place scripts in scripts/utilities/)
-        </div>
-      )}
-
-      <div className="space-y-3">
-        {utils.map((u) => (
-          <div key={u.name} className="rounded-[var(--md-sys-shape-corner-medium)] border border-border bg-card p-4">
-            <UtilityRow utility={u} lastRun={latestByName.get(u.name) ?? null} />
+      <PanelBody className="space-y-4">
+        {utils.length === 0 && (
+          <div className="text-xs text-muted-foreground">
+            No utilities discovered (place scripts in scripts/utilities/)
           </div>
-        ))}
-      </div>
+        )}
 
-      <div>
-        <div className="mb-2 text-xs font-medium text-muted-foreground">Recent runs</div>
-        <UtilityRunHistory runs={recentRuns} />
-      </div>
-    </div>
+        <div className="space-y-3">
+          {utils.map((u) => (
+            <div key={u.name} className="rounded-[var(--md-sys-shape-corner-medium)] border border-border bg-card p-4">
+              <UtilityRow utility={u} lastRun={latestByName.get(u.name) ?? null} />
+            </div>
+          ))}
+        </div>
+
+        <div>
+          <div className="mb-2 text-xs font-medium text-muted-foreground">Recent runs</div>
+          <UtilityRunHistory runs={recentRuns} />
+        </div>
+      </PanelBody>
+    </Panel>
   );
 }

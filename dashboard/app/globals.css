@@ -92,6 +92,10 @@
   --accent-foreground: var(--tok-on-tertiary);
   --destructive: var(--tok-error);
   --destructive-foreground: var(--tok-on-error);
+  /* Amber sits between calm and destructive; sharing the error hue made a warning
+     read as a fault, which is the wrong call to action for a capacity headroom tile. */
+  --warning: var(--tok-warning);
+  --warning-foreground: var(--tok-on-warning);
   --border: var(--tok-outline-variant);
   --input: var(--tok-outline);
   --ring: var(--tok-ring);
@@ -122,6 +126,8 @@
   --md-sys-color-on-error: hsl(var(--tok-on-error));
   --md-sys-color-error-container: hsl(var(--tok-error-container));
   --md-sys-color-on-error-container: hsl(var(--tok-on-error-container));
+  --md-sys-color-warning: hsl(var(--tok-warning));
+  --md-sys-color-on-warning: hsl(var(--tok-on-warning));
   --md-sys-color-outline: hsl(var(--tok-outline));
   --md-sys-color-outline-variant: hsl(var(--tok-outline-variant));
   --md-sys-color-inverse-surface: hsl(var(--tok-on-surface));
@@ -210,6 +216,8 @@
   --color-accent-foreground: hsl(var(--accent-foreground));
   --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));

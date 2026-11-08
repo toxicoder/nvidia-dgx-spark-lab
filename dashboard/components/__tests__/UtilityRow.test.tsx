@@ -123,3 +123,34 @@ describe("UtilityRow", () => {
     });
   });
 });
+
+describe("UtilityRow unknown verdict", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("says unknown for a status the closed set does not recognise", () => {
+    render(
+      <UtilityRow
+        utility={{ name: "spark-clock", path: "/opt/lab/utilities/spark-clock" }}
+        lastRun={{
+          id: 3,
+          name: "spark-clock",
+          status: "rebooted-mid-run",
+          started_at: 1700000000,
+          output: "{}",
+          exit_code: -1
+        }}
+      />
+    );
+
+    expect(screen.getByText(/unknown/i)).toBeInTheDocument();
+  });
+
+  it("renders no verdict chip when the script has never run", () => {
+    render(<UtilityRow utility={{ name: "spark-clock", path: "/opt/lab/utilities/spark-clock" }} lastRun={null} />);
+
+    expect(screen.getByText("spark-clock")).toBeInTheDocument();
+    expect(screen.queryByText(/unknown/i)).not.toBeInTheDocument();
+  });
+});

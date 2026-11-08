@@ -1,6 +1,6 @@
 import type React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 
 import { DashboardShell } from "../DashboardShell";
 import { ThemeProvider } from "../ThemeProvider";
@@ -143,5 +143,52 @@ describe("DashboardShell", () => {
   it("renders route content inside main", () => {
     renderShell(<p>section body</p>);
     expect(screen.getByText("section body")).toBeInTheDocument();
+  });
+});
+
+describe("DashboardShell mobile rail", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    pathname = "/";
+  });
+
+  it("closes the drawer once the operator picks a section", () => {
+    renderShell();
+
+    fireEvent.click(screen.getByRole("button", { name: /open menu/i }));
+    const drawer = screen.getByTestId("ui-sheet");
+    fireEvent.click(within(drawer).getByTestId("nav-storage"));
+
+    expect(screen.queryByTestId("ui-sheet")).not.toBeInTheDocument();
+  });
+});
+
+describe("DashboardShell header without optional context", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    pathname = "/";
+  });
+
+  it("omits the hostname and last-updated chips when the route supplies neither", () => {
+    // A route that has not read the host yet must not render an empty pill or a
+    // "Updated 00:00:00" lie.
+    render(
+      <ThemeProvider>
+        <DashboardShell>content</DashboardShell>
+      </ThemeProvider>
+    );
+
+    expect(screen.queryByTestId("shell-hostname")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("shell-updated")).not.toBeInTheDocument();
+    expect(screen.getByText("content")).toBeInTheDocument();
+  });
+
+  it("marks the rail item for the section the operator is on", () => {
+    pathname = "/storage";
+    renderShell();
+
+    const active = screen.getByTestId("nav-storage");
+    expect(active).toHaveAttribute("aria-current", "page");
+    expect(screen.getByTestId("nav-resources")).not.toHaveAttribute("aria-current");
   });
 });

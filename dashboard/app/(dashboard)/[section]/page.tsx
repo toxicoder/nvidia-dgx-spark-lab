@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 
 import { PageHeader } from "@/components/PageHeader";
 import { SectionSkeleton } from "@/components/ui/section-skeleton";
-import { findSection, type SectionView } from "@/lib/section-registry";
+import { findSection, SECTION_DESCRIPTORS, type SectionView } from "@/lib/section-registry";
 import type { DashboardSectionSlug } from "@/lib/types";
 
 import AgentChatSection from "@/components/sections/agent-chat";
@@ -73,10 +73,11 @@ async function resolveSlug(params: Promise<{ section: string }>): Promise<Dashbo
  */
 export async function generateMetadata({ params }: SectionPageProps): Promise<Metadata> {
   const slug = await resolveSlug(params);
-  const descriptor = findSection(slug);
+  // `slug` is already narrowed to the closed set by resolveSlug, so this index is total.
+  const descriptor = SECTION_DESCRIPTORS[slug];
   return {
-    title: descriptor?.title,
-    description: descriptor?.description
+    title: descriptor.title,
+    description: descriptor.description
   };
 }
 
@@ -93,10 +94,10 @@ export async function generateMetadata({ params }: SectionPageProps): Promise<Me
  */
 export default async function SectionPage({ params }: SectionPageProps): Promise<React.JSX.Element> {
   const slug = await resolveSlug(params);
-  const descriptor = findSection(slug);
+  // resolveSlug already rejected anything outside the closed set, so this index is total
+  // and needs no guard; the notFound() that matters lives in resolveSlug.
+  const descriptor = SECTION_DESCRIPTORS[slug];
   const View = SECTION_VIEWS[slug];
-
-  if (!descriptor) notFound();
 
   return (
     <div className="space-y-6">

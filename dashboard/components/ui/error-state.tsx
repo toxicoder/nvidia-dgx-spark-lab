@@ -78,7 +78,7 @@ export function ErrorState({
         <pre
           data-slot="error-state-technical"
           data-testid="error-state-technical"
-          className="max-h-40 w-full overflow-auto font-mono text-[11px] whitespace-pre-wrap break-all text-destructive/80"
+          className="max-h-40 w-full overflow-auto font-mono text-xs whitespace-pre-wrap break-all text-destructive/80"
         >
           {technical}
         </pre>

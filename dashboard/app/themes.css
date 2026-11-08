@@ -55,6 +55,9 @@
   --tok-error-container: 355 100% 29%;
   --tok-on-error-container: 6 100% 82%;
 
+  --tok-warning: 38 92% 60%;
+  --tok-on-warning: 30 90% 12%;
+
   --tok-outline: 215 16% 55%;
   --tok-outline-variant: 215 16% 47%;
   --tok-ring: 83 54% 47%;
@@ -89,6 +92,9 @@
   --tok-on-error: 356 100% 21%;
   --tok-error-container: 355 100% 29%;
   --tok-on-error-container: 6 100% 82%;
+
+  --tok-warning: 38 92% 60%;
+  --tok-on-warning: 30 90% 12%;
 
   --tok-outline: 215 16% 55%;
   --tok-outline-variant: 215 16% 47%;
@@ -125,6 +131,9 @@
   --tok-error-container: 355 100% 29%;
   --tok-on-error-container: 6 100% 82%;
 
+  --tok-warning: 38 92% 60%;
+  --tok-on-warning: 30 90% 12%;
+
   --tok-outline: 250 12% 52%;
   --tok-outline-variant: 250 12% 45%;
   --tok-ring: 258 90% 76%;
@@ -159,6 +168,9 @@
   --tok-on-error: 356 100% 21%;
   --tok-error-container: 355 100% 29%;
   --tok-on-error-container: 6 100% 82%;
+
+  --tok-warning: 38 92% 60%;
+  --tok-on-warning: 30 90% 12%;
 
   --tok-outline: 25 10% 50%;
   --tok-outline-variant: 25 10% 43%;
@@ -195,6 +207,9 @@
   --tok-error-container: 355 100% 29%;
   --tok-on-error-container: 6 100% 82%;
 
+  --tok-warning: 38 92% 60%;
+  --tok-on-warning: 30 90% 12%;
+
   --tok-outline: 320 8% 52%;
   --tok-outline-variant: 320 8% 45%;
   --tok-ring: 330 81% 70%;
@@ -229,6 +244,9 @@
   --tok-on-error: 356 100% 21%;
   --tok-error-container: 355 100% 29%;
   --tok-on-error-container: 6 100% 82%;
+
+  --tok-warning: 38 92% 60%;
+  --tok-on-warning: 30 90% 12%;
 
   --tok-outline: 215 22% 52%;
   --tok-outline-variant: 215 22% 45%;
@@ -265,6 +283,9 @@
   --tok-error-container: 355 100% 29%;
   --tok-on-error-container: 6 100% 82%;
 
+  --tok-warning: 38 92% 60%;
+  --tok-on-warning: 30 90% 12%;
+
   --tok-outline: 220 12% 52%;
   --tok-outline-variant: 220 12% 45%;
   --tok-ring: 215 16% 65%;
@@ -299,6 +320,9 @@
   --tok-on-error: 356 100% 21%;
   --tok-error-container: 355 100% 29%;
   --tok-on-error-container: 6 100% 82%;
+
+  --tok-warning: 38 92% 60%;
+  --tok-on-warning: 30 90% 12%;
 
   --tok-outline: 160 10% 48%;
   --tok-outline-variant: 160 10% 41%;
@@ -335,6 +359,9 @@
   --tok-error-container: 0 86% 92%;
   --tok-on-error-container: 355 100% 29%;
 
+  --tok-warning: 28 90% 32%;
+  --tok-on-warning: 0 0% 100%;
+
   --tok-outline: 215 18% 42%;
   --tok-outline-variant: 215 16% 50%;
   --tok-ring: 84 75% 24%;
@@ -369,6 +396,9 @@
   --tok-on-error: 0 0% 100%;
   --tok-error-container: 0 86% 92%;
   --tok-on-error-container: 355 100% 29%;
+
+  --tok-warning: 28 90% 32%;
+  --tok-on-warning: 0 0% 100%;
 
   --tok-outline: 30 12% 42%;
   --tok-outline-variant: 30 12% 50%;

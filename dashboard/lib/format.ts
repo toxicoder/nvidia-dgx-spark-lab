@@ -77,16 +77,17 @@ export function formatK8sQuantity(quantity: K8sQuantity | null | undefined, deci
   const raw = quantity?.trim();
   if (!raw) return "—";
 
-  const match = QUANTITY_PATTERN.exec(raw);
-  if (!match) return raw;
+  // Reading the captures through replace keeps them typed as plain strings, which an
+  // indexed read would not (noUncheckedIndexedAccess) without an unreachable fallback.
+  // A string the pattern rejects is returned untouched, which is the documented behaviour.
+  return raw.replace(QUANTITY_PATTERN, (whole, number: string, suffix: string) => {
+    const amount = Number(number);
+    if (suffix === "m") return (amount / 1000).toFixed(decimals);
+    if (suffix === "") return amount.toFixed(decimals);
 
-  const [, number = "0", suffix = ""] = match;
-  const amount = Number(number);
-  if (suffix === "m") return (amount / 1000).toFixed(decimals);
-  if (suffix === "") return amount.toFixed(decimals);
-
-  const label = QUANTITY_SUFFIXES[suffix];
-  return label === undefined ? raw : `${amount.toFixed(decimals)} ${label}`;
+    const label = QUANTITY_SUFFIXES[suffix];
+    return label === undefined ? whole : `${amount.toFixed(decimals)} ${label}`;
+  });
 }
 
 /**

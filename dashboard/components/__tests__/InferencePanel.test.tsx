@@ -31,6 +31,11 @@ describe("InferencePanel", () => {
     hostMocks.stopDevWorkspaceAction.mockResolvedValue({ exitCode: 0, stdout: "", stderr: "" });
   });
 
+  /** Open the folded catalog so a heavy model's button is reachable. */
+  function openQuickStartCatalog(): void {
+    fireEvent.click(screen.getByTestId("quick-start-more"));
+  }
+
   it("renders workloads and quick-start buttons", () => {
     render(<InferencePanel initialStatus={fakeInferenceWorkloadsStatus} />);
 
@@ -73,6 +78,7 @@ describe("InferencePanel", () => {
   it("opens heavy confirm for large models", async () => {
     render(<InferencePanel initialStatus={fakeInferenceWorkloadsStatus} />);
 
+    openQuickStartCatalog();
     fireEvent.click(screen.getByRole("button", { name: /kimi \(full\)/i }));
 
     await waitFor(() => {
@@ -119,6 +125,7 @@ describe("InferencePanel", () => {
 
   it("starts heavy model after confirmation", async () => {
     render(<InferencePanel initialStatus={fakeInferenceWorkloadsStatus} />);
+    openQuickStartCatalog();
     fireEvent.click(screen.getByRole("button", { name: /kimi \(full\)/i }));
     await waitFor(() => screen.getByPlaceholderText("yes"));
     fireEvent.change(screen.getByPlaceholderText("yes"), { target: { value: "yes" } });
@@ -146,6 +153,7 @@ describe("InferencePanel", () => {
     ]);
 
     render(<InferencePanel initialStatus={fakeInferenceWorkloadsStatus} />);
+    openQuickStartCatalog();
     fireEvent.click(screen.getByRole("button", { name: /kimi \(full\)/i }));
     await waitFor(() => screen.getByText(/Stop Coder workspaces/i));
     fireEvent.click(screen.getAllByRole("button", { name: /Apply/i })[0]!);
@@ -364,5 +372,44 @@ describe("InferencePanel", () => {
     });
     expect(hostMocks.startInferenceWorkloadAction).not.toHaveBeenCalled();
     expect(screen.getByText(/Insufficient resources/i)).toBeInTheDocument();
+  });
+});
+
+describe("InferencePanel quick start grouping", () => {
+  it("keeps the light models on the surface and folds the heavy catalog away", () => {
+    render(<InferencePanel initialStatus={fakeInferenceWorkloadsStatus} />);
+
+    expect(screen.getByRole("button", { name: /^kimi-test$/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^litellm$/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /nemotron-3-ultra/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /more models/i })).toBeInTheDocument();
+  });
+
+  it("reveals the heavy models as named groups once the operator opens the catalog", () => {
+    render(<InferencePanel initialStatus={fakeInferenceWorkloadsStatus} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /more models/i }));
+
+    expect(screen.getByRole("button", { name: /nemotron-3-ultra/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^flux-quality$/i })).toBeInTheDocument();
+    expect(screen.getByText("Language models")).toBeInTheDocument();
+    expect(screen.getByText("Visual generation")).toBeInTheDocument();
+  });
+
+  it("states the capacity cost before the operator commits to a heavy start", () => {
+    render(<InferencePanel initialStatus={fakeInferenceWorkloadsStatus} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /more models/i }));
+
+    expect(screen.getByText(/need free capacity/i)).toBeInTheDocument();
+  });
+
+  it("keeps the disclosure a11y state honest", () => {
+    render(<InferencePanel initialStatus={fakeInferenceWorkloadsStatus} />);
+
+    const trigger = screen.getByRole("button", { name: /more models/i });
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
   });
 });

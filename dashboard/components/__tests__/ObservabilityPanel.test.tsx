@@ -160,3 +160,17 @@ describe("ObservabilityPanel", () => {
     vi.unstubAllEnvs();
   });
 });
+
+describe("ObservabilityPanel empty state", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    hostMocks.getMonitoringStackStatusAction.mockResolvedValue(fakeMonitoringStackStatus);
+  });
+
+  it("names the missing dashboards instead of rendering a bare gap", () => {
+    render(<ObservabilityPanel initialStatus={{ ...fakeMonitoringStackStatus, dashboards: [] }} />);
+
+    expect(screen.getByText(/No dashboards provisioned/i)).toBeInTheDocument();
+    expect(screen.queryByText("Provisioned dashboards")).not.toBeInTheDocument();
+  });
+});

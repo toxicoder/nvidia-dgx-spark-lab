@@ -133,6 +133,30 @@ const TEXT_PAIRS: readonly ContrastPair[] = [
   },
   { label: "error label", foreground: "--md-sys-color-on-error", background: "--md-sys-color-error", minimum: 4.5 },
   {
+    label: "warning text on page",
+    foreground: "--warning",
+    background: "--md-sys-color-background",
+    minimum: 4.5
+  },
+  {
+    label: "warning text on card",
+    foreground: "--warning",
+    background: "--md-sys-color-surface",
+    minimum: 4.5
+  },
+  {
+    label: "warning button label",
+    foreground: "--warning-foreground",
+    background: "--warning",
+    minimum: 4.5
+  },
+  {
+    label: "warning label (md3 twin)",
+    foreground: "--md-sys-color-on-warning",
+    background: "--md-sys-color-warning",
+    minimum: 4.5
+  },
+  {
     label: "error container label",
     foreground: "--md-sys-color-on-error-container",
     background: "--md-sys-color-error-container",
@@ -177,6 +201,7 @@ const UI_PAIRS: readonly ContrastPair[] = [
   { label: "field outline", foreground: "--input", background: "--card", minimum: 3 },
   { label: "switch thumb on track", foreground: "--background", background: "--input", minimum: 3 },
   { label: "focus ring", foreground: "--ring", background: "--card", minimum: 3 },
+  { label: "warning card border", foreground: "--warning", background: "--card", minimum: 3 },
   {
     label: "hairline on surface",
     foreground: "--md-sys-color-outline-variant",

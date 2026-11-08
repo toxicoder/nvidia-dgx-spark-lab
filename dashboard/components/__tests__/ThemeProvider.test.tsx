@@ -185,4 +185,26 @@ describe("ThemeProvider", () => {
     });
     expect(screen.getByTestId("theme-id")).toHaveTextContent(DEFAULT_THEME_ID);
   });
+
+  it("renders the default theme on the first client pass so hydration matches the server", () => {
+    // The server cannot see localStorage. Reading it during the first render made the
+    // client paint a different theme than the HTML it was handed, which cost every page
+    // a hydration mismatch and a full client-side re-render.
+    localStorage.setItem(THEME_STORAGE_KEY, "ocean-teal");
+    const observed: string[] = [];
+
+    function RenderOrderProbe(): null {
+      observed.push(useTheme().themeId);
+      return null;
+    }
+
+    render(
+      <ThemeProvider>
+        <RenderOrderProbe />
+      </ThemeProvider>
+    );
+
+    expect(observed[0]).toBe(DEFAULT_THEME_ID);
+    expect(observed[observed.length - 1]).toBe("ocean-teal");
+  });
 });

@@ -106,7 +106,7 @@ function SunburstLegend({ segments, totalSize }: { segments: SunburstSegment[]; 
         const pct = totalSize > 0 ? (seg.value / totalSize) * 100 : 0;
         return (
           <div key={seg.path} className="flex min-w-0 flex-col gap-0.5">
-            <div className="flex min-w-0 items-center gap-1.5 text-[10px] leading-tight">
+            <div className="flex min-w-0 items-center gap-1.5 text-xs leading-tight">
               <span
                 className="h-2.5 w-2.5 shrink-0 rounded-sm ring-1 ring-[var(--md-sys-color-outline-variant)]"
                 style={{ background: seg.fill }}
@@ -142,13 +142,13 @@ function SunburstCenterHub({ totalLabel, itemCount }: { totalLabel: string; item
       className="pointer-events-none absolute inset-0 flex items-center justify-center"
     >
       <div className="flex min-w-[4rem] flex-col items-center rounded-full border border-[var(--md-sys-color-outline-variant)]/70 bg-[var(--md-sys-color-surface)]/95 px-3 py-2 text-center shadow-[0_0_0_3px_var(--md-sys-color-surface),0_2px_12px_rgba(0,0,0,0.35)] backdrop-blur-[3px] sm:min-w-[5.5rem] sm:px-4 sm:py-3">
-        <span className="text-[7px] font-semibold uppercase tracking-[0.12em] text-[var(--md-sys-color-on-surface-variant)] sm:text-[8px]">
+        <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--md-sys-color-on-surface-variant)]">
           Total
         </span>
         <span className="text-sm font-bold tabular-nums leading-tight text-[var(--md-sys-color-primary)] sm:text-base">
           {totalLabel}
         </span>
-        <span className="mt-0.5 text-[9px] text-[var(--md-sys-color-on-surface-variant)]">
+        <span className="mt-0.5 text-xs text-[var(--md-sys-color-on-surface-variant)]">
           {itemCount} {itemCount === 1 ? "item" : "items"}
         </span>
       </div>
@@ -602,12 +602,10 @@ export default function Treemap({ root, onDelete, onFindDuplicates }: TreemapPro
                         : "hover:bg-[var(--md-sys-color-surface-variant)]"
                     )}
                   >
-                    <TableCell className="max-w-[140px] truncate px-3 py-2 font-mono text-[11px]">
-                      {node.name}
-                    </TableCell>
+                    <TableCell className="max-w-[140px] truncate px-3 py-2 font-mono text-xs">{node.name}</TableCell>
                     <TableCell
                       className={cn(
-                        "px-3 py-2 text-right font-mono text-[11px] tabular-nums",
+                        "px-3 py-2 text-right font-mono text-xs tabular-nums",
                         isSel ? "text-[var(--md-sys-color-on-primary-container)]" : "text-primary"
                       )}
                     >

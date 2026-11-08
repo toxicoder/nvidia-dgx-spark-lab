@@ -6,6 +6,7 @@
 import React from "react";
 import { getDevWorkspacesStatusAction, startDevWorkspaceAction, stopDevWorkspaceAction } from "@/actions/host-actions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Panel, PanelBody, PanelHeader, PanelTitle } from "@/components/ui/panel";
 import { useToast } from "@/components/ui/toast";
 import { DevWorkspaceView } from "@/components/DevWorkspaceView";
 import type { DevWorkspaceName, DevWorkspaceState, DevWorkspacesStatus } from "@/lib/types";
@@ -108,37 +109,43 @@ export function WorkspacesPanel({ initialStatus }: WorkspacesPanelProps): React.
   };
 
   return (
-    <div data-testid="workspaces-panel" className="w-full self-start space-y-4">
-      {status.error && (
-        <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-          {status.error}
-        </p>
-      )}
+    <Panel data-testid="workspaces-panel">
+      <PanelHeader>
+        <PanelTitle>Coder workspaces</PanelTitle>
+      </PanelHeader>
 
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DevWorkspaceName)}>
-        <TabsList>
-          <TabsTrigger value="coder">Coder</TabsTrigger>
-          <TabsTrigger value="kasm">Kasm</TabsTrigger>
-        </TabsList>
+      <PanelBody className="space-y-4">
+        {status.error && (
+          <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            {status.error}
+          </p>
+        )}
 
-        <TabsContent value="coder">
-          <DevWorkspaceView
-            workspace={status.coder}
-            pendingState={pending.coder ?? null}
-            busy={busy}
-            onToggle={(name, enabled) => void handleToggle(name, enabled)}
-          />
-        </TabsContent>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DevWorkspaceName)}>
+          <TabsList>
+            <TabsTrigger value="coder">Coder</TabsTrigger>
+            <TabsTrigger value="kasm">Kasm</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="kasm">
-          <DevWorkspaceView
-            workspace={status.kasm}
-            pendingState={pending.kasm ?? null}
-            busy={busy}
-            onToggle={(name, enabled) => void handleToggle(name, enabled)}
-          />
-        </TabsContent>
-      </Tabs>
-    </div>
+          <TabsContent value="coder">
+            <DevWorkspaceView
+              workspace={status.coder}
+              pendingState={pending.coder ?? null}
+              busy={busy}
+              onToggle={(name, enabled) => void handleToggle(name, enabled)}
+            />
+          </TabsContent>
+
+          <TabsContent value="kasm">
+            <DevWorkspaceView
+              workspace={status.kasm}
+              pendingState={pending.kasm ?? null}
+              busy={busy}
+              onToggle={(name, enabled) => void handleToggle(name, enabled)}
+            />
+          </TabsContent>
+        </Tabs>
+      </PanelBody>
+    </Panel>
   );
 }

@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
-import { panelSubheaderClass } from "@/components/panel-styles";
+import { Panel, PanelActions, PanelBody, PanelDescription, PanelHeader, PanelTitle } from "@/components/ui/panel";
 import { CapacityGateDialog } from "@/components/CapacityGateDialog";
 import { HeavyConfirmDialog } from "@/components/HeavyConfirmDialog";
 import type {
@@ -195,134 +195,133 @@ export function NemotronStackPanel({
   }, 0);
 
   return (
-    <div
-      data-testid="nemotron-stack-panel"
-      className="space-y-4 rounded-md border border-border bg-[var(--md-sys-color-surface-container-low)] p-4"
-    >
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    <Panel data-testid="nemotron-stack-panel">
+      <PanelHeader>
         <div>
-          <div className={panelSubheaderClass}>Nemotron Agentic Stack</div>
-          <p className="text-xs text-muted-foreground">{preset.description}</p>
+          <PanelTitle>Nemotron Agentic Stack</PanelTitle>
+          <PanelDescription>{preset.description}</PanelDescription>
         </div>
-        <Badge variant="secondary">{nodeCount}× DGX Spark</Badge>
-      </div>
+        <PanelActions>
+          <Badge variant="secondary">{nodeCount}× DGX Spark</Badge>
+        </PanelActions>
+      </PanelHeader>
 
-      {nodeCount === 2 ? (
-        <div className="flex flex-wrap gap-2">
-          {SPARK2_PROFILES.map((id) => (
-            <Button
-              key={id}
-              size="sm"
-              variant={spark2Profile === id ? "default" : "outline"}
-              onClick={() => setSpark2Profile(id)}
-            >
-              {catalog.stacks[id]?.label ?? id}
-            </Button>
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-wrap gap-2">
-          {matchingStacks.map((id) => (
-            <Button
-              key={id}
-              size="sm"
-              variant={selectedStack === id ? "default" : "outline"}
-              onClick={() => setSelectedStack(id)}
-            >
-              {catalog.stacks[id]?.label ?? id}
-            </Button>
-          ))}
-        </div>
-      )}
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-md border border-border px-3 py-2 text-sm">
-          <div className="mb-1 text-xs font-medium text-muted-foreground">Stack budget</div>
-          <div className="tabular-nums">
-            {serviceCount} services · ~{gpuRequired} GPU(s) for LLM/Parse
-          </div>
-          <div className="mt-1 text-[10px] text-muted-foreground">
-            {clusterCapacity.available.gpus} GPU(s) available · {clusterCapacity.available.memory} memory
-          </div>
-        </div>
-        <div className="rounded-md border border-border px-3 py-2 text-sm">
-          <div className="mb-1 text-xs font-medium text-muted-foreground">Agent pillars</div>
-          <div className="flex flex-wrap gap-1">
-            {(preset.pillars ?? []).map((p) => (
-              <Badge key={p} variant="outline" className="text-[10px]">
-                <Check className="mr-0.5 h-2.5 w-2.5" />
-                {PILLAR_LABELS[p] ?? p}
-              </Badge>
+      <PanelBody className="space-y-4">
+        {nodeCount === 2 ? (
+          <div className="flex flex-wrap gap-2">
+            {SPARK2_PROFILES.map((id) => (
+              <Button
+                key={id}
+                size="sm"
+                variant={spark2Profile === id ? "default" : "outline"}
+                onClick={() => setSpark2Profile(id)}
+              >
+                {catalog.stacks[id]?.label ?? id}
+              </Button>
             ))}
           </div>
-          {preset.quality_notes ? (
-            <p className="mt-1 text-[10px] text-muted-foreground">{preset.quality_notes}</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {matchingStacks.map((id) => (
+              <Button
+                key={id}
+                size="sm"
+                variant={selectedStack === id ? "default" : "outline"}
+                onClick={() => setSelectedStack(id)}
+              >
+                {catalog.stacks[id]?.label ?? id}
+              </Button>
+            ))}
+          </div>
+        )}
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-md border border-border px-3 py-2 text-sm">
+            <div className="mb-1 text-xs font-medium text-muted-foreground">Stack budget</div>
+            <div className="tabular-nums">
+              {serviceCount} services · ~{gpuRequired} GPU(s) for LLM/Parse
+            </div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              {clusterCapacity.available.gpus} GPU(s) available · {clusterCapacity.available.memory} memory
+            </div>
+          </div>
+          <div className="rounded-md border border-border px-3 py-2 text-sm">
+            <div className="mb-1 text-xs font-medium text-muted-foreground">Agent pillars</div>
+            <div className="flex flex-wrap gap-1">
+              {(preset.pillars ?? []).map((p) => (
+                <Badge key={p} variant="outline" className="text-xs">
+                  <Check className="mr-0.5 h-2.5 w-2.5" />
+                  {PILLAR_LABELS[p] ?? p}
+                </Badge>
+              ))}
+            </div>
+            {preset.quality_notes ? <p className="mt-1 text-xs text-muted-foreground">{preset.quality_notes}</p> : null}
+          </div>
+        </div>
+
+        {health?.components?.length ? (
+          <div className="space-y-1">
+            <div className="text-xs font-medium text-muted-foreground">Components</div>
+            <div className="flex flex-wrap gap-1">
+              {health.components.map((c) => (
+                <Badge key={c.model} variant={c.state === "running" ? "default" : "outline"} className="text-xs">
+                  {c.model}: {c.state}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" disabled={busy} onClick={() => void beginDeploy()}>
+            {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Shield className="mr-1 h-3.5 w-3.5" />}
+            Deploy full stack
+          </Button>
+          {health?.healthy || health?.components?.some((c) => c.state === "running") ? (
+            <Button size="sm" variant="outline" disabled={busy} onClick={() => void handleStop()}>
+              {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Square className="mr-1 h-3.5 w-3.5" />}
+              Stop stack
+            </Button>
           ) : null}
         </div>
-      </div>
 
-      {health?.components?.length ? (
-        <div className="space-y-1">
-          <div className="text-xs font-medium text-muted-foreground">Components</div>
-          <div className="flex flex-wrap gap-1">
-            {health.components.map((c) => (
-              <Badge key={c.model} variant={c.state === "running" ? "default" : "outline"} className="text-[10px]">
-                {c.model}: {c.state}
-              </Badge>
-            ))}
+        {health?.healthy ? (
+          <div className="space-y-2 border-t border-border pt-3">
+            <div className="text-xs font-medium text-muted-foreground">OpenAI-compatible endpoints</div>
+            {(preset.stack_with ?? []).map((m) => {
+              const meta = catalog.models[m];
+              if (!meta?.openai_svc) return null;
+              const url = endpointUrl(meta.openai_svc, meta.port);
+              return (
+                <div
+                  key={m}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded border border-border px-2 py-1.5 text-xs"
+                >
+                  <span className="font-medium">{meta.display_name ?? m}</span>
+                  <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => copyEndpoint(url)}>
+                    <Copy className="mr-1 h-3 w-3" />
+                    Copy URL
+                  </Button>
+                </div>
+              );
+            })}
           </div>
-        </div>
-      ) : null}
-
-      <div className="flex flex-wrap gap-2">
-        <Button size="sm" disabled={busy} onClick={() => void beginDeploy()}>
-          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Shield className="mr-1 h-3.5 w-3.5" />}
-          Deploy full stack
-        </Button>
-        {health?.healthy || health?.components?.some((c) => c.state === "running") ? (
-          <Button size="sm" variant="outline" disabled={busy} onClick={() => void handleStop()}>
-            {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Square className="mr-1 h-3.5 w-3.5" />}
-            Stop stack
-          </Button>
         ) : null}
-      </div>
 
-      {health?.healthy ? (
-        <div className="space-y-2 border-t border-border pt-3">
-          <div className="text-xs font-medium text-muted-foreground">OpenAI-compatible endpoints</div>
-          {(preset.stack_with ?? []).map((m) => {
-            const meta = catalog.models[m];
-            if (!meta?.openai_svc) return null;
-            const url = endpointUrl(meta.openai_svc, meta.port);
-            return (
-              <div
-                key={m}
-                className="flex flex-wrap items-center justify-between gap-2 rounded border border-border px-2 py-1.5 text-xs"
-              >
-                <span className="font-medium">{meta.display_name ?? m}</span>
-                <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => copyEndpoint(url)}>
-                  <Copy className="mr-1 h-3 w-3" />
-                  Copy URL
-                </Button>
-              </div>
-            );
-          })}
-        </div>
-      ) : null}
+        <CapacityGateDialog
+          open={gateOpen}
+          onOpenChange={setGateOpen}
+          check={lastCheck}
+          onFreed={() => void handleFreed()}
+        />
 
-      <CapacityGateDialog
-        open={gateOpen}
-        onOpenChange={setGateOpen}
-        check={lastCheck}
-        onFreed={() => void handleFreed()}
-      />
-
-      <HeavyConfirmDialog
-        open={heavyOpen}
-        onOpenChange={setHeavyOpen}
-        modelLabel={preset.label}
-        onConfirm={() => void runStart(activeStackId)}
-      />
-    </div>
+        <HeavyConfirmDialog
+          open={heavyOpen}
+          onOpenChange={setHeavyOpen}
+          modelLabel={preset.label}
+          onConfirm={() => void runStart(activeStackId)}
+        />
+      </PanelBody>
+    </Panel>
   );
 }

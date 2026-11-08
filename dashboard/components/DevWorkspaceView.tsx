@@ -77,7 +77,7 @@ export function DevWorkspaceView({ workspace, pendingState, busy, onToggle }: De
             {meta.title}
           </div>
           <p className="text-xs text-muted-foreground">{meta.subtitle}</p>
-          <p className="text-[10px] text-muted-foreground">{RESOURCE_HINTS[workspace.name]}</p>
+          <p className="text-xs text-muted-foreground">{RESOURCE_HINTS[workspace.name]}</p>
         </div>
 
         <div className="flex items-center gap-3">
