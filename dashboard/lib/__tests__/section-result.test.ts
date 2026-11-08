@@ -20,6 +20,8 @@ describe("attempt", () => {
 
   it("captures a thrown string as a failure", async () => {
     const result = await attempt(async () => {
+      // A rejected bare string is the case under test, so it stays a literal.
+      // eslint-disable-next-line @typescript-eslint/only-throw-error
       throw "mount dead";
     });
     expect(result).toEqual({ ok: false, error: "mount dead" });
@@ -27,7 +29,8 @@ describe("attempt", () => {
 
   it("captures a thrown non-object without crashing", async () => {
     const result = await attempt(async () => {
-      // eslint-disable-next-line @typescript-eslint/no-throw-literal
+      // A host call can reject with anything, so a plain object has to stringify, not crash.
+      // eslint-disable-next-line @typescript-eslint/only-throw-error
       throw { weird: true };
     });
     expect(result.ok).toBe(false);

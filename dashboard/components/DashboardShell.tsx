@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Menu, RefreshCw, LayoutDashboard } from "lucide-react";
@@ -150,13 +150,23 @@ interface DashboardShellProps {
 export function DashboardShell({ children, hostname, generatedAt }: DashboardShellProps): React.JSX.Element {
   const router = useRouter();
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [drawerRequested, setDrawerRequested] = useState(false);
+  const [drawerPath, setDrawerPath] = useState(pathname);
   const [signingOut, setSigningOut] = useState(false);
 
-  // Close the drawer on navigation; a route change does not unmount it.
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
+  // The drawer sits outside the routed tree, so a route change never unmounts it. Deriving
+  // its openness from the pathname closes it on every navigation, including a link rendered
+  // inside a panel, and keeps that close out of an effect and its cascading re-render.
+  const mobileOpen = drawerRequested && drawerPath === pathname;
+
+  const openDrawer = (): void => {
+    setDrawerPath(pathname);
+    setDrawerRequested(true);
+  };
+
+  const closeDrawer = (): void => {
+    setDrawerRequested(false);
+  };
 
   const signOut = async (): Promise<void> => {
     setSigningOut(true);
@@ -190,11 +200,11 @@ export function DashboardShell({ children, hostname, generatedAt }: DashboardShe
         <NavContent pathname={pathname} onSignOut={signOut} signingOut={signingOut} />
       </aside>
 
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen} side="left" title="Menu">
+      <Sheet open={mobileOpen} onOpenChange={setDrawerRequested} side="left" title="Menu">
         <NavContent
           isMobile
           pathname={pathname}
-          onNavigate={() => setMobileOpen(false)}
+          onNavigate={closeDrawer}
           onSignOut={signOut}
           signingOut={signingOut}
         />
@@ -207,7 +217,7 @@ export function DashboardShell({ children, hostname, generatedAt }: DashboardShe
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => setMobileOpen(true)}
+                onClick={openDrawer}
                 className="h-11 w-11 shrink-0 lg:hidden"
                 aria-label="Open menu"
               >

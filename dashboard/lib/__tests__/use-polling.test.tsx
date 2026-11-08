@@ -124,9 +124,9 @@ describe("usePolling", () => {
   });
 
   it("works without an onError callback", async () => {
-    const fetcher = vi.fn(async (): Promise<string> => {
-      throw "boom";
-    });
+    // Rejecting with a bare string covers the hook's non-Error normalization too: a host call
+    // can reject with anything, and it has to still surface as readable text.
+    const fetcher = vi.fn((): Promise<string> => Promise.reject("boom"));
     const { result } = renderHook(() => usePolling(fetcher));
 
     await tick();
@@ -208,6 +208,9 @@ describe("usePolling", () => {
 
     await tick(2_000);
     rerender({ staleAfterMs: 1_000 });
+    // The flip is armed by the timer the effect sets, so let that task run before reading it.
+    // An already-expired budget arms it for the next macrotask, which is still before paint.
+    await tick(1);
     expect(result.current.stale).toBe(true);
   });
 });
