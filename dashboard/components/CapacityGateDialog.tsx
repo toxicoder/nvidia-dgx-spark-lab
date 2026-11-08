@@ -115,7 +115,7 @@ export function CapacityGateDialog({ open, onOpenChange, check, onFreed }: Capac
               >
                 <div>
                   <div className="font-medium">{s.label}</div>
-                  <div className="text-[10px] text-muted-foreground">{s.impact}</div>
+                  <div className="text-xs text-muted-foreground">{s.impact}</div>
                 </div>
                 <Button size="sm" variant="outline" disabled={busy === s.id} onClick={() => void handleApply(s)}>
                   {busy === s.id ? "…" : "Apply"}

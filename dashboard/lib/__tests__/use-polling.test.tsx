@@ -211,3 +211,30 @@ describe("usePolling", () => {
     expect(result.current.stale).toBe(true);
   });
 });
+
+describe("usePolling restart guard", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    setDocumentHidden(false);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("does not stack a second interval when the tab reports visible twice", async () => {
+    const fetcher = vi.fn<() => Promise<string>>().mockResolvedValue("ok");
+
+    renderHook(() => usePolling(fetcher));
+
+    // Mount already started one interval. A redundant visible event must not add another,
+    // which would otherwise double the poll rate against the host every time it happened.
+    act(() => setDocumentHidden(false));
+    act(() => setDocumentHidden(false));
+
+    const callsAfterMount = fetcher.mock.calls.length;
+    await tick(TICK);
+
+    expect(fetcher.mock.calls.length - callsAfterMount).toBe(1);
+  });
+});

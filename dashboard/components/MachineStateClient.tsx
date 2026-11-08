@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PanelActions } from "@/components/ui/panel";
 import { getMachineStateAction } from "@/actions/host-actions";
 import type { MachineStateData } from "./MachineStatePanel";
 import { Cpu, Server, Package } from "lucide-react";
@@ -54,11 +55,12 @@ export function MachineStateClient({ initialData }: { initialData: MachineStateD
 
   return (
     <div data-testid="machine-state-client">
-      <div className="mb-4 flex justify-end">
+      {/* The refresh control rides with the state it reloads; the frame header lives in MachineStatePanel. */}
+      <PanelActions className="mb-4 justify-end">
         <Button onClick={() => void refresh()} disabled={loading} variant="outline" size="sm" className="text-xs">
           {loading ? "..." : "Refresh"}
         </Button>
-      </div>
+      </PanelActions>
       <div className="grid grid-cols-1 gap-4 text-xs md:grid-cols-2">
         {loading && <Skeleton className="col-span-full h-24" />}
         <div className={panelClass}>
@@ -84,7 +86,7 @@ export function MachineStateClient({ initialData }: { initialData: MachineStateD
           <div className="max-h-40 overflow-auto">
             <div className="flex flex-wrap gap-1.5">
               {(state.services?.services || []).map((s, i) => (
-                <Badge key={i} variant="outline" className="py-0.5 text-[10px]">
+                <Badge key={i} variant="outline" className="py-0.5 text-xs">
                   {s}
                 </Badge>
               ))}
@@ -99,7 +101,7 @@ export function MachineStateClient({ initialData }: { initialData: MachineStateD
           </div>
           <div className="flex flex-wrap gap-1.5">
             {(state.packages?.packages || []).slice(0, 30).map((p, i) => (
-              <Badge key={i} variant="outline" className="py-0.5 text-[10px]">
+              <Badge key={i} variant="outline" className="py-0.5 text-xs">
                 {p}
               </Badge>
             ))}

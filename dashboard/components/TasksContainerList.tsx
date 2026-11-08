@@ -92,7 +92,7 @@ function ContainerRow({ id, displayName, status }: { id: string; displayName: st
       <TableCell>
         <Badge
           variant="outline"
-          className="max-w-[6rem] truncate whitespace-nowrap px-1.5 py-0 text-[10px] leading-none"
+          className="max-w-[6rem] truncate whitespace-nowrap px-1.5 py-0 text-xs leading-none"
           title={status || "unknown"}
         >
           {shortStatus(status)}

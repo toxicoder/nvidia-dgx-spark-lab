@@ -102,3 +102,24 @@ describe("ResourcesPanel", () => {
     });
   });
 });
+
+describe("ResourcesPanel failure recovery", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    getClusterCapacityAction.mockResolvedValue(fakeClusterCapacity);
+  });
+
+  it("keeps the header and re-queries from the inline failure instead of blanking", async () => {
+    render(<ResourcesPanel initialCapacity={{ ...fakeClusterCapacity, error: "kubectl unreachable" }} />);
+
+    // The frame survives: only the body degrades, so the operator stays on the page.
+    expect(screen.getByTestId("resources-panel")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Cluster capacity/ })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Retry capacity check/i }));
+
+    await waitFor(() => {
+      expect(getClusterCapacityAction).toHaveBeenCalled();
+    });
+  });
+});

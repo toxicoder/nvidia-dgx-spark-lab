@@ -22,8 +22,14 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+/**
+ * Read the operator's stored theme choice.
+ *
+ * Only ever called from an effect, so `localStorage` is guaranteed to exist; the try/catch
+ * covers browsers that deny storage in private mode rather than a missing window.
+ * @returns The stored id when it is still in the catalog, otherwise the default.
+ */
 function readStoredThemeId(): string {
-  if (typeof window === "undefined") return DEFAULT_THEME_ID;
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
     if (stored && isValidThemeId(stored)) return stored;
@@ -43,7 +49,15 @@ export function applyThemeToDocument(themeId: string): void {
 
 /** Provides theme state and syncs DOM + localStorage when the active theme changes. */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [themeId, setThemeIdState] = useState(() => readStoredThemeId());
+  // The server has no localStorage, so the first client pass must agree with the HTML it
+  // was handed. Reading the stored choice during render made the two differ and cost
+  // every route a hydration mismatch plus a full client re-render. The pre-paint script
+  // in `app/layout.tsx` already put the right theme on screen before this runs.
+  const [themeId, setThemeIdState] = useState<string>(DEFAULT_THEME_ID);
+
+  useEffect(() => {
+    setThemeIdState(readStoredThemeId());
+  }, []);
 
   useEffect(() => {
     applyThemeToDocument(themeId);

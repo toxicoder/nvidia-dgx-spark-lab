@@ -5,6 +5,7 @@
 import type React from "react";
 import type { listContainers, listOllamaModels } from "@/lib/host";
 import { Badge } from "@/components/ui/badge";
+import { Panel, PanelBody, PanelHeader, PanelTitle } from "@/components/ui/panel";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TasksContainerList } from "@/components/TasksContainerList";
 import { panelSubheaderClass } from "./panel-styles";
@@ -28,46 +29,51 @@ export function TasksPanel({ containers, ollama }: TasksPanelData): React.JSX.El
   const dataLines = lines.slice(1);
 
   return (
-    <div
-      data-testid="tasks-panel"
-      className="@container grid w-full min-w-0 self-start grid-cols-1 gap-4 @5xl:grid-cols-2"
-    >
-      <div className="min-w-0">
-        <div className={panelSubheaderClass}>
-          CONTAINERS (docker)
-          <Badge variant="outline" className="text-[10px]">
-            docker
-          </Badge>
-        </div>
-        <TasksContainerList data={containers} />
-      </div>
+    <Panel data-testid="tasks-panel">
+      <PanelHeader>
+        <PanelTitle>Tasks</PanelTitle>
+      </PanelHeader>
 
-      <div className="min-w-0">
-        <div className={panelSubheaderClass}>OLLAMA</div>
-        {!dataLines.length ? (
-          <div className="text-xs text-muted-foreground">No models (mock)</div>
-        ) : (
-          <Table className={compactTableClass}>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[55%] text-xs">Model</TableHead>
-                <TableHead className="w-[45%] text-xs">Size</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {dataLines.map((line: string, i: number) => {
-                const parts = line.split(/\t+/);
-                return (
-                  <TableRow key={i}>
-                    <TableCell className="truncate font-mono text-xs">{parts[0] || ""}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground tabular-nums">{parts[2] || ""}</TableCell>
+      <PanelBody>
+        <div className="@container grid w-full min-w-0 grid-cols-1 gap-4 @5xl:grid-cols-2">
+          <div className="min-w-0">
+            <div className={panelSubheaderClass}>
+              CONTAINERS (docker)
+              <Badge variant="outline" className="text-xs">
+                docker
+              </Badge>
+            </div>
+            <TasksContainerList data={containers} />
+          </div>
+
+          <div className="min-w-0">
+            <div className={panelSubheaderClass}>OLLAMA</div>
+            {!dataLines.length ? (
+              <div className="text-xs text-muted-foreground">No models (mock)</div>
+            ) : (
+              <Table className={compactTableClass}>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[55%] text-xs">Model</TableHead>
+                    <TableHead className="w-[45%] text-xs">Size</TableHead>
                   </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        )}
-      </div>
-    </div>
+                </TableHeader>
+                <TableBody>
+                  {dataLines.map((line: string, i: number) => {
+                    const parts = line.split(/\t+/);
+                    return (
+                      <TableRow key={i}>
+                        <TableCell className="truncate font-mono text-xs">{parts[0] || ""}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground tabular-nums">{parts[2] || ""}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </div>
+      </PanelBody>
+    </Panel>
   );
 }

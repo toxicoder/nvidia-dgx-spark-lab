@@ -4,6 +4,7 @@ import {
   VIEWPORTS,
   captureElement,
   dismissToasts,
+  requireVisible,
   stabilizePage,
   viewportSuffix,
   waitForDashboardReady,
@@ -18,7 +19,7 @@ for (const vp of VIEWPORTS) {
 
     await stabilizePage(page);
     await page.setViewportSize({ width: vp.width, height: vp.height });
-    await page.goto("/");
+    await page.goto("/storage");
     await waitForDashboardReady(page);
 
     const sunburstToggle = page.locator('[data-testid="treemap-view-sunburst"]');
@@ -137,21 +138,19 @@ for (const vp of VIEWPORTS) {
       await expect(utilitySheet).toHaveScreenshot(`dashboard-ui-sheet${suffix}.png`, SCREENSHOT_OPTS);
     }
 
-    await page.goto("/");
+    // Utilities is its own route now, so navigate to it directly. The old code loaded `/`
+    // and scrolled to a `#utilities` fragment that no longer exists, which meant this
+    // capture had silently stopped covering anything.
+    await page.goto("/utilities");
     await waitForDashboardReady(page);
-    await page
-      .locator("#utilities")
-      .scrollIntoViewIfNeeded()
-      .catch(() => {});
+    await requireVisible(page, '[data-testid="utility-row"]', "utility row");
     const runBtn = page.locator('[data-testid="utility-row"] button:has-text("Run")').first();
-    if ((await runBtn.count()) > 0) {
-      await runBtn.scrollIntoViewIfNeeded().catch(() => {});
-      await runBtn.click().catch(() => {});
-      await page.waitForTimeout(500);
-      const toast = page.locator("[data-sonner-toast]").first();
-      if ((await toast.count()) > 0 && (await toast.isVisible().catch(() => false))) {
-        await expect(toast).toHaveScreenshot(`dashboard-ui-toast${suffix}.png`, SCREENSHOT_OPTS);
-      }
+    await runBtn.scrollIntoViewIfNeeded().catch(() => {});
+    await runBtn.click().catch(() => {});
+    await page.waitForTimeout(500);
+    const toast = page.locator("[data-sonner-toast]").first();
+    if ((await toast.count()) > 0 && (await toast.isVisible().catch(() => false))) {
+      await expect(toast).toHaveScreenshot(`dashboard-ui-toast${suffix}.png`, SCREENSHOT_OPTS);
     }
   });
 }

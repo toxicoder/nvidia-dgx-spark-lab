@@ -56,9 +56,7 @@ const VARIANT_CLASSES: Readonly<Record<StatusBadgeVariant, string>> = {
   neutral: "border-border bg-muted text-muted-foreground",
   info: "border-transparent bg-secondary text-secondary-foreground",
   ok: "border-primary/40 bg-primary/15 text-primary",
-  // TODO(token): warning reuses the destructive hue because the token set has no amber
-  // tier yet; swap for a warning token when the theme lands one so risk is not red.
-  warning: "border-destructive/50 bg-destructive/15 text-destructive",
+  warning: "border-warning/50 bg-warning/15 text-warning",
   danger: "border-transparent bg-destructive text-destructive-foreground",
   muted: "border-border bg-transparent text-muted-foreground"
 };

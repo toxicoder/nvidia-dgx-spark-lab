@@ -10,6 +10,7 @@ import { useToast } from "@/components/ui/toast";
 import { AlertDialog } from "@/components/ui/dialog";
 import { Sheet } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Panel, PanelActions, PanelBody, PanelHeader, PanelTitle } from "@/components/ui/panel";
 import { ChevronRight, HardDrive, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { humanSize } from "@/lib/format";
@@ -98,82 +99,94 @@ export function StoragePanel({
   const pathSegments = (tree.path || "/mnt/models").split("/").filter(Boolean);
 
   return (
-    <div data-testid="storage-panel" className="w-full self-start">
-      <nav
-        data-testid="storage-path-breadcrumb"
-        aria-label="Storage directory"
-        className="mb-3 flex min-w-0 flex-wrap items-center gap-1 rounded-full border border-[var(--md-sys-color-outline-variant)]/60 bg-[var(--md-sys-color-surface-variant)]/40 px-2.5 py-1.5 text-[10px] font-medium text-[var(--md-sys-color-on-surface-variant)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
-      >
-        <HardDrive className="h-3 w-3 shrink-0 text-[var(--md-sys-color-primary)]" aria-hidden />
-        <span className="text-[var(--md-sys-color-on-surface-variant)]">/</span>
-        {pathSegments.map((segment, i) => (
-          <span key={`${segment}-${i}`} className="inline-flex min-w-0 items-center gap-1">
-            {i > 0 ? <ChevronRight className="h-2.5 w-2.5 shrink-0 opacity-50" aria-hidden /> : null}
-            <span
-              className={cn(
-                "truncate",
-                i === pathSegments.length - 1
-                  ? "rounded-full bg-[var(--md-sys-color-primary-container)] px-2 py-0.5 text-[var(--md-sys-color-on-primary-container)]"
-                  : "text-[var(--md-sys-color-on-surface)]"
-              )}
-            >
-              {segment}
+    <Panel data-testid="storage-panel">
+      <PanelHeader>
+        <PanelTitle>Storage</PanelTitle>
+        <PanelActions>
+          <Button
+            onClick={() => void refresh()}
+            disabled={isRefreshing}
+            variant="outline"
+            size="sm"
+            className="text-xs"
+          >
+            <RefreshCw className="mr-1 h-3 w-3" /> {isRefreshing ? "Refreshing..." : "Refresh"}
+          </Button>
+        </PanelActions>
+      </PanelHeader>
+
+      <PanelBody>
+        <nav
+          data-testid="storage-path-breadcrumb"
+          aria-label="Storage directory"
+          className="mb-3 flex min-w-0 flex-wrap items-center gap-1 rounded-full border border-[var(--md-sys-color-outline-variant)]/60 bg-[var(--md-sys-color-surface-variant)]/40 px-2.5 py-1.5 text-xs font-medium text-[var(--md-sys-color-on-surface-variant)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+        >
+          <HardDrive className="h-3 w-3 shrink-0 text-[var(--md-sys-color-primary)]" aria-hidden />
+          <span className="text-[var(--md-sys-color-on-surface-variant)]">/</span>
+          {pathSegments.map((segment, i) => (
+            <span key={`${segment}-${i}`} className="inline-flex min-w-0 items-center gap-1">
+              {i > 0 ? <ChevronRight className="h-2.5 w-2.5 shrink-0 opacity-50" aria-hidden /> : null}
+              <span
+                className={cn(
+                  "truncate",
+                  i === pathSegments.length - 1
+                    ? "rounded-full bg-[var(--md-sys-color-primary-container)] px-2 py-0.5 text-[var(--md-sys-color-on-primary-container)]"
+                    : "text-[var(--md-sys-color-on-surface)]"
+                )}
+              >
+                {segment}
+              </span>
             </span>
-          </span>
-        ))}
-      </nav>
-      <div className="mb-4 flex items-center justify-between gap-3">
+          ))}
+        </nav>
         <div className="min-w-0 text-xs text-muted-foreground">
           Disk usage — toggle Treemap / Sunburst. Click tiles to drill or select.
         </div>
-        <Button onClick={() => void refresh()} disabled={isRefreshing} variant="outline" size="sm" className="text-xs">
-          <RefreshCw className="mr-1 h-3 w-3" /> {isRefreshing ? "Refreshing..." : "Refresh"}
-        </Button>
-      </div>
 
-      {isRefreshing && <Skeleton className="h-8 w-full mb-2" />}
+        {isRefreshing && <Skeleton className="h-8 w-full mb-2" />}
 
-      {/* Wrapped for lightweight viz isolation. See ErrorBoundary.tsx + enhanced error.tsx */}
-      <ErrorBoundary
-        fallback={<div className="text-xs text-destructive p-2">Treemap render error (isolated; try refresh).</div>}
-      >
-        <Treemap root={tree} onDelete={confirmDelete} onFindDuplicates={handleFindDupes} />
-      </ErrorBoundary>
+        {/* Wrapped for lightweight viz isolation. See ErrorBoundary.tsx + enhanced error.tsx */}
+        <ErrorBoundary
+          fallback={<div className="text-xs text-destructive p-2">Treemap render error (isolated; try refresh).</div>}
+        >
+          <Treemap root={tree} onDelete={confirmDelete} onFindDuplicates={handleFindDupes} />
+        </ErrorBoundary>
 
-      {/* Delete confirm for Storage journey */}
-      <AlertDialog
-        open={!!pendingDelete}
-        onOpenChange={(o) => !o && setPendingDelete(null)}
-        title="Delete path?"
-        description={`Move ${pendingDelete} to trash? This is destructive.`}
-        confirmText={isDeleting ? "Deleting..." : "Delete"}
-        onConfirm={performDelete}
-        variant="destructive"
-      />
+        {/* Delete confirm for Storage journey */}
+        <AlertDialog
+          open={!!pendingDelete}
+          onOpenChange={(o) => !o && setPendingDelete(null)}
+          title="Delete path?"
+          description={`Move ${pendingDelete} to trash? This is destructive.`}
+          confirmText={isDeleting ? "Deleting..." : "Delete"}
+          onConfirm={performDelete}
+          variant="destructive"
+        />
 
-      {/* Dupes results Sheet for nice journey display */}
-      <Sheet open={showDupesSheet} onOpenChange={setShowDupesSheet} side="right" title="Duplicate Groups">
-        {!dupes || !dupes.groups || dupes.groups.length === 0 ? (
-          <div>No duplicates found.</div>
-        ) : (
-          <div className="space-y-3 text-sm">
-            {dupes.groups.slice(0, 10).map((g, i) => (
-              <div
-                key={i}
-                className="p-2 border border-[var(--md-sys-color-outline-variant)] rounded-[var(--md-sys-shape-corner-medium)] bg-[var(--md-sys-color-surface-variant)]"
-              >
-                <div className="font-medium text-[var(--md-sys-color-on-surface)]">
-                  {humanSize(g.size)} — {g.files.length} files
+        {/* Dupes results Sheet for nice journey display */}
+        <Sheet open={showDupesSheet} onOpenChange={setShowDupesSheet} side="right" title="Duplicate Groups">
+          {!dupes || !dupes.groups || dupes.groups.length === 0 ? (
+            <div>No duplicates found.</div>
+          ) : (
+            <div className="space-y-3 text-sm">
+              {dupes.groups.slice(0, 10).map((g, i) => (
+                <div
+                  key={i}
+                  className="p-2 border border-[var(--md-sys-color-outline-variant)] rounded-[var(--md-sys-shape-corner-medium)] bg-[var(--md-sys-color-surface-variant)]"
+                >
+                  <div className="font-medium text-[var(--md-sys-color-on-surface)]">
+                    {humanSize(g.size)} — {g.files.length} files
+                  </div>
+                  <div className="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-1 break-all">
+                    {g.files.join(", ")}
+                  </div>
                 </div>
-                <div className="text-xs text-[var(--md-sys-color-on-surface-variant)] mt-1 break-all">
-                  {g.files.join(", ")}
-                </div>
-              </div>
-            ))}
-            {dupes.groups.length > 10 && <div className="text-xs text-muted-foreground">... and more</div>}
-          </div>
-        )}
-      </Sheet>
-    </div>
+              ))}
+              {dupes.groups.length > 10 && <div className="text-xs text-muted-foreground">... and more</div>}
+            </div>
+          )}
+        </Sheet>
+      </PanelBody>
+    </Panel>
   );
 }

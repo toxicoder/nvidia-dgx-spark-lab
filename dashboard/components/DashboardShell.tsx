@@ -71,7 +71,7 @@ function NavContent({
       <nav aria-label={isMobile ? "Dashboard sections" : "Primary"} className="flex-1 space-y-5">
         {DASHBOARD_SECTION_GROUPS.map((group) => (
           <div key={group}>
-            <h2 className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <h2 className="px-3 pb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               {SECTION_GROUP_LABELS[group]}
             </h2>
             <ul className="space-y-1">
@@ -106,7 +106,7 @@ function NavContent({
       </nav>
 
       <div className="mt-auto space-y-2 pt-6">
-        {!isMobile ? <div className="px-1 text-[11px] text-muted-foreground">{theme.label}</div> : null}
+        {!isMobile ? <div className="px-1 text-xs text-muted-foreground">{theme.label}</div> : null}
         <Button
           variant="outline"
           size="sm"
@@ -224,7 +224,7 @@ export function DashboardShell({ children, hostname, generatedAt }: DashboardShe
               {hostname ? (
                 <span
                   data-testid="shell-hostname"
-                  className="hidden rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground sm:inline"
+                  className="hidden rounded-full border border-border px-2 py-0.5 text-xs font-medium text-muted-foreground sm:inline"
                 >
                   {hostname}
                 </span>
@@ -232,7 +232,7 @@ export function DashboardShell({ children, hostname, generatedAt }: DashboardShe
               {updatedLabel ? (
                 <span
                   data-testid="shell-updated"
-                  className="hidden text-[11px] tabular-nums text-muted-foreground md:inline"
+                  className="hidden text-xs tabular-nums text-muted-foreground md:inline"
                 >
                   Updated {updatedLabel}
                 </span>
@@ -260,7 +260,7 @@ export function DashboardShell({ children, hostname, generatedAt }: DashboardShe
           {children}
         </main>
 
-        <footer className="border-t border-border px-4 py-4 text-[11px] text-muted-foreground lg:px-6">
+        <footer className="border-t border-border px-4 py-4 text-xs text-muted-foreground lg:px-6">
           Actions are scoped to the lab account. Destructive operations confirm first.
         </footer>
       </div>

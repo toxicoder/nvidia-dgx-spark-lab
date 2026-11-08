@@ -26,7 +26,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
-import { panelSubheaderClass } from "@/components/panel-styles";
+import { Panel, PanelActions, PanelBody, PanelHeader, PanelTitle } from "@/components/ui/panel";
 import type { K8sSyncTarget, LabSecretMeta, SecretCategory } from "@/lib/types";
 import { Eye, KeyRound, Plus, RefreshCw, Trash2 } from "lucide-react";
 
@@ -207,115 +207,119 @@ export function SecretsPanel({ initialSecrets }: SecretsPanelProps): React.JSX.E
   const deleteTarget = secrets.find((s) => s.id === deleteId);
 
   return (
-    <div data-testid="secrets-panel" className="w-full self-start space-y-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className={panelSubheaderClass}>
-          SECRET VAULT
-          <Badge variant="secondary" className="text-[10px]">
-            encrypted
-          </Badge>
-        </div>
-        <Button size="sm" onClick={() => setAddOpen(true)} disabled={busy}>
-          <Plus className="mr-1 h-3.5 w-3.5" />
-          Add secret
-        </Button>
-      </div>
+    <Panel data-testid="secrets-panel">
+      <PanelHeader>
+        <PanelTitle>
+          <span className="inline-flex items-center gap-2">
+            Secret vault
+            <Badge variant="secondary">encrypted</Badge>
+          </span>
+        </PanelTitle>
+        <PanelActions>
+          <Button size="sm" onClick={() => setAddOpen(true)} disabled={busy}>
+            <Plus className="mr-1 h-3.5 w-3.5" />
+            Add secret
+          </Button>
+        </PanelActions>
+      </PanelHeader>
 
-      {secrets.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-[var(--md-sys-shape-corner-medium)] border border-dashed border-border py-10 text-center">
-          <KeyRound className="h-8 w-8 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">No secrets stored yet.</p>
-          <p className="max-w-sm text-xs text-muted-foreground">
-            Add API keys and tokens here. Values are encrypted at rest and never shown in list views.
-          </p>
-        </div>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Hint</TableHead>
-              <TableHead>K8s sync</TableHead>
-              <TableHead>Updated</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {secrets.map((secret) => (
-              <TableRow key={secret.id}>
-                <TableCell className="font-medium">{secret.name}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="text-[10px]">
-                    {categoryLabel(secret.category)}
-                  </Badge>
-                </TableCell>
-                <TableCell className="font-mono text-xs text-muted-foreground">••••{secret.valueHint}</TableCell>
-                <TableCell className="text-xs text-muted-foreground">
-                  {secret.k8sSync ? `${secret.k8sSync.namespace}/${secret.k8sSync.secretName}` : "—"}
-                </TableCell>
-                <TableCell className="text-xs text-muted-foreground">{formatTs(secret.updatedAt)}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      title="Update value"
-                      disabled={busy}
-                      onClick={() => {
-                        setUpdateId(secret.id);
-                        setUpdateValue("");
-                      }}
-                    >
-                      <RefreshCw className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      title="Reveal value"
-                      disabled={busy}
-                      onClick={() => {
-                        setRevealId(secret.id);
-                        setRevealConfirm("");
-                        setRevealedValue(null);
-                      }}
-                    >
-                      <Eye className="h-3.5 w-3.5" />
-                    </Button>
-                    {secret.k8sSync && (
+      <PanelBody className="space-y-4">
+        {secrets.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 rounded-[var(--md-sys-shape-corner-medium)] border border-dashed border-border py-10 text-center">
+            <KeyRound className="h-8 w-8 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">No secrets stored yet.</p>
+            <p className="max-w-sm text-xs text-muted-foreground">
+              Add API keys and tokens here. Values are encrypted at rest and never shown in list views.
+            </p>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Hint</TableHead>
+                <TableHead>K8s sync</TableHead>
+                <TableHead>Updated</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {secrets.map((secret) => (
+                <TableRow key={secret.id}>
+                  <TableCell className="font-medium">{secret.name}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs">
+                      {categoryLabel(secret.category)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">••••{secret.valueHint}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {secret.k8sSync ? `${secret.k8sSync.namespace}/${secret.k8sSync.secretName}` : "—"}
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{formatTs(secret.updatedAt)}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7"
-                        title="Sync to Kubernetes"
+                        title="Update value"
                         disabled={busy}
-                        onClick={() => void handleSync(secret.id)}
+                        onClick={() => {
+                          setUpdateId(secret.id);
+                          setUpdateValue("");
+                        }}
                       >
-                        <KeyRound className="h-3.5 w-3.5" />
+                        <RefreshCw className="h-3.5 w-3.5" />
                       </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-destructive"
-                      title="Delete"
-                      disabled={busy}
-                      onClick={() => {
-                        setDeleteId(secret.id);
-                        setDeleteConfirm("");
-                      }}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        title="Reveal value"
+                        disabled={busy}
+                        onClick={() => {
+                          setRevealId(secret.id);
+                          setRevealConfirm("");
+                          setRevealedValue(null);
+                        }}
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                      </Button>
+                      {secret.k8sSync && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          title="Sync to Kubernetes"
+                          disabled={busy}
+                          onClick={() => void handleSync(secret.id)}
+                        >
+                          <KeyRound className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive"
+                        title="Delete"
+                        disabled={busy}
+                        onClick={() => {
+                          setDeleteId(secret.id);
+                          setDeleteConfirm("");
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </PanelBody>
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent>
@@ -525,6 +529,6 @@ export function SecretsPanel({ initialSecrets }: SecretsPanelProps): React.JSX.E
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </Panel>
   );
 }

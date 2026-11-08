@@ -4,6 +4,7 @@
  */
 import type React from "react";
 import { MachineStateClient } from "./MachineStateClient";
+import { Panel, PanelBody, PanelHeader, PanelTitle } from "@/components/ui/panel";
 import type { getMachineIdentity, getRunningServices, getPackages } from "@/lib/host";
 
 /** Props bundle for machine state panels (pre-fetched at page level). */
@@ -20,8 +21,13 @@ export type MachineStateData = {
  */
 export function MachineStatePanel({ initialData }: { initialData: MachineStateData }): React.JSX.Element {
   return (
-    <div data-testid="machine-state-panel" className="w-full self-start">
-      <MachineStateClient initialData={initialData} />
-    </div>
+    <Panel data-testid="machine-state-panel" className="w-full self-start">
+      <PanelHeader>
+        <PanelTitle>Machine state</PanelTitle>
+      </PanelHeader>
+      <PanelBody>
+        <MachineStateClient initialData={initialData} />
+      </PanelBody>
+    </Panel>
   );
 }

@@ -7,6 +7,46 @@ export const SCREENSHOT_OPTS = {
   maxDiffPixelRatio: 0.01
 };
 
+/**
+ * Themes the visual suite pins.
+ *
+ * The console ships ten themes, but a golden matrix has to stay reviewable, so the suite
+ * locks one dark and one light theme by id rather than trusting the ambient default. Light
+ * mode gets first-class coverage because its contrast was the worst finding in the audit;
+ * a golden set that only ever looked at dark would let it regress silently.
+ */
+export const THEMES = [
+  { name: "dark", themeId: "spark-lime", colorScheme: "dark" } as const,
+  { name: "light", themeId: "daylight", colorScheme: "light" } as const
+];
+
+/** localStorage key `components/ThemeProvider.tsx` reads on boot. */
+export const THEME_STORAGE_KEY = "dgx-dashboard-theme";
+
+/**
+ * One row per routed console section.
+ *
+ * These used to be `#anchor` fragments on a single page. Sections are real routes now, so
+ * the suite navigates to `/{slug}`; `requiredSelector` is the assertion floor that makes a
+ * missing section fail the run instead of quietly producing no screenshot.
+ */
+export const SECTION_ROUTES = [
+  { slug: "resources", baseSlug: "dashboard-resources", requiredSelector: '[data-testid="resources-panel"]' },
+  {
+    slug: "observability",
+    baseSlug: "dashboard-observability",
+    requiredSelector: '[data-testid="observability-panel"]'
+  },
+  { slug: "inference", baseSlug: "dashboard-inference", requiredSelector: '[data-testid="inference-panel"]' },
+  { slug: "agent-chat", baseSlug: "dashboard-agent-chat", requiredSelector: '[data-testid="open-webui-panel"]' },
+  { slug: "storage", baseSlug: "dashboard-storage", requiredSelector: '[data-testid="storage-panel"]' },
+  { slug: "tasks", baseSlug: "dashboard-tasks", requiredSelector: '[data-testid="tasks-panel"]' },
+  { slug: "workspaces", baseSlug: "dashboard-workspaces", requiredSelector: '[data-testid="workspaces-panel"]' },
+  { slug: "system", baseSlug: "dashboard-machine", requiredSelector: '[data-testid="machine-state-panel"]' },
+  { slug: "utilities", baseSlug: "dashboard-utilities", requiredSelector: '[data-testid="utilities-panel"]' },
+  { slug: "secrets", baseSlug: "dashboard-secrets", requiredSelector: '[data-testid="secrets-panel"]' }
+] as const;
+
 export const PANEL_SELECTORS = [
   { selector: '[data-testid="resources-panel"]', baseSlug: "dashboard-resources-panel" },
   { selector: '[data-testid="observability-panel"]', baseSlug: "dashboard-observability-panel" },
@@ -21,8 +61,28 @@ export const PANEL_SELECTORS = [
   { selector: '[data-testid="secrets-panel"]', baseSlug: "dashboard-secrets-panel" }
 ];
 
-export const MAIN_PAGE_ELEMENTS = [
-  { selector: '[data-testid="sidebar"]', baseSlug: "dashboard-sidebar", hideChrome: false },
+/** Rail landmark: the one chrome element captured on the overview at every viewport and theme. */
+export const SIDEBAR_SELECTOR = '[data-testid="sidebar"]';
+export const SIDEBAR_BASE = "dashboard-sidebar";
+
+/**
+ * Elements the overview route (`/`) renders and captures per viewport and theme.
+ *
+ * The treemap used to be listed here. It is rendered by `StoragePanel`, which mounts on
+ * `/storage`, so it never appeared on the overview: `dashboard-main.spec.ts` had to skip
+ * those names, and the base treemap goldens quietly stopped being produced while their
+ * stale PNGs stayed committed. They now live in `STORAGE_EXTRA_CAPTURES`.
+ */
+export const MAIN_PAGE_ELEMENTS = [{ selector: SIDEBAR_SELECTOR, baseSlug: SIDEBAR_BASE, hideChrome: false }];
+
+/**
+ * Extra surfaces the storage route captures beyond its own panel frame.
+ *
+ * `sections.spec.ts` owns these because it already navigates to `/storage` once per
+ * viewport and theme; the treemap has to hold in light mode too, and a dark-only golden set
+ * is what let the rail and the charts regress there.
+ */
+export const STORAGE_EXTRA_CAPTURES = [
   { selector: '[data-testid="treemap"]', baseSlug: "dashboard-treemap", hideChrome: true },
   { selector: '[data-testid="treemap-viz"]', baseSlug: "dashboard-treemap-viz", hideChrome: true },
   {
@@ -39,19 +99,6 @@ export const VIEWPORTS = [
   { name: "mobile", width: 375, height: 667 }
 ] as const;
 
-export const BASE_SECTIONS = [
-  { id: "#resources", baseSlug: "dashboard-resources" },
-  { id: "#observability", baseSlug: "dashboard-observability" },
-  { id: "#inference", baseSlug: "dashboard-inference" },
-  { id: "#agent-chat", baseSlug: "dashboard-agent-chat" },
-  { id: "#tasks", baseSlug: "dashboard-tasks" },
-  { id: "#storage", baseSlug: "dashboard-storage" },
-  { id: "#workspaces", baseSlug: "dashboard-workspaces" },
-  { id: "#system", baseSlug: "dashboard-machine" },
-  { id: "#utilities", baseSlug: "dashboard-utilities" },
-  { id: "#secrets", baseSlug: "dashboard-secrets" }
-];
-
 export const UI_FIXTURES = [
   {
     selector: '[data-testid="visual-test-fixtures"] [data-testid="ui-button-hero"]',
@@ -64,37 +111,54 @@ export const UI_FIXTURES = [
   { selector: '[data-testid="visual-test-fixtures"] [data-testid="ui-table"]', baseSlug: "dashboard-ui-table" }
 ];
 
-/** Wait for fonts, charts, and key panels before main-page screenshots. */
-export async function waitForDashboardReady(page: Page) {
+/**
+ * Wait for fonts, charts, and key panels before screenshots.
+ *
+ * The treemap and the task / machine panels are home-page only. On a single-section route
+ * they never appear, so each waiter would burn its whole timeout and then swallow the miss
+ * behind `.catch(() => {})`; across ten routes that is ~18s of dead wait each and it pushed
+ * the sections capture past its test timeout. `sections.spec.ts` opts out and asserts its own
+ * target with `requireVisible`, so nothing is waited on that the route cannot satisfy.
+ */
+export async function waitForDashboardReady(
+  page: Page,
+  options?: { treemap?: boolean | undefined; homePanels?: boolean | undefined }
+) {
+  const { treemap = true, homePanels = true } = options ?? {};
+
   await page.waitForLoadState("domcontentloaded");
   await page.waitForLoadState("networkidle");
   await page.waitForLoadState("load");
   await page.evaluate(() => document.fonts.ready);
 
-  await page
-    .waitForFunction(
-      () => {
-        const viz = document.querySelector('[data-testid="treemap-viz"]');
-        if (!viz) return false;
-        const svg = viz.querySelector("svg");
-        if (!svg) return false;
-        const children = svg.querySelectorAll("rect, path, g");
-        return children.length > 0;
-      },
-      { timeout: 10000 }
-    )
-    .catch(() => {});
+  if (treemap) {
+    await page
+      .waitForFunction(
+        () => {
+          const viz = document.querySelector('[data-testid="treemap-viz"]');
+          if (!viz) return false;
+          const svg = viz.querySelector("svg");
+          if (!svg) return false;
+          const children = svg.querySelectorAll("rect, path, g");
+          return children.length > 0;
+        },
+        { timeout: 10000 }
+      )
+      .catch(() => {});
+  }
 
-  await page
-    .waitForFunction(
-      () => {
-        const tasks = document.querySelector('[data-testid="tasks-panel"]');
-        const machine = document.querySelector('[data-testid="machine-state-panel"]');
-        return (tasks && tasks.children.length > 0) || (machine && machine.children.length > 0);
-      },
-      { timeout: 8000 }
-    )
-    .catch(() => {});
+  if (homePanels) {
+    await page
+      .waitForFunction(
+        () => {
+          const tasks = document.querySelector('[data-testid="tasks-panel"]');
+          const machine = document.querySelector('[data-testid="machine-state-panel"]');
+          return (tasks && tasks.children.length > 0) || (machine && machine.children.length > 0);
+        },
+        { timeout: 8000 }
+      )
+      .catch(() => {});
+  }
 
   await page.waitForTimeout(300).catch(() => {});
 }
@@ -216,4 +280,52 @@ export async function captureElement(
 /** Map a viewport label to the golden filename suffix. */
 export function viewportSuffix(name: string) {
   return name === "mobile" ? "-mobile" : "";
+}
+
+/** Map a theme label to the golden filename suffix. Dark keeps the legacy bare name. */
+export function themeSuffix(name: string) {
+  return name === "dark" ? "" : `-${name}`;
+}
+
+/**
+ * Pin the theme before the app boots.
+ *
+ * The pre-paint script in `app/layout.tsx` reads this key, so setting it in an init script
+ * lands before first paint and avoids the flash a post-load click on the theme picker
+ * would cause. `colorScheme` is emulated too, because some tokens key off the media query.
+ */
+export async function applyTheme(page: Page, theme: { themeId: string; colorScheme: string }) {
+  await page.addInitScript(
+    ([key, id]: [string, string]) => {
+      localStorage.setItem(key, id);
+    },
+    [THEME_STORAGE_KEY, theme.themeId] as [string, string]
+  );
+  await page.emulateMedia({ colorScheme: theme.colorScheme as "dark" | "light", reducedMotion: "reduce" });
+}
+
+/**
+ * Fail loudly when a capture target is absent.
+ *
+ * The previous suite wrapped every lookup in `.catch(() => {})` and skipped the screenshot
+ * when an element was missing, so a whole route could disappear from the console and the
+ * visual job still went green. A golden that was never produced is a failure, not a skip.
+ */
+export async function requireVisible(page: Page, selector: string, what: string) {
+  const { expect } = await import("@playwright/test");
+  const target = page.locator(selector).first();
+  const found = await target.waitFor({ state: "visible", timeout: 15000 }).then(
+    () => true,
+    () => false
+  );
+  expect(found, `${what} missing: ${selector} never became visible on ${page.url()}`).toBe(true);
+  await expect(target).toBeVisible();
+}
+
+/** Assert the page-level heading exists and carries the text the route registry promised. */
+export async function requirePageTitle(page: Page, expected: RegExp) {
+  const { expect } = await import("@playwright/test");
+  const heading = page.getByRole("heading", { level: 1 }).first();
+  await expect(heading, `no h1 on ${page.url()}`).toBeVisible();
+  await expect(heading, `unexpected page title on ${page.url()}`).toHaveText(expected);
 }
