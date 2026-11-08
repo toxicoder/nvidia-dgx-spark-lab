@@ -75,7 +75,9 @@ if [[ $SUBCMD == "visual" ]]; then
   ensure_deps
   # USE_MOCKS so that server components (RSC) render using the mock fixtures.
   # This populates the panels + treemap for meaningful goldens.
-  USE_MOCKS=1 AUTH_BYPASS=1 exec $CMD exec playwright test "$@"
+  # The `--` matters: without it npm parses `--update-snapshots` as its own config and Playwright
+  # never sees the flag, so `//dashboard:visual -- --update-snapshots` compares instead of writes.
+  USE_MOCKS=1 AUTH_BYPASS=1 exec $CMD exec playwright test -- "$@"
 fi
 
 # Fallback / generic

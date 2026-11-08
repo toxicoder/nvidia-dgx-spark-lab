@@ -316,6 +316,17 @@ Cluster manifests stay on `:local` with `imagePullPolicy: IfNotPresent`. After t
 
 See the root `.gitignore` and `.bazelignore` for the full exclusion list.
 
+### Generated build output stays out of the workspace
+
+`.gitignore` keeps build output out of commits; only `.bazelignore` keeps it out of the build
+graph, so the two lists are not interchangeable. Each Next.js app needs its own entry
+(`dashboard/.next/`, `docs-site/.next/`): `next build` copies the app's `BUILD.bazel`,
+`.dockerignore` and `.env.example` into `<app>/.next/standalone/`, and Bazel then loads that
+generated tree as a real package. The symptom is `//tests:bazel_file_coverage` failing with
+unsanctioned `glob()` patterns and dangling references under a path nobody wrote.
+`//tests:bats_tooling_test` fails if a directory holding a `next.config.*` ever lacks its
+`.next/` line, and `//tests:bazel_file_coverage_unit` proves the gate honours the list.
+
 ## Current Bazel Coverage
 
 The following are modeled with first-class Bazel targets:

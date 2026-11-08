@@ -3,15 +3,20 @@
 .github
 # Do NOT ignore docs/ itself because we have docs/BUILD.bazel and content, and do NOT
 # ignore docs-site/ (that is the site package).  Build outputs and the docs virtualenv are
-# regenerated, so they stay out of the workspace: docs-site/out (static export), .next,
-# .source, and node_modules are covered by the node rules below plus .gitignore.
+# regenerated, so they stay out of the workspace. .gitignore keeps them out of commits; only
+# a .bazelignore entry keeps them out of the build graph, so each Next app needs its own
+# line: `next build` copies the app's BUILD.bazel, .dockerignore and .env.example into
+# <app>/.next/standalone/, and Bazel then loads that generated tree as a real package and
+# //tests:bazel_file_coverage reports globs and dangling references nobody wrote.
+# //tests:bats_tooling_test fails if a Next app dir ever lacks its .next/ entry here.
 # out-linux/ and .deps-linux-stamp are the Linux golden-capture container's own build
-# artefacts (see docs-site/scripts/visual_linux.sh) — never host outputs, never committed.
+# artefacts (see docs-site/scripts/visual_linux.sh) -- never host outputs, never committed.
 docs-site/out/
 docs-site/out-linux/
 docs-site/.deps-linux-stamp
 docs-site/.next/
 docs-site/.source/
+dashboard/.next/
 .venv-docs/
 __pycache__/
 **/__pycache__/
