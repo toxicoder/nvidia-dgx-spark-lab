@@ -71,6 +71,7 @@ filegroup(
         ".github/dependabot.yml",
         ".github/scripts/install-lint-tools.sh",
         ".github/workflows/ci.yml",
+        ".github/workflows/dashboard-goldens.yml",
         ".github/workflows/deploy-docs.yml",
         ".github/workflows/devcontainer-image.yml",
         ".github/workflows/publish-images.yml",
