@@ -1,0 +1,55 @@
+name: Dashboard golden refresh
+
+# Visual baselines are produced by the pinned browser inside dashboard/Dockerfile.test, which
+# installs fonts-noto-core. A baseline captured on a host Chromium carries that host's font
+# metrics, and the pinned container then reports every page a few percent off. This workflow
+# renders the baselines where CI compares them and uploads them for a human to commit; it
+# never writes to the repository itself.
+#
+# Manual only: a pull request cannot rewrite its own baselines.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build hermetic dashboard test image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: dashboard/Dockerfile.test
+          load: true
+          tags: lab-dashboard-test:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Render baselines with the pinned browser
+        run: |
+          mkdir -p dashboard/tests/visual/goldens dashboard/tests/visual/actuals
+          docker run --rm \
+            -e DASHBOARD_TEST_MODE=visual \
+            -e UPDATE_SNAPSHOTS=1 \
+            -v "$PWD/dashboard/tests/visual/goldens:/app/tests/visual/goldens" \
+            -v "$PWD/dashboard/tests/visual/actuals:/app/tests/visual/actuals" \
+            lab-dashboard-test:ci
+          echo "rendered baselines:"
+          find dashboard/tests/visual/goldens -name '*.png' | wc -l
+          git status --porcelain dashboard/tests/visual/goldens | head -50
+
+      - name: Upload rendered baselines
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-visual-goldens
+          path: dashboard/tests/visual/goldens/
+          if-no-files-found: error
