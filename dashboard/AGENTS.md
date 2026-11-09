@@ -31,6 +31,11 @@ The registry and the closed slug set are the source of truth: add a section by e
 `DASHBOARD_SECTIONS`, its descriptor, and its `components/sections/` module. `routes.test.tsx`
 and the nav drift test fail when the three disagree, so the rail cannot drift from the routes.
 
+`notFound()` in `resolveSlug` lands on `app/(dashboard)/not-found.tsx`, the console's own answer to a
+mistyped section: `PageHeader` + `EmptyState` + a link back to the overview. Deleting that file returns
+operators to Next's unstyled default, which is also the only page the bundled typeface does not reach —
+`font-coverage.spec.ts` walks the unknown route for exactly that reason.
+
 ## Design system
 
 Sections are built from shared primitives in `components/ui/` rather than hand-rolled chrome.
@@ -48,9 +53,21 @@ Sections are built from shared primitives in `components/ui/` rather than hand-r
   both at WCAG AA in every theme, so a new tone needs contrast pairs there or the gate fails.
 - **No arbitrary font sizes.** `text-[10px]`-style bracket sizes are banned by
   `components/__tests__/type-scale.test.ts`; use the scale (`text-xs` and up) or add a `@theme` step.
+- **The typeface is self-hosted.** `app/layout.tsx` loads Noto Sans and Noto Sans Mono through
+  `next/font/local`, and `app/globals.css` binds them to `--font-sans` / `--font-mono`. Under Tailwind's
+  default system stack the same build measured text in DejaVu Sans on a Linux box, Noto Sans inside the
+  test image, and Segoe UI on an operator's laptop, which made every visual baseline
+  environment-dependent. `tests/visual/font-pinning.test.ts` pins the declaration;
+  `tests/visual/font-coverage.spec.ts` fails when any glyph falls back to a system face.
 - **Never read browser state during render.** `ThemeProvider` adopts the stored theme in an effect;
   reading `localStorage` in the initial render desynchronises the client markup from the server HTML
   and costs every route a hydration mismatch.
+- **An overlay must not eat the tap that follows it.** Radix keeps a closing `Sheet` mounted for the
+  exit animation and keeps honouring outside dismissals the whole time, so a second tap on the mobile
+  menu button was reported by the dying instance as a dismiss whose late `false` cancelled the new
+  open: the drawer silently ignored the operator for ~300 ms. `components/ui/sheet.tsx` compares the
+  dismissal's `detail.originalEvent.timeStamp` against when the sheet last finished opening and drops
+  anything older. `tests/visual/dashboard-drawer.spec.ts` pins it with a real tap inside the window.
 - Toasts come from `@/lib/toast` (or the component's existing `@/components/ui/toast` import), never
   from a hand-rolled overlay.
 
@@ -91,6 +108,12 @@ UPDATE_SNAPSHOTS=1 bazelisk run //dashboard:hermetic-test   # regenerate Linux g
 bazelisk run //dashboard:visual                 # local Playwright only (macOS dev)
 ```
 
+`PLAYWRIGHT_SKIP_BUILD=1` reuses whatever is in `.next`. The `/dev/ui` and `/dev/panels` galleries call
+`notFound()` when `NODE_ENV=production` with `USE_MOCKS` unset, and Next inlines both at build time, so a
+plain `next build` bakes those routes off and four golden specs fail on a 404 no matter what the server
+is later started with. Build with the harness env (`USE_MOCKS=1 VISUAL_TEST=1 npx next build`) or let the
+lane build itself.
+
 Per-ui goldens capture from `/dev/ui`; panel goldens from `/dev/panels`. `sections.spec.ts` captures the
 **real routes** — every `SECTION_ROUTES` entry at both viewports in both `THEMES` — because light mode and
 the routed shell are what the fixture galleries could not catch. The treemap surfaces capture from
@@ -103,7 +126,7 @@ a panel changes the expected set automatically. `golden-inventory.test.ts` compa
 **and** checks each PNG's signature, declared dimensions, byte size and bytes-per-pixel floor, so a blank,
 truncated, stale or never-produced screenshot fails the run instead of becoming a baseline.
 
-Two rules keep that suite honest, both covered by `tests/visual/visual-helpers.test.ts`:
+Three rules keep that suite honest, each pinned by its own check:
 
 - **Wait only for what the route renders.** `waitForDashboardReady` waits for the treemap and the
   home-page panels; a single-section route has neither, so pass `{ treemap: false, homePanels: false }`
@@ -112,6 +135,14 @@ Two rules keep that suite honest, both covered by `tests/visual/visual-helpers.t
 - **Passthrough flags go after `--`.** `run_npm.sh` runs `npm exec playwright test -- "$@"`; without the
   separator npm eats `--update-snapshots` and the lane compares instead of writing.
   `//tests:bats_tooling_test` pins it.
+- **A capture waits on the font, not only the network.** `requireBundledFonts` runs before every
+  `toHaveScreenshot`. Playwright's own font wait can pass before late-mounted content (a portal's mono
+  file paths) requests a face, and the capture then blesses the fallback's metrics — a baseline that
+  reads a few percent off in the next run, in every environment that picked a different font.
+
+When Docker is unavailable, `.github/workflows/dashboard-goldens.yml` (manual dispatch) renders the
+baselines with the pinned browser and uploads them as an artifact. Commit that artifact; a baseline from
+a host Chromium is not a baseline.
 
 ## Testing
 
@@ -119,8 +150,12 @@ Two rules keep that suite honest, both covered by `tests/visual/visual-helpers.t
 - **Canonical hermetic path:** `bazelisk run //dashboard:hermetic-test` (Docker: Vitest + ESLint + typecheck + build + Playwright)
 - Vitest: `bazelisk run //dashboard:test`
 - Lint / typecheck: `bazelisk run //dashboard:fast-test` (Vitest + ESLint + tsc in one pass)
-- Vitest defaults: `USE_MOCKS=1` via `vitest.setup.ts` (includes `next/navigation` mock)
+- Vitest defaults: `USE_MOCKS=1` via `vitest.setup.ts` (mocks `next/navigation` and shims
+  `next/font/local`, whose real module needs Next's build loader and is not callable under Vitest)
 - Playwright: `USE_MOCKS=1` + `AUTH_BYPASS=1`
+- Behaviour specs sit beside the goldens and assert interaction rather than pixels:
+  `dashboard-drawer.spec.ts` (mobile drawer lifecycle) and `not-found.spec.ts` (unknown section route).
+  They keep `stabilizePage` off where an animation is the thing under test.
 - `//dashboard:visual-test` is `manual` in Bazel — use `bazelisk run //dashboard:visual`
 
 Full testing conventions: [docs/project-conventions.md § Testing](../docs/project-conventions.md#12-testing).
