@@ -140,6 +140,19 @@ describe("app routes", () => {
     expect(classes).toContain("--font-noto-sans-mono");
   });
 
+  it("renders the dashboard not-found page for an unknown section", async () => {
+    const NotFound = (await import("@/app/(dashboard)/not-found")).default;
+    render(<NotFound />);
+
+    // `notFound()` in the `[section]` route lands here. Before this page existed the operator
+    // got Next's unstyled default, which was also the one page left rendering in the system
+    // font. The heading and the way back are the two things the page has to get right.
+    expect(screen.getByRole("heading", { name: "Section not found", level: 1 })).toBeInTheDocument();
+    const home = screen.getByRole("link", { name: /back to the overview/i });
+    expect(home).toHaveAttribute("href", "/");
+    expect(screen.getByTestId("empty-state")).toBeInTheDocument();
+  });
+
   it("renders the overview and links to every section in the closed set", async () => {
     const OverviewPage = (await import("@/app/(dashboard)/page")).default;
     const jsx = await OverviewPage();
