@@ -59,6 +59,10 @@ Sections are built from shared primitives in `components/ui/` rather than hand-r
   test image, and Segoe UI on an operator's laptop, which made every visual baseline
   environment-dependent. `tests/visual/font-pinning.test.ts` pins the declaration;
   `tests/visual/font-coverage.spec.ts` fails when any glyph falls back to a system face.
+- **Third-party surfaces need asking.** Sonner sets its own `font-family` on the toast, so the bundled
+  faces only reach it through `group-[.toaster]:font-sans` in `components/ui/sonner.tsx`. Any portal
+  that brings its own stylesheet needs the same treatment, and `font-coverage.spec.ts` opens a toast to
+  keep it honest — a face the app never asked for is a face that differs between machines.
 - **Never read browser state during render.** `ThemeProvider` adopts the stored theme in an effect;
   reading `localStorage` in the initial render desynchronises the client markup from the server HTML
   and costs every route a hydration mismatch.
