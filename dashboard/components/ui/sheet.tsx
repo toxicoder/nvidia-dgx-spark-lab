@@ -51,12 +51,46 @@ interface SheetProps {
   title?: string;
 }
 
+/**
+ * The parts of a Radix outside-interaction event this component reasons about. Radix wraps the
+ * native pointer/focus event in a `CustomEvent`, so the timestamp lives on `detail.originalEvent`.
+ */
+type OutsideDismissEvent = {
+  preventDefault: () => void;
+  detail: { originalEvent: { timeStamp: number } };
+};
+
 function Sheet({ open, onOpenChange, children, side = "right", title }: SheetProps) {
+  /**
+   * When the last open finished, in the same clock as `Event.timeStamp`.
+   *
+   * Radix keeps a closing sheet mounted for the exit animation and keeps honouring outside
+   * dismissals the whole time. A second tap that asks for the sheet inside that window is seen
+   * by the dying instance as an outside interaction, and its close lands *after* React has
+   * already committed the new open, so nothing looks stale from the props: the drawer silently
+   * refuses to reopen for ~300 ms. The pointer that asked for the sheet went down before the
+   * sheet finished opening, so a dismissal older than that stamp cannot be the operator's intent.
+   */
+  const openedAtRef = React.useRef(0);
+  React.useLayoutEffect(() => {
+    if (open) openedAtRef.current = performance.now();
+  }, [open]);
+
+  const ignoreStaleDismiss = (event: OutsideDismissEvent): void => {
+    if (!open || event.detail.originalEvent.timeStamp <= openedAtRef.current) event.preventDefault();
+  };
+
   return (
     <SheetRoot open={open} onOpenChange={onOpenChange}>
       <SheetPrimitive.Portal>
         <SheetOverlay />
-        <SheetPrimitive.Content data-testid="ui-sheet" data-side={side} className={cn(sheetVariants({ side }))}>
+        <SheetPrimitive.Content
+          data-testid="ui-sheet"
+          data-side={side}
+          className={cn(sheetVariants({ side }))}
+          onInteractOutside={ignoreStaleDismiss}
+          onFocusOutside={ignoreStaleDismiss}
+        >
           <div className="flex items-center justify-between border-b border-border p-4">
             {title ? <SheetPrimitive.Title className="text-lg font-semibold">{title}</SheetPrimitive.Title> : <span />}
             <SheetPrimitive.Close className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
