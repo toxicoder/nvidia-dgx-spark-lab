@@ -201,13 +201,7 @@ export function DashboardShell({ children, hostname, generatedAt }: DashboardShe
       </aside>
 
       <Sheet open={mobileOpen} onOpenChange={setDrawerRequested} side="left" title="Menu">
-        <NavContent
-          isMobile
-          pathname={pathname}
-          onNavigate={closeDrawer}
-          onSignOut={signOut}
-          signingOut={signingOut}
-        />
+        <NavContent isMobile pathname={pathname} onNavigate={closeDrawer} onSignOut={signOut} signingOut={signingOut} />
       </Sheet>
 
       <div className="flex min-w-0 flex-1 flex-col">

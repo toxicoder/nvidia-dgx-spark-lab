@@ -205,9 +205,7 @@ describe("ThemeProvider", () => {
 
     act(() => {
       localStorage.setItem(THEME_STORAGE_KEY, "ocean-teal");
-      window.dispatchEvent(
-        new StorageEvent("storage", { key: THEME_STORAGE_KEY, newValue: "ocean-teal" })
-      );
+      window.dispatchEvent(new StorageEvent("storage", { key: THEME_STORAGE_KEY, newValue: "ocean-teal" }));
     });
     expect(screen.getByTestId("theme-id")).toHaveTextContent("ocean-teal");
     expect(document.documentElement.getAttribute("data-theme")).toBe("ocean-teal");
