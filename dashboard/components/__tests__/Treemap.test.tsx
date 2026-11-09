@@ -229,7 +229,7 @@ describe("Treemap", () => {
     expect(screen.getAllByText("big.bin").length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getByRole("combobox"));
-    fireEvent.click(screen.getByRole("option", { name: /≥ 50 MB/i }));
+    fireEvent.click(screen.getByRole("option", { name: />= 50 MB/i }));
 
     const reset = screen.getByText("Reset");
     fireEvent.click(reset);
@@ -459,7 +459,7 @@ describe("Treemap", () => {
     };
     render(<Treemap root={mixedSizesRoot} onDelete={async () => {}} onFindDuplicates={emptyDupes} />);
     fireEvent.click(screen.getByRole("combobox"));
-    fireEvent.click(screen.getByRole("option", { name: /≥ 50 MB/i }));
+    fireEvent.click(screen.getByRole("option", { name: />= 50 MB/i }));
     expect(sideList().getByText("big.bin")).toBeInTheDocument();
     expect(sideList().queryByText("tiny.bin")).not.toBeInTheDocument();
   });

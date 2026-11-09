@@ -234,6 +234,45 @@ export async function stabilizePage(page: Page) {
   });
 }
 
+/**
+ * Block until the self-hosted faces are loaded and actually applied.
+ *
+ * Playwright waits for pending font loads before it captures, but content mounted late (a
+ * portal opening, a toast firing) can request a face after that check has passed, and the
+ * capture then lands on the fallback. The metrics differ, so a run can bless a baseline in the
+ * wrong typeface and the next run reports it a few percent off. This gates on the real
+ * condition and fails loudly instead of writing a golden nobody asked for.
+ *
+ * @param page - The page about to be captured.
+ * @throws When a declared family never becomes available.
+ */
+export async function requireBundledFonts(page: Page) {
+  await page.evaluate(
+    async (vars: string[]) => {
+      await document.fonts.ready;
+      const pending = Array.from(document.fonts).filter((face) => face.status !== "loaded");
+      if (pending.length > 0) {
+        await Promise.all(pending.map((face) => face.load()));
+      }
+      // `next/font` writes the token as a whole stack (`"notoSans", system-ui, Arial, ...`),
+      // so only the leading family names the self-hosted face; the rest is the fallback it added.
+      const families = vars.map((v) => {
+        const raw = getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+        const first = raw.split(",")[0]?.trim() ?? "";
+        return first.replace(/^['"]|['"]$/g, "");
+      });
+      if (families.some((f) => f.length === 0)) {
+        throw new Error(`visual: font token empty on :root, got ${JSON.stringify(families)}`);
+      }
+      const missing = families.filter((f) => !document.fonts.check(`16px "${f}"`));
+      if (missing.length > 0) {
+        throw new Error(`visual: bundled font(s) not applied: ${missing.join(", ")}`);
+      }
+    },
+    ["--font-noto-sans", "--font-noto-sans-mono"]
+  );
+}
+
 /** Hide sidebar and sticky header during element-focused screenshots. */
 export async function hideDashboardChrome(page: Page) {
   await page.addStyleTag({
@@ -274,6 +313,7 @@ export async function captureElement(
   if (options?.extraWait) {
     await page.waitForTimeout(options.extraWait);
   }
+  await requireBundledFonts(page);
   await expect(el).toHaveScreenshot(filename, SCREENSHOT_OPTS);
 }
 

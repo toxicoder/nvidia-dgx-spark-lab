@@ -485,10 +485,10 @@ export default function Treemap({ root, onDelete, onFindDuplicates }: TreemapPro
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="0">All sizes</SelectItem>
-              <SelectItem value="10">≥ 10 MB</SelectItem>
-              <SelectItem value="50">≥ 50 MB</SelectItem>
-              <SelectItem value="200">≥ 200 MB</SelectItem>
-              <SelectItem value="1024">≥ 1 GB</SelectItem>
+              <SelectItem value="10">&gt;= 10 MB</SelectItem>
+              <SelectItem value="50">&gt;= 50 MB</SelectItem>
+              <SelectItem value="200">&gt;= 200 MB</SelectItem>
+              <SelectItem value="1024">&gt;= 1 GB</SelectItem>
             </SelectContent>
           </Select>
 

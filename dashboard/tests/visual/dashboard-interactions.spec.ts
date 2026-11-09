@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import {
+  requireBundledFonts,
   SCREENSHOT_OPTS,
   VIEWPORTS,
   captureElement,
@@ -91,6 +92,7 @@ for (const vp of VIEWPORTS) {
       const bulkDlg = page.locator('[data-testid="ui-dialog"]').first();
       if ((await bulkDlg.count()) > 0 && (await bulkDlg.isVisible().catch(() => false))) {
         await dismissToasts(page);
+        await requireBundledFonts(page);
         await expect(bulkDlg).toHaveScreenshot(`dashboard-ui-dialog-bulk-delete${suffix}.png`, SCREENSHOT_OPTS);
         await page.keyboard.press("Escape").catch(() => {});
         await page.waitForTimeout(200);
@@ -109,6 +111,7 @@ for (const vp of VIEWPORTS) {
         .catch(() => {});
       const sheet = page.locator('[data-testid="ui-sheet"]').first();
       if ((await sheet.count()) > 0 && (await sheet.isVisible().catch(() => false))) {
+        await requireBundledFonts(page);
         await expect(sheet).toHaveScreenshot(`dashboard-ui-sheet-dupes${suffix}.png`, SCREENSHOT_OPTS);
         await page.keyboard.press("Escape").catch(() => {});
         await page.waitForTimeout(300);
@@ -123,6 +126,7 @@ for (const vp of VIEWPORTS) {
       await page.waitForTimeout(300);
       const dlg = page.locator('[data-testid="ui-dialog"]').first();
       if ((await dlg.count()) > 0 && (await dlg.isVisible().catch(() => false))) {
+        await requireBundledFonts(page);
         await expect(dlg).toHaveScreenshot(`dashboard-ui-dialog${suffix}.png`, SCREENSHOT_OPTS);
         await page.keyboard.press("Escape").catch(() => {});
         await page.waitForTimeout(150);
@@ -135,6 +139,7 @@ for (const vp of VIEWPORTS) {
     const utilitySheet = page.getByRole("dialog", { name: /Result:/ });
     await utilitySheet.waitFor({ state: "visible", timeout: 10000 });
     if ((await utilitySheet.count()) > 0 && (await utilitySheet.isVisible().catch(() => false))) {
+      await requireBundledFonts(page);
       await expect(utilitySheet).toHaveScreenshot(`dashboard-ui-sheet${suffix}.png`, SCREENSHOT_OPTS);
     }
 
@@ -150,6 +155,7 @@ for (const vp of VIEWPORTS) {
     await page.waitForTimeout(500);
     const toast = page.locator("[data-sonner-toast]").first();
     if ((await toast.count()) > 0 && (await toast.isVisible().catch(() => false))) {
+      await requireBundledFonts(page);
       await expect(toast).toHaveScreenshot(`dashboard-ui-toast${suffix}.png`, SCREENSHOT_OPTS);
     }
   });
