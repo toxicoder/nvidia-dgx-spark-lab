@@ -57,3 +57,39 @@ test("every rendered glyph uses a self-hosted face", async ({ page }) => {
 
   expect(offenders.slice(0, 6), `system fallback in use -> ${offenders.join(", ")}`).toHaveLength(0);
 });
+
+/**
+ * Sonner brings its own `font-family` on the toast, so the app's `font-sans` never reaches it
+ * unless the toaster is told. Untold, the toast measured in the host's system face: DejaVu Sans
+ * on a dev box and the pinned image's distro-packaged Noto Sans in CI, which is a different build
+ * of a similar name and drifted the `dashboard-ui-toast` golden by 899 pixels.
+ */
+test("a toast renders in the bundled faces too", async ({ page }) => {
+  await stabilizePage(page);
+  const client = await page.context().newCDPSession(page);
+  await client.send("DOM.enable");
+  await client.send("CSS.enable");
+
+  await page.goto("/utilities", { waitUntil: "networkidle" });
+  await page.waitForSelector('[data-testid="utility-row"]', { timeout: 15000 });
+  await page.locator('[data-testid="utility-row"] button:has-text("Run")').first().click();
+  await page.locator("[data-sonner-toast]").first().waitFor({ state: "visible", timeout: 15000 });
+  await page.evaluate(() => document.fonts.ready);
+
+  const offenders: string[] = [];
+  for (const selector of ["[data-sonner-toast] [data-title]", "[data-sonner-toast] [data-description]"]) {
+    const { root } = await client.send("DOM.getDocument");
+    const { nodeIds } = await client.send("DOM.querySelectorAll", { nodeId: root.nodeId, selector });
+    expect(nodeIds.length, `${selector} never rendered`).toBeGreaterThan(0);
+    for (const nodeId of nodeIds) {
+      const { fonts } = await client.send("CSS.getPlatformFontsForNode", { nodeId });
+      for (const font of fonts) {
+        if (font.familyName && !font.familyName.startsWith(BUNDLED_PREFIX)) {
+          offenders.push(`${selector}: ${font.familyName}`);
+        }
+      }
+    }
+  }
+
+  expect(offenders.slice(0, 6), `toast fell back to a system face -> ${offenders.join(", ")}`).toHaveLength(0);
+});
