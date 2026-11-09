@@ -26,6 +26,8 @@
 # - Requires nvidia-smi; mutation verbs require root (or passwordless sudo).
 # - Respects the lab's GPU Operator + nvidia-persistenced.
 # - Detects PD-degraded states (513–650 MHz / ~15W) and advises power-cycle.
+# - `throttle-history` only reads telemetry and appends to its own sample log; it
+#   issues no nvidia-smi setter and needs no root.
 #
 # Usage (CLI):
 #   bazelisk run //scripts:run-utility -- spark-clock status [--json]
@@ -34,13 +36,27 @@
 #   bazelisk run //scripts:run-utility -- spark-clock set 2100            # ceiling only
 #   bazelisk run //scripts:run-utility -- spark-clock set 300,2100        # floor,ceiling range
 #   bazelisk run //scripts:run-utility -- spark-clock diagnose
+#   bazelisk run //scripts:run-utility -- spark-clock throttle-history --json
+#   bazelisk run //scripts:run-utility -- spark-clock throttle-history --window 86400
 #   bazelisk run //scripts:run-utility -- spark-clock --enable-systemd-service
 #   bazelisk run //scripts:run-utility -- spark-clock --disable-systemd-service
 #
 # Env overrides: CLOCK_FLOOR_MHZ, CLOCK_CEILING_MHZ (TARGET_CLOCK_MHZ aliases ceiling),
-# THERMAL_WARN_C, THERMAL_HOT_C, PD_* thresholds.
+# THERMAL_WARN_C, THERMAL_HOT_C, PD_* thresholds, THROTTLE_WINDOW_S,
+# THROTTLE_OBSERVE_SAMPLES, THROTTLE_OBSERVE_INTERVAL_S, THROTTLE_HISTORY_RETENTION_S,
+# THROTTLE_HISTORY_MAX_SAMPLES.
 #
 # Dashboard integration: The UI will call status --json and run/reset subcommands.
+#
+# **Recent throttling** (`throttle-history`): the driver keeps cumulative
+# microseconds per throttle reason (`clocks_event_reasons_counters.*`, driver
+# 575+), which proves throttling happened but never says when. Each reading
+# appends a sample to `SPARK_CLOCK_THROTTLE_HISTORY_FILE` and compares against
+# the previous one, so growth between two samples dates the episode. Verdicts:
+# `active` (mask says the GPU is held down now), `recent` (episode inside the
+# window), `since_boot` (counters grew before the log could cover it), `none`,
+# or `unreadable` (pre-575 driver without the counters family). Run it on a
+# timer to keep the lookback honest; exit codes 0/1/2/3/4 name the verdict.
 #
 # @command spark-clock
 # @command clock-optimize
@@ -103,6 +119,27 @@ DIAGNOSE_SAMPLES=${DIAGNOSE_SAMPLES:-10}
 DIAGNOSE_INTERVAL_S=${DIAGNOSE_INTERVAL_S:-0.5}
 CLOCK_TOLERANCE_MHZ=${CLOCK_TOLERANCE_MHZ:-10}
 
+# throttle-history: how far back "recently" reaches, how one reading is sampled,
+# and how the sample log behind it is bounded.
+THROTTLE_WINDOW_S=${THROTTLE_WINDOW_S:-3600}
+THROTTLE_OBSERVE_SAMPLES=${THROTTLE_OBSERVE_SAMPLES:-3}
+THROTTLE_OBSERVE_INTERVAL_S=${THROTTLE_OBSERVE_INTERVAL_S:-0.5}
+THROTTLE_HISTORY_RETENTION_S=${THROTTLE_HISTORY_RETENTION_S:-86400}
+THROTTLE_HISTORY_MAX_SAMPLES=${THROTTLE_HISTORY_MAX_SAMPLES:-2000}
+SPARK_CLOCK_THROTTLE_HISTORY_FILE="${SPARK_CLOCK_THROTTLE_HISTORY_FILE:-$(dirname "$SPARK_CLOCK_STATE_FILE")/throttle-history}"
+
+# Cumulative microseconds the driver held the GPU below its clocks, per reason.
+# This is the counters family (driver 575+); clocks_event_reasons.* reports only
+# the live Active/Not Active state, so it cannot date an episode on its own.
+THROTTLE_QUERY_FIELDS="clocks.current.graphics,temperature.gpu,clocks_throttle_reasons.active,clocks_event_reasons_counters.sw_power_cap,clocks_event_reasons_counters.sw_thermal_slowdown,clocks_event_reasons_counters.hw_thermal_slowdown"
+
+# Thermal/power bits of the NVML clocks-event-reasons mask (nvml.h). nvidia-smi
+# prints clocks_throttle_reasons.active as a hex mask, not a label.
+THROTTLE_BIT_SW_POWER_CAP=0x04
+THROTTLE_BIT_HW_POWER_BRAKE=0x80
+THROTTLE_BIT_SW_THERMAL=0x20
+THROTTLE_BIT_HW_THERMAL=0x40
+
 SERVICE_NAME="nvidia-clock-optimize.service"
 SERVICE_PATH="${SPARK_CLOCK_SERVICE_PATH:-/etc/systemd/system/${SERVICE_NAME}}"
 SCRIPT_INSTALL_PATH="${SPARK_CLOCK_SCRIPT_INSTALL_PATH:-/usr/local/bin/spark-clock.sh}"
@@ -117,11 +154,13 @@ GPU_QUERY_FIELDS="clocks.current.graphics,clocks.min.graphics,clocks.max.graphic
 
 # @function nvidia_query
 # Query GPU telemetry fields via nvidia-smi CSV output.
-# @stdout One CSV row in GPU_QUERY_FIELDS order; empty when the GPU is unreadable.
+# @param $1  Comma-separated field list (optional; defaults to GPU_QUERY_FIELDS).
+# @stdout One CSV row in the requested field order; empty when the GPU is unreadable.
 
 nvidia_query() {
+  local query_fields="${1:-$GPU_QUERY_FIELDS}"
   local row
-  row=$(nvidia-smi --query-gpu="${GPU_QUERY_FIELDS}" --format=csv,noheader,nounits 2>/dev/null | head -1 || true)
+  row=$(nvidia-smi --query-gpu="${query_fields}" --format=csv,noheader,nounits 2>/dev/null | head -1 || true)
   if [[ -n ${row//[ ,]/} ]]; then
     printf '%s\n' "$row"
     return 0
@@ -129,7 +168,7 @@ nvidia_query() {
   # A single field the driver does not know aborts the whole combined query, so
   # retry field by field and keep the column order stable.
   local fields=() values=() field value
-  IFS=',' read -r -a fields <<<"$GPU_QUERY_FIELDS"
+  IFS=',' read -r -a fields <<<"$query_fields"
   for field in "${fields[@]}"; do
     value=$(nvidia-smi --query-gpu="${field}" --format=csv,noheader,nounits 2>/dev/null | head -1 || true)
     [[ -n ${value//[ ,]/} ]] || value="N/A"
@@ -777,6 +816,384 @@ diagnose() {
   return 0
 }
 
+# --- Thermal throttle history ---
+
+# @function numeric_or_zero
+# Echo the value when numeric, 0 when the driver reported N/A or garbage.
+# @param $1  Raw nvidia-smi field value.
+
+numeric_or_zero() {
+  if is_numeric "${1:-}"; then
+    echo "$1"
+  else
+    echo 0
+  fi
+}
+
+# @function throttle_reason_class
+# Reduce a throttle reason reading to one token: thermal, power, other, none.
+# Handles the hex mask current nvidia-smi prints and the older text labels.
+# @param $1  clocks_throttle_reasons.active value.
+
+throttle_reason_class() {
+  local active="${1:-}"
+  local compact=${1//[[:space:]]/}
+  if [[ $compact =~ ^0[xX][0-9a-fA-F]+$ ]]; then
+    local mask=$((compact))
+    if ((mask & THROTTLE_BIT_SW_THERMAL)) || ((mask & THROTTLE_BIT_HW_THERMAL)); then
+      echo thermal
+    elif ((mask & THROTTLE_BIT_SW_POWER_CAP)) || ((mask & THROTTLE_BIT_HW_POWER_BRAKE)); then
+      echo power
+    elif ((mask != 0)); then
+      echo other
+    else
+      echo none
+    fi
+    return 0
+  fi
+  if throttle_is_thermal "$active"; then
+    echo thermal
+    return 0
+  fi
+  # Patterns are written against the space-stripped, lower-cased form so both
+  # "Not Active" and the "NotActive" CSV variant read as no reason.
+  case "${active,,}" in
+    "" | none | n/a | notactive | "[n/a]")
+      echo none
+      ;;
+    *ower* | *apping* | *rake*)
+      echo power
+      ;;
+    *)
+      echo other
+      ;;
+  esac
+}
+
+# @function take_throttle_sample
+# Read one live throttle reading and format it as a history record.
+# Sets THROTTLE_SAMPLE plus the LIVE_* readback globals, and THROTTLE_INSTRUMENTED
+# / THROTTLE_THROTTLED_NOW from this reading. Called directly, never in $(...),
+# because the callers need those globals back.
+
+take_throttle_sample() {
+  local row boot
+  row=$(nvidia_query "$THROTTLE_QUERY_FIELDS")
+  row=${row// /}
+  IFS=',' read -r LIVE_MHZ LIVE_TEMP LIVE_MASK LIVE_SWPC LIVE_SWT LIVE_HWT <<<"$row"
+  THROTTLE_REASON=$(throttle_reason_class "$LIVE_MASK")
+  THROTTLE_INSTRUMENTED=false
+  if is_numeric "$LIVE_SWT" && is_numeric "$LIVE_HWT"; then
+    THROTTLE_INSTRUMENTED=true
+  fi
+  THROTTLE_THROTTLED_NOW=false
+  if [[ $THROTTLE_REASON == thermal ]]; then
+    THROTTLE_THROTTLED_NOW=true
+  fi
+  boot=$(boot_epoch)
+  THROTTLE_SAMPLE="$(date +%s),$(numeric_or_zero "$LIVE_MHZ"),$(numeric_or_zero "$LIVE_TEMP"),${THROTTLE_REASON},$(numeric_or_zero "$LIVE_SWPC"),$(numeric_or_zero "$LIVE_SWT"),$(numeric_or_zero "$LIVE_HWT"),${boot:-0}"
+}
+
+# @function read_throttle_samples
+# Emit the current boot's throttle records, oldest first, skipping malformed lines.
+# @stdout Zero or more record lines.
+
+read_throttle_samples() {
+  local boot
+  [[ -s $SPARK_CLOCK_THROTTLE_HISTORY_FILE ]] || return 0
+  boot=$(boot_epoch)
+  awk -F, -v boot="$boot" '
+    NF >= 8 && $1 ~ /^[0-9]+$/ && $6 ~ /^[0-9]+$/ && $7 ~ /^[0-9]+$/ &&
+      (boot == "" || $8 == boot) { print }
+  ' "$SPARK_CLOCK_THROTTLE_HISTORY_FILE" 2>/dev/null || true
+}
+
+# @function prune_throttle_history
+# Drop records past the retention window and cap the log at the size limit.
+
+prune_throttle_history() {
+  local path="$SPARK_CLOCK_THROTTLE_HISTORY_FILE" now tmp
+  [[ -s $path ]] || return 0
+  now=$(date +%s)
+  tmp="${path}.tmp.$$"
+  if awk -F, -v cutoff="$((now - THROTTLE_HISTORY_RETENTION_S))" -v max="$THROTTLE_HISTORY_MAX_SAMPLES" '
+      NF >= 8 && $1 ~ /^[0-9]+$/ && $1 + 0 >= cutoff { lines[++n] = $0 }
+      END { for (i = (n > max ? n - max + 1 : 1); i <= n; i++) print lines[i] }
+    ' "$path" >"$tmp" 2>/dev/null; then
+    mv "$tmp" "$path" 2>/dev/null || true
+  fi
+  rm -f "$tmp"
+}
+
+# @function append_throttle_sample
+# Persist one sample so the next reading can date an episode; a failure only
+# costs the lookback, never the verdict about the current reading.
+# @param $1  Record line.
+
+append_throttle_sample() {
+  local record="${1:-}" state_dir
+  [[ -n $record ]] || return 0
+  state_dir="$(dirname "$SPARK_CLOCK_THROTTLE_HISTORY_FILE")"
+  if ! mkdir -p "$state_dir" 2>/dev/null; then
+    warn "Cannot record throttle history: ${state_dir} is not writable (run once as root, or set SPARK_CLOCK_THROTTLE_HISTORY_FILE)."
+    return 0
+  fi
+  if ! printf '%s\n' "$record" >>"$SPARK_CLOCK_THROTTLE_HISTORY_FILE" 2>/dev/null; then
+    warn "Cannot record throttle history to ${SPARK_CLOCK_THROTTLE_HISTORY_FILE} (set SPARK_CLOCK_THROTTLE_HISTORY_FILE to a writable path)."
+    return 0
+  fi
+  prune_throttle_history
+}
+
+# @function analyze_throttle_history
+# Classify thermal throttling over the lookback window from stored records.
+# Only growth between two consecutive samples dates an episode; the counters a
+# first sample already carries are evidence without a timestamp.
+# @param $1  Records, one per line, oldest first.
+# @param $2  Lookback window in seconds.
+
+analyze_throttle_history() {
+  local samples="${1:-}" window="${2:-$THROTTLE_WINDOW_S}"
+  local now cutoff epoch _mhz _temp reason _swpc swt hwt _boot
+  local prev_epoch="" prev_swt=0 prev_hwt=0 delta
+  THROTTLE_WINDOW_APPLIED="$window"
+  THROTTLE_VERDICT="none"
+  THROTTLE_EVENTS=0
+  THROTTLE_LAST_EPOCH=""
+  THROTTLE_LAST_AGE=""
+  THROTTLE_LAST_US=0
+  THROTTLE_THERMAL_US=0
+  THROTTLE_SAMPLE_COUNT=0
+  THROTTLE_COVERED_FROM=""
+  THROTTLE_COVERAGE_PARTIAL=false
+  now=$(date +%s)
+  cutoff=$((now - window))
+  while IFS=',' read -r epoch _mhz _temp reason _swpc swt hwt _boot; do
+    [[ -n $epoch ]] || continue
+    THROTTLE_SAMPLE_COUNT=$((THROTTLE_SAMPLE_COUNT + 1))
+    if [[ -z $THROTTLE_COVERED_FROM ]]; then
+      THROTTLE_COVERED_FROM="$epoch"
+    fi
+    delta=0
+    if [[ -n $prev_epoch ]]; then
+      delta=$((swt + hwt - prev_swt - prev_hwt))
+    fi
+    if ((delta > 0)) || [[ $reason == thermal ]]; then
+      THROTTLE_LAST_EPOCH="$epoch"
+      if ((delta > 0)); then
+        THROTTLE_LAST_US=$delta
+      fi
+      if [[ $epoch -ge $cutoff ]]; then
+        THROTTLE_EVENTS=$((THROTTLE_EVENTS + 1))
+      fi
+    fi
+    if ((swt + hwt > THROTTLE_THERMAL_US)); then
+      THROTTLE_THERMAL_US=$((swt + hwt))
+    fi
+    prev_epoch="$epoch"
+    prev_swt=$swt
+    prev_hwt=$hwt
+  done <<<"$samples"
+
+  if [[ -n $THROTTLE_LAST_EPOCH ]]; then
+    THROTTLE_LAST_AGE=$((now - THROTTLE_LAST_EPOCH))
+  fi
+  if [[ -n $THROTTLE_COVERED_FROM && $THROTTLE_COVERED_FROM -gt $cutoff ]]; then
+    THROTTLE_COVERAGE_PARTIAL=true
+  fi
+
+  if [[ $THROTTLE_INSTRUMENTED != true ]]; then
+    if [[ $THROTTLE_THROTTLED_NOW == true ]]; then
+      THROTTLE_VERDICT="active"
+    else
+      THROTTLE_VERDICT="unreadable"
+    fi
+  elif [[ $THROTTLE_THROTTLED_NOW == true ]]; then
+    THROTTLE_VERDICT="active"
+  elif ((THROTTLE_EVENTS > 0)); then
+    THROTTLE_VERDICT="recent"
+  elif [[ -n $THROTTLE_LAST_EPOCH ]] || ((THROTTLE_THERMAL_US > 0)); then
+    THROTTLE_VERDICT="since_boot"
+  else
+    THROTTLE_VERDICT="none"
+  fi
+}
+
+# @function throttle_verdict_label
+# Human-readable verdict for the throttle-history report.
+# @param $1  Verdict token.
+
+throttle_verdict_label() {
+  case "${1:-none}" in
+    active)
+      echo "ACTIVE - the GPU is thermal-throttling right now"
+      ;;
+    recent)
+      echo "RECENT - thermal throttling inside the lookback window"
+      ;;
+    since_boot)
+      echo "UNDATED - driver counts thermal slowdown the sample history cannot date"
+      ;;
+    unreadable)
+      echo "UNKNOWN - driver exposes no thermal throttle counters"
+      ;;
+    *)
+      echo "NONE - no thermal throttling recorded"
+      ;;
+  esac
+}
+
+# @function build_throttle_recommendation
+# Remediation text for a throttle verdict; empty when the verdict is clean.
+# @param $1  Verdict token.
+
+build_throttle_recommendation() {
+  case "${1:-none}" in
+    active | recent)
+      echo "Thermal throttling confirmed. Lower the ceiling (sudo $0 set <mhz>) or improve airflow; GB10 has no operator fan curve."
+      ;;
+    since_boot)
+      echo "Slowdown time is recorded but predates the sample history. Run throttle-history on a timer (cron or a systemd timer) so the next episode gets a timestamp."
+      ;;
+    unreadable)
+      echo "This driver does not expose clocks_event_reasons_counters.*; driver 575+ is needed to date thermal throttling."
+      ;;
+    *)
+      echo ""
+      ;;
+  esac
+}
+
+# @function emit_throttle_history_json
+# Print the throttle verdict as JSON for the dashboard and automation.
+
+emit_throttle_history_json() {
+  local now rec
+  now=$(date +%s)
+  rec=$(build_throttle_recommendation "$THROTTLE_VERDICT")
+  RECOMMENDATIONS=()
+  if [[ -n $rec ]]; then
+    RECOMMENDATIONS+=("$rec")
+  fi
+  cat <<JSON
+{
+  "verdict": "${THROTTLE_VERDICT}",
+  "window_s": ${THROTTLE_WINDOW_APPLIED},
+  "now_epoch": ${now},
+  "instrumented": ${THROTTLE_INSTRUMENTED},
+  "throttle_mask": "$(json_escape "${LIVE_MASK:-}")",
+  "throttling_now": ${THROTTLE_THROTTLED_NOW},
+  "events_in_window": ${THROTTLE_EVENTS},
+  "last_episode_epoch": ${THROTTLE_LAST_EPOCH:-null},
+  "last_episode_age_s": ${THROTTLE_LAST_AGE:-null},
+  "last_episode_us": ${THROTTLE_LAST_US},
+  "thermal_time_us_total": ${THROTTLE_THERMAL_US},
+  "counters_us": {
+    "sw_power_capping": $(numeric_or_zero "${LIVE_SWPC:-}"),
+    "sw_thermal_slowdown": $(numeric_or_zero "${LIVE_SWT:-}"),
+    "hw_thermal_slowdown": $(numeric_or_zero "${LIVE_HWT:-}")
+  },
+  "samples": ${THROTTLE_SAMPLE_COUNT},
+  "covered_from_epoch": "${THROTTLE_COVERED_FROM:-}",
+  "coverage_partial": ${THROTTLE_COVERAGE_PARTIAL},
+  "history_file": "$(json_escape "$SPARK_CLOCK_THROTTLE_HISTORY_FILE")",
+  "recommendations": $(emit_recommendations_json)
+}
+JSON
+}
+
+# @function emit_throttle_history_text
+# Print the human-readable throttle-history report.
+
+emit_throttle_history_text() {
+  local rec
+  echo "------------------------------------------------"
+  echo "DGX Spark Thermal Throttle History"
+  echo "------------------------------------------------"
+  echo "Verdict              : $(throttle_verdict_label "$THROTTLE_VERDICT")"
+  echo "Lookback window      : ${THROTTLE_WINDOW_APPLIED} s"
+  echo "Throttle mask        : ${LIVE_MASK:-N/A}"
+  echo "Throttling now       : $([[ $THROTTLE_THROTTLED_NOW == true ]] && echo "YES" || echo "no")"
+  echo "Episodes in window   : ${THROTTLE_EVENTS}"
+  echo "Last episode         : $([[ -n $THROTTLE_LAST_EPOCH ]] && echo "${THROTTLE_LAST_AGE} s ago (${THROTTLE_LAST_US} us held below clock)" || echo "none recorded")"
+  echo "Thermal slowdown     : ${THROTTLE_THERMAL_US} us cumulative"
+  echo "Counters (us)        : sw_power_cap=$(numeric_or_zero "${LIVE_SWPC:-}") sw_thermal=$(numeric_or_zero "${LIVE_SWT:-}") hw_thermal=$(numeric_or_zero "${LIVE_HWT:-}")"
+  echo "Samples in history   : ${THROTTLE_SAMPLE_COUNT} from ${THROTTLE_COVERED_FROM:-n/a} (coverage $([[ $THROTTLE_COVERAGE_PARTIAL == true ]] && echo "partial" || echo "complete"))"
+  echo "History file         : ${SPARK_CLOCK_THROTTLE_HISTORY_FILE}"
+  rec=$(build_throttle_recommendation "$THROTTLE_VERDICT")
+  if [[ -n $rec ]]; then
+    echo "Recommendations      :"
+    echo "  - ${rec}"
+  fi
+  echo "------------------------------------------------"
+}
+
+# @function throttle_history
+# @command throttle-history
+# Report whether the GPU thermal-throttled recently, and date the last episode.
+# Every reading appends one sample to the history log, so repeated runs (cron or
+# a systemd timer) turn cumulative driver counters into dated throttle episodes.
+# Exit codes: 0 none, 1 throttling in the window, 2 undated since-boot evidence,
+# 3 driver cannot report counters, 4 usage error.
+
+throttle_history() {
+  local as_json=false window="$THROTTLE_WINDOW_S" i samples
+  while (($#)); do
+    case "$1" in
+      --json)
+        as_json=true
+        ;;
+      --window)
+        shift
+        window="${1:-}"
+        if ! is_numeric "$window"; then
+          err "Invalid --window value: ${window:-<missing>} (want whole seconds)"
+          return 4
+        fi
+        ;;
+      *)
+        err "Unknown option for throttle-history: $1"
+        return 4
+        ;;
+    esac
+    shift
+  done
+  check_tool nvidia-smi
+
+  window=${window%%.*}
+  for ((i = 1; i <= THROTTLE_OBSERVE_SAMPLES; i++)); do
+    take_throttle_sample
+    append_throttle_sample "$THROTTLE_SAMPLE"
+    if ((i < THROTTLE_OBSERVE_SAMPLES)); then
+      sleep "$THROTTLE_OBSERVE_INTERVAL_S"
+    fi
+  done
+
+  samples=$(read_throttle_samples)
+  analyze_throttle_history "$samples" "$window"
+
+  if [[ $as_json == true ]]; then
+    emit_throttle_history_json
+  else
+    emit_throttle_history_text
+  fi
+
+  case "$THROTTLE_VERDICT" in
+    active | recent)
+      return 1
+      ;;
+    since_boot)
+      return 2
+      ;;
+    unreadable)
+      return 3
+      ;;
+    *)
+      return 0
+      ;;
+  esac
+}
+
 # --- Systemd service management ---
 
 # @function install_service
@@ -877,6 +1294,9 @@ case "${1:-}" in
   diagnose)
     diagnose
     ;;
+  throttle-history)
+    throttle_history "${@:2}"
+    ;;
   --enable-systemd-service)
     install_service
     ;;
@@ -885,10 +1305,10 @@ case "${1:-}" in
     ;;
   --help | help | -h)
     echo "spark-clock utility — DGX Spark GB10 thermal stability via clock range lock"
-    echo "Usage: $0 {status [--json]|run|reset|set <mhz>|set <floor>,<ceiling>|diagnose|--enable-systemd-service|--disable-systemd-service}"
+    echo "Usage: $0 {status [--json]|run|reset|set <mhz>|set <floor>,<ceiling>|diagnose|throttle-history [--json] [--window <s>]|--enable-systemd-service|--disable-systemd-service}"
     ;;
   *)
-    echo "Usage: $0 {status [--json]|run|reset|set <mhz>|set <floor>,<ceiling>|diagnose|--enable-systemd-service|--disable-systemd-service}"
+    echo "Usage: $0 {status [--json]|run|reset|set <mhz>|set <floor>,<ceiling>|diagnose|throttle-history [--json] [--window <s>]|--enable-systemd-service|--disable-systemd-service}"
     exit 1
     ;;
 esac
