@@ -3855,6 +3855,9 @@ the range applied during the current boot is read from `SPARK_CLOCK_STATE_FILE`
 
 - Detects PD-degraded states (513–650 MHz / ~15W) and advises power-cycle.
 
+- `throttle-history` only reads telemetry and appends to its own sample log; it
+  issues no nvidia-smi setter and needs no root.
+
 Usage (CLI):
 
 ```bash
@@ -3864,19 +3867,41 @@ Usage (CLI):
   bazelisk run //scripts:run-utility -- spark-clock set 2100            # ceiling only
   bazelisk run //scripts:run-utility -- spark-clock set 300,2100        # floor,ceiling range
   bazelisk run //scripts:run-utility -- spark-clock diagnose
+  bazelisk run //scripts:run-utility -- spark-clock throttle-history --json
+  bazelisk run //scripts:run-utility -- spark-clock throttle-history --window 86400
   bazelisk run //scripts:run-utility -- spark-clock --enable-systemd-service
   bazelisk run //scripts:run-utility -- spark-clock --disable-systemd-service
 
 ```
 
 Env overrides: CLOCK_FLOOR_MHZ, CLOCK_CEILING_MHZ (TARGET_CLOCK_MHZ aliases ceiling),
-THERMAL_WARN_C, THERMAL_HOT_C, PD_* thresholds.
+THERMAL_WARN_C, THERMAL_HOT_C, PD_* thresholds, THROTTLE_WINDOW_S,
+THROTTLE_OBSERVE_SAMPLES, THROTTLE_OBSERVE_INTERVAL_S, THROTTLE_HISTORY_RETENTION_S,
+THROTTLE_HISTORY_MAX_SAMPLES.
 
 Dashboard integration: The UI will call status --json and run/reset subcommands.
+
+**Recent throttling** (`throttle-history`): the driver keeps cumulative
+microseconds per throttle reason (`clocks_event_reasons_counters.*`, driver
+575+), which proves throttling happened but never says when. Each reading
+appends a sample to `SPARK_CLOCK_THROTTLE_HISTORY_FILE` and compares against
+the previous one, so growth between two samples dates the episode. Verdicts:
+`active` (mask says the GPU is held down now), `recent` (episode inside the
+window), `since_boot` (counters grew before the log could cover it), `none`,
+or `unreadable` (pre-575 driver without the counters family). Run it on a
+timer to keep the lookback honest; exit codes 0/1/2/3/4 name the verdict.
 
 ### Command: spark-clock
 
 ### Command: clock-optimize
+
+### Command: throttle-history
+
+Report whether the GPU thermal-throttled recently, and date the last episode.
+Every reading appends one sample to the history log, so repeated runs (cron or
+a systemd timer) turn cumulative driver counters into dated throttle episodes.
+Exit codes: 0 none, 1 throttling in the window, 2 undated since-boot evidence,
+3 driver cannot report counters, 4 usage error.
 
 
 

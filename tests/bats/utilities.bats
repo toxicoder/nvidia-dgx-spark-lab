@@ -36,11 +36,20 @@ MOCKDU
   #   MOCK_SPARK_CLOCK_MODE: healthy|unlocked|apps_unknown|pd_degraded
   #   MOCK_SPARK_CLOCK_LOCK_READBACK: 1 when the driver reflects -lgc in min/max clocks
   #   MOCK_SPARK_CLOCK_REJECT_COMBINED: 1 to reject multi-field --query-gpu calls
+  #   MOCK_SPARK_CLOCK_THROTTLE_REASON: clocks_throttle_reasons.active column value
+  #   MOCK_SPARK_CLOCK_{SW_POWER_CAP,SW_THERMAL,HW_THERMAL}_US: cumulative throttle counters
+  #   MOCK_SPARK_CLOCK_THROTTLE_COUNTERS_UNSET: 1 when the driver lacks the counters family
   export MOCK_SPARK_CLOCK_MODE="${MOCK_SPARK_CLOCK_MODE:-healthy}"
   export MOCK_SPARK_CLOCK_LOCK_READBACK="${MOCK_SPARK_CLOCK_LOCK_READBACK:-0}"
   export MOCK_SPARK_CLOCK_REJECT_COMBINED="${MOCK_SPARK_CLOCK_REJECT_COMBINED:-0}"
+  export MOCK_SPARK_CLOCK_THROTTLE_REASON="${MOCK_SPARK_CLOCK_THROTTLE_REASON:-Not Active}"
+  export MOCK_SPARK_CLOCK_SW_POWER_CAP_US="${MOCK_SPARK_CLOCK_SW_POWER_CAP_US:-0}"
+  export MOCK_SPARK_CLOCK_SW_THERMAL_US="${MOCK_SPARK_CLOCK_SW_THERMAL_US:-0}"
+  export MOCK_SPARK_CLOCK_HW_THERMAL_US="${MOCK_SPARK_CLOCK_HW_THERMAL_US:-0}"
+  export MOCK_SPARK_CLOCK_THROTTLE_COUNTERS_UNSET="${MOCK_SPARK_CLOCK_THROTTLE_COUNTERS_UNSET:-0}"
   export MOCK_SPARK_CLOCK_LOCK_FILE="$TEST_TMP_DIR/mock-gpu-lock"
   export SPARK_CLOCK_STATE_FILE="$TEST_TMP_DIR/spark-clock-lock-record"
+  export SPARK_CLOCK_THROTTLE_HISTORY_FILE="$TEST_TMP_DIR/spark-clock-throttle-history"
   export SPARK_CLOCK_SERVICE_PATH="$TEST_TMP_DIR/nvidia-clock-optimize.service"
   mkdir -p "$TEST_TMP_DIR/usrlocal"
   export SPARK_CLOCK_SCRIPT_INSTALL_PATH="$TEST_TMP_DIR/usrlocal/spark-clock.sh"
@@ -50,17 +59,28 @@ MOCKDU
 mode="${MOCK_SPARK_CLOCK_MODE:-healthy}"
 lock_readback="${MOCK_SPARK_CLOCK_LOCK_READBACK:-0}"
 reject_combined="${MOCK_SPARK_CLOCK_REJECT_COMBINED:-0}"
+counters_unset="${MOCK_SPARK_CLOCK_THROTTLE_COUNTERS_UNSET:-0}"
 lock_file="${MOCK_SPARK_CLOCK_LOCK_FILE:-/tmp/mock-spark-clock-lock}"
 supported_max_mhz=3003
 
-# Column order mirrors GPU_QUERY_FIELDS in scripts/utilities/spark-clock.sh.
-query_fields="clocks.current.graphics,clocks.min.graphics,clocks.max.graphics,clocks.applications.graphics,temperature.gpu,temperature.gpu_tlimit_temp,power.draw,utilization.gpu,clocks_throttle_reasons.active,clocks_throttle_reasons.applications_clocks_setting,clocks_event_reasons.sw_power_capping,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_thermal_slowdown,persistence_mode"
+# Column order mirrors GPU_QUERY_FIELDS plus THROTTLE_QUERY_FIELDS in
+# scripts/utilities/spark-clock.sh. The clocks_event_reasons_* family reports
+# cumulative microseconds and only exists on driver 575+; the mock can hide it.
+query_fields="clocks.current.graphics,clocks.min.graphics,clocks.max.graphics,clocks.applications.graphics,temperature.gpu,temperature.gpu_tlimit_temp,power.draw,utilization.gpu,clocks_throttle_reasons.active,clocks_throttle_reasons.applications_clocks_setting,clocks_event_reasons.sw_power_capping,clocks_event_reasons.sw_thermal_slowdown,clocks_event_reasons.hw_thermal_slowdown,persistence_mode,clocks_event_reasons_counters.sw_power_cap,clocks_event_reasons_counters.sw_thermal_slowdown,clocks_event_reasons_counters.hw_thermal_slowdown"
 
 set_row() {
   current=208; min="[N/A]"; max="$supported_max_mhz"; apps="N/A"
   temp=45; tlimit=55; power=7.0; util=0
-  reason="Not Active"; apps_reason="Not Active"; q_apps_reason="$apps_reason"
-  swpc=0; swt=0; hwt=0; persist=Enabled
+  reason="${MOCK_SPARK_CLOCK_THROTTLE_REASON:-Not Active}"
+  apps_reason="Not Active"; q_apps_reason="$apps_reason"
+  swpc="${MOCK_SPARK_CLOCK_SW_POWER_CAP_US:-0}"
+  swt="${MOCK_SPARK_CLOCK_SW_THERMAL_US:-0}"
+  hwt="${MOCK_SPARK_CLOCK_HW_THERMAL_US:-0}"
+  # clocks_event_reasons_counters.* family (driver 575+), read by throttle-history.
+  c_swpc="$swpc"
+  c_swt="$swt"
+  c_hwt="$hwt"
+  persist=Enabled
 
   if [[ -f "$lock_file" ]]; then
     # NVML has no getter for -lgc: the driver keeps reporting hardware clocks and
@@ -94,8 +114,14 @@ set_row() {
 
 gpu_row() {
   set_row
-  echo "$current, $min, $max, $apps, $temp, $tlimit, $power, $util, $reason, $apps_reason, $swpc, $swt, $hwt, $persist"
+  echo "$current, $min, $max, $apps, $temp, $tlimit, $power, $util, $reason, $apps_reason, $swpc, $swt, $hwt, $persist, $c_swpc, $c_swt, $c_hwt"
 }
+
+if [[ "$counters_unset" == "1" ]]; then
+  # Driver older than 575: the counters family is not a known property at all,
+  # so both the combined query and the single-field query fail.
+  query_fields="${query_fields%%,clocks_event_reasons_counters*}"
+fi
 
 query_list=""
 for arg in "$@"; do
@@ -323,9 +349,13 @@ setup() {
   export TEST_TMP_DIR UTILITIES_DIR REPO_ROOT HOME KUBECONFIG PATH REMOTE_HOST
   export LAB_MOCK_NODES_JSON LAB_MOCK_PODS_JSON
   export MOCK_SPARK_CLOCK_MODE MOCK_SPARK_CLOCK_LOCK_READBACK MOCK_SPARK_CLOCK_REJECT_COMBINED
+  export MOCK_SPARK_CLOCK_THROTTLE_REASON MOCK_SPARK_CLOCK_THROTTLE_COUNTERS_UNSET
+  export MOCK_SPARK_CLOCK_SW_POWER_CAP_US MOCK_SPARK_CLOCK_SW_THERMAL_US MOCK_SPARK_CLOCK_HW_THERMAL_US
   export MOCK_SPARK_CLOCK_LOCK_FILE SPARK_CLOCK_STATE_FILE SPARK_CLOCK_SERVICE_PATH
+  export SPARK_CLOCK_THROTTLE_HISTORY_FILE
   export SPARK_CLOCK_SCRIPT_INSTALL_PATH SYSTEMCTL_CALLS_LOG
   rm -f "$MOCK_SPARK_CLOCK_LOCK_FILE" "$SPARK_CLOCK_STATE_FILE"
+  rm -f "$SPARK_CLOCK_THROTTLE_HISTORY_FILE"
   rm -f "$SPARK_CLOCK_SCRIPT_INSTALL_PATH" "$SPARK_CLOCK_SERVICE_PATH"
   if [[ -f "${TEST_TMP_DIR}/bin/nvidia-smi.disabled" ]]; then
     mv "${TEST_TMP_DIR}/bin/nvidia-smi.disabled" "${TEST_TMP_DIR}/bin/nvidia-smi"
@@ -487,6 +517,259 @@ teardown_file() {
   MOCK_SPARK_CLOCK_MODE=apps_unknown run bash "${UTILITIES_DIR}/spark-clock.sh" status
   [ "$status" -eq 0 ]
   [[ "$output" == *"Configured range       : unlocked"* ]]
+}
+
+# --- spark-clock throttle-history ---
+
+# Build one throttle-history record: epoch,mhz,temp,reason,swpc_us,swt_us,hwt_us,boot.
+throttle_record() {
+  printf '%s,208,60,%s,0,%s,%s,%s\n' "$1" "$2" "$3" "$4" "$5"
+}
+
+# Epoch of the running boot; records stamped with another boot are stale by design.
+current_boot_epoch() {
+  awk '/^btime/ {print $2; exit}' /proc/stat 2>/dev/null || echo "0"
+}
+
+@test "spark-clock.sh throttle-history reports none on a clean GPU and records a sample" {
+  THROTTLE_OBSERVE_SAMPLES=1 run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"DGX Spark Thermal Throttle History"* ]]
+  [[ "$output" == *"Verdict"*"NONE"* ]]
+  [ -s "$SPARK_CLOCK_THROTTLE_HISTORY_FILE" ]
+  [ "$(cut -d, -f4 "$SPARK_CLOCK_THROTTLE_HISTORY_FILE")" = "none" ]
+  MOCK_SPARK_CLOCK_THROTTLE_REASON="N/A" THROTTLE_OBSERVE_SAMPLES=1 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history
+  [ "$status" -eq 0 ]
+  [ "$(cut -d, -f4 "$SPARK_CLOCK_THROTTLE_HISTORY_FILE" | tail -1)" = "none" ]
+}
+
+@test "spark-clock.sh throttle-history --json reports the clean verdict" {
+  THROTTLE_OBSERVE_SAMPLES=1 run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history --json
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"\"verdict\": \"none\""* ]]
+  [[ "$output" == *"\"instrumented\": true"* ]]
+  [[ "$output" == *"\"events_in_window\": 0"* ]]
+  [[ "$output" == *"\"throttling_now\": false"* ]]
+}
+
+@test "spark-clock.sh throttle-history flags thermal slowdown that grew since the last sample" {
+  local now boot
+  now=$(date +%s)
+  boot=$(current_boot_epoch)
+  throttle_record "$((now - 120))" none 0 0 "$boot" >"$SPARK_CLOCK_THROTTLE_HISTORY_FILE"
+  MOCK_SPARK_CLOCK_HW_THERMAL_US=150000 THROTTLE_OBSERVE_SAMPLES=1 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history --json
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"\"verdict\": \"recent\""* ]]
+  [[ "$output" == *"\"events_in_window\": 1"* ]]
+  [[ "$output" == *"\"last_episode_us\": 150000"* ]]
+  MOCK_SPARK_CLOCK_HW_THERMAL_US=150000 THROTTLE_OBSERVE_SAMPLES=1 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"Verdict"*"RECENT"* ]]
+  [[ "$output" == *"Thermal throttling confirmed"* ]]
+}
+
+@test "spark-clock.sh throttle-history flags a thermal reason that is active now" {
+  MOCK_SPARK_CLOCK_THROTTLE_REASON=0x0000000000000040 \
+    MOCK_SPARK_CLOCK_HW_THERMAL_US=900000 THROTTLE_OBSERVE_INTERVAL_S=0 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history --json
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"\"verdict\": \"active\""* ]]
+  [[ "$output" == *"\"throttling_now\": true"* ]]
+  MOCK_SPARK_CLOCK_THROTTLE_REASON=0x0000000000000040 \
+    MOCK_SPARK_CLOCK_HW_THERMAL_US=900000 THROTTLE_OBSERVE_INTERVAL_S=0 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"Verdict"*"ACTIVE"* ]]
+}
+
+@test "spark-clock.sh throttle-history still reports active throttling without counters" {
+  MOCK_SPARK_CLOCK_THROTTLE_COUNTERS_UNSET=1 \
+    MOCK_SPARK_CLOCK_THROTTLE_REASON=0x0000000000000020 THROTTLE_OBSERVE_SAMPLES=1 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history --json
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"\"verdict\": \"active\""* ]]
+}
+
+@test "spark-clock.sh throttle-history marks counter growth older than the window as undated" {
+  local now boot
+  now=$(date +%s)
+  boot=$(current_boot_epoch)
+  {
+    throttle_record "$((now - 7200))" none 0 0 "$boot"
+    throttle_record "$((now - 7100))" none 0 500000 "$boot"
+  } >"$SPARK_CLOCK_THROTTLE_HISTORY_FILE"
+  MOCK_SPARK_CLOCK_HW_THERMAL_US=500000 THROTTLE_OBSERVE_SAMPLES=1 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history --window 600 --json
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"\"verdict\": \"since_boot\""* ]]
+  [[ "$output" == *"\"events_in_window\": 0"* ]]
+  MOCK_SPARK_CLOCK_HW_THERMAL_US=500000 THROTTLE_OBSERVE_SAMPLES=1 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history --window 600
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"Verdict"*"UNDATED"* ]]
+  [[ "$output" == *"Run throttle-history on a timer"* ]]
+}
+
+@test "spark-clock.sh throttle-history dates the same episode when the window covers it" {
+  local now boot
+  now=$(date +%s)
+  boot=$(current_boot_epoch)
+  {
+    throttle_record "$((now - 7200))" none 0 0 "$boot"
+    throttle_record "$((now - 7100))" none 0 500000 "$boot"
+  } >"$SPARK_CLOCK_THROTTLE_HISTORY_FILE"
+  MOCK_SPARK_CLOCK_HW_THERMAL_US=500000 THROTTLE_OBSERVE_SAMPLES=1 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history --window 86400 --json
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"\"verdict\": \"recent\""* ]]
+  [[ "$output" == *"\"events_in_window\": 1"* ]]
+}
+
+@test "spark-clock.sh throttle-history reports since-boot evidence it cannot date" {
+  MOCK_SPARK_CLOCK_SW_THERMAL_US=2400000 THROTTLE_OBSERVE_SAMPLES=1 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history --json
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"\"verdict\": \"since_boot\""* ]]
+  [[ "$output" == *"\"thermal_time_us_total\": 2400000"* ]]
+}
+
+@test "spark-clock.sh throttle-history says so when the driver has no throttle counters" {
+  MOCK_SPARK_CLOCK_THROTTLE_COUNTERS_UNSET=1 THROTTLE_OBSERVE_SAMPLES=1 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history --json
+  [ "$status" -eq 3 ]
+  [[ "$output" == *"\"verdict\": \"unreadable\""* ]]
+  [[ "$output" == *"\"instrumented\": false"* ]]
+  MOCK_SPARK_CLOCK_THROTTLE_COUNTERS_UNSET=1 THROTTLE_OBSERVE_SAMPLES=1 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history
+  [ "$status" -eq 3 ]
+  [[ "$output" == *"Verdict"*"UNKNOWN"* ]]
+  [[ "$output" == *"driver 575+ is needed"* ]]
+}
+
+@test "spark-clock.sh throttle-history reads a zeroed throttle mask as no reason" {
+  MOCK_SPARK_CLOCK_THROTTLE_REASON=0x0000000000000000 THROTTLE_OBSERVE_SAMPLES=1 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history --json
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"\"verdict\": \"none\""* ]]
+  [[ "$output" == *"\"throttle_mask\": \"0x0000000000000000\""* ]]
+  [ "$(cut -d, -f4 "$SPARK_CLOCK_THROTTLE_HISTORY_FILE")" = "none" ]
+}
+
+@test "spark-clock.sh throttle-history classifies older text throttle labels" {
+  MOCK_SPARK_CLOCK_THROTTLE_REASON="SW Power Capping" THROTTLE_OBSERVE_SAMPLES=1 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history
+  [ "$status" -eq 0 ]
+  [ "$(cut -d, -f4 "$SPARK_CLOCK_THROTTLE_HISTORY_FILE" | tail -1)" = "power" ]
+  MOCK_SPARK_CLOCK_THROTTLE_REASON="Sync Boost" THROTTLE_OBSERVE_SAMPLES=1 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history
+  [ "$status" -eq 0 ]
+  [ "$(cut -d, -f4 "$SPARK_CLOCK_THROTTLE_HISTORY_FILE" | tail -1)" = "other" ]
+}
+
+@test "spark-clock.sh throttle-history ignores records left by an earlier boot" {
+  local now
+  now=$(date +%s)
+  {
+    throttle_record "$((now - 300))" none 0 0 1
+    throttle_record "$((now - 240))" none 0 0 999999999
+  } >"$SPARK_CLOCK_THROTTLE_HISTORY_FILE"
+  THROTTLE_OBSERVE_SAMPLES=1 run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history --json
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"\"verdict\": \"none\""* ]]
+  [[ "$output" == *"\"samples\": 1,"* ]]
+}
+
+@test "spark-clock.sh throttle-history prunes samples past the retention window" {
+  local now boot old recent
+  now=$(date +%s)
+  boot=$(current_boot_epoch)
+  old=$((now - 3600))
+  recent=$((now - 5))
+  {
+    throttle_record "$old" none 0 0 "$boot"
+    throttle_record "$recent" none 0 0 "$boot"
+  } >"$SPARK_CLOCK_THROTTLE_HISTORY_FILE"
+  THROTTLE_OBSERVE_SAMPLES=1 THROTTLE_HISTORY_RETENTION_S=600 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history
+  [ "$status" -eq 0 ]
+  [ "$(grep -c "^${old}," "$SPARK_CLOCK_THROTTLE_HISTORY_FILE")" -eq 0 ]
+  [ "$(grep -c "^${recent}," "$SPARK_CLOCK_THROTTLE_HISTORY_FILE")" -eq 1 ]
+}
+
+@test "spark-clock.sh throttle-history caps the history file size" {
+  local now boot i
+  now=$(date +%s)
+  boot=$(current_boot_epoch)
+  : >"$SPARK_CLOCK_THROTTLE_HISTORY_FILE"
+  for i in 5 4 3 2 1; do
+    throttle_record "$((now - i * 10))" none 0 0 "$boot" >>"$SPARK_CLOCK_THROTTLE_HISTORY_FILE"
+  done
+  THROTTLE_OBSERVE_SAMPLES=1 THROTTLE_HISTORY_MAX_SAMPLES=2 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history
+  [ "$status" -eq 0 ]
+  [ "$(wc -l <"$SPARK_CLOCK_THROTTLE_HISTORY_FILE")" -eq 2 ]
+}
+
+@test "spark-clock.sh throttle-history still reports when history cannot be written" {
+  mkdir -p "$TEST_TMP_DIR/locked"
+  touch "$TEST_TMP_DIR/locked/blocker"
+  SPARK_CLOCK_THROTTLE_HISTORY_FILE="$TEST_TMP_DIR/locked/blocker/throttle-history" \
+    THROTTLE_OBSERVE_SAMPLES=1 run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Cannot record throttle history"* ]]
+}
+
+@test "spark-clock.sh throttle-history warns when the history path cannot be written" {
+  local blocked="$TEST_TMP_DIR/history-is-a-dir"
+  mkdir -p "$blocked"
+  SPARK_CLOCK_THROTTLE_HISTORY_FILE="$blocked" THROTTLE_OBSERVE_SAMPLES=1 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Cannot record throttle history to"* ]]
+}
+
+@test "spark-clock.sh throttle-history rejects a non-numeric window" {
+  run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history --window soon
+  [ "$status" -eq 4 ]
+  [[ "$output" == *"Invalid --window"* ]]
+}
+
+@test "spark-clock.sh throttle-history rejects an unknown option" {
+  run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history --twice
+  [ "$status" -eq 4 ]
+  [[ "$output" == *"Unknown option"* ]]
+}
+
+@test "spark-clock.sh throttle-history records a power-cap reason as power, not thermal" {
+  MOCK_SPARK_CLOCK_THROTTLE_REASON=0x0000000000000004 THROTTLE_OBSERVE_SAMPLES=1 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history --json
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"\"verdict\": \"none\""* ]]
+  [ "$(cut -d, -f4 "$SPARK_CLOCK_THROTTLE_HISTORY_FILE" | tail -1)" = "power" ]
+}
+
+@test "spark-clock.sh throttle-history classifies an unrelated reason as other" {
+  MOCK_SPARK_CLOCK_THROTTLE_REASON=0x0000000000000002 THROTTLE_OBSERVE_SAMPLES=1 \
+    run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history
+  [ "$status" -eq 0 ]
+  [ "$(cut -d, -f4 "$SPARK_CLOCK_THROTTLE_HISTORY_FILE" | tail -1)" = "other" ]
+}
+
+@test "spark-clock.sh throttle-history reads a text throttle reason from older drivers" {
+  MOCK_SPARK_CLOCK_THROTTLE_REASON="Thermal Slowdown" MOCK_SPARK_CLOCK_HW_THERMAL_US=8000 \
+    THROTTLE_OBSERVE_SAMPLES=1 run bash "${UTILITIES_DIR}/spark-clock.sh" throttle-history --json
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"\"verdict\": \"active\""* ]]
+  [ "$(cut -d, -f4 "$SPARK_CLOCK_THROTTLE_HISTORY_FILE" | tail -1)" = "thermal" ]
+}
+
+@test "spark-clock.sh --help advertises throttle-history" {
+  run bash "${UTILITIES_DIR}/spark-clock.sh" --help
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"throttle-history"* ]]
 }
 
 @test "sync-ollama-models.sh status exits 0" {
