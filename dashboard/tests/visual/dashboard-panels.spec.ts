@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import {
+  requireBundledFonts,
   PANEL_SELECTORS,
   SCREENSHOT_OPTS,
   UI_FIXTURES,
@@ -22,6 +23,7 @@ for (const vp of VIEWPORTS) {
     for (const { selector, baseSlug } of PANEL_SELECTORS) {
       const el = page.locator(selector).first();
       if ((await el.count()) > 0 && (await el.isVisible().catch(() => false))) {
+        await requireBundledFonts(page);
         await expect(el).toHaveScreenshot(`${baseSlug}${suffix}.png`, SCREENSHOT_OPTS);
       }
     }
@@ -30,6 +32,7 @@ for (const vp of VIEWPORTS) {
     await waitForPanelsReady(page);
     const emptyDupesSheet = page.locator('[data-testid="ui-sheet"]').filter({ hasText: "No duplicates found" }).first();
     if ((await emptyDupesSheet.count()) > 0 && (await emptyDupesSheet.isVisible().catch(() => false))) {
+      await requireBundledFonts(page);
       await expect(emptyDupesSheet).toHaveScreenshot(`dashboard-ui-sheet-dupes-empty${suffix}.png`, SCREENSHOT_OPTS);
     }
 
@@ -38,6 +41,7 @@ for (const vp of VIEWPORTS) {
     for (const { selector, baseSlug } of UI_FIXTURES) {
       const el = page.locator(selector).first();
       if ((await el.count()) > 0 && (await el.isVisible().catch(() => false))) {
+        await requireBundledFonts(page);
         await expect(el).toHaveScreenshot(`${baseSlug}${suffix}.png`, SCREENSHOT_OPTS);
       }
     }

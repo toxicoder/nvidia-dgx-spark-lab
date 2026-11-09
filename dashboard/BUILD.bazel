@@ -38,6 +38,7 @@ filegroup(
             "**/*.json",
             "**/*.css",
             "app/dev/**",
+            "app/fonts/*.woff2",
             "lib/db/migrations/**",
             "lib/mocks/**",
             "lib/types/**",

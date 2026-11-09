@@ -130,6 +130,14 @@ describe("app routes", () => {
     const jsx = await RootLayout({ children: <span>app-child</span> });
     render(jsx);
     expect(screen.getByText("app-child")).toBeInTheDocument();
+
+    // jsdom drops a rendered <html> element, so the classes are read off the element the
+    // layout returns. These two are the only route to the self-hosted faces: drop one and
+    // the page falls back to the platform default while every other test stays green.
+    const htmlProps = jsx.props as unknown as { className?: string };
+    const classes = (htmlProps.className ?? "").split(/\s+/);
+    expect(classes).toContain("--font-noto-sans");
+    expect(classes).toContain("--font-noto-sans-mono");
   });
 
   it("renders the overview and links to every section in the closed set", async () => {

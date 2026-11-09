@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import {
+  requireBundledFonts,
   SCREENSHOT_OPTS,
   SIDEBAR_BASE,
   SIDEBAR_SELECTOR,
@@ -39,6 +40,7 @@ for (const vp of VIEWPORTS) {
       await waitForDashboardReady(page);
 
       await requirePageTitle(page, /overview|DGX Spark Lab/i);
+      await requireBundledFonts(page);
       await expect(page).toHaveScreenshot(`dashboard-main${suffix}.png`, {
         ...SCREENSHOT_OPTS,
         fullPage: true
@@ -53,6 +55,7 @@ for (const vp of VIEWPORTS) {
         await page.waitForTimeout(250);
         const sheet = page.locator('[data-testid="ui-sheet"]').first();
         await expect(sheet, "mobile menu did not open").toBeVisible();
+        await requireBundledFonts(page);
         await expect(sheet).toHaveScreenshot(`${SIDEBAR_BASE}${suffix}.png`, SCREENSHOT_OPTS);
         await page.keyboard.press("Escape").catch(() => {});
       }

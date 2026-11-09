@@ -141,6 +141,14 @@
  * The floor is 11px — nothing in the UI renders smaller than that.
  */
 @theme {
+  /* One typeface in every environment. `app/layout.tsx` registers the self-hosted file with
+   * `next/font/local` and hands its family name to this token; the tail only catches glyphs the
+   * bundled subset cannot draw, and the UI renders none of those. Leaving this at Tailwind's
+   * default made the page render in whatever the host OS ships, so text metrics differed
+   * between a dev box, the pinned test image, and an operator's laptop. */
+  --font-sans: var(--font-noto-sans), "Noto Sans", system-ui, Arial, sans-serif;
+  --font-mono: var(--font-noto-sans-mono), "Noto Sans Mono", ui-monospace, Consolas, monospace;
+
   --text-2xs: 0.6875rem;
   --text-2xs--line-height: 1rem;
 

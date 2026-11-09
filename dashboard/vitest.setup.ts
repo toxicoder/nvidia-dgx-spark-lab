@@ -15,6 +15,16 @@ vi.mock("next/navigation", () => ({
   notFound: () => notFoundMock()
 }));
 
+/**
+ * `next/font/local` only resolves through Next's build loader, which vitest does not run, so
+ * the real module answers with something that is not callable. The shim echoes the requested
+ * CSS variable back: a test that renders the root layout can then assert the layout publishes
+ * the token each face declares instead of silently rendering without a typeface.
+ */
+vi.mock("next/font/local", () => ({
+  default: (options: { variable?: string }) => ({ variable: options.variable ?? "" })
+}));
+
 /** jsdom lacks ResizeObserver — Treemap and other layout components need it. */
 class ResizeObserverMock {
   observe() {}
