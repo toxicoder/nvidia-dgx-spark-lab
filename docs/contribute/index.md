@@ -23,7 +23,7 @@ tags: [contributing, bazel, documentation]
 2. `bazelisk run //:doctor`
 3. `bazelisk run //:fix` then `bazelisk run //:validate`
 
-Branch from latest `development`. PR into `development`. Conventional commits. Never force-push protected branches. Full model: [CONTRIBUTING.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md).
+Branch from the tip of `main`, the only long-lived branch. PR into `main`. Conventional commits. Never force-push trunk. Unfinished work ships behind a flag in `config/flags.yaml`, off by default. Full model: [Branching](../branching.md) and [CONTRIBUTING.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md).
 
 ## Daily targets
 

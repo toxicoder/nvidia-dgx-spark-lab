@@ -209,7 +209,7 @@ Agents must **optimize for feedback speed** without weakening safety gates. Pref
 1. **Path-aware by default** — `bazelisk run //:validate` (no `--all`) mirrors CI path filters. Use `--all` before merge, after broad refactors, or when unsure.
 2. **Red–green on the smallest target** — fail a unit/BATS/docs unit test first; only then widen to render/hermetic suites.
 3. **Do not duplicate work** — one Next export per gate set (`//docs:docs` feeds `//docs:render-check` and `//docs-site:visual`); do not re-run hermetic dashboard when only `docs/**` or CI YAML changed.
-4. **When adding tests or CI** — prefer pure unit over e2e; keep `//:test-fast` free of the browser and the npm build; preserve GHA cache keys and path filters; never force every push on `development` to run the full matrix.
+4. **When adding tests or CI** — prefer pure unit over e2e; keep `//:test-fast` free of the browser and the npm build; preserve GHA cache keys and path filters; never force every push to trunk to run the full matrix without a path filter.
 5. **Commands** — Bazel entry points (`bazelisk run //:manage`, `//:validate`, `//docs:docs`); avoid ad-hoc loops of format+lint+full validate after each keystroke.
 6. **Safety is not optional latency** — never skip `//tests:safety_invariants`, Resource Guard checks, or capacity gates “to go faster.”
 

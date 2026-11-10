@@ -27,22 +27,22 @@ tags: [devcontainer, contributing, bazel, onboarding, multi-arch]
 </Callout>
 ## Branching model
 
-- **Primary integration branch:** `development` (protected, PR-required).
-- Branch all feature work **from `development`** and open PRs **into `development`**.
-- **Promotion path:** feature → `development` → (optional) `dev` → `main` (always via PR).
-- **Never force-push** `development` or `main`.
-- Protected branches require **linear history** — merge with **squash** or **rebase** (merge commits are blocked).
+- **Trunk:** `main` is the only long-lived branch (protected, PR-required).
+- Branch all feature work **from the tip of `main`** with one of the agreed prefixes (`feat/`, `fix/`, `refactor/`, `docs/`, `chore/`, `ci/`, `test/`, `perf/`, `build/`) and open a pull request into `main` within days.
+- **Promotion is a tag:** trunk, then an annotated `vX.Y.Z` tag. No integration or environment branch sits between your branch and trunk.
+- **Never force-push** `main`, and rebase only a branch you own.
+- `main` requires **linear history** — merge with **squash** or **rebase** (merge commits are blocked).
 
-Clone and start from the integration tip:
+Clone and start from the trunk tip:
 
 ```bash
 git fetch origin
-git checkout development
-git pull origin development
-git checkout -b feature/your-change
+git switch main
+git pull origin main
+git switch -c feat/your-change
 ```
 
-See also [CONTRIBUTING.md (repo root)](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md) and [AGENTS.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md).
+Unfinished work ships behind a flag declared in `config/flags.yaml` and defaults to off. See also [Branching](branching.md), [Environments](environments.md), [CONTRIBUTING.md (repo root)](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/CONTRIBUTING.md) and [AGENTS.md](https://github.com/toxicoder/nvidia-dgx-spark-lab/blob/main/AGENTS.md).
 
 ## Supported platforms
 

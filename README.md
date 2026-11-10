@@ -2,13 +2,13 @@
 
 [![Docs (latest)](https://img.shields.io/badge/docs-latest-orange?style=for-the-badge&logo=nextjs&logoColor=white)](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/)
 [![Docs (development)](https://img.shields.io/badge/docs-development-teal?style=for-the-badge&logo=nextjs&logoColor=white)](https://toxicoder.github.io/nvidia-dgx-spark-lab/development/)
-[![CI](https://img.shields.io/github/actions/workflow/status/toxicoder/nvidia-dgx-spark-lab/ci.yml?branch=development&style=for-the-badge&logo=github&label=CI%20development)](https://github.com/toxicoder/nvidia-dgx-spark-lab/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/toxicoder/nvidia-dgx-spark-lab/ci.yml?branch=main&style=for-the-badge&logo=github&label=CI%20trunk)](https://github.com/toxicoder/nvidia-dgx-spark-lab/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/toxicoder/nvidia-dgx-spark-lab?style=for-the-badge)](LICENSE)
 [![Bazel](https://img.shields.io/badge/build-Bazel-green?style=for-the-badge&logo=bazel&logoColor=white)](docs/BUILDING_WITH_BAZEL.md)
 
 ![nvidia-dgx-spark-lab banner](docs/nvidia-dgx-spark-lab-banner.jpeg)
 
-**Documentation:** [latest](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/) (from `main`) · [development](https://toxicoder.github.io/nvidia-dgx-spark-lab/development/) (from `development`) — Fumadocs (Next.js) with Orama search, glossary tooltips, Mermaid, and live editable command variables.
+**Documentation:** [latest](https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/) (from `main`) · [development](https://toxicoder.github.io/nvidia-dgx-spark-lab/development/) (legacy URL alias, published from the branch being retired; see [Branching](docs/branching.md)) — Fumadocs (Next.js) with Orama search, glossary tooltips, Mermaid, and live editable command variables.
 
 **Suggested GitHub topics** (set in repo Settings → General → Topics): `k3s`, `nvidia`, `dgx`, `bazel`, `fumadocs`, `gpu`, `inference`, `ansible`, `kubernetes`.
 
@@ -279,7 +279,7 @@ Content lives in `docs/`; `docs-site/` is the app that renders it. The site keep
 groups, breadcrumbs, Mermaid diagrams, callouts, tabs, glossary tooltips, Orama search, and the
 live editable command-variables panel the previous site had.
 
-CI deploys docs via `.github/workflows/deploy-docs.yml` **after merge** (push to `main` / `development` with changes under `docs/**` or `docs-site/**`), or via manual `workflow_dispatch` — not when a PR is opened. PR docs checks run in the main CI suite (`docs-and-render`).
+CI deploys docs via `.github/workflows/deploy-docs.yml` **after merge** (push to trunk with changes under `docs/**` or `docs-site/**`, plus the one retiring legacy branch that still owns a published URL alias), or via manual `workflow_dispatch` with a `version` input — not when a PR is opened. PR docs checks run in the main CI suite (`docs-and-render`).
 
 See `docs/CONTRIBUTING.md` (if present) or `AGENTS.md` for contribution guidelines.
 
