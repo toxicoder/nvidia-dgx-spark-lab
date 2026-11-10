@@ -109,6 +109,45 @@ teardown() {
   fi
 }
 
+@test "CI artifact and docker action pins sit at the current majors" {
+  # Dependabot's github-actions group owns these pins. The guard keeps a silent
+  # downgrade, or a bump applied to only one CI surface, from landing: both
+  # surfaces must carry the same major for actions/upload-artifact.
+  # Enumerate the files: CI YAML reaches this test as individual runfiles from
+  # //:ci_workflows, so a recursive grep over the directory finds nothing.
+  local files=(
+    "${REPO_ROOT}/.github/workflows/ci.yml"
+    "${REPO_ROOT}/.github/workflows/dashboard-goldens.yml"
+    "${REPO_ROOT}/.github/workflows/devcontainer-image.yml"
+    "${REPO_ROOT}/.github/workflows/publish-images.yml"
+    "${REPO_ROOT}/.gitea/workflows/ci.yml"
+  )
+  local f
+  for f in "${files[@]}"; do
+    [[ -f $f ]] || { echo "missing workflow ${f}" >&2; return 1; }
+  done
+
+  local spec action want found
+  for spec in "actions/upload-artifact v7" \
+    "actions/download-artifact v8" \
+    "docker/login-action v4" \
+    "docker/metadata-action v6"; do
+    action="${spec%% *}"
+    want="${spec##* }"
+    found="$(grep -hoE "uses: ${action}@v[0-9]+" "${files[@]}" | sort -u)"
+    # A gate that inspected nothing must fail rather than pass silently.
+    if [[ -z $found ]]; then
+      echo "no ${action} step found in the CI workflows" >&2
+      return 1
+    fi
+    if [[ $found != "uses: ${action}@${want}" ]]; then
+      echo "${action} should be pinned at ${want}, found:" >&2
+      echo "$found" >&2
+      return 1
+    fi
+  done
+}
+
 @test "CI gates trunk on push and pull requests on both CI surfaces" {
   # Trunk-based development: main is the only long-lived branch. Both CI surfaces
   # must run the gate on push to it, keep pull requests gated (development only
