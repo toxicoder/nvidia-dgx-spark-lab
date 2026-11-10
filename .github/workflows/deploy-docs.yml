@@ -1,7 +1,8 @@
 name: Deploy Documentation
 
-# Publish only after content lands on a long-lived branch (PR merge → push),
-# or via manual workflow_dispatch. Do not run on pull_request: PR docs
+# Publish only after content lands on trunk (PR merge → push), plus the one
+# retiring legacy branch that still has a published URL alias, or via manual
+# workflow_dispatch. Do not run on pull_request: PR docs
 # validation is CI (docs-and-render); the public site is a static Next export.
 #
 # URL compatibility: the MkDocs site published under <base>/latest/ and
