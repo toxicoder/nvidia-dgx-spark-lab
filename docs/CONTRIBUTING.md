@@ -178,9 +178,9 @@ The devcontainer image already includes these CLIs; on the host, install them or
 ## Editing This Site
 
 Click **Edit this page** on the live site. The link is stamped from the published alias
-(`main` for **latest**; the `/development/` alias still serves the retiring legacy branch until
-that branch is deleted), so it opens the ref the page was published from. The same ref drives
-in-page GitHub `blob`/`tree` source links; override it locally with `DGX_DOCS_GIT_REF` (a branch
+(`main` for **latest**, and the `version` `workflow_dispatch` input for any other alias), so it
+opens the ref that content was published from. The same ref drives
+in-page GitHub `blob`/`tree` source links; override it locally with `DGX_DOCS_GIT_REF` (a ref
 name such as `main`) when you need to check where a link lands.
 
 ## Questions?
