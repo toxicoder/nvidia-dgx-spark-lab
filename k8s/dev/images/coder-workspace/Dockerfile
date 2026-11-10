@@ -66,12 +66,16 @@ RUN /opt/lab-lint/bin/pip install --no-cache-dir \
     ansible-lint \
     yamllint \
     ruff
-# Linked onto PATH rather than added to ENV PATH: putting the venv first would repoint `ansible`
-# at the venv's ansible-core. Called through the link, ansible-lint prints a benign "PATH altered"
-# notice because it prepends its own directory; the tools still resolve correctly.
+# Symlinks, so the trio still resolves if a login shell rewrites PATH.
 RUN ln -sf /opt/lab-lint/bin/ansible-lint /usr/local/bin/ansible-lint \
     && ln -sf /opt/lab-lint/bin/yamllint /usr/local/bin/yamllint \
     && ln -sf /opt/lab-lint/bin/ruff /usr/local/bin/ruff
+
+# The venv bin goes on the END of PATH. A venv bin also carries ansible, ansible-playbook and
+# python3, so prepending it would repoint the ansible this workspace runs lab playbooks with;
+# appended, /usr/bin/ansible and /usr/bin/python3 keep winning. ansible-lint stops printing its
+# "PATH altered ... broken local setup" notice once its own directory is already on PATH.
+ENV PATH="${PATH}:/opt/lab-lint/bin"
 
 COPY k8s/dev/images/coder-workspace/workspace-init.sh /usr/local/bin/workspace-init.sh
 RUN chmod +x /usr/local/bin/workspace-init.sh

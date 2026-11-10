@@ -483,6 +483,19 @@ PY
     grep -nE '^[[:space:]]+ansible' "$df" >&2 || true
     return 1
   fi
+  # The venv dir goes on the END of PATH. ansible-lint stays quiet only when its own directory is
+  # already there, and appending keeps /usr/bin/ansible and /usr/bin/python3 winning over the copies
+  # a venv bin also carries. Prepending would repoint the workspace's ansible.
+  if grep -Eq '^[[:space:]]*ENV[[:space:]]+PATH="/opt/lab-lint/bin' "$df"; then
+    echo "the venv must be appended to PATH, never prepended (it would shadow distro ansible):" >&2
+    grep -nE '^[[:space:]]*ENV[[:space:]]+PATH=' "$df" >&2 || true
+    return 1
+  fi
+  if ! grep -Eq '^[[:space:]]*ENV[[:space:]]+PATH=".*:/opt/lab-lint/bin"' "$df"; then
+    echo "PATH must end with the venv bin so ansible-lint finds its own directory:" >&2
+    grep -nE '^[[:space:]]*ENV[[:space:]]+PATH=' "$df" >&2 || true
+    return 1
+  fi
 }
 
 @test "Deploy Documentation workflow publishes only after merge (not on PR)" {
