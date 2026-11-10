@@ -48,7 +48,7 @@ jobs:
           git status --porcelain dashboard/tests/visual/goldens | head -50
 
       - name: Upload rendered baselines
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dashboard-visual-goldens
           path: dashboard/tests/visual/goldens/

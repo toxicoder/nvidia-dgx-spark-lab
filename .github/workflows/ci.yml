@@ -148,7 +148,7 @@ jobs:
 
       - name: Upload dashboard visual actuals
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dashboard-visual-actuals
           path: dashboard/tests/visual/actuals/
@@ -248,7 +248,7 @@ jobs:
 
       - name: Upload docs visual actuals
         if: failure() && steps.docs_visual.outcome == 'failure'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: docs-visual-actuals
           path: docs-visual-actuals/
