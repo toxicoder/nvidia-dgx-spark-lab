@@ -12,31 +12,46 @@ Subdirectory addenda extend the conventions doc:
 
 ## Branching, commits, PRs, and promotion
 
-Full human-facing rules: [CONTRIBUTING.md](CONTRIBUTING.md#branching-commits-prs-and-promotion). Agents must follow the invariants below without ambiguity.
+Full human-facing rules: [CONTRIBUTING.md](CONTRIBUTING.md#branching-commits-prs-and-promotion) and [docs/branching.md](docs/branching.md). The model, in eight lines:
 
-### Long-lived branches
+1. `main` is the trunk, and the only long-lived branch. Everything else is short-lived.
+2. Cut `feat/`, `fix/`, `refactor/`, `docs/`, `chore/`, `ci/`, `test/`, `perf/`, `build/` branches from the tip of `main` before the first edit.
+3. Merge by pull request within days; delete the branch on merge.
+4. Rebase your own branch when trunk moves. Never rebase a branch someone else may have pulled.
+5. Commit summaries are imperative, at most 72 characters, with a conventional prefix.
+6. An environment is values, secrets, and a location. It is never a branch: see [docs/environments.md](docs/environments.md).
+7. Unfinished work ships on trunk behind a flag declared in [config/flags.yaml](config/flags.yaml) that defaults off. `bazelisk test //tests:flags_registry` gates the registry.
+8. `dev` and `development` are retired; `/ez-trunk-based-repo` re-proves the conversion.
 
-| Branch | Role |
-| --- | --- |
-| `development` | Primary integration. All feature and non-urgent fix work lands here first (PR only). |
-| `main` | Production-ready code after deliberate promotion (PR only, normally from `development`). |
-| `dev` | Optional intermediate promotion gate when extra soak/review is needed (PR only). |
-
-- **Never force-push** `development` or `main`. Never commit directly to protected branches.
+- **Never force-push** `main`. Never commit directly to a protected branch.
 - Protected branches require **linear history** — squash or rebase only (no merge commits).
-- Do not open long-lived feature PRs into `main` by default; land on `development` first, then promote.
+- Cut a `fix/` branch from `main` for an urgent production problem, merge it, then land the same change on trunk in the same pass. There is no second integration branch to chase.
 
-### Branch naming
+### Promotion (trunk to tag)
 
-Create short-lived branches from latest `development` (hotfixes from `main`):
+Promotion is a maintainer action, not an agent action.
 
-- `feature/<short-description>` — new functionality
-- `fix/<short-description>` — non-urgent bug fixes
-- `hotfix/<short-description>` — urgent production fixes (from `main`)
-- `chore/<short-description>` — tooling, docs, CI, no-behavior refactors
-- `docs/<short-description>` — documentation-only
+1. Tip of `main` is green: `bazelisk run //:validate -- --all`
+2. Open a PR only when the maintainer asks; agents do not open promotion PRs.
+3. After merge, create an **annotated tag** on the merge commit:
 
-Use short, kebab-case descriptions (e.g. `feature/resource-guard-headroom-tuning`). Avoid ticket numbers as the only identifier.
+   ```bash
+   git tag -a vX.Y.Z -m "Release vX.Y.Z - short description"
+   git push origin vX.Y.Z
+   ```
+
+4. Deploy and lab runs consume that tag or an image digest. Nothing reads a branch name to decide what to deploy.
+
+Never push tags or open promotion PRs from agent automation unless the maintainer explicitly asks.
+
+### Environments
+
+Deployment environments are **not** Git branches. Each one has a single value home, named in [docs/environments.md](docs/environments.md):
+
+- `k8s/overlays/<dir>` for workload shape, applied with `kubectl apply -k`
+- Ansible inventory groups plus `ansible/inventory/group_vars/` for host-level values
+- `config/` policy files (`resource-policy.yaml` and its JSON twin, `lab-domains.yaml`, `flags.yaml`)
+- The published image tag or digest as the one promotion lever
 
 ### Commit messages
 
@@ -46,7 +61,7 @@ Style: Conventional Commits inspired, readable for other developers:
 <type>: <short summary in imperative mood>
 ```
 
-**Types:** `feat`, `fix`, `hotfix`, `chore`, `docs`, `refactor`, `test`, `ci`, `build`
+**Types:** `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `ci`, `build`, `perf`
 
 - Summary ≤ 72 characters; imperative mood (“add”, “fix”, not “added” / “fixes”).
 - Body explains *why* when non-obvious; wrap at 72–80 characters.
@@ -57,37 +72,6 @@ Style: Conventional Commits inspired, readable for other developers:
 - **Title:** same style as a good commit summary (imperative, concise).
 - **Description must include:** Summary, Changes, Safety impact, Test plan, and the checklist from [CONTRIBUTING.md](CONTRIBUTING.md#pull-request-titles-and-descriptions).
 - Safety impact: explicitly state workload / Resource Guard / NCCL / restartPolicy / manage.sh impact, or “No safety impact.”
-
-### Promotion (`development` → `main`)
-
-1. Tip of `development` is green: `bazelisk run //:validate -- --all`
-2. Open a promotion PR into `main` (or via `dev` if an intermediate gate is desired)
-3. PR notes: validation passed, outstanding safety notes, intended tag
-4. After merge, create an **annotated tag** on the merge commit:
-
-   ```bash
-   git tag -a vX.Y.Z -m "Release vX.Y.Z – short description"
-   git push origin vX.Y.Z
-   ```
-
-5. Prefer tags over the floating tip of `main` for production or reproducible lab deployments.
-
-Never push tags or open promotion PRs from agent automation unless the maintainer explicitly asks.
-
-### Hotfixes
-
-1. Branch `hotfix/<description>` from current `main`
-2. PR → `main` (expedited review OK for critical issues)
-3. Immediately follow up with a PR (or clean cherry-pick) back into `development`
-4. Tag the fix on `main`
-
-### Environments
-
-Deployment environments are **not** long-lived Git branches. Use:
-
-- `k8s/overlays/test`, `k8s/overlays/prod`, `k8s/overlays/single-node`
-- Ansible inventory + group_vars
-- `config/resource-policy.yaml` (and JSON twin) plus related policy files
 
 ## AI agent workflow
 

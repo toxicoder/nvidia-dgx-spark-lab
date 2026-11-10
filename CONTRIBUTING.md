@@ -14,32 +14,40 @@ Thank you for helping improve the lab. This file is a short hub; detailed conven
 
 This repository uses a simple, safety-conscious model that keeps the source history clean while giving us a clear integration gate before code reaches production.
 
-### Long-lived branches
+### One trunk
 
-| Branch        | Purpose                                      | Who merges into it          | Protection |
-|---------------|----------------------------------------------|-----------------------------|----------|
-| `development` | Primary integration branch. All feature work lands here first. Lab / test overlays are expected to work from this branch. | Pull requests only         | Protected, linear history |
-| `main`        | Production-ready code that has been explicitly promoted.     | Pull requests only (normally from `development`) | Protected, linear history |
-| `dev`         | Optional intermediate promotion gate. Use only when an extra soak or review period is needed. | Pull requests only         | Protected |
+`main` is the trunk. It is the only long-lived branch, and every change reaches it by pull request.
 
-Never force-push `development` or `main`.  
+| Branch | Role | Protection |
+|--------|------|------------|
+| `main` | The trunk. All work lands here, and releases are tagged here. | Protected: PRs only, linear history, status checks required |
+
+Short-lived branches live for days, not weeks. Cut one from the tip of `main` before your first edit, open the pull request while the change is still small, and delete the branch when it merges. When trunk moves under you, rebase your own branch; never rebase a branch someone else may have pulled.
+
+**Retirement note.** `development` was the previous integration branch and `dev` an optional soak gate. Both are retired. Their content is on trunk: `development` (tip `312cda32d0fefb48c04f02e253c413c69ab431a7`) is 148 commits ahead of the old `main` and `main` held no work of its own beyond retired MkDocs site scaffolding. `dev` (tip `1b4bcbefba62a5e860b7044dec0b49d518249b8b`) was last written 2026-07-20. Those SHAs are the recovery points until garbage collection.
+
+Never force-push `main`.
 Never commit directly to protected branches.
 
 ### Branch naming
 
-Create short-lived branches from the latest `development`:
+Create every short-lived branch from the tip of `main`, with one of these prefixes:
 
-- `feature/<short-description>` — new functionality
-- `fix/<short-description>` — bug fixes that are not urgent production hotfixes
-- `hotfix/<short-description>` — urgent production fixes (branched from `main`)
-- `chore/<short-description>` — tooling, docs, CI, refactoring with no user-visible behavior change
+- `feat/<short-description>` — new functionality
+- `fix/<short-description>` — bug fixes, including urgent production ones
+- `refactor/<short-description>` — no behavior change
+- `chore/<short-description>` — tooling, CI, and dependency work
 - `docs/<short-description>` — documentation-only changes
+- `ci/<short-description>` — workflow and gate changes
+- `test/<short-description>` — test-only changes
+- `perf/<short-description>` — performance work
+- `build/<short-description>` — Bazel and packaging changes
 
 Examples:
 
-- `feature/resource-guard-headroom-tuning`
+- `feat/resource-guard-headroom-tuning`
 - `fix/nemotron-startup-probe`
-- `hotfix/nccl-interface-mismatch`
+- `fix/nccl-interface-mismatch`
 - `chore/update-bazel-deps`
 
 Keep the description short, kebab-case, and meaningful. Avoid ticket numbers as the only identifier.
@@ -58,7 +66,7 @@ Preferred style (Conventional Commits inspired, but readable):
 [optional footer]
 ```
 
-**Types:** `feat`, `fix`, `hotfix`, `chore`, `docs`, `refactor`, `test`, `ci`, `build`
+**Types:** `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `ci`, `build`, `perf`
 
 Rules:
 
@@ -122,56 +130,60 @@ One or two sentences that explain *what* changed and *why*.
 
 Keep the tone professional and direct. Write as a developer talking to other developers.
 
-### Promotion process (development → main)
+### Promotion process (trunk to tag)
 
-1. Ensure the tip of `development` is green:
+Promotion is a tag on trunk. Nothing is promoted from a branch name.
+
+1. Ensure the tip of `main` is green:
 
    ```bash
    bazelisk run //:validate -- --all
    ```
 
-2. Open a promotion PR from `development` into `main` (or via `dev` if an intermediate gate is desired).
-3. The PR description must include:
+2. The PR description must include:
    - Confirmation that full validation passed
    - Any outstanding safety notes
    - The intended tag (see below)
-4. After the promotion PR is merged, create an **annotated tag** on the merge commit:
+3. After the PR is merged, create an **annotated tag** on the merge commit:
 
    ```bash
    git tag -a vX.Y.Z -m "Release vX.Y.Z – short description"
    git push origin vX.Y.Z
    ```
 
-5. Prefer referencing tags rather than the floating tip of `main` for any production or reproducible lab deployments.
+4. Reference tags or image digests, never the floating tip of `main` or a branch name, for any production or reproducible lab deployment.
 
-### Hotfix process
+### Urgent fixes
 
-1. Branch `hotfix/<description>` from the current `main`.
-2. Fix the issue, open PR → `main` (expedited review is acceptable for critical problems).
-3. After merge, immediately open a follow-up PR (or clean cherry-pick) back into `development`.
-4. Tag the fix on `main`.
+1. Branch `fix/<description>` from the current `main`.
+2. Fix the issue, open a PR into `main` (expedited review is acceptable for critical problems).
+3. Delete the branch on merge. There is no second integration branch to catch up.
 
 ### Environments
 
-Deployment environments are **not** represented by long-lived Git branches.  
-Use the existing mechanisms:
+Deployment environments are **not** Git branches. An environment is a set of values, a set of secrets, and a place it runs. Use the existing mechanisms, each named in [docs/environments.md](docs/environments.md):
 
-- `k8s/overlays/test`, `k8s/overlays/prod`, `k8s/overlays/single-node`
-- Ansible inventory + group_vars
-- `config/resource-policy.yaml` (and its JSON twin) plus related policy files
+- `k8s/overlays/<dir>` for workload shape, applied with `kubectl apply -k`
+- Ansible inventory groups plus `ansible/inventory/group_vars/` for host-level values
+- `config/` policy files (`resource-policy.yaml` and its JSON twin, `lab-domains.yaml`, `flags.yaml`)
+- The published image tag or digest as the one promotion lever
 
-This keeps history clean and prevents environment drift.
+Keep parameter names identical across environments, and promote by pointing the same revision at a different value set. This keeps history clean and prevents environment drift.
+
+Unfinished work ships on trunk behind a feature flag that defaults off. Declare it in [config/flags.yaml](config/flags.yaml) with an owner, an expiry, and its single reader, then keep `bazelisk test //tests:flags_registry` green. The gate lets a flag default on only when it is declared `kind: capability` with a reason, so an unfinished feature can never become load-bearing by accident.
 
 ### Branch protection expectations
 
-Maintainers should keep these GitHub settings enabled on `development` and `main`:
+Maintainers should keep these GitHub settings enabled on `main`:
 
 - Require a pull request before merging
-- Require status checks to pass (the CI suite)
+- Require status checks to pass (the CI suite: `CI - Test Suite`, `validate-gate`)
 - Require linear history (squash or rebase only)
 - Restrict force pushes
 - Restrict deletions
 - CODEOWNERS recommended for high-risk paths (`k8s/workloads/`, `config/`, `ansible/`, safety-critical scripts)
+
+Attach secrets and required-reviewer protection rules to the GitHub **Environments** (`artifacts` for published images, and one per deploy target) rather than to a branch name. That review is the gate a branch name used to fake.
 
 ## Before you open a PR
 
