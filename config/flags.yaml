@@ -1,0 +1,61 @@
+# Purpose: the one checked-in registry of every switch this repository branches on, so a
+#   reviewer sees the whole flag surface in one read and retiring a switch is one edit and a
+#   grep.
+# Source of truth: this file. There is no generated twin; tests/flags_registry.py is the gate
+#   that keeps it true (bazelisk test //tests:flags_registry).
+# Regenerate: never by hand-editing a generated artifact - edit this file, then run the gate.
+# Safety: checked in, so no secret belongs here. A secret goes in the GitHub Environment or the
+#   deploy env file the environment already reads, never in this registry. SSO_ENABLED defaults
+#   on because it is a deployed security control: switching it off by default would expose the
+#   lab, so it is declared kind: capability and the gate requires a reason instead.
+#
+# Precedence, highest first: process environment, then flags.<FLAG>.environments.<env>,
+# then flags.<FLAG>.default. `environments:` is omitted below until an environment has a value
+# home of its own (see docs/environments.md); until then every flag resolves to `default`.
+#
+# Kinds, and what the gate demands of each:
+#   feature    - gates unfinished work. Must ship default: false. Exactly one reader.
+#   capability - a shipped control or component. May default on, with `reason`. One reader.
+#   harness    - a dev/test switch. Must default off, name its production `guard`, and may be
+#                read from up to three files when one guard expression tests several.
+version: 1
+flags:
+  SSO_ENABLED:
+    default: true
+    owner: toxicoder
+    description: "Front the lab with Traefik + Authelia SSO (start-monitoring, start-traefik)."
+    expires: "reviewed at each lab rebuild; retired only with maintainer sign-off"
+    kind: capability
+    reason: "Deployed authentication control for the lab; off by default would expose the UIs."
+    reader: scripts/lib/sso.sh
+
+  CONTEXT7_ENABLED:
+    default: true
+    owner: toxicoder
+    description: "Serve the context7 documentation proxy for the lab MCP lane."
+    expires: "retired when the context7 proxy leaves the lab stack"
+    kind: capability
+    reason: "Shipped MCP lane; the documented off switch is this variable on the deployment."
+    reader: mcp/k8s/workloads/context7-proxy/server.py
+
+  AUTH_BYPASS:
+    default: false
+    owner: toxicoder
+    description: "Skip the dashboard session check for local runs and golden refreshes."
+    expires: "reviewed with each dashboard test-infra change; forbidden in production"
+    kind: harness
+    guard: dashboard/lib/env-guards.ts
+    reader:
+      - dashboard/lib/require-session.ts
+      - dashboard/middleware.ts
+
+  USE_MOCKS:
+    default: false
+    owner: toxicoder
+    description: "Serve fixture data instead of live lab endpoints in dashboard tests."
+    expires: "reviewed with each dashboard test-infra change; forbidden in production"
+    kind: harness
+    guard: dashboard/lib/env-guards.ts
+    reader:
+      - dashboard/lib/require-session.ts
+      - dashboard/middleware.ts

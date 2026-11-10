@@ -431,6 +431,37 @@ sh_test(
     visibility = ["//visibility:public"],
 )
 
+# Feature-flag registry gate: config/flags.yaml must declare every switch with a
+# default, owner, expiry and one reader, and only a declared capability may ship on.
+# The data list carries every file a reader may name today; a flag whose reader lives
+# elsewhere has to add its filegroup here, which keeps the seam reviewable.
+sh_test(
+    name = "flags_registry",
+    size = "small",
+    timeout = "short",
+    srcs = ["flags_registry.sh"],
+    data = [
+        "flags_registry.py",
+        "//config:flags_registry",
+        "//dashboard:sources",
+        "//mcp:python_sources",
+        "//scripts:lib_srcs",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sh_test(
+    name = "flags_registry_unit",
+    size = "small",
+    timeout = "short",
+    srcs = ["flags_registry_unit.sh"],
+    data = [
+        "flags_registry.py",
+        "test_flags_registry.py",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 # Bazel-first gate: every tracked file has a BUILD.bazel owner, each wildcard
 # glob() is sanctioned in writing, and no BUILD.bazel names a path that has gone
 # missing.
@@ -529,6 +560,9 @@ filegroup(
         "doc_coverage.py",
         "doc_coverage.sh",
         "doc_coverage_unit.sh",
+        "flags_registry.py",
+        "flags_registry.sh",
+        "flags_registry_unit.sh",
         "kustomize_build.sh",
         "manifest_coverage.py",
         "manifest_coverage.sh",
@@ -536,6 +570,7 @@ filegroup(
         "shell_coverage.sh",
         "test_bazel_file_coverage.py",
         "test_doc_coverage.py",
+        "test_flags_registry.py",
     ],
     visibility = ["//visibility:public"],
 )
