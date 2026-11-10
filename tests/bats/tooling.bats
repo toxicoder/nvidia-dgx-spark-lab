@@ -417,7 +417,7 @@ PY
 }
 
 @test "coder-workspace installs yamllint via pip only" {
-  # apt yamllint has no pip RECORD. A later `pip3 install yamllint` (or
+  # apt yamllint has no pip RECORD. A later `pip install yamllint` (or
   # ansible-lint, which depends on it) then fails with uninstall-no-record-file.
   local df="${REPO_ROOT}/k8s/dev/images/coder-workspace/Dockerfile"
   [[ -f $df ]]
@@ -434,7 +434,7 @@ for line in lines:
     stripped = line.strip().rstrip("\\").strip()
     if line.startswith("RUN ") and "apt-get install" in line:
         in_apt, in_pip = True, False
-    elif line.startswith("RUN ") and "pip3 install" in line:
+    elif line.startswith("RUN ") and ("pip3 install" in line or "pip install" in line):
         in_apt, in_pip = False, True
     elif line.startswith("RUN "):
         in_apt, in_pip = False, False
@@ -450,6 +450,39 @@ if not pip_yamllint:
     sys.exit(1)
 print("ok")
 PY
+}
+
+@test "coder-workspace installs the lint trio in its own venv" {
+  # apt installs ansible, which drags in Debian wheels (python3-cryptography, ansible-core) that
+  # ship without a pip RECORD. A pip install into system site-packages then aborts with
+  # uninstall-no-record-file, and shadowing those wheels would silently repoint the workspace's
+  # own ansible. The linters get a venv instead, so neither side touches the other.
+  local df="${REPO_ROOT}/k8s/dev/images/coder-workspace/Dockerfile"
+  [[ -f $df ]]
+  if ! grep -qE 'python3 -m venv ' "$df"; then
+    echo "the lint trio must install into a dedicated venv:" >&2
+    grep -nE 'pip3? install' "$df" >&2 || true
+    return 1
+  fi
+  local tool
+  for tool in ansible-lint yamllint ruff; do
+    if ! grep -A4 -E 'bin/pip install --no-cache-dir[[:space:]]+\\$' "$df" |
+      grep -Eq "^[[:space:]]+${tool}([[:space:]]+\\\\)?$"; then
+      echo "the venv pip must install ${tool}:" >&2
+      grep -nE -A4 'bin/pip install' "$df" >&2 || true
+      return 1
+    fi
+    if ! grep -Eq "ln -sf[^;]*bin/${tool}( |$|\\\\)" "$df"; then
+      echo "${tool} must be linked onto PATH from the venv:" >&2
+      return 1
+    fi
+  done
+  # apt ansible is what the workspace runs lab playbooks with; the venv must leave it installed.
+  if ! grep -Eq '^[[:space:]]+ansible[[:space:]]+\\$' "$df"; then
+    echo "coder-workspace must keep apt-installing ansible:" >&2
+    grep -nE '^[[:space:]]+ansible' "$df" >&2 || true
+    return 1
+  fi
 }
 
 @test "Deploy Documentation workflow publishes only after merge (not on PR)" {

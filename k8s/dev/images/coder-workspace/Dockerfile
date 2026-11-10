@@ -56,11 +56,22 @@ RUN case "${TARGETARCH}" in \
       | tar xz -C /usr/local/bin kubeconform \
     && chmod +x /usr/local/bin/kubeconform
 
-# yamllint is pip-only: apt yamllint has no RECORD and breaks pip/ansible-lint.
-RUN pip3 install --no-cache-dir --break-system-packages \
+# Linters live in their own venv. apt installs ansible, which drags in Debian wheels
+# (python3-cryptography, ansible-core) that carry no pip RECORD: a pip install into system
+# site-packages aborts with uninstall-no-record-file, and shadowing those wheels instead would
+# silently repoint the ansible this workspace runs lab playbooks with. A venv touches neither.
+RUN python3 -m venv /opt/lab-lint
+RUN /opt/lab-lint/bin/pip install --no-cache-dir --upgrade pip
+RUN /opt/lab-lint/bin/pip install --no-cache-dir \
     ansible-lint \
     yamllint \
     ruff
+# Linked onto PATH rather than added to ENV PATH: putting the venv first would repoint `ansible`
+# at the venv's ansible-core. Called through the link, ansible-lint prints a benign "PATH altered"
+# notice because it prepends its own directory; the tools still resolve correctly.
+RUN ln -sf /opt/lab-lint/bin/ansible-lint /usr/local/bin/ansible-lint \
+    && ln -sf /opt/lab-lint/bin/yamllint /usr/local/bin/yamllint \
+    && ln -sf /opt/lab-lint/bin/ruff /usr/local/bin/ruff
 
 COPY k8s/dev/images/coder-workspace/workspace-init.sh /usr/local/bin/workspace-init.sh
 RUN chmod +x /usr/local/bin/workspace-init.sh
