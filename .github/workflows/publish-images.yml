@@ -282,7 +282,9 @@ jobs:
           images: ${{ steps.image.outputs.name }}
           tags: |
             type=sha,prefix=sha-,format=short
-            type=raw,value=latest,enable=${{ github.ref_name == 'main' }}
+            # Only a push moves latest, and push triggers on trunk alone, so a
+            # dispatch from any other ref cannot repoint the floating tag.
+            type=raw,value=latest,enable=${{ github.event_name == 'push' }}
             type=raw,value=${{ github.event.inputs.image_tag }},enable=${{ github.event.inputs.image_tag != '' }}
 
       - name: Create multi-arch manifest

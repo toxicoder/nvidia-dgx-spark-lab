@@ -151,7 +151,7 @@ jobs:
           !/.nojekyll
           GITIGNORE
           git add -A
-          git commit -m "docs: publish $GITHUB_REF_NAME from $GITHUB_SHA" --allow-empty
+          git commit -m "docs: publish Pages tree from $GITHUB_SHA" --allow-empty
           git push origin gh-pages
           # Restore the source working tree for the post steps.
           git checkout -f "$SRC_SHA"
