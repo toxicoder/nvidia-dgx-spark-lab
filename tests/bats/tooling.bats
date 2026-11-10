@@ -109,17 +109,30 @@ teardown() {
   fi
 }
 
-@test "Gitea CI long-lived branches match GitHub CI" {
-  # development is the primary integration branch — both CI surfaces must run on it.
+@test "CI gates trunk on push and pull requests on both CI surfaces" {
+  # Trunk-based development: main is the only long-lived branch. Both CI surfaces
+  # must run the gate on push to it, keep pull requests gated (development only
+  # while that legacy branch is retired), and stop naming the retired refs.
   # Use portable grep (not host ripgrep): GHA ubuntu-latest has no rg by default.
   local gh="${REPO_ROOT}/.github/workflows/ci.yml"
   local gitea="${REPO_ROOT}/.gitea/workflows/ci.yml"
   [[ -f $gh && -f $gitea ]]
-  grep -q 'development' "$gh"
-  grep -q 'development' "$gitea"
-  # Pull-request targets should include development on both.
-  grep -A2 'pull_request:' "$gh" | grep -q 'development'
-  grep -A2 'pull_request:' "$gitea" | grep -q 'development'
+  local file
+  for file in "$gh" "$gitea"; do
+    if ! grep -A1 -E '^  push:' "$file" | grep -Eq 'branches:[[:space:]]*\[main\]'; then
+      echo "push must trigger on trunk alone in ${file}" >&2
+      return 1
+    fi
+    if ! grep -A1 -E '^  pull_request:' "$file" | grep -Eq 'branches:[[:space:]]*\[main, development\]'; then
+      echo "pull_request must stay gated on trunk plus the retiring branch in ${file}" >&2
+      return 1
+    fi
+    if grep -A2 -E '^  (push|pull_request):' "$file" |
+      grep -Eq '(^|[^[:alnum:]_-])(dev|master)([^[:alnum:]_-]|$)'; then
+      echo "retired branch still named in the triggers of ${file}" >&2
+      return 1
+    fi
+  done
 }
 
 # Extract unique "owner/name@vN" (or "owner/name@vN.M") pins from a workflow YAML.
@@ -185,17 +198,18 @@ _ci_action_pins() {
   fi
 }
 
-@test "Dependabot PRs target development" {
-  # GitHub's default branch is main, but lab work lands on development first.
-  # Without target-branch, Dependabot opens stale PRs against main.
+@test "Dependabot PRs target trunk" {
+  # main is the trunk and the only long-lived branch, so dependency updates must
+  # open against it. Without target-branch the ecosystem still resolves to the
+  # default branch, and an explicit value keeps the intent reviewable.
   local cfg="${REPO_ROOT}/.github/dependabot.yml"
   [[ -f $cfg ]]
   local ecosystems targets
   ecosystems=$(grep -cE '^[[:space:]]+-[[:space:]]+package-ecosystem:' "$cfg" || true)
-  targets=$(grep -cE '^[[:space:]]+target-branch:[[:space:]]+development[[:space:]]*$' "$cfg" || true)
+  targets=$(grep -cE '^[[:space:]]+target-branch:[[:space:]]+main[[:space:]]*$' "$cfg" || true)
   if [[ $ecosystems -lt 3 || $ecosystems -ne $targets ]]; then
-    echo "Each Dependabot ecosystem must set target-branch: development:" >&2
-    echo "package-ecosystem count=${ecosystems} target-branch: development count=${targets}" >&2
+    echo "Each Dependabot ecosystem must set target-branch: main:" >&2
+    echo "package-ecosystem count=${ecosystems} target-branch: main count=${targets}" >&2
     return 1
   fi
 }
