@@ -15,7 +15,7 @@ image:
   # tag: "local"   # override when built
   # GHCR (after packages are public):
   #   repository: ghcr.io/toxicoder/nvidia-dgx-spark-lab/lab-dashboard
-  #   tag: development   # or main / sha-<short>
+  #   tag: sha-<short>   # or a published tag such as v1.2.3; latest tracks trunk
 
 service:
   type: NodePort

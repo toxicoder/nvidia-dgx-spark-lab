@@ -7,15 +7,21 @@ name: Devcontainer image
 
 on:
   push:
-    branches: [development, main]
+    branches: [main]
     paths:
       - ".devcontainer/**"
       - ".github/workflows/devcontainer-image.yml"
   pull_request:
-    branches: [main, master, development, dev]
+    branches: [main, development]
     paths:
       - ".devcontainer/**"
       - ".github/workflows/devcontainer-image.yml"
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Tag to publish, e.g. v1.2.3 or a sha-<short>
+        required: false
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -99,6 +105,7 @@ jobs:
   merge:
     needs: build
     if: github.event_name != 'pull_request'
+    environment: artifacts
     runs-on: ubuntu-latest
     steps:
       - name: Lowercase image name
@@ -124,8 +131,8 @@ jobs:
         with:
           images: ${{ steps.image.outputs.name }}
           tags: |
-            type=raw,value=${{ github.ref_name }}
             type=sha,prefix=sha-,format=short
+            type=raw,value=${{ github.event.inputs.image_tag }},enable=${{ github.event.inputs.image_tag != '' }}
 
       - name: Create multi-arch manifest
         working-directory: ${{ runner.temp }}/digests
