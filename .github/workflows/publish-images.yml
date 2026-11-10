@@ -8,7 +8,7 @@ name: Publish lab images
 
 on:
   push:
-    branches: [development, main]
+    branches: [main]
     paths:
       - ".github/workflows/publish-images.yml"
       - ".github/container-images.json"
@@ -25,7 +25,7 @@ on:
       - "k8s/dev/images/coder-workspace/**"
       - "mcp/config/clients/coder-workspace.mcp.json.example"
   pull_request:
-    branches: [main, master, development, dev]
+    branches: [main, development]
     paths:
       - ".github/workflows/publish-images.yml"
       - ".github/container-images.json"
@@ -48,6 +48,15 @@ on:
         required: true
         default: all
         type: string
+      image_tag:
+        description: Tag to publish, e.g. v1.2.3 or a sha-<short>
+        required: false
+        type: string
+      push:
+        description: Whether to push the built images
+        required: false
+        default: true
+        type: boolean
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -215,13 +224,13 @@ jobs:
           cache-to: type=gha,mode=max,scope=lab-${{ matrix.image }}-${{ steps.plat.outputs.platform }}
           outputs: >-
             ${{
-              github.event_name == 'pull_request'
+              (github.event_name == 'pull_request' || github.event.inputs.push == 'false')
               && 'type=cacheonly'
               || format('type=image,name={0},push-by-digest=true,name-canonical=true,push=true', steps.image.outputs.name)
             }}
 
       - name: Export digest
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.event.inputs.push != 'false'
         run: |
           set -euo pipefail
           mkdir -p "${RUNNER_TEMP}/digests"
@@ -229,7 +238,7 @@ jobs:
           touch "${RUNNER_TEMP}/digests/${digest#sha256:}"
 
       - uses: actions/upload-artifact@v4
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.event.inputs.push != 'false'
         with:
           name: digests-${{ matrix.image }}-${{ steps.plat.outputs.artifact }}
           path: ${{ runner.temp }}/digests/*
@@ -238,7 +247,11 @@ jobs:
 
   merge:
     needs: [changes, build]
-    if: github.event_name != 'pull_request' && needs.changes.outputs.images != '[]'
+    if: |
+      github.event_name != 'pull_request' &&
+      github.event.inputs.push != 'false' &&
+      needs.changes.outputs.images != '[]'
+    environment: artifacts
     strategy:
       fail-fast: false
       matrix:
@@ -268,9 +281,9 @@ jobs:
         with:
           images: ${{ steps.image.outputs.name }}
           tags: |
-            type=raw,value=${{ github.ref_name }}
             type=sha,prefix=sha-,format=short
             type=raw,value=latest,enable=${{ github.ref_name == 'main' }}
+            type=raw,value=${{ github.event.inputs.image_tag }},enable=${{ github.event.inputs.image_tag != '' }}
 
       - name: Create multi-arch manifest
         working-directory: ${{ runner.temp }}/digests

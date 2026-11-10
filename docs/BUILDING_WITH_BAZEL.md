@@ -216,9 +216,11 @@ complete export (assets and the search index are baked with their prefix, so the
 shared between prefixes). A root `index.html` forwards bare URLs to `/latest/`, which keeps
 every previously published and bookmarked address working — no redirect service required.
 
-Workflow: `.github/workflows/deploy-docs.yml` runs **only on push** to `main`/`master`/`development`
+Workflow: `.github/workflows/deploy-docs.yml` runs **only on push** to `main`/`development`
 (docs paths) or `workflow_dispatch` — not on `pull_request`. Merging a PR into those branches is
 what publishes; PR-time docs validation is the `docs-and-render` CI job, not this workflow. The
+`development` entry exists only for the `/development/` URL alias while that legacy branch is
+retired; once it is deleted, publish trunk alone. The
 job assembles `_site/{latest,development}`, writes a root `.nojekyll` (GitHub Pages still uses
 the legacy `gh-pages` branch, which otherwise runs Jekyll and drops Next's `_next/` tree), and
 fast-forwards that branch. Never force-push `gh-pages`.
@@ -294,11 +296,11 @@ Bazel jobs restore disk/repo cache via `.github/actions/setup-bazel` (keyed on `
 
 ### Published lab images (GHCR)
 
-`.github/workflows/publish-images.yml` builds first-party CPU-portable images and publishes them to `ghcr.io/<owner>/<repo>/<id>` on push to `development` / `main`. Pull requests build both architectures (`linux/amd64` + `linux/arm64`) with `type=cacheonly` and do **not** push. Catalog: `.github/container-images.json`.
+`.github/workflows/publish-images.yml` builds first-party CPU-portable images and publishes them to `ghcr.io/<owner>/<repo>/<id>` on push to `main`, or from a manual run that names the tag to publish. Pull requests build both architectures (`linux/amd64` + `linux/arm64`) with `type=cacheonly` and do **not** push. No tag is derived from a branch name: promotion names one tag or digest. Catalog: `.github/container-images.json`.
 
 | Image id | Local tag (unchanged) | GHCR tags |
 | --- | --- | --- |
-| `lab-dashboard` | `lab-dashboard:local` | `development`, `main`, `sha-<short>`, `latest` (main only) |
+| `lab-dashboard` | `lab-dashboard:local` | `sha-<short>`, `latest` (trunk only), plus any tag a manual run supplies |
 | `mcp-*` / `context7-proxy` / `doc-ingest` | `lab-mcp/<name>:local` | same |
 | `coder-workspace` | `spark-lab-coder-workspace:latest` | same |
 

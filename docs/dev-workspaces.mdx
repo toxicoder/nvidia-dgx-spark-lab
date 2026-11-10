@@ -146,7 +146,7 @@ Each workspace pod runs two containers sharing a network namespace:
 ```bash
 docker build -t spark-lab-coder-workspace:latest -f k8s/dev/images/coder-workspace/Dockerfile .
 # or pull the CI image (after GHCR packages are public):
-# docker pull ghcr.io/toxicoder/nvidia-dgx-spark-lab/coder-workspace:development
+# docker pull ghcr.io/toxicoder/nvidia-dgx-spark-lab/coder-workspace:latest
 ```
 
 **Register template in Coder:**
