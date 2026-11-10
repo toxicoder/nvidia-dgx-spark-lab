@@ -1,8 +1,7 @@
 name: Deploy Documentation
 
-# Publish only after content lands on trunk (PR merge → push), plus the one
-# retiring legacy branch that still has a published URL alias, or via manual
-# workflow_dispatch. Do not run on pull_request: PR docs
+# Publish only after content lands on trunk (PR merge → push), or via manual
+# workflow_dispatch with an explicit version label. Do not run on pull_request: PR docs
 # validation is CI (docs-and-render); the public site is a static Next export.
 #
 # URL compatibility: the MkDocs site published under <base>/latest/ and
@@ -19,7 +18,7 @@ name: Deploy Documentation
 # actions re-resolve their action.yml from disk).
 on:
   push:
-    branches: [main, development]
+    branches: [main]
     paths:
       - "docs/**"
       - "docs-site/**"
@@ -28,7 +27,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Docs version to publish (defaults to the branch the run is for)
+        description: Docs version label to publish under (defaults to main)
         required: false
         type: string
 
@@ -77,10 +76,9 @@ jobs:
       # /latest/ and /development/ never disagree about content.
       - name: Build and assemble the Pages tree
         env:
-          # Branch-aware "Edit on GitHub" links plus the development banner.
-          DGX_DOCS_VERSION: >-
-            ${{ github.event.inputs.version ||
-            (github.ref_name == 'development' && 'development' || 'main') }}
+          # Sets the "Edit on GitHub" links plus the non-production banner. One input
+          # with one default: nothing here reads the ref the run was triggered from.
+          DGX_DOCS_VERSION: ${{ github.event.inputs.version || 'main' }}
         run: |
           set -euo pipefail
           root="${BUILD_WORKSPACE_DIRECTORY:-$(pwd)}"

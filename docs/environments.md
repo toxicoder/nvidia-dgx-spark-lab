@@ -45,7 +45,7 @@ Three corollaries follow, and all three are load-bearing here:
 | `ci` | Ephemeral runners on push and pull request | the workflow files under `.github/workflows/` plus `.devcontainer/tool-versions.env` | GitHub's own `GITHUB_TOKEN`, which writes GHCR on push only; no repo-held secret | the devcontainer image and the GHCR build cache |
 | `lab` | the one deployed environment: the DGX Spark fleet, namespace `ai-inference` plus `dev`, `monitoring`, and `agent-tools` | **does not exist yet** - split across the six homes in the next table | committed shape is `*.example.yaml`; live values reach the cluster, the dashboard vault, or the process environment (`LAB_SWITCH_PASSWORD`) | `ghcr.io/toxicoder/nvidia-dgx-spark-lab/<id>`, catalogued in `.github/container-images.json` and built by `.github/workflows/publish-images.yml` |
 | `stable` | a revision the lab holds instead of following | **does not exist yet** - nothing records the promoted digest | same as `lab` | an annotated tag on trunk (`vX.Y.Z`) plus the `sha-<short>` tag that build already published |
-| `docs` | the public site on GitHub Pages | the `docs/` tree plus `docs-site/lib/nav.json` | none; `GITHUB_TOKEN` only | `.github/workflows/deploy-docs.yml`, published under `latest/` (the `development/` tree retires with the branch) |
+| `docs` | the public site on GitHub Pages | the `docs/` tree plus `docs-site/lib/nav.json` | none; `GITHUB_TOKEN` only | `.github/workflows/deploy-docs.yml`, published under `latest/`, plus a `development/` tree built from the same commit so old URLs keep resolving |
 
 ## Where the lab's values actually live
 

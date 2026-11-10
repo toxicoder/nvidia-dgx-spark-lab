@@ -202,10 +202,10 @@ download, which is what makes it the cheap default in `bazel-core`.
 The MkDocs site published two aliases with **mike**; Fumadocs has no mike equivalent, so the
 same URLs are produced by building the static export twice with different `basePath` values:
 
-| Alias | Branch | Build target | URL |
+| Alias | Built from | Build target | URL |
 | --- | --- | --- | --- |
-| `latest` (default) | `main` | `//docs-site:build-latest` (`DOCS_ALIAS=latest`) | `…/nvidia-dgx-spark-lab/latest/` |
-| `development` | `development` | `//docs-site:build-development` (`DOCS_ALIAS=development`) | `…/nvidia-dgx-spark-lab/development/` |
+| `latest` (default) | trunk | `//docs-site:build-latest` (`DOCS_ALIAS=latest`) | `…/nvidia-dgx-spark-lab/latest/` |
+| `development` | the same trunk commit, kept for bookmarked URLs | `//docs-site:build-development` (`DOCS_ALIAS=development`) | `…/nvidia-dgx-spark-lab/development/` |
 
 `DOCS_ALIAS` makes Next bake `basePath=/nvidia-dgx-spark-lab/<alias>` into every asset URL.
 A host-root prefix such as `/latest` would request `https://<user>.github.io/latest/_next/...`
@@ -216,22 +216,25 @@ complete export (assets and the search index are baked with their prefix, so the
 shared between prefixes). A root `index.html` forwards bare URLs to `/latest/`, which keeps
 every previously published and bookmarked address working — no redirect service required.
 
-Workflow: `.github/workflows/deploy-docs.yml` runs **only on push** to `main`/`development`
-(docs paths) or `workflow_dispatch` — not on `pull_request`. Merging a PR into those branches is
-what publishes; PR-time docs validation is the `docs-and-render` CI job, not this workflow. The
-`development` entry exists only for the `/development/` URL alias while that legacy branch is
-retired; once it is deleted, publish trunk alone. The
+Workflow: `.github/workflows/deploy-docs.yml` runs **only on push** to trunk (docs paths) or on
+`workflow_dispatch` with an explicit `version` label — not on `pull_request`. Merging a PR into
+trunk is what publishes; PR-time docs validation is the `docs-and-render` CI job, not this
+workflow. The `/development/` prefix is a URL alias the MkDocs site published with mike: the job
+still writes it, from the same trunk commit as `/latest/`, so bookmarked addresses keep
+resolving. The
 job assembles `_site/{latest,development}`, writes a root `.nojekyll` (GitHub Pages still uses
 the legacy `gh-pages` branch, which otherwise runs Jekyll and drops Next's `_next/` tree), and
 fast-forwards that branch. Never force-push `gh-pages`.
 
-`DGX_DOCS_VERSION` is the branch-aware knob the MkDocs hooks used, now read by the app:
+`DGX_DOCS_VERSION` is the label knob the MkDocs hooks used, now read by the app. CI sets it from
+the `version` workflow_dispatch input, defaulting to `main`, so no deploy path reads the ref the
+run was triggered from:
 
-- `development` renders the non-production banner
-- “Edit on GitHub” points at `edit/development/docs/…` (otherwise `edit/main/docs/…`)
-- in-repo GitHub source links resolve against the same long-lived ref
+- a label other than `main` renders the non-production banner
+- “Edit on GitHub” points at `edit/<label>/docs/…`
+- in-repo GitHub source links resolve against that same ref
 
-Optional local override: `DGX_DOCS_GIT_REF=development` (or `main`). Feature-branch names are not
+Optional local override: `DGX_DOCS_GIT_REF=<ref>`. Feature-branch names are not
 auto-mapped, since an edit link into an unpublished branch would 404.
 
 Local dev (`bazelisk run //docs:serve`) builds neither alias: it serves at the root with hot

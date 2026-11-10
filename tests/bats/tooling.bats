@@ -453,8 +453,8 @@ PY
 }
 
 @test "Deploy Documentation workflow publishes only after merge (not on PR)" {
-  # Public docs go live on push to long-lived branches (PR merge) or
-  # workflow_dispatch, by publishing the two static exports. Opening a PR must
+  # Public docs go live on push to trunk (a merged PR) or workflow_dispatch, by
+  # publishing the two static exports. Opening a PR must
   # not deploy-pages or trigger a pull_request publish path (PR validation is
   # the docs-and-render CI job).
   local deploy="${REPO_ROOT}/.github/workflows/deploy-docs.yml"
@@ -474,10 +474,11 @@ PY
     grep -nE 'preview-branch|allow-preview-deployment|pages-deployment-branch' "$deploy" >&2 || true
     return 1
   fi
-  # Positive controls: merge/push + manual republish + both version aliases published.
+  # Positive controls: push to trunk alone + manual republish + both version
+  # aliases published.
   grep -qE '^[[:space:]]*push:' "$deploy"
+  grep -A1 -E '^[[:space:]]*push:' "$deploy" | grep -qE 'branches:[[:space:]]*\[main\]'
   grep -qF 'workflow_dispatch' "$deploy"
-  grep -qE 'branches:[[:space:]]*\[.*development' "$deploy"
   grep -qF '//docs-site:build-latest' "$deploy"
   grep -qF '//docs-site:build-development' "$deploy"
   grep -qF 'git push origin gh-pages' "$deploy"
