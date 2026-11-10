@@ -130,6 +130,8 @@ _TEST_FAST = [
     "//tests:manifest_coverage",
     "//tests:doc_coverage",
     "//tests:doc_coverage_unit",
+    "//tests:flags_registry",
+    "//tests:flags_registry_unit",
     "//tests:safety_invariants",
     "//tests:bazel_file_coverage",
     "//tests:bazel_file_coverage_unit",

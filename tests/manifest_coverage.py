@@ -57,6 +57,9 @@ _CONFIG_EXERCISED = frozenset(
     }
 )
 
+# Exercised by //tests:flags_registry (the registry gate parses and validates it)
+_FLAGS_EXERCISED = frozenset({"config/flags.yaml"})
+
 # Exercised by //tests:safety_invariants (MCP policy + k8s tree)
 _MCP_CONFIG_EXERCISED = frozenset(
     {
@@ -213,9 +216,12 @@ def _check_config(root: pathlib.Path, errors: list[str]) -> None:
     for path in sorted(_CONFIG_EXERCISED):
         if not (root / path).is_file():
             errors.append(f"{path}: missing (expected //tests:safety_invariants)")
+    for path in sorted(_FLAGS_EXERCISED):
+        if not (root / path).is_file():
+            errors.append(f"{path}: missing (expected //tests:flags_registry)")
     extra = [p for p in _tracked(root, "config/") if _is_yaml(p) or p.endswith(".json")]
     for path in extra:
-        if path not in _CONFIG_EXERCISED:
+        if path not in _CONFIG_EXERCISED | _FLAGS_EXERCISED:
             errors.append(f"{path}: add to safety_invariants or manifest registry")
 
     for path in sorted(_MCP_CONFIG_EXERCISED):
