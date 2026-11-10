@@ -208,6 +208,14 @@
         "path": "contribute/index.md"
       },
       {
+        "title": "Branching",
+        "path": "branching.md"
+      },
+      {
+        "title": "Environments",
+        "path": "environments.md"
+      },
+      {
         "title": "Developer Environment",
         "path": "dev-environment.md"
       },
