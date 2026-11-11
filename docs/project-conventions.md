@@ -1006,11 +1006,12 @@ Full rules live in the root [CONTRIBUTING.md](https://github.com/toxicoder/nvidi
 
 Key invariants that agents must follow:
 
-- All feature and non-urgent fix work starts from and lands on `development`.
-- Promotion to `main` is deliberate and requires a PR + full validation.
+- All work starts from the tip of `main`, the only long-lived branch, and lands on it by pull request.
+- Cut one short-lived branch (`feat/`, `fix/`, `refactor/`, `docs/`, `chore/`, `ci/`, `test/`, `perf/`, `build/`) from the tip of `main` before the first edit, merge it within days, and delete it on merge.
+- Unfinished work ships on trunk behind a flag declared in `config/flags.yaml` that defaults off.
 - Commit messages and PR descriptions are written for other developers (clear, imperative, safety-aware).
 - Environments are expressed with Kustomize overlays and config files only — never with long-lived environment branches.
-- After any promotion to `main`, an annotated tag is expected.
+- Promotion is trunk to tag: an annotated tag on the merge commit names the artifact that ships.
 
 ---
 
