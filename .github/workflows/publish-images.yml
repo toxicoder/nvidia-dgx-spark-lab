@@ -25,7 +25,7 @@ on:
       - "k8s/dev/images/coder-workspace/**"
       - "mcp/config/clients/coder-workspace.mcp.json.example"
   pull_request:
-    branches: [main, development]
+    branches: [main]
     paths:
       - ".github/workflows/publish-images.yml"
       - ".github/container-images.json"

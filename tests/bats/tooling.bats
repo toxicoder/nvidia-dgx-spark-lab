@@ -150,8 +150,9 @@ teardown() {
 
 @test "CI gates trunk on push and pull requests on both CI surfaces" {
   # Trunk-based development: main is the only long-lived branch. Both CI surfaces
-  # must run the gate on push to it, keep pull requests gated (development only
-  # while that legacy branch is retired), and stop naming the retired refs.
+  # must run the gate on push to it and on pull requests into it, and no trigger
+  # may name a retired branch. development and dev are retired (see
+  # docs/branching.md "Retirement note"), so naming them here is a defect.
   # Use portable grep (not host ripgrep): GHA ubuntu-latest has no rg by default.
   local gh="${REPO_ROOT}/.github/workflows/ci.yml"
   local gitea="${REPO_ROOT}/.gitea/workflows/ci.yml"
@@ -162,12 +163,12 @@ teardown() {
       echo "push must trigger on trunk alone in ${file}" >&2
       return 1
     fi
-    if ! grep -A1 -E '^  pull_request:' "$file" | grep -Eq 'branches:[[:space:]]*\[main, development\]'; then
-      echo "pull_request must stay gated on trunk plus the retiring branch in ${file}" >&2
+    if ! grep -A1 -E '^  pull_request:' "$file" | grep -Eq 'branches:[[:space:]]*\[main\]'; then
+      echo "pull_request must trigger on trunk alone in ${file}" >&2
       return 1
     fi
     if grep -A2 -E '^  (push|pull_request):' "$file" |
-      grep -Eq '(^|[^[:alnum:]_-])(dev|master)([^[:alnum:]_-]|$)'; then
+      grep -Eq '(^|[^[:alnum:]_-])(dev|development|master)([^[:alnum:]_-]|$)'; then
       echo "retired branch still named in the triggers of ${file}" >&2
       return 1
     fi
