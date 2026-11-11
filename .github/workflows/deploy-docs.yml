@@ -112,7 +112,7 @@ jobs:
             <body>
               <p>
                 The documentation moved. <a href="https://toxicoder.github.io/nvidia-dgx-spark-lab/latest/">Continue to the latest docs</a>
-                &mdash; or read the <a href="https://toxicoder.github.io/nvidia-dgx-spark-lab/development/">development branch docs</a>.
+                &mdash; or read the <a href="https://toxicoder.github.io/nvidia-dgx-spark-lab/development/">development-channel docs</a>.
               </p>
             </body>
           </html>

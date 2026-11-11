@@ -24,7 +24,7 @@ This repository uses a simple, safety-conscious model that keeps the source hist
 
 Short-lived branches live for days, not weeks. Cut one from the tip of `main` before your first edit, open the pull request while the change is still small, and delete the branch when it merges. When trunk moves under you, rebase your own branch; never rebase a branch someone else may have pulled.
 
-**Retirement note.** `development` was the previous integration branch and `dev` an optional soak gate. Both are retired. Their content is on trunk: `development` (tip `312cda32d0fefb48c04f02e253c413c69ab431a7`) is 148 commits ahead of the old `main` and `main` held no work of its own beyond retired MkDocs site scaffolding. `dev` (tip `1b4bcbefba62a5e860b7044dec0b49d518249b8b`) was last written 2026-07-20. Those SHAs are the recovery points until garbage collection.
+**Retirement note.** `development` was the previous integration branch and `dev` an optional soak gate. Both are retired. `development` (tip `7867ee87ea62c747656785f500f93c211cd465f3`, last written 2026-11-10) is 159 commits ahead of `main`, and `main` holds no work of its own beyond retired MkDocs site scaffolding, so promoting that tip onto trunk is a content move with nothing to reconcile. `dev` (tip `1b4bcbefba62a5e860b7044dec0b49d518249b8b`) was last written 2026-07-20. Those SHAs are the recovery points until garbage collection.
 
 Never force-push `main`.
 Never commit directly to protected branches.
