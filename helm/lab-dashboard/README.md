@@ -14,7 +14,9 @@ helm upgrade --install lab-dashboard ./helm/lab-dashboard \
 # Optional: pull the GHCR image instead of a local build
 # helm upgrade --install lab-dashboard ./helm/lab-dashboard -n dev --create-namespace \
 #   --set image.repository=ghcr.io/toxicoder/nvidia-dgx-spark-lab/lab-dashboard \
-#   --set image.tag=development
+#   --set image.tag=sha-1a2b3c4
+# The published tag is sha-<short> from publish-images.yml; name that tag or an image
+# digest, never a branch name, so what runs is traceable to one commit.
 ```
 
 Values come from group_vars or --set. See values.yaml.

@@ -176,10 +176,10 @@ names its tip.
 | Branch | Tip | Last written | Status |
 | --- | --- | --- | --- |
 | `main` | `02dc3f330391e6e17884584232a94897d8968110` | 2026-09-13 | trunk |
-| `development` | `312cda32d0fefb48c04f02e253c413c69ab431a7` | still active when this page was written | frozen once its content is promoted to `main`, then deleted |
+| `development` | `7867ee87ea62c747656785f500f93c211cd465f3` | 2026-11-10 | frozen; delete once its content is promoted to `main` |
 | `dev` | `1b4bcbefba62a5e860b7044dec0b49d518249b8b` | 2026-07-20 | abandoned intermediate promotion gate; delete |
 
-`development` holds 148 commits `main` does not, and the content delta is small enough to
+`development` holds 159 commits `main` does not, and the content delta is small enough to
 review in one pass: `git diff --diff-filter=D --name-only origin/main origin/development`
 returns 14 files, all of them retired Material-for-MkDocs scaffolding (`mkdocs.yml`,
 `docs/hooks.py`, `docs/test_hooks.py`, the `docs/test_mkdocs_*` gates,
@@ -192,12 +192,12 @@ Before either branch is deleted, pin its tip with an `archive/*` tag so a rescue
 one command away:
 
 ```bash
-git tag -a archive/development-2026-11 312cda32d0fefb48c04f02e253c413c69ab431a7 \
+git tag -a archive/development-2026-11 7867ee87ea62c747656785f500f93c211cd465f3 \
   -m "Retired integration branch: development"
 git push origin archive/development-2026-11
 
 # To work from the retired tip again:
-git switch -c rescue/development 312cda32d0fefb48c04f02e253c413c69ab431a7
+git switch -c rescue/development 7867ee87ea62c747656785f500f93c211cd465f3
 ```
 
 Use the same `git switch -c` shape with the `dev` tip if that gate is ever needed. After
