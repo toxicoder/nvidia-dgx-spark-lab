@@ -12,7 +12,7 @@ on:
       - ".devcontainer/**"
       - ".github/workflows/devcontainer-image.yml"
   pull_request:
-    branches: [main, development]
+    branches: [main]
     paths:
       - ".devcontainer/**"
       - ".github/workflows/devcontainer-image.yml"
